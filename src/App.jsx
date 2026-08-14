@@ -1984,7 +1984,7 @@ export default function FocusGo() {
                 {allSubjects.length === 0 && (
                   <div style={{fontSize:13, color:textMuted2, padding:"14px 0"}}>—</div>
                 )}
-                {allSubjects.map(subj => {
+                {[...allSubjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"})).map(subj => {
                   const v = subjectProgress[subj] || { done:0, total:0 };
                   const c = colorForSubject(subj, allSubjects);
                   const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
@@ -2949,7 +2949,7 @@ function AddModal({ t, nf, subjects, defaultStart, onClose, onAdd, cardBg, cardB
               <div style={{fontSize:13, color:textMuted2, padding:"6px 0"}}>{t.addSubjectsFirst}</div>
             ) : (
               <select style={inputStyle} value={subject} onChange={e=>setSubject(e.target.value)}>
-                {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+                {[...subjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"})).map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             )}
           </div>
@@ -3015,7 +3015,7 @@ function EditModal({ t, nf, subjects, item, onClose, onSave, cardBg, cardBorder,
           <div>
             <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.subjectLabel}</div>
             <select style={inputStyle} value={subject} onChange={e=>setSubject(e.target.value)}>
-              {subjectOptions.map(s => <option key={s} value={s}>{s}</option>)}
+              {[...subjectOptions].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"})).map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
           <div>
@@ -3094,7 +3094,7 @@ function SubjectsModal({ t, subjects, onAdd, onRemove, onRename, onClose, cardBg
         </div>
         <div style={{overflowY:"auto", display:"flex", flexDirection:"column", gap:8}}>
           {subjects.length === 0 && <div style={{fontSize:13, color:textMuted2, textAlign:"center", padding:"20px 0"}}>{t.noSubjectsYet}</div>}
-          {subjects.map(s => (
+          {[...subjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"})).map(s => (
             <div key={s} style={{border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 14px"}}>
               {editingSubject === s ? (
                 <div style={{display:"flex", flexDirection:"column", gap:6}}>
@@ -3133,7 +3133,7 @@ function ExamsModal({ t, nf, subjects, examSubjects, onAdd, onRemove, onClose, c
     const next = availableSubjects.filter(s => s !== subject);
     setSubject(next[0] || "");
   };
-  const examList = Object.entries(examSubjects);
+  const examList = Object.entries(examSubjects).sort((a,b)=>a[0].localeCompare(b[0], undefined, {sensitivity:"base"}));
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"80vh", display:"flex", flexDirection:"column"}}>
@@ -3150,7 +3150,7 @@ function ExamsModal({ t, nf, subjects, examSubjects, onAdd, onRemove, onClose, c
               <div>
                 <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.subjectLabel}</div>
                 <select style={inputStyle} value={subject} onChange={e=>setSubject(e.target.value)}>
-                  {availableSubjects.map(s => <option key={s} value={s}>{s}</option>)}
+                  {[...availableSubjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"})).map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
               <button onClick={submit} style={{border:"none", borderRadius:12, padding:"12px 0", background:accent, color:"#fff", fontWeight:700, cursor:"pointer"}}>
