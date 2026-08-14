@@ -384,7 +384,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, car
             <div style={{fontSize:13, color:textMain, lineHeight:1.7, textAlign:"center"}}>{t.aboutBody}</div>
 
             <div style={{width:"100%", borderTop:`1px solid ${cardBorder}`, marginTop:20, paddingTop:18}}>
-              <div style={{fontSize:10.5, letterSpacing: isBn ? 0 : "1.3px", color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:8}}>{t.creatorLabel.toUpperCase()}</div>
+              <div style={{fontSize:10.5, letterSpacing: isBn ? 0 : "1.3px", color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:8}}>{t.creatorLabel}</div>
               <div style={{fontSize:15, fontWeight:800, color:textMain, marginBottom:14}}>Md. Mazharul Islam Maruf</div>
 
               <div style={{display:"flex", justifyContent:"center", gap:10, marginBottom:14}}>
@@ -890,16 +890,16 @@ const MONTHS_BN = ["জানুয়ারি","ফেব্রুয়ার
 
 const T = {
   en: {
-    tagline: "STUDY SMARTER",
+    tagline: "Study Smarter",
     tabs: { today: "Today", plan: "Plan", week: "Week", month: "Month", exam: "Exam" },
-    focusTimer: "FOCUS TIMER", start: "Start", pause: "Pause", reset: "Reset",
+    focusTimer: "Focus Timer", start: "Start", pause: "Pause", reset: "Reset",
     pickTopicForTimer: "Pick a topic to focus on", freeSession: "Free focus session",
     timerMode: "Timer", stopwatchMode: "Stopwatch",
     editTopicTitle: "Edit topic", save: "Save", edit: "Edit",
-    yourRhythm: "YOUR RHYTHM", todaysStudy: "Today's study", todaysProgress: "Today's Progress", addTopic: "Add topic",
+    yourRhythm: "Your Rhythm", todaysStudy: "Today's study", todaysProgress: "Today's Progress", addTopic: "Add topic",
     noTopicsToday: "No topics yet. Add one to start your rhythm.",
-    thisWeek: "THIS WEEK",
-    longView: "LONG VIEW", syllabusProgress: "Subject progress", complete: "COMPLETE",
+    thisWeek: "This Week",
+    longView: "Long View", syllabusProgress: "Subject Progress", complete: "Complete",
     weeklySummary: "Weekly summary", monthlySummary: "Monthly summary",
     covered: "Covered", missed: "Missed",
     noneCovered: "Nothing covered yet.", noneMissed: "Nothing missed — great job!",
@@ -917,19 +917,19 @@ const T = {
     startTimeLabel: "Start time", endTimeLabel: "End time",
     addTimeToggle: "Add a specific time", noTimeSet: "No time set",
     remainingHeader: "Remaining", doneHeader: "Done",
-    next7Days: "NEXT 7 DAYS", subjectTimeBreakdown: "Time by subject", noTimeData: "No completed topics yet.",
+    next7Days: "Next 7 Days", subjectTimeBreakdown: "Time by subject", noTimeData: "No completed topics yet.",
     overview: "Overview", caughtUpNote: "Caught up later",
     examSubjects: "Exam subjects", manageExams: "Manage exams", addExam: "Add exam subject",
     examDateLabel: "Exam date (optional)", noExamSubjects: "No exam subjects yet. Add the subjects you're being examined on.",
     noDateSet: "No date set", daysLeftLabel: "days left", examToday: "Exam today", examPassed: "Exam passed",
-    removeExam: "Remove", nextExam: "NEXT EXAM", noUpcomingExam: "No upcoming exam dates set", examOverview: "Overview across all your exam subjects",
+    removeExam: "Remove", nextExam: "Next Exam", noUpcomingExam: "No upcoming exam dates set", examOverview: "Overview across all your exam subjects",
     examScores: "Test scores", average: "Average", obtainedPlaceholder: "Marks", outOfPlaceholder: "Out of", noScoresYet: "No scores added yet",
     examGivenLabel: "Exam given", examsCompletedLabel: "exams given",
     topicsLabel: "Topics", addTopicBtn: "Add topic", noTopicsInSubject: "No topics yet.",
     topicNamePlaceholder: "Topic name (e.g. কারক)", attemptsLabel: "attempts", attemptsCountLabel: "Attempts",
     addAttempt: "Add attempt", attemptDateLabel: "Date", noAttemptsYet: "No attempts yet",
     generalTopic: "General", completedBadge: "Completed",
-    nextExamCard: "NEXT EXAM", setNextExam: "Set next exam", editNextExam: "Edit", clearNextExam: "Clear",
+    nextExamCard: "Next Exam", setNextExam: "Set next exam", editNextExam: "Edit", clearNextExam: "Clear",
     chooseSubject: "Choose subject", chooseTopic: "Choose topic or type new", noSubjectsForExam: "Add an exam subject first.",
     monthlySummaryExam: "Monthly summary", totalExams: "Total exams", totalAttempts: "Total attempts",
     avgScoreLabel: "Average score", maxScoreLabel: "Highest score", subjectBreakdown: "Subject breakdown",
@@ -1831,7 +1831,7 @@ export default function FocusGo() {
 
         {/* Date row */}
         <div style={{marginTop:22}}>
-          <div style={{fontSize:11, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:4}}>{weekdayName(today).toUpperCase()}</div>
+          <div style={{fontSize:11, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:4}}>{weekdayName(today)}</div>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
             <div style={{display:"flex", alignItems:"center", gap:12}}>
               <span style={{fontSize:44, fontWeight:800, lineHeight:1}}><Num>{nf(today.getDate())}</Num></span>
@@ -2011,32 +2011,29 @@ export default function FocusGo() {
             {/* syllabus progress */}
             <div style={{marginTop:22}}>
               <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                <div>
-                  <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.longView}</div>
-                  <div style={{fontSize:19, fontWeight:800, marginTop:2}}>{t.syllabusProgress}</div>
-                </div>
+                <div style={{fontSize:19, fontWeight:800}}>{t.syllabusProgress}</div>
                 <button onClick={()=>{vibrate(); setShowSubjects(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
                   <Plus size={12}/> {t.manageSubjects}
                 </button>
               </div>
-              <div style={{display:"flex", flexDirection:"column", gap:10, marginTop:12}}>
+              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginTop:12}}>
                 {allSubjects.length === 0 && (
-                  <div style={{fontSize:13, color:textMuted2, padding:"14px 0"}}>—</div>
+                  <div style={{fontSize:13, color:textMuted2, padding:"14px 0", gridColumn:"1 / -1"}}>—</div>
                 )}
                 {[...allSubjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"})).map(subj => {
                   const v = subjectProgress[subj] || { done:0, total:0 };
                   const c = colorForSubject(subj, allSubjects);
                   const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
                   return (
-                    <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px"}}>
-                      <div style={{display:"flex", justifyContent:"space-between", marginBottom:8}}>
-                        <span style={{fontWeight:700, fontSize:14}}>{subj}</span>
-                        <span style={{fontSize:12, color:textMuted2, fontWeight:600}}><Num>{nf(v.done)}</Num> / <Num>{nf(v.total)}</Num></span>
+                    <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 12px", minWidth:0}}>
+                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", gap:4, marginBottom:6}}>
+                        <span style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subj}</span>
+                        <span style={{fontSize:10, color:textMuted2, fontWeight:600, flexShrink:0}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num></span>
                       </div>
-                      <div style={{height:7, borderRadius:4, background: dark? "#2C2820":"#EFE9DC", overflow:"hidden"}}>
-                        <div style={{height:"100%", width:`${pct}%`, background:c.bg, borderRadius:4, transition:"width .3s"}}/>
+                      <div style={{height:5, borderRadius:3, background: dark? "#2C2820":"#EFE9DC", overflow:"hidden"}}>
+                        <div style={{height:"100%", width:`${pct}%`, background:c.bg, borderRadius:3, transition:"width .3s"}}/>
                       </div>
-                      <div style={{fontSize:11, fontWeight:700, color:c.bg, marginTop:6, letterSpacing:ls(0.5)}}><Num>{nf(pct)}</Num>% {t.complete}</div>
+                      <div style={{fontSize:10, fontWeight:700, color:c.bg, marginTop:5, letterSpacing:ls(0.3)}}><Num>{nf(pct)}</Num>% {t.complete}</div>
                     </div>
                   );
                 })}
@@ -2354,7 +2351,7 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
           <ChevronDown size={22}/>
         </button>
         <span style={{fontSize:11, letterSpacing:2, fontWeight:700, color:textMuted2}}>
-          {mode === "timer" ? t.focusTimer : t.stopwatchMode.toUpperCase()}
+          {mode === "timer" ? t.focusTimer : t.stopwatchMode}
         </span>
         <div style={{width:34}}/>
       </div>
