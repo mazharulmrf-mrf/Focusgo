@@ -1549,23 +1549,47 @@ export default function FocusGo() {
     return (
       <div style={{
         minHeight:"100dvh",
-        background:bg,
-        color:textMain,
+        width:"100%",
+        background:dark ? "#11100F" : "#F7F3ED",
         display:"flex",
         alignItems:"center",
         justifyContent:"center",
+        overflow:"hidden",
         fontFamily:lang === "bn" ? "'Hind Siliguri','Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif",
       }}>
-        <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:12}}>
+        <div style={{
+          display:"flex",
+          flexDirection:"column",
+          alignItems:"center",
+          justifyContent:"center",
+          gap:18,
+          animation:"fg-splash-in .22s ease-out"
+        }}>
+          <img
+            src="/app-icon.png"
+            alt="FocusGo"
+            style={{
+              width:"clamp(104px, 30vw, 150px)",
+              height:"clamp(104px, 30vw, 150px)",
+              objectFit:"contain",
+              display:"block"
+            }}
+          />
           <div style={{
-            width:42, height:42, borderRadius:12,
-            background:accent,
-            display:"flex", alignItems:"center", justifyContent:"center",
-            color:"#fff", fontWeight:900, fontSize:20,
-            boxShadow:"0 8px 24px rgba(217,119,87,.22)"
-          }}>F</div>
-          <div style={{fontSize:12, color:textMuted2, fontWeight:600}}>FocusGo</div>
+            fontSize:13,
+            fontWeight:700,
+            letterSpacing:".08em",
+            color:dark ? "#B8B1A7" : "#8E877C"
+          }}>
+            FocusGo
+          </div>
         </div>
+        <style>{`
+          @keyframes fg-splash-in {
+            from { opacity:0; transform:scale(.96); }
+            to { opacity:1; transform:scale(1); }
+          }
+        `}</style>
       </div>
     );
   }
@@ -1586,16 +1610,38 @@ export default function FocusGo() {
         justifyContent:"center",
         minHeight:"100dvh"
       }}>
-        <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:10}}>
+        <div style={{
+          display:"flex",
+          flexDirection:"column",
+          alignItems:"center",
+          gap:18,
+          animation:"fg-splash-in .22s ease-out"
+        }}>
+          <img
+            src="/app-icon.png"
+            alt="FocusGo"
+            style={{
+              width:"clamp(92px, 27vw, 135px)",
+              height:"clamp(92px, 27vw, 135px)",
+              objectFit:"contain",
+              display:"block"
+            }}
+          />
           <div style={{
-            width:38, height:38, borderRadius:11,
-            border:`3px solid ${dark ? "#2C2820" : "#E9E3D6"}`,
-            borderTopColor:accent,
-            animation:"fg-spin .8s linear infinite"
-          }} />
-          <div style={{opacity:0.55, fontSize:12}}>Loading your data…</div>
+            fontSize:12,
+            fontWeight:700,
+            letterSpacing:".08em",
+            color:textMuted2
+          }}>
+            Loading your data…
+          </div>
         </div>
-        <style>{`@keyframes fg-spin { to { transform:rotate(360deg); } }`}</style>
+        <style>{`
+          @keyframes fg-splash-in {
+            from { opacity:0; transform:scale(.96); }
+            to { opacity:1; transform:scale(1); }
+          }
+        `}</style>
       </div>
     );
   }
