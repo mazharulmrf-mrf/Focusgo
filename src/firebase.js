@@ -1,18 +1,24 @@
-// এই ফাইলে Firebase Console থেকে পাওয়া আপনার নিজের config বসান।
-// Firebase Console > Project Settings > General > Your apps > SDK setup and configuration
-
+// src/firebase.js
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: "AIzaSyBYKhaF6RXwQ9IkgsrGrrmpLlZcynas-Kg",
+  authDomain: "focusgo.firebaseapp.com",
+  projectId: "focusgo",
+  storageBucket: "focusgo.firebasestorage.app",
+  messagingSenderId: "448849450957",
+  appId: "1:448849450957:web:4526b78915368821299684",
+  measurementId: "G-X82G1K5W0Y",
 };
 
 const app = initializeApp(firebaseConfig);
+
 export const auth = getAuth(app);
+export const db = getFirestore(app);
+
 export const googleProvider = new GoogleAuthProvider();
+// প্রতিবার Google sign-in-এ account picker force করে দেখানোর জন্য —
+// নাহলে browser-এ আগে থেকে লগইন থাকা account দিয়ে auto sign-in হয়ে যায়।
+googleProvider.setCustomParameters({ prompt: "select_account" });

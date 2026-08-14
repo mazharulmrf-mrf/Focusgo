@@ -1,150 +1,29 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Monitor, Settings, Info } from "lucide-react";
-// ================= PREVIEW-ONLY MOCK =================
-// আসল প্রজেক্টে এখানে real "firebase/auth" ও "firebase/firestore" ইম্পোর্ট হয় এবং
-// src/firebase.js থেকে auth/db আসে। artifact প্রিভিউতে real Firebase চালানো যায় না
-// (real project domain লাগে), তাই এখানে একই API-শেপে একটা ইন-মেমরি মক বসানো হলো —
-// শুধু UI/UX দেখানোর জন্য। ডাউনলোড করা ফাইলে (App.jsx / firebase.js) real Firebase কোড আছে।
-const __mockUsers = {}; // email -> { uid, email, password, displayName }
-const __mockDB = {}; // uid -> stored document data
-let __mockCurrentUser = null;
-let __mockListeners = [];
-const __notifyAuth = () => { __mockListeners.forEach(cb => cb(__mockCurrentUser)); };
+import { auth, googleProvider, db } from "./firebase";
+import {
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  sendPasswordResetEmail,
+  updateProfile,
+  updateEmail,
+  updatePassword,
+  reauthenticateWithCredential as _reauthenticateWithCredential,
+  EmailAuthProvider,
+} from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
-// ---------- mock auth persistence (localStorage) ----------
-// একবার লগইন করলে সেশন সেভ হয়ে থাকে — রিফ্রেশ/অ্যাপ আবার খোলা হলে আবার লগইন পেজ দেখাবে না।
-// real Firebase-এ এটা browserLocalPersistence দিয়ে নিজে থেকেই হয়; এখানে মক-এর জন্য ম্যানুয়ালি করা হলো।
-const __AUTH_STORAGE_KEY = "focusgo_auth_session_v1";
-function __persistAuth() {
-  try {
-    window.localStorage.setItem(__AUTH_STORAGE_KEY, JSON.stringify({
-      users: __mockUsers,
-      currentUserEmail: __mockCurrentUser ? __mockCurrentUser.email : null,
-    }));
-  } catch (e) { /* localStorage unavailable — silently skip */ }
-}
-(function __restoreAuth() {
-  try {
-    const raw = window.localStorage.getItem(__AUTH_STORAGE_KEY);
-    if (!raw) return;
-    const saved = JSON.parse(raw);
-    if (saved && saved.users) {
-      Object.assign(__mockUsers, saved.users);
-      if (saved.currentUserEmail && __mockUsers[saved.currentUserEmail]) {
-        __mockCurrentUser = __mockUsers[saved.currentUserEmail];
-      }
-    }
-  } catch (e) { /* corrupt/missing data — শুরু হবে লগইন ছাড়া অবস্থা থেকেই */ }
-})();
-
-const auth = {};
-const googleProvider = {};
-const db = {};
-function onAuthStateChanged(_auth, cb) {
-  __mockListeners.push(cb);
-  setTimeout(() => cb(__mockCurrentUser), 0);
-  return () => { __mockListeners = __mockListeners.filter(l => l !== cb); };
-}
-function createUserWithEmailAndPassword(_auth, email, password) {
-  return new Promise((resolve, reject) => setTimeout(() => {
-    if (__mockUsers[email]) { reject({ code: "auth/email-already-in-use" }); return; }
-    if (!password || password.length < 8) { reject({ code: "auth/weak-password" }); return; }
-    const user = { uid: "uid_" + Math.random().toString(36).slice(2), email, password, displayName: null };
-    __mockUsers[email] = user;
-    __mockCurrentUser = user;
-    __persistAuth();
-    __notifyAuth();
-    resolve({ user });
-  }, 400));
-}
-function signInWithEmailAndPassword(_auth, email, password) {
-  return new Promise((resolve, reject) => setTimeout(() => {
-    const u = __mockUsers[email];
-    if (!u || u.password !== password) { reject({ code: "auth/invalid-credential" }); return; }
-    __mockCurrentUser = u;
-    __persistAuth();
-    __notifyAuth();
-    resolve({ user: u });
-  }, 400));
-}
-function signInWithPopup(_auth, _provider) {
-  return new Promise((resolve) => setTimeout(() => {
-    const email = "demo.user@gmail.com";
-    let u = __mockUsers[email];
-    if (!u) { u = { uid: "uid_google_demo", email, password: null, displayName: "Demo User" }; __mockUsers[email] = u; }
-    __mockCurrentUser = u;
-    __persistAuth();
-    __notifyAuth();
-    resolve({ user: u });
-  }, 400));
-}
-function signOut(_auth) {
-  return new Promise((resolve) => setTimeout(() => { __mockCurrentUser = null; __persistAuth(); __notifyAuth(); resolve(); }, 150));
-}
-function sendPasswordResetEmail(_auth, _email) {
-  return new Promise((resolve) => setTimeout(resolve, 400));
-}
-function updateProfile(user, { displayName, photoURL }) {
-  return new Promise((resolve) => setTimeout(() => {
-    const stored = __mockUsers[user.email];
-    if (stored) {
-      if (displayName !== undefined) stored.displayName = displayName;
-      if (photoURL !== undefined) stored.photoURL = photoURL;
-    }
-    if (__mockCurrentUser && __mockCurrentUser.email === user.email) {
-      if (displayName !== undefined) __mockCurrentUser.displayName = displayName;
-      if (photoURL !== undefined) __mockCurrentUser.photoURL = photoURL;
-    }
-    __persistAuth();
-    resolve();
-  }, 100));
-}
-function updateEmail(user, newEmail) {
-  return new Promise((resolve, reject) => setTimeout(() => {
-    if (__mockUsers[newEmail] && newEmail !== user.email) { reject({ code: "auth/email-already-in-use" }); return; }
-    const stored = __mockUsers[user.email];
-    if (stored) {
-      delete __mockUsers[user.email];
-      stored.email = newEmail;
-      __mockUsers[newEmail] = stored;
-    }
-    if (__mockCurrentUser && __mockCurrentUser.uid === user.uid) __mockCurrentUser.email = newEmail;
-    __persistAuth();
-    resolve();
-  }, 400));
-}
-function updatePassword(user, newPassword) {
-  return new Promise((resolve, reject) => setTimeout(() => {
-    if (!newPassword || newPassword.length < 8) { reject({ code: "auth/weak-password" }); return; }
-    const stored = __mockUsers[user.email];
-    if (stored) stored.password = newPassword;
-    if (__mockCurrentUser && __mockCurrentUser.uid === user.uid) __mockCurrentUser.password = newPassword;
-    __persistAuth();
-    resolve();
-  }, 400));
-}
+// আগে mock এ (email, currentPassword) সিগনেচারে কল হতো — real Firebase-এ credential
+// অবজেক্ট লাগে, তাই এই wrapper দিয়ে বাকি কোড অপরিবর্তিত রেখে সেটা মিলিয়ে দেওয়া হলো।
 function reauthenticateWithCredential(user, currentPassword) {
-  return new Promise((resolve, reject) => setTimeout(() => {
-    const stored = __mockUsers[user.email];
-    if (!stored || stored.password == null) { resolve(); return; } // Google/no-password account — skip
-    if (stored.password !== currentPassword) { reject({ code: "auth/wrong-password" }); return; }
-    resolve();
-  }, 300));
+  const hasPasswordProvider = (user.providerData || []).some(p => p.providerId === "password");
+  if (!hasPasswordProvider) return Promise.resolve(); // Google/no-password account — skip
+  const credential = EmailAuthProvider.credential(user.email, currentPassword);
+  return _reauthenticateWithCredential(user, credential);
 }
-function doc(_db, _col, uid) { return { uid }; }
-function getDoc(ref) {
-  return new Promise((resolve) => setTimeout(() => {
-    const data = __mockDB[ref.uid];
-    resolve({ exists: () => !!data, data: () => data });
-  }, 250));
-}
-function setDoc(ref, data, _opts) {
-  return new Promise((resolve) => setTimeout(() => {
-    __mockDB[ref.uid] = { ...(__mockDB[ref.uid] || {}), ...data };
-    resolve();
-  }, 100));
-}
-// ================= END MOCK =================
 
 // ---------- Email/Password Auth স্ক্রিন ----------
 function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent, dark, onGuest }) {
