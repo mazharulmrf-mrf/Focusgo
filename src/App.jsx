@@ -1,29 +1,150 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Monitor, Settings, Info } from "lucide-react";
-import { auth, googleProvider, db } from "./firebase";
-import {
-  onAuthStateChanged,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-  sendPasswordResetEmail,
-  updateProfile,
-  updateEmail,
-  updatePassword,
-  reauthenticateWithCredential as _reauthenticateWithCredential,
-  EmailAuthProvider,
-} from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+// ================= PREVIEW-ONLY MOCK =================
+// আসল প্রজেক্টে এখানে real "firebase/auth" ও "firebase/firestore" ইম্পোর্ট হয় এবং
+// src/firebase.js থেকে auth/db আসে। artifact প্রিভিউতে real Firebase চালানো যায় না
+// (real project domain লাগে), তাই এখানে একই API-শেপে একটা ইন-মেমরি মক বসানো হলো —
+// শুধু UI/UX দেখানোর জন্য। ডাউনলোড করা ফাইলে (App.jsx / firebase.js) real Firebase কোড আছে।
+const __mockUsers = {}; // email -> { uid, email, password, displayName }
+const __mockDB = {}; // uid -> stored document data
+let __mockCurrentUser = null;
+let __mockListeners = [];
+const __notifyAuth = () => { __mockListeners.forEach(cb => cb(__mockCurrentUser)); };
 
-// আগে mock এ (email, currentPassword) সিগনেচারে কল হতো — real Firebase-এ credential
-// অবজেক্ট লাগে, তাই এই wrapper দিয়ে বাকি কোড অপরিবর্তিত রেখে সেটা মিলিয়ে দেওয়া হলো।
-function reauthenticateWithCredential(user, currentPassword) {
-  const hasPasswordProvider = (user.providerData || []).some(p => p.providerId === "password");
-  if (!hasPasswordProvider) return Promise.resolve(); // Google/no-password account — skip
-  const credential = EmailAuthProvider.credential(user.email, currentPassword);
-  return _reauthenticateWithCredential(user, credential);
+// ---------- mock auth persistence (localStorage) ----------
+// একবার লগইন করলে সেশন সেভ হয়ে থাকে — রিফ্রেশ/অ্যাপ আবার খোলা হলে আবার লগইন পেজ দেখাবে না।
+// real Firebase-এ এটা browserLocalPersistence দিয়ে নিজে থেকেই হয়; এখানে মক-এর জন্য ম্যানুয়ালি করা হলো।
+const __AUTH_STORAGE_KEY = "focusgo_auth_session_v1";
+function __persistAuth() {
+  try {
+    window.localStorage.setItem(__AUTH_STORAGE_KEY, JSON.stringify({
+      users: __mockUsers,
+      currentUserEmail: __mockCurrentUser ? __mockCurrentUser.email : null,
+    }));
+  } catch (e) { /* localStorage unavailable — silently skip */ }
 }
+(function __restoreAuth() {
+  try {
+    const raw = window.localStorage.getItem(__AUTH_STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (saved && saved.users) {
+      Object.assign(__mockUsers, saved.users);
+      if (saved.currentUserEmail && __mockUsers[saved.currentUserEmail]) {
+        __mockCurrentUser = __mockUsers[saved.currentUserEmail];
+      }
+    }
+  } catch (e) { /* corrupt/missing data — শুরু হবে লগইন ছাড়া অবস্থা থেকেই */ }
+})();
+
+const auth = {};
+const googleProvider = {};
+const db = {};
+function onAuthStateChanged(_auth, cb) {
+  __mockListeners.push(cb);
+  setTimeout(() => cb(__mockCurrentUser), 0);
+  return () => { __mockListeners = __mockListeners.filter(l => l !== cb); };
+}
+function createUserWithEmailAndPassword(_auth, email, password) {
+  return new Promise((resolve, reject) => setTimeout(() => {
+    if (__mockUsers[email]) { reject({ code: "auth/email-already-in-use" }); return; }
+    if (!password || password.length < 8) { reject({ code: "auth/weak-password" }); return; }
+    const user = { uid: "uid_" + Math.random().toString(36).slice(2), email, password, displayName: null };
+    __mockUsers[email] = user;
+    __mockCurrentUser = user;
+    __persistAuth();
+    __notifyAuth();
+    resolve({ user });
+  }, 400));
+}
+function signInWithEmailAndPassword(_auth, email, password) {
+  return new Promise((resolve, reject) => setTimeout(() => {
+    const u = __mockUsers[email];
+    if (!u || u.password !== password) { reject({ code: "auth/invalid-credential" }); return; }
+    __mockCurrentUser = u;
+    __persistAuth();
+    __notifyAuth();
+    resolve({ user: u });
+  }, 400));
+}
+function signInWithPopup(_auth, _provider) {
+  return new Promise((resolve) => setTimeout(() => {
+    const email = "demo.user@gmail.com";
+    let u = __mockUsers[email];
+    if (!u) { u = { uid: "uid_google_demo", email, password: null, displayName: "Demo User" }; __mockUsers[email] = u; }
+    __mockCurrentUser = u;
+    __persistAuth();
+    __notifyAuth();
+    resolve({ user: u });
+  }, 400));
+}
+function signOut(_auth) {
+  return new Promise((resolve) => setTimeout(() => { __mockCurrentUser = null; __persistAuth(); __notifyAuth(); resolve(); }, 150));
+}
+function sendPasswordResetEmail(_auth, _email) {
+  return new Promise((resolve) => setTimeout(resolve, 400));
+}
+function updateProfile(user, { displayName, photoURL }) {
+  return new Promise((resolve) => setTimeout(() => {
+    const stored = __mockUsers[user.email];
+    if (stored) {
+      if (displayName !== undefined) stored.displayName = displayName;
+      if (photoURL !== undefined) stored.photoURL = photoURL;
+    }
+    if (__mockCurrentUser && __mockCurrentUser.email === user.email) {
+      if (displayName !== undefined) __mockCurrentUser.displayName = displayName;
+      if (photoURL !== undefined) __mockCurrentUser.photoURL = photoURL;
+    }
+    __persistAuth();
+    resolve();
+  }, 100));
+}
+function updateEmail(user, newEmail) {
+  return new Promise((resolve, reject) => setTimeout(() => {
+    if (__mockUsers[newEmail] && newEmail !== user.email) { reject({ code: "auth/email-already-in-use" }); return; }
+    const stored = __mockUsers[user.email];
+    if (stored) {
+      delete __mockUsers[user.email];
+      stored.email = newEmail;
+      __mockUsers[newEmail] = stored;
+    }
+    if (__mockCurrentUser && __mockCurrentUser.uid === user.uid) __mockCurrentUser.email = newEmail;
+    __persistAuth();
+    resolve();
+  }, 400));
+}
+function updatePassword(user, newPassword) {
+  return new Promise((resolve, reject) => setTimeout(() => {
+    if (!newPassword || newPassword.length < 8) { reject({ code: "auth/weak-password" }); return; }
+    const stored = __mockUsers[user.email];
+    if (stored) stored.password = newPassword;
+    if (__mockCurrentUser && __mockCurrentUser.uid === user.uid) __mockCurrentUser.password = newPassword;
+    __persistAuth();
+    resolve();
+  }, 400));
+}
+function reauthenticateWithCredential(user, currentPassword) {
+  return new Promise((resolve, reject) => setTimeout(() => {
+    const stored = __mockUsers[user.email];
+    if (!stored || stored.password == null) { resolve(); return; } // Google/no-password account — skip
+    if (stored.password !== currentPassword) { reject({ code: "auth/wrong-password" }); return; }
+    resolve();
+  }, 300));
+}
+function doc(_db, _col, uid) { return { uid }; }
+function getDoc(ref) {
+  return new Promise((resolve) => setTimeout(() => {
+    const data = __mockDB[ref.uid];
+    resolve({ exists: () => !!data, data: () => data });
+  }, 250));
+}
+function setDoc(ref, data, _opts) {
+  return new Promise((resolve) => setTimeout(() => {
+    __mockDB[ref.uid] = { ...(__mockDB[ref.uid] || {}), ...data };
+    resolve();
+  }, 100));
+}
+// ================= END MOCK =================
 
 // ---------- Email/Password Auth স্ক্রিন ----------
 function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent, dark, onGuest }) {
@@ -211,14 +332,18 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
 }
 
 // সাইন ইন করার পর হেডারে শুধু একটা ইউজার আইকন দেখা যাবে — ক্লিক করলে প্রোফাইল মোডাল খুলবে
-function UserMenu({ onOpen, cardBorder, cardBg, textMain }) {
+function UserMenu({ onOpen, cardBorder, cardBg, textMain, user }) {
   return (
     <button
       onClick={onOpen}
-      style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMain, borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
+      style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMain, borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, overflow:"hidden", padding:0 }}
       title="Profile"
     >
-      <User size={16} />
+      {user && user.photoURL ? (
+        <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
+      ) : (
+        <User size={16} />
+      )}
     </button>
   );
 }
@@ -865,8 +990,8 @@ const colorForSubject = (name, subjects) => {
   return SUBJECT_COLORS[(idx < 0 ? 0 : idx) % SUBJECT_COLORS.length];
 };
 
-// Renders digits in Kalpurush (Bengali numerals render more cleanly in it than Hind Siliguri).
-const Num = ({ children }) => <span style={{ fontFamily: "'Kalpurush','Hind Siliguri',serif" }}>{children}</span>;
+// Renders digits in Noto Sans Bengali (clean, reliable Bengali numeral rendering, Google-hosted).
+const Num = ({ children }) => <span style={{ fontFamily: "'Noto Sans Bengali','Hind Siliguri',serif" }}>{children}</span>;
 
 // Light haptic tick for navigation (tabs, opening calendar/day views, etc). No-op on devices/browsers without support.
 const vibrate = (pattern = 12) => {
@@ -885,6 +1010,31 @@ export default function FocusGo() {
     }
     link.href = APP_ICON;
     document.title = "FocusGo - Make every day count.";
+  }, []);
+
+  // ---------- Font loading (fixed) ----------
+  // আগে ফন্টগুলো `@import` দিয়ে একটা <style> ট্যাগে লোড হতো, যেটা শুধু লগইন/লোডিং স্ক্রিন পার হয়ে
+  // মূল UI রেন্ডার হওয়ার পরে DOM-এ যোগ হতো। ফলে: (১) শুরুর স্ক্রিনগুলোতে ফন্ট রিকোয়েস্টই যেত না,
+  // (২) `@import` ব্রাউজার অনুযায়ী ভিন্নভাবে/দেরিতে লোড হয়, তাই রিফ্রেশ বা ডিপ্লয়ের পর মাঝেমধ্যে
+  // ফলব্যাক (সিস্টেম) ফন্ট দেখা যেত — এটাই "ফন্ট চেঞ্জ হয়ে যাওয়া" সমস্যার আসল কারণ।
+  // এখন: real <link rel="stylesheet"> ট্যাগ দিয়ে, কম্পোনেন্ট মাউন্ট হওয়ার সাথে সাথেই (যেকোনো
+  // loading/auth স্ক্রিনের আগেই) একবার লোড হয় — সব ব্রাউজারে consistent ও ক্যাশযোগ্য।
+  useEffect(() => {
+    const addLink = (rel, href, extra = {}) => {
+      const selector = `link[rel="${rel}"][href="${href}"]`;
+      if (document.querySelector(selector)) return;
+      const el = document.createElement("link");
+      el.rel = rel;
+      el.href = href;
+      Object.entries(extra).forEach(([k, v]) => { el[k] = v; });
+      document.head.appendChild(el);
+    };
+    // preconnect — DNS/TLS আগেভাগে শুরু করে দেয়, তাই আসল CSS/ফন্ট ফাইল দ্রুত আসে
+    addLink("preconnect", "https://fonts.googleapis.com");
+    addLink("preconnect", "https://fonts.gstatic.com", { crossOrigin: "anonymous" });
+    // আসল ফন্ট stylesheet — এবার real <link>, তাই ব্রাউজার এটাকে render-blocking resource
+    // হিসেবে priority দিয়ে আগেভাগে ফেচ করে, `@import`-এর মতো দেরি করে না
+    addLink("stylesheet", "https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&family=Bebas+Neue&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap");
   }, []);
 
   const breakpoint = useViewport(); // "mobile" | "tablet" | "desktop"
@@ -1413,9 +1563,6 @@ export default function FocusGo() {
   return (
     <div style={styles.page}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&display=swap');
-        @import url('https://fonts.maateen.me/kalpurush/font.css');
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
         html, body { margin:0; padding:0; background:${bg}; overscroll-behavior-y: none; }
         #root, #__next { background:${bg}; }
 
@@ -1437,7 +1584,7 @@ export default function FocusGo() {
           </div>
 
           <div style={{display:"flex", alignItems:"center", gap:6}}>
-            <UserMenu onOpen={()=>{vibrate(); setShowProfile(true);}} cardBorder={cardBorder} cardBg={cardBg} textMain={textMain}/>
+            <UserMenu onOpen={()=>{vibrate(); setShowProfile(true);}} cardBorder={cardBorder} cardBg={cardBg} textMain={textMain} user={user}/>
             <button onClick={()=>{vibrate(); setShowSettings(true);}}
               title={t.settings}
               style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
@@ -1447,34 +1594,35 @@ export default function FocusGo() {
         </div>
 
         {/* Date row */}
-        <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginTop:22}}>
-          <div>
-            <div style={{fontSize:11, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:4}}>{weekdayName(today).toUpperCase()}</div>
-            <div style={{display:"flex", alignItems:"baseline", gap:6}}>
+        <div style={{marginTop:22}}>
+          <div style={{fontSize:11, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:4}}>{weekdayName(today).toUpperCase()}</div>
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+            <div style={{display:"flex", alignItems:"center", gap:12}}>
               <span style={{fontSize:44, fontWeight:800, lineHeight:1}}><Num>{nf(today.getDate())}</Num></span>
-              <span style={{fontSize:16, fontWeight:500, color:textMuted2}}>{monthName(today.getMonth())}</span>
-            </div>
-          </div>
-          <div style={{display:"flex", flexDirection:"column", alignItems:"stretch", gap:6}}>
-            <div style={{
-              fontSize:12, fontWeight:700, color:textMain, fontVariantNumeric:"tabular-nums", letterSpacing:0.3,
-              textAlign:"center",
-              background: dark ? "#1F1B17" : "#FBF3EC",
-              border:`1px solid ${dark ? "#332E25" : "#F0DCC9"}`,
-              borderRadius:20, padding:"4px 11px",
-            }}>
-              <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num>
+              <div style={{display:"flex", flexDirection:"column", alignItems:"flex-start", gap:5}}>
+                <div style={{
+                  fontSize:10, fontWeight:700, color:"#fff", fontVariantNumeric:"tabular-nums", letterSpacing:0.3,
+                  textAlign:"center",
+                  background: accent,
+                  borderRadius:20, padding:"2px 9px",
+                }}>
+                  <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num>
+                </div>
+                <span style={{fontSize:16, fontWeight:500, color:textMuted2, lineHeight:1}}>{monthName(today.getMonth())}</span>
+              </div>
             </div>
             <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
               border:"none",
-              background: `linear-gradient(145deg, ${accent}, ${dark ? "#B85C3E" : "#C96A45"})`,
-              borderRadius:10,
-              height:24,
+              background: accent,
+              borderRadius:12,
+              width:48,
+              height:46,
               display:"flex", alignItems:"center", justifyContent:"center",
               cursor:"pointer",
-              boxShadow: `0 4px 11px ${accent}4D, inset 0 1px 0 rgba(255,255,255,0.25)`,
+              boxShadow: `0 4px 11px ${accent}4D`,
+              flexShrink:0,
             }}>
-              <CalendarDays size={14} color="#fff" strokeWidth={2.2}/>
+              <CalendarDays size={20} color="#fff" strokeWidth={2.2}/>
             </button>
           </div>
         </div>
@@ -1606,7 +1754,7 @@ export default function FocusGo() {
                     <div key={i} onClick={()=>{vibrate(); setSelectedDay(d);}} style={{textAlign:"center", cursor:"pointer", flex:1}}>
                       <div style={{fontSize:9, fontWeight:700, color:textMuted2, marginBottom:6}}>{weekdayShort(d)}</div>
                       <div style={{width:30,height:30, borderRadius:"50%", display:"flex",alignItems:"center",justifyContent:"center", margin:"0 auto", fontSize:12, fontWeight:700,
-                        background: isToday ? "#211D18" : "transparent", color: isToday ? "#F3EFE7" : textMain}}>
+                        background: isToday ? (dark ? accent : "#211D18") : "transparent", color: isToday ? (dark ? "#211D18" : "#F3EFE7") : textMain}}>
                         <Num>{nf(d.getDate())}</Num>
                       </div>
                       <div style={{width:5,height:5,borderRadius:"50%", margin:"5px auto 0", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : accent)}}/>
