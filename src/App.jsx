@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Monitor, Settings, Info, Eye, EyeOff, Mail } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail } from "lucide-react";
 // ================= REAL FIREBASE =================
 // Authentication + Firestore are handled by the real Firebase project.
 import {
@@ -1815,12 +1815,12 @@ export default function FocusGo() {
           </button>
 
           <div style={{display:"flex", alignItems:"center", gap:6}}>
+            <UserMenu onOpen={()=>{vibrate(); setShowProfile(true);}} cardBorder={cardBorder} cardBg={cardBg} textMain={textMain} user={user}/>
             <button onClick={()=>{vibrate(); setThemeMode(m => m==="system" ? "light" : m==="light" ? "dark" : "system");}}
               title={themeMode==="system" ? t.themeSystem : themeMode==="dark" ? t.themeDark : t.themeLight}
               style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
-              {themeMode === "system" ? <Monitor size={15}/> : themeMode === "dark" ? <Moon size={15}/> : <Sun size={15}/>}
+              {themeMode === "system" ? <Contrast size={15}/> : themeMode === "dark" ? <Moon size={15}/> : <Sun size={15}/>}
             </button>
-            <UserMenu onOpen={()=>{vibrate(); setShowProfile(true);}} cardBorder={cardBorder} cardBg={cardBg} textMain={textMain} user={user}/>
             <button onClick={()=>{vibrate(); setShowSettings(true);}}
               title={t.settings}
               style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
