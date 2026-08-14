@@ -15,7 +15,7 @@ import {
   reauthenticateWithCredential,
   EmailAuthProvider,
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, setDoc, onSnapshot } from "firebase/firestore";
 import { auth, db, googleProvider } from "./firebase";
 
 // ================= END REAL FIREBASE =================
@@ -1091,6 +1091,18 @@ export default function FocusGo() {
   const stopwatchRef = useRef(null);
   const audioCtxRef = useRef(null);
   const guestLoadedOnceRef = useRef(false); // এই গেস্ট সেশনে localStorage থেকে একবারই লোড হবে
+  // "loaded" শুধু UI-তে splash/loading screen সরানোর জন্য (cache থেকে instant দেখাতে ব্যবহার হয়) —
+  // কিন্তু Firestore-এ write করার অনুমতি এই flag দিয়ে দিলে বিপদ: cache-এ যদি পুরনো/ফাঁকা data থাকে
+  // এবং Firestore থেকে আসল data আসতে দেরি হয় (স্লো নেটওয়ার্ক), তাহলে সেই stale cache-ই আগে
+  // Firestore-এ লেখা হয়ে যায় ও আসল data (অন্য device-এ যোগ করা subjects ইত্যাদি) overwrite/মুছে ফেলে।
+  // তাই write-permission-এর জন্য আলাদা flag — যেটা শুধু Firestore থেকে confirm আসার পরেই true হয়।
+  const [serverSynced, setServerSynced] = useState(false);
+  // এখান দিয়ে আমরা নিজেরা সবশেষ কী data Firestore-এ লিখেছি সেটা মনে রাখা হয় —
+  // এটা না থাকলে: নিজে write করি → সাথে সাথে নিজেরই সেই write-এর "echo" real-time listener-এ ফিরে আসে
+  // → আবার setState → আবার auto-save effect ট্রিগার → আবার write... (অপ্রয়োজনীয় লুপ)।
+  // Real-time listener থেকে data এলে সেটা এই ref-এর সাথে মিলিয়ে দেখা হয়; মিললে সেটা আমাদেরই echo,
+  // তাই আবার setState/re-save করার দরকার নেই। না মিললে সেটা অন্য device থেকে আসা আসল পরিবর্তন — সাথে সাথে UI-তে বসিয়ে দেওয়া হয়।
+  const lastSavedPayloadRef = useRef(null);
   // থিম/ভাষা ব্যাকগ্রাউন্ডে (Firestore/cache থেকে) শুধু সেশনের প্রথমবার লোড হবে —
   // এরপর ইউজার Settings থেকে যা বদলায় তা যেন token-refresh বা re-sync-এ চুপচাপ পুরনো
   // মান দিয়ে ওভাররাইট না হয়ে যায় (এটাই "Light সিলেক্ট করলেও Dark-ই থেকে যায়" বাগের কারণ ছিল)
@@ -1161,6 +1173,7 @@ export default function FocusGo() {
       if (u) {
         setIsGuest(false); // real sign-in — stop treating as guest
         clearGuestData();
+        setServerSynced(false); // নতুন user/session — Firestore থেকে confirm না আসা পর্যন্ত write বন্ধ
 
         // Restore the last known data for THIS Firebase user immediately.
         // Firestore will refresh it in the background, so refresh no longer
@@ -1186,6 +1199,7 @@ export default function FocusGo() {
         // Sign out — remove the previous user's in-memory data.
         setEntries({}); setSubjects([]); setExamSubjects({}); setNextExam(null);
         setLoaded(false);
+        setServerSynced(false);
       }
     });
     return () => unsubscribe();
@@ -1223,50 +1237,69 @@ export default function FocusGo() {
     return () => clearTimeout(timer);
   }, [entries, subjects, examSubjects, nextExam, lang, themeMode, loaded, user, isGuest]);
 
-  // ইউজার লগইন করার পর Firestore থেকে তার ডেটা লোড করা (users/{uid})
+  // ইউজার লগইন করার পর Firestore-এর সাথে real-time sync (users/{uid}) —
+  // getDoc দিয়ে একবার read করার বদলে onSnapshot দিয়ে live listen করা হয়, তাই অন্য কোনো
+  // device-এ data বদলালে এই device-এও app খোলা অবস্থাতেই সাথে সাথে (auto, refresh ছাড়াই) দেখা যাবে।
   useEffect(() => {
     if (!user) return;
-    (async () => {
-      try {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (snap.exists()) {
-          const data = snap.data();
-          if (data.entries) setEntries(data.entries);
-          if (data.subjects) setSubjects(data.subjects);
-          if (data.examSubjects) {
-            const raw = data.examSubjects;
-            // migrate old shape { date, scores:[...] } -> new shape { topics: { General: { attempts:[...] } } }
-            let migratedNextExam = null;
-            const migrated = {};
-            Object.entries(raw).forEach(([subj, info]) => {
-              if (info && info.topics) { migrated[subj] = info; return; }
-              const scores = (info && info.scores) || [];
-              const attempts = scores.map(s => ({ id: s.id, date: info?.date || null, obtained: s.obtained, total: s.total }));
-              migrated[subj] = { topics: attempts.length ? { General: { attempts } } : {} };
-              if (info?.date && scores.length === 0 && !migratedNextExam) {
-                migratedNextExam = { subject: subj, topic: "", date: info.date };
-              }
+    const unsubscribe = onSnapshot(
+      doc(db, "users", user.uid),
+      (snap) => {
+        try {
+          if (snap.exists()) {
+            const data = snap.data();
+            const incomingKey = JSON.stringify({
+              entries: data.entries, subjects: data.subjects, examSubjects: data.examSubjects,
+              nextExam: data.nextExam, lang: data.lang, themeMode: data.themeMode,
             });
-            setExamSubjects(migrated);
-            if (migratedNextExam) setNextExam(prev => prev || migratedNextExam);
+            // যদি এই data আমাদেরই সবশেষ write-এর echo হয়, আবার setState করে re-render/re-save লুপ তৈরি করার দরকার নেই
+            if (incomingKey !== lastSavedPayloadRef.current) {
+              if (data.entries) setEntries(data.entries);
+              if (data.subjects) setSubjects(data.subjects);
+              if (data.examSubjects) {
+                const raw = data.examSubjects;
+                // migrate old shape { date, scores:[...] } -> new shape { topics: { General: { attempts:[...] } } }
+                let migratedNextExam = null;
+                const migrated = {};
+                Object.entries(raw).forEach(([subj, info]) => {
+                  if (info && info.topics) { migrated[subj] = info; return; }
+                  const scores = (info && info.scores) || [];
+                  const attempts = scores.map(s => ({ id: s.id, date: info?.date || null, obtained: s.obtained, total: s.total }));
+                  migrated[subj] = { topics: attempts.length ? { General: { attempts } } : {} };
+                  if (info?.date && scores.length === 0 && !migratedNextExam) {
+                    migratedNextExam = { subject: subj, topic: "", date: info.date };
+                  }
+                });
+                setExamSubjects(migrated);
+                if (migratedNextExam) setNextExam(prev => prev || migratedNextExam);
+              }
+              if (data.nextExam !== undefined) setNextExam(data.nextExam);
+              if (data.lang) setLang(data.lang);
+              if (data.themeMode && !themeLoadedOnceRef.current) { setThemeMode(data.themeMode); themeLoadedOnceRef.current = true; }
+            }
           }
-          if (data.nextExam !== undefined) setNextExam(data.nextExam);
-          if (data.lang) setLang(data.lang);
-          if (data.themeMode && !themeLoadedOnceRef.current) { setThemeMode(data.themeMode); themeLoadedOnceRef.current = true; }
+        } finally {
+          // The cached UI is already visible; Firestore now becomes the
+          // authoritative source without forcing another full-page loading state.
+          setLoaded(true);
+          // এখন থেকেই Firestore-এ write করা নিরাপদ — server state অন্তত একবার confirm হয়ে গেছে
+          // (এই flag true হওয়ার আগে কোনো stale cache accidentally Firestore-এ লেখা হবে না)
+          setServerSynced(true);
         }
-      } catch (e) {
-        console.error("Firestore load error:", e);
-      } finally {
-        // The cached UI is already visible; Firestore now becomes the
-        // authoritative source without forcing another full-page loading state.
+      },
+      (e) => {
+        console.error("Firestore live sync error:", e);
         setLoaded(true);
       }
-    })();
+    );
+    return () => unsubscribe();
   }, [user]);
 
-  // ডেটা বদলালে (debounce করে) Firestore-এ সেভ করা — শুধু লগইন করা অবস্থায়
+  // ডেটা বদলালে (debounce করে) Firestore-এ সেভ করা — শুধু লগইন করা অবস্থায়, এবং শুধু তখনই
+  // যখন Firestore থেকে আসল server data একবার confirm হয়ে গেছে (নাহলে stale cache
+  // ভুলবশত আসল data মুছে দিতে পারে — দেখুন serverSynced-এর উপরের কমেন্ট)
   useEffect(() => {
-    if (!loaded || !user) return;
+    if (!serverSynced || !user) return;
     const payload = {
       entries, subjects, examSubjects, nextExam, lang, themeMode,
       updatedAt: new Date().toISOString(),
@@ -1279,11 +1312,14 @@ export default function FocusGo() {
     } catch (e) {}
 
     const t = setTimeout(() => {
+      // এই মুহূর্তে যা লিখছি তার একটা "ছাপ" রেখে দেওয়া — real-time listener পরে এই একই data
+      // ফেরত পেলে বুঝবে এটা নিজেরই echo, আবার setState/re-save করবে না
+      lastSavedPayloadRef.current = JSON.stringify({ entries, subjects, examSubjects, nextExam, lang, themeMode });
       setDoc(doc(db, "users", user.uid), payload, { merge: true })
         .catch(e => console.error("Firestore save error:", e));
     }, 600); // দ্রুত একের পর এক change হলে বারবার write না করে একবারে সেভ করা
     return () => clearTimeout(t);
-  }, [entries, subjects, examSubjects, nextExam, lang, themeMode, loaded, user]);
+  }, [entries, subjects, examSubjects, nextExam, lang, themeMode, serverSynced, user]);
 
   // clock tick
   useEffect(() => {
