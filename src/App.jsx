@@ -308,6 +308,38 @@ function UserMenu({ onOpen, cardBorder, cardBg, textMain, user }) {
   );
 }
 
+// ডেস্কটপ (≥1024px) এ bottom-nav এর বদলে বাম পাশে সাইডবার — বড় স্ক্রিনে familiar "app" লেআউট
+function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, textMuted2, accent }) {
+  const items = [
+    { k: "today", Icon: Home },
+    { k: "plan", Icon: CalendarDays },
+    { k: "week", Icon: CalendarDays },
+    { k: "month", Icon: BarChart3 },
+    { k: "exam", Icon: GraduationCap },
+  ];
+  return (
+    <div style={{
+      width: 232, flexShrink: 0, borderRight: `1px solid ${cardBorder}`,
+      padding: "28px 14px", display: "flex", flexDirection: "column", gap: 3,
+      position: "sticky", top: 0, height: "100dvh", boxSizing: "border-box",
+    }}>
+      <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt="FocusGo" style={{ height: 26, width: "auto", objectFit: "contain", marginBottom: 26, marginLeft: 8 }} />
+      {items.map(({ k, Icon }) => (
+        <button key={k} onClick={() => { vibrate(); setTab(k); }} style={{
+          display: "flex", alignItems: "center", gap: 12, border: "none", borderRadius: 12,
+          padding: "11px 12px", fontSize: 14, fontWeight: 700, cursor: "pointer", textAlign: "left",
+          background: tab === k ? "rgba(217,119,87,0.14)" : "transparent",
+          color: tab === k ? accent : textMuted2,
+          transition: "background .2s ease, color .2s ease",
+        }}>
+          <Icon size={18} strokeWidth={tab === k ? 2.3 : 2} />
+          {t.tabs[k]}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ---------- Settings modal: Language, Theme, About Us ----------
 function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const [showAbout, setShowAbout] = useState(false);
@@ -1059,6 +1091,10 @@ export default function FocusGo() {
   const stopwatchRef = useRef(null);
   const audioCtxRef = useRef(null);
   const guestLoadedOnceRef = useRef(false); // এই গেস্ট সেশনে localStorage থেকে একবারই লোড হবে
+  // থিম/ভাষা ব্যাকগ্রাউন্ডে (Firestore/cache থেকে) শুধু সেশনের প্রথমবার লোড হবে —
+  // এরপর ইউজার Settings থেকে যা বদলায় তা যেন token-refresh বা re-sync-এ চুপচাপ পুরনো
+  // মান দিয়ে ওভাররাইট না হয়ে যায় (এটাই "Light সিলেক্ট করলেও Dark-ই থেকে যায়" বাগের কারণ ছিল)
+  const themeLoadedOnceRef = useRef(false);
 
   // Lightweight beep generator (Web Audio API) — no external sound files needed.
   const getAudioCtx = () => {
@@ -1139,7 +1175,7 @@ export default function FocusGo() {
               if (cached.examSubjects) setExamSubjects(cached.examSubjects);
               if (cached.nextExam !== undefined) setNextExam(cached.nextExam);
               if (cached.lang) setLang(cached.lang);
-              if (cached.themeMode) setThemeMode(cached.themeMode);
+              if (cached.themeMode && !themeLoadedOnceRef.current) { setThemeMode(cached.themeMode); themeLoadedOnceRef.current = true; }
               setLoaded(true);
             }
           }
@@ -1168,7 +1204,7 @@ export default function FocusGo() {
           if (saved.examSubjects) setExamSubjects(saved.examSubjects);
           if (saved.nextExam !== undefined) setNextExam(saved.nextExam);
           if (saved.lang) setLang(saved.lang);
-          if (saved.themeMode) setThemeMode(saved.themeMode);
+          if (saved.themeMode && !themeLoadedOnceRef.current) { setThemeMode(saved.themeMode); themeLoadedOnceRef.current = true; }
         }
       }
       setLoaded(true);
@@ -1216,7 +1252,7 @@ export default function FocusGo() {
           }
           if (data.nextExam !== undefined) setNextExam(data.nextExam);
           if (data.lang) setLang(data.lang);
-          if (data.themeMode) setThemeMode(data.themeMode);
+          if (data.themeMode && !themeLoadedOnceRef.current) { setThemeMode(data.themeMode); themeLoadedOnceRef.current = true; }
         }
       } catch (e) {
         console.error("Firestore load error:", e);
@@ -1522,9 +1558,12 @@ export default function FocusGo() {
   const textMuted2 = dark ? "#A69E8C" : "#8A8272";
   const accent = "#D97757";
 
-  // Tablet/PC-তে container চওড়া হয়, padding একটু বেশি — কিন্তু layout structure (bottom nav সহ) একই থাকে
-  const containerMaxWidth = breakpoint === "desktop" ? 760 : breakpoint === "tablet" ? 640 : 480;
-  const containerPadding = breakpoint === "desktop" ? "28px 32px 32px" : breakpoint === "tablet" ? "22px 24px 28px" : "18px 16px 24px";
+  // ডেস্কটপ (≥1024px): বাম সাইডবার নেভিগেশন থাকবে, bottom dock হাইড হবে, আর content column
+  // single-column-এই থাকবে কিন্তু zoom দিয়ে গোটা কনটেন্ট একসাথে বড় দেখানো হয় (অন্য অ্যাপগুলোর মতো)
+  const isDesktop = breakpoint === "desktop";
+  const desktopZoom = isDesktop ? 1.18 : 1; // Chromium/Safari/Android WebView সাপোর্ট করে; পুরনো Firefox-এ ignore হবে, লেআউট ভাঙবে না
+  const containerMaxWidth = isDesktop ? 560 : breakpoint === "tablet" ? 640 : 480;
+  const containerPadding = isDesktop ? "36px 0 48px" : breakpoint === "tablet" ? "22px 24px 28px" : "18px 16px 24px";
 
   const styles = {
     page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Hind Siliguri','Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column" },
@@ -1679,7 +1718,7 @@ export default function FocusGo() {
 
 
   return (
-    <div style={styles.page}>
+    <div style={{...styles.page, flexDirection: isDesktop ? "row" : "column"}}>
       <style>{`
         html, body { margin:0; padding:0; background:${bg}; overscroll-behavior-y: none; }
         #root, #__next { background:${bg}; }
@@ -1694,6 +1733,10 @@ export default function FocusGo() {
         .fg-card:active { transform: scale(0.985); }
         input:focus, select:focus, textarea:focus { outline: 2px solid rgba(217,119,87,0.30); outline-offset: 1px; transition: outline-color .15s ease; }
       `}</style>
+      {isDesktop && (
+        <DesktopSidebar t={t} tab={tab} setTab={setTab} vibrate={vibrate} dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} />
+      )}
+      <div style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, zoom: desktopZoom}}>
       <div style={styles.container}>
         {/* Header row: logo | clock | toggles */}
         <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap: 8}}>
@@ -2068,7 +2111,8 @@ export default function FocusGo() {
         )}
       </div>
 
-      {/* Bottom nav */}
+      {/* Bottom nav — মোবাইল/ট্যাবলেটে; ডেস্কটপে সাইডবার থাকায় এটা হাইড */}
+      {!isDesktop && (
       <div style={{position:"sticky", left:0, right:0, bottom:0, display:"flex", justifyContent:"center", padding:"10px 16px 12px", zIndex:40, background: `linear-gradient(to top, ${bg} 60%, transparent)`}}>
         <div style={{
           width:"100%", maxWidth:480, display:"flex",
@@ -2100,6 +2144,8 @@ export default function FocusGo() {
             </button>
           ))}
         </div>
+      </div>
+      )}
       </div>
 
       {/* Fullscreen focus timer */}
