@@ -381,7 +381,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, car
           </div>
           <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", padding:"8px 0 20px"}}>
             <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt={t.appName} style={{height:34, width:"auto", objectFit:"contain", marginBottom:16}}/>
-            <div style={{fontSize:13, color:textMain, lineHeight:1.7, textAlign:"justify"}}>{t.aboutBody}</div>
+            <div style={{fontSize:13, color:textMain, lineHeight:1.7, textAlign:"center"}}>{t.aboutBody}</div>
 
             <div style={{width:"100%", borderTop:`1px solid ${cardBorder}`, marginTop:20, paddingTop:18}}>
               <div style={{fontSize:10.5, letterSpacing: isBn ? 0 : "1.3px", color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:8}}>{t.creatorLabel.toUpperCase()}</div>
