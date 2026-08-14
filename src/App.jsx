@@ -1736,7 +1736,7 @@ export default function FocusGo() {
       {isDesktop && (
         <DesktopSidebar t={t} tab={tab} setTab={setTab} vibrate={vibrate} dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} />
       )}
-      <div style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, zoom: desktopZoom}}>
+      <div style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, ...(isDesktop ? { zoom: desktopZoom } : {})}}>
       <div style={styles.container}>
         {/* Header row: logo | clock | toggles */}
         <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap: 8}}>
