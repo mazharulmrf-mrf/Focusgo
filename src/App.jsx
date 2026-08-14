@@ -999,7 +999,19 @@ export default function FocusGo() {
   const breakpoint = useViewport(); // "mobile" | "tablet" | "desktop"
   const [lang, setLang] = useState("en");
   // থিম: system / light / dark — ডিফল্ট "system", ডিভাইসের prefers-color-scheme অনুযায়ী ঠিক হয়
-  const [themeMode, setThemeMode] = useState("system"); // "system" | "light" | "dark"
+  const [themeMode, setThemeMode] = useState(() => {
+    try {
+      const saved = window.localStorage.getItem("focusgo_theme_mode_v2");
+      return saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
+    } catch (e) {
+      return "system";
+    }
+  }); // "system" | "light" | "dark"
+
+  // Keep the selected theme across browser refreshes without waiting for Firestore.
+  useEffect(() => {
+    try { window.localStorage.setItem("focusgo_theme_mode_v2", themeMode); } catch (e) {}
+  }, [themeMode]);
   const [systemPrefersDark, setSystemPrefersDark] = useState(() => {
     try { return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches; } catch (e) { return false; }
   });
@@ -1109,11 +1121,33 @@ export default function FocusGo() {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
       setAuthChecked(true);
+
       if (u) {
-        setIsGuest(false); // real sign-in (possibly from inside guest mode) — stop treating as guest
-        clearGuestData(); // এখন real account আছে, তাই device-এ পড়ে থাকা গেস্ট ডেটার আর দরকার নেই
+        setIsGuest(false); // real sign-in — stop treating as guest
+        clearGuestData();
+
+        // Restore the last known data for THIS Firebase user immediately.
+        // Firestore will refresh it in the background, so refresh no longer
+        // shows an empty app/loading screen while the network request completes.
+        try {
+          const raw = window.localStorage.getItem(`focusgo_cache_v2_${u.uid}`);
+          if (raw) {
+            const cached = JSON.parse(raw);
+            if (cached && typeof cached === "object") {
+              if (cached.entries) setEntries(cached.entries);
+              if (cached.subjects) setSubjects(cached.subjects);
+              if (cached.examSubjects) setExamSubjects(cached.examSubjects);
+              if (cached.nextExam !== undefined) setNextExam(cached.nextExam);
+              if (cached.lang) setLang(cached.lang);
+              if (cached.themeMode) setThemeMode(cached.themeMode);
+              setLoaded(true);
+            }
+          }
+        } catch (e) {
+          // Ignore broken/old local cache; Firestore remains the source of truth.
+        }
       } else {
-        // sign out করলে আগের ইউজারের ডেটা মেমরি থেকে সরিয়ে দেওয়া
+        // Sign out — remove the previous user's in-memory data.
         setEntries({}); setSubjects([]); setExamSubjects({}); setNextExam(null);
         setLoaded(false);
       }
@@ -1187,6 +1221,8 @@ export default function FocusGo() {
       } catch (e) {
         console.error("Firestore load error:", e);
       } finally {
+        // The cached UI is already visible; Firestore now becomes the
+        // authoritative source without forcing another full-page loading state.
         setLoaded(true);
       }
     })();
@@ -1195,11 +1231,20 @@ export default function FocusGo() {
   // ডেটা বদলালে (debounce করে) Firestore-এ সেভ করা — শুধু লগইন করা অবস্থায়
   useEffect(() => {
     if (!loaded || !user) return;
+    const payload = {
+      entries, subjects, examSubjects, nextExam, lang, themeMode,
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Local cache makes the next refresh feel instant. It is only a UI cache;
+    // Firestore remains the persistent source of truth.
+    try {
+      window.localStorage.setItem(`focusgo_cache_v2_${user.uid}`, JSON.stringify(payload));
+    } catch (e) {}
+
     const t = setTimeout(() => {
-      setDoc(doc(db, "users", user.uid), {
-        entries, subjects, examSubjects, nextExam, lang, themeMode,
-        updatedAt: new Date().toISOString(),
-      }, { merge: true }).catch(e => console.error("Firestore save error:", e));
+      setDoc(doc(db, "users", user.uid), payload, { merge: true })
+        .catch(e => console.error("Firestore save error:", e));
     }, 600); // দ্রুত একের পর এক change হলে বারবার write না করে একবারে সেভ করা
     return () => clearTimeout(t);
   }, [entries, subjects, examSubjects, nextExam, lang, themeMode, loaded, user]);
@@ -1482,7 +1527,7 @@ export default function FocusGo() {
   const containerPadding = breakpoint === "desktop" ? "28px 32px 32px" : breakpoint === "tablet" ? "22px 24px 28px" : "18px 16px 24px";
 
   const styles = {
-    page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Hind Siliguri','Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .3s,color .3s", display:"flex", flexDirection:"column" },
+    page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Hind Siliguri','Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column" },
     container: { maxWidth: containerMaxWidth, margin: "0 auto", padding: containerPadding, width:"100%", boxSizing:"border-box", flex:"1 0 auto", transition: "max-width .2s ease" },
   };
 
@@ -1492,6 +1537,7 @@ export default function FocusGo() {
     try {
       document.documentElement.style.background = bg;
       document.body.style.background = bg;
+      document.documentElement.style.colorScheme = dark ? "dark" : "light";
       document.body.style.margin = "0";
       document.documentElement.style.overscrollBehaviorY = "none";
       document.body.style.overscrollBehaviorY = "none";
@@ -1500,9 +1546,28 @@ export default function FocusGo() {
 
   // Firebase এখনো auth স্টেট জানায়নি — একটা ছোট লোডিং স্ক্রিন
   if (!authChecked) {
-    return <div style={{...styles.page, display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <div style={{opacity:0.5, fontSize:14}}>Loading…</div>
-    </div>;
+    return (
+      <div style={{
+        minHeight:"100dvh",
+        background:bg,
+        color:textMain,
+        display:"flex",
+        alignItems:"center",
+        justifyContent:"center",
+        fontFamily:lang === "bn" ? "'Hind Siliguri','Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif",
+      }}>
+        <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:12}}>
+          <div style={{
+            width:42, height:42, borderRadius:12,
+            background:accent,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            color:"#fff", fontWeight:900, fontSize:20,
+            boxShadow:"0 8px 24px rgba(217,119,87,.22)"
+          }}>F</div>
+          <div style={{fontSize:12, color:textMuted2, fontWeight:600}}>FocusGo</div>
+        </div>
+      </div>
+    );
   }
 
   // লগইন করা নেই আর গেস্ট মোডও না — Email/Password (বা Google) দিয়ে লগইন/সাইন-আপ স্ক্রিন দেখানো, সাথে "একাউন্ট ছাড়াই ব্যবহার করুন" অপশন
@@ -1513,9 +1578,26 @@ export default function FocusGo() {
 
   // লগইন হয়ে গেছে কিন্তু Firestore থেকে ডেটা এখনো আসেনি
   if (!loaded) {
-    return <div style={{...styles.page, display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <div style={{opacity:0.5, fontSize:14}}>Loading…</div>
-    </div>;
+    return (
+      <div style={{
+        ...styles.page,
+        display:"flex",
+        alignItems:"center",
+        justifyContent:"center",
+        minHeight:"100dvh"
+      }}>
+        <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:10}}>
+          <div style={{
+            width:38, height:38, borderRadius:11,
+            border:`3px solid ${dark ? "#2C2820" : "#E9E3D6"}`,
+            borderTopColor:accent,
+            animation:"fg-spin .8s linear infinite"
+          }} />
+          <div style={{opacity:0.55, fontSize:12}}>Loading your data…</div>
+        </div>
+        <style>{`@keyframes fg-spin { to { transform:rotate(360deg); } }`}</style>
+      </div>
+    );
   }
 
 
