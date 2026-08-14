@@ -813,7 +813,10 @@ const monthKey = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}`;
 // "mobile" < 640px, "tablet" 640–1024px, "desktop" > 1024px.
 // একটাই window resize listener দিয়ে সব জায়গায় (container width, padding ইত্যাদি) ব্যবহারযোগ্য।
 function getBreakpoint(w) {
-  if (w >= 1024) return "desktop";
+  // Chrome-এর মোবাইলে "Request desktop site" mode সাধারণত ~980px width রিপোর্ট করে —
+  // আগে threshold 1024 থাকায় সেটা "tablet" ধরা হতো আর desktop sidebar কখনো দেখাতো না।
+  // 900px-এ নামিয়ে আনায় এখন "Desktop site" mode-এও সঠিকভাবে sidebar layout দেখাবে।
+  if (w >= 900) return "desktop";
   if (w >= 640) return "tablet";
   return "mobile";
 }
