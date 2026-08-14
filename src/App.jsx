@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Monitor, Settings, Info, Eye, EyeOff } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Monitor, Settings, Info, Eye, EyeOff, Mail } from "lucide-react";
 // ================= REAL FIREBASE =================
 // Authentication + Firestore are handled by the real Firebase project.
 import {
@@ -20,6 +20,22 @@ import { auth, db, googleProvider } from "./firebase";
 
 // ================= END REAL FIREBASE =================
 
+// ---------- সোশ্যাল আইকন (lucide-react-এ brand logo নেই, তাই ছোট inline SVG) ----------
+const FacebookIcon = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06C2 17.08 5.66 21.22 10.44 22v-7.03H7.9v-2.91h2.54V9.85c0-2.51 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.91h-2.34V22C18.34 21.22 22 17.08 22 12.06Z"/></svg>
+);
+const LinkedinIcon = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.15 1.45-2.15 2.94v5.67H9.34V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45Z"/></svg>
+);
+const InstagramIcon = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>
+);
+const BehanceIcon = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M7.8 10.3c.95-.45 1.47-1.2 1.47-2.32 0-2.17-1.62-2.98-3.6-2.98H1v13.9h4.9c2.13 0 4.3-.95 4.3-3.34 0-1.5-.7-2.7-2.4-3.26ZM3.4 6.98h2.1c.86 0 1.65.24 1.65 1.24 0 .93-.63 1.32-1.5 1.32H3.4V6.98Zm2.4 10h-2.4v-3h2.35c1.06 0 1.9.42 1.9 1.5 0 1.1-.86 1.5-1.85 1.5ZM19.7 5.9h-4.8v1.5h4.8V5.9ZM23 14.15c0-3.02-1.6-5.15-4.75-5.15-3 0-4.98 2.13-4.98 5.1 0 3.06 1.87 5.05 5 5.05 2.36 0 4-1.05 4.6-3.3h-2.36c-.2.7-1.02 1.15-2.16 1.15-1.53 0-2.44-.87-2.55-2.4h7.15c.03-.15.05-.3.05-.45Zm-7.15-1.4c.2-1.28 1.02-2 2.34-2 1.24 0 2.06.8 2.16 2h-4.5Z"/></svg>
+);
+const GithubIcon = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.5 0-.24-.01-1.04-.01-1.88-2.78.62-3.37-1.22-3.37-1.22-.45-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.89 1.57 2.34 1.12 2.91.86.09-.66.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.72 0 0 .84-.28 2.75 1.05a9.3 9.3 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.46.1 2.72.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.79-4.57 5.05.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .28.18.6.69.5A10.26 10.26 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z"/></svg>
+);
 // পাসওয়ার্ড ইনপুট — ডিফল্টে hidden (dots), পাশের চোখ আইকনে ক্লিক করলে চাইলে টেক্সট হিসেবে দেখা যাবে
 function PasswordField({ value, onChange, placeholder, style, minLength, required, textMuted2, autoComplete }) {
   const [show, setShow] = useState(false);
@@ -296,13 +312,13 @@ function UserMenu({ onOpen, cardBorder, cardBg, textMain, user }) {
   return (
     <button
       onClick={onOpen}
-      style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMain, borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, overflow:"hidden", padding:0 }}
+      style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMain, borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, overflow:"hidden", padding:0 }}
       title="Profile"
     >
       {user && user.photoURL ? (
         <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
       ) : (
-        <User size={16} />
+        <User size={14} />
       )}
     </button>
   );
@@ -323,7 +339,10 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
       padding: "28px 14px", display: "flex", flexDirection: "column", gap: 3,
       position: "sticky", top: 0, height: "100dvh", boxSizing: "border-box",
     }}>
-      <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt="FocusGo" style={{ height: 26, width: "auto", objectFit: "contain", marginBottom: 26, marginLeft: 8 }} />
+      <button onClick={() => { vibrate(); setTab("today"); }} title={t.tabs.today}
+        style={{ border: "none", background: "transparent", cursor: "pointer", padding: 0, display: "flex", marginBottom: 26, marginLeft: 8 }}>
+        <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt="FocusGo" style={{ height: 26, width: "auto", objectFit: "contain" }} />
+      </button>
       {items.map(({ k, Icon }) => (
         <button key={k} onClick={() => { vibrate(); setTab(k); }} style={{
           display: "flex", alignItems: "center", gap: 12, border: "none", borderRadius: 12,
@@ -361,9 +380,30 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, car
             <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
           </div>
           <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", padding:"8px 0 20px"}}>
-            <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt={t.appName} style={{height:34, width:"auto", objectFit:"contain", marginBottom:10}}/>
-            <div style={{fontSize:12.5, color:textMuted2, marginBottom:16}}>{t.aboutTagline}</div>
-            <div style={{fontSize:13, color:textMain, lineHeight:1.7, textAlign: isBn ? "right" : "left"}}>{t.aboutBody}</div>
+            <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt={t.appName} style={{height:34, width:"auto", objectFit:"contain", marginBottom:16}}/>
+            <div style={{fontSize:13, color:textMain, lineHeight:1.7, textAlign:"justify"}}>{t.aboutBody}</div>
+
+            <div style={{width:"100%", borderTop:`1px solid ${cardBorder}`, marginTop:20, paddingTop:18}}>
+              <div style={{fontSize:10.5, letterSpacing: isBn ? 0 : "1.3px", color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:8}}>{t.creatorLabel.toUpperCase()}</div>
+              <div style={{fontSize:15, fontWeight:800, color:textMain, marginBottom:14}}>Md. Mazharul Islam Maruf</div>
+
+              <div style={{display:"flex", justifyContent:"center", gap:10, marginBottom:14}}>
+                <a href="https://www.linkedin.com/in/mazharulmrf" target="_blank" rel="noopener noreferrer" title="LinkedIn"
+                  style={{...iconWrapStyle, textDecoration:"none"}}><LinkedinIcon size={15}/></a>
+                <a href="https://www.facebook.com/mazharul.mrf" target="_blank" rel="noopener noreferrer" title="Facebook"
+                  style={{...iconWrapStyle, textDecoration:"none"}}><FacebookIcon size={15}/></a>
+                <a href="https://www.instagram.com/mazharul.mrf" target="_blank" rel="noopener noreferrer" title="Instagram"
+                  style={{...iconWrapStyle, textDecoration:"none"}}><InstagramIcon size={15}/></a>
+                <a href="https://www.behance.net/mazharulmrf" target="_blank" rel="noopener noreferrer" title="Behance"
+                  style={{...iconWrapStyle, textDecoration:"none"}}><BehanceIcon size={15}/></a>
+                <a href="https://github.com/mazharulmrf-mrf" target="_blank" rel="noopener noreferrer" title="GitHub"
+                  style={{...iconWrapStyle, textDecoration:"none"}}><GithubIcon size={15}/></a>
+              </div>
+
+              <a href="mailto:mazharul.mrf@gmail.com" style={{display:"inline-flex", alignItems:"center", gap:7, textDecoration:"none", color:textMuted2, fontSize:12.5, fontWeight:600}}>
+                <Mail size={14}/> mazharul.mrf@gmail.com
+              </a>
+            </div>
           </div>
           <div style={{display:"flex", justifyContent:"space-between", fontSize:11.5, color:textMuted2, paddingTop:14, borderTop:`1px solid ${cardBorder}`}}>
             <span>{t.version}</span>
@@ -387,18 +427,6 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, car
           <div style={labelStyle}><span style={iconWrapStyle}><span style={{fontSize:13, fontWeight:800}}>{lang==="bn"?"বাং":"EN"}</span></span>{t.language}</div>
           <button onClick={()=>setLang(l=>l==="bn"?"en":"bn")} style={{border:`1px solid ${cardBorder}`, background: dark?"#121110":"#F8F5EE", color:textMain, borderRadius:10, padding:"7px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
             {lang==="bn" ? "English" : "বাংলা"}
-          </button>
-        </div>
-
-        {/* Theme */}
-        <div style={rowStyle}>
-          <div style={labelStyle}>
-            <span style={iconWrapStyle}>{themeMode === "system" ? <Monitor size={15}/> : themeMode === "dark" ? <Moon size={15}/> : <Sun size={15}/>}</span>
-            {t.theme}
-          </div>
-          <button onClick={()=>setThemeMode(m => m==="system" ? "light" : m==="light" ? "dark" : "system")}
-            style={{border:`1px solid ${cardBorder}`, background: dark?"#121110":"#F8F5EE", color:textMain, borderRadius:10, padding:"7px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
-            {themeMode==="system" ? t.themeSystem : themeMode==="dark" ? t.themeDark : t.themeLight}
           </button>
         </div>
 
@@ -912,8 +940,9 @@ const T = {
     themeSystem: "System", themeLight: "Light", themeDark: "Dark",
     settings: "Settings", language: "Language", theme: "Theme",
     aboutUs: "About Us", appName: "FocusGo", version: "Version",
-    aboutTagline: "Study at your own pace.",
-    aboutBody: "FocusGo is a bilingual (Bengali/English) study companion built to help students plan, focus, and track their progress day by day. Made with care for learners everywhere.",
+    aboutTagline: "Make every day count.",
+    aboutBody: "FocusGo is a study companion built to help students plan, focus, and track their progress day by day.",
+    creatorLabel: "Creator",
   },
   bn: {
     tagline: "নিজের গতিতে পড়ো",
@@ -966,8 +995,9 @@ const T = {
     themeSystem: "সিস্টেম", themeLight: "লাইট", themeDark: "ডার্ক",
     settings: "সেটিংস", language: "ভাষা", theme: "থিম",
     aboutUs: "আমাদের সম্পর্কে", appName: "FocusGo", version: "ভার্সন",
-    aboutTagline: "নিজের গতিতে পড়ো।",
-    aboutBody: "FocusGo একটি দ্বিভাষিক (বাংলা/ইংরেজি) স্টাডি সঙ্গী — শিক্ষার্থীদের পরিকল্পনা করতে, মনোযোগী থাকতে, এবং দিন-প্রতিদিন অগ্রগতি ট্র্যাক করতে সাহায্য করার জন্য বানানো। সব শিক্ষার্থীদের জন্য যত্ন নিয়ে তৈরি।",
+    aboutTagline: "Make every day count.",
+    aboutBody: "FocusGo একটি স্টাডি সঙ্গী — শিক্ষার্থীদের পরিকল্পনা করতে, মনোযোগী থাকতে, এবং দিন-প্রতিদিন অগ্রগতি ট্র্যাক করতে সাহায্য করার জন্য বানানো।",
+    creatorLabel: "নির্মাতা",
   }
 };
 
@@ -1779,11 +1809,17 @@ export default function FocusGo() {
       <div style={styles.container}>
         {/* Header row: logo | clock | toggles */}
         <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap: 8}}>
-          <div style={{display:"flex", alignItems:"center", gap:10}}>
+          <button onClick={()=>{vibrate(); setTab("today");}} title={t.tabs.today}
+            style={{display:"flex", alignItems:"center", gap:10, border:"none", background:"transparent", cursor:"pointer", padding:0}}>
             <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt="FocusGo" style={{height:26, width:"auto", objectFit:"contain"}}/>
-          </div>
+          </button>
 
           <div style={{display:"flex", alignItems:"center", gap:6}}>
+            <button onClick={()=>{vibrate(); setThemeMode(m => m==="system" ? "light" : m==="light" ? "dark" : "system");}}
+              title={themeMode==="system" ? t.themeSystem : themeMode==="dark" ? t.themeDark : t.themeLight}
+              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
+              {themeMode === "system" ? <Monitor size={15}/> : themeMode === "dark" ? <Moon size={15}/> : <Sun size={15}/>}
+            </button>
             <UserMenu onOpen={()=>{vibrate(); setShowProfile(true);}} cardBorder={cardBorder} cardBg={cardBg} textMain={textMain} user={user}/>
             <button onClick={()=>{vibrate(); setShowSettings(true);}}
               title={t.settings}
