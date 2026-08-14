@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Monitor, Settings, Info } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Monitor, Settings, Info, Eye, EyeOff } from "lucide-react";
 // ================= PREVIEW-ONLY MOCK =================
 // আসল প্রজেক্টে এখানে real "firebase/auth" ও "firebase/firestore" ইম্পোর্ট হয় এবং
 // src/firebase.js থেকে auth/db আসে। artifact প্রিভিউতে real Firebase চালানো যায় না
@@ -146,14 +146,43 @@ function setDoc(ref, data, _opts) {
 }
 // ================= END MOCK =================
 
+// পাসওয়ার্ড ইনপুট — ডিফল্টে hidden (dots), পাশের চোখ আইকনে ক্লিক করলে চাইলে টেক্সট হিসেবে দেখা যাবে
+function PasswordField({ value, onChange, placeholder, style, minLength, required, textMuted2, autoComplete }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div style={{ position: "relative", width: "100%" }}>
+      <input
+        type={show ? "text" : "password"}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        minLength={minLength}
+        required={required}
+        autoComplete={autoComplete}
+        style={{ ...style, paddingRight: 40 }}
+      />
+      <button
+        type="button"
+        onClick={() => setShow(s => !s)}
+        tabIndex={-1}
+        style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", border: "none", background: "transparent", cursor: "pointer", color: textMuted2, display: "flex", padding: 2 }}
+        title={show ? "Hide password" : "Show password"}
+      >
+        {show ? <EyeOff size={16} /> : <Eye size={16} />}
+      </button>
+    </div>
+  );
+}
+
 // ---------- Email/Password Auth স্ক্রিন ----------
 function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent, dark, onGuest }) {
   const breakpoint = useViewport(); // "mobile" | "tablet" | "desktop"
   const cardMaxWidth = breakpoint === "desktop" ? 440 : breakpoint === "tablet" ? 410 : 380;
-  const [mode, setMode] = useState("login"); // "login" | "signup"
+  const [mode, setMode] = useState("login"); // "login" | "signup" | "forgot"
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [forgotEmail, setForgotEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
@@ -172,6 +201,10 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
     switchToSignup: isBn ? "একাউন্ট নেই? সাইন আপ করুন" : "No account? Sign up",
     switchToLogin: isBn ? "একাউন্ট আছে? লগইন করুন" : "Already have an account? Log in",
     forgot: isBn ? "পাসওয়ার্ড ভুলে গেছেন?" : "Forgot password?",
+    forgotTitle: isBn ? "পাসওয়ার্ড রিসেট করুন" : "Reset your password",
+    forgotSubtitle: isBn ? "আপনার একাউন্টের ইমেইল লিখুন, আমরা একটা রিসেট লিংক পাঠাবো।" : "Enter your account's email and we'll send you a reset link.",
+    sendResetLink: isBn ? "রিসেট লিংক পাঠান" : "Send reset link",
+    backToLogin: isBn ? "লগইনে ফিরে যান" : "Back to log in",
     resetSent: isBn ? "রিসেট লিংক ইমেইলে পাঠানো হয়েছে।" : "Password reset link sent to your email.",
     or: isBn ? "অথবা" : "or",
     google: isBn ? "Google দিয়ে চালিয়ে যান" : "Continue with Google",
@@ -223,12 +256,13 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
     }
   };
 
-  const handleForgot = async () => {
+  const handleForgot = async (e) => {
+    e.preventDefault();
     setError(""); setInfo("");
-    if (!email) { setError(L.needEmail); return; }
+    if (!forgotEmail) { setError(L.needEmail); return; }
     setBusy(true);
     try {
-      await sendPasswordResetEmail(auth, email.trim());
+      await sendPasswordResetEmail(auth, forgotEmail.trim());
       setInfo(L.resetSent);
     } catch (err) {
       setError(mapError(err.code));
@@ -253,6 +287,43 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
     width: "100%", boxSizing: "border-box", border: `1px solid ${cardBorder}`, background: dark ? "#26231D" : "#FFFFFF",
     color: textMain, borderRadius: 12, padding: "12px 14px", fontSize: 14, outline: "none",
   };
+
+  // আলাদা "পাসওয়ার্ড রিসেট" স্ক্রিন — লগইন/সাইন-আপ ফর্ম থেকে সম্পূর্ণ আলাদা, শুধু ইমেইল চাওয়া হয়
+  if (mode === "forgot") {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, background: dark ? "#1A1814" : "#F8F5EF" }}>
+        <div style={{ width: "100%", maxWidth: cardMaxWidth, background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 20, padding: "28px 24px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
+            <button type="button" onClick={() => { setMode("login"); setError(""); setInfo(""); setForgotEmail(""); }}
+              style={{ border: "none", background: "transparent", cursor: "pointer", color: textMuted2, padding: 4, display: "flex" }}>
+              <ChevronLeft size={20} />
+            </button>
+            <div style={{ fontSize: 16, fontWeight: 800 }}>{L.forgotTitle}</div>
+          </div>
+
+          {!info && <div style={{ fontSize: 12.5, color: textMuted2, marginBottom: 16, lineHeight: 1.6 }}>{L.forgotSubtitle}</div>}
+
+          <form onSubmit={handleForgot} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <input type="email" placeholder={L.email} value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} style={inputStyle} required disabled={!!info} />
+            {error && <div style={{ fontSize: 12, color: "#C0553F", fontWeight: 600 }}>{error}</div>}
+            {info && <div style={{ fontSize: 12, color: "#6E8B5E", fontWeight: 600 }}>{info}</div>}
+            {!info && (
+              <button type="submit" disabled={busy} style={{
+                marginTop: 4, border: "none", borderRadius: 12, padding: "12px 0", fontSize: 14, fontWeight: 800,
+                background: accent, color: "#fff", cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1,
+              }}>
+                {busy ? "..." : L.sendResetLink}
+              </button>
+            )}
+            <button type="button" onClick={() => { setMode("login"); setError(""); setInfo(""); setForgotEmail(""); }}
+              style={{ background: "transparent", border: "none", color: textMuted2, fontSize: 12, cursor: "pointer", textAlign: "center", marginTop: info ? 4 : 0 }}>
+              {L.backToLogin}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, background: dark ? "#1A1814" : "#F8F5EF" }}>
@@ -282,7 +353,7 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
             <input type="text" placeholder={L.name} value={name} onChange={e => setName(e.target.value)} style={inputStyle} />
           )}
           <input type="email" placeholder={L.email} value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} required />
-          <input type="password" placeholder={L.password} value={password} onChange={e => setPassword(e.target.value)} style={inputStyle} required minLength={8} />
+          <PasswordField placeholder={L.password} value={password} onChange={e => setPassword(e.target.value)} style={inputStyle} required minLength={8} textMuted2={textMuted2} autoComplete={mode === "signup" ? "new-password" : "current-password"} />
           {mode === "signup" && (
             <div style={{ fontSize: 11, color: textMuted2, marginTop: -4 }}>{L.pwHint}</div>
           )}
@@ -298,7 +369,7 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
           </button>
 
           {mode === "login" && (
-            <button type="button" onClick={handleForgot} style={{ background: "transparent", border: "none", color: textMuted2, fontSize: 12, cursor: "pointer", textAlign: "center" }}>
+            <button type="button" onClick={() => { setMode("forgot"); setForgotEmail(email); setError(""); setInfo(""); }} style={{ background: "transparent", border: "none", color: textMuted2, fontSize: 12, cursor: "pointer", textAlign: "center" }}>
               {L.forgot}
             </button>
           )}
@@ -659,7 +730,7 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
             {emailChanged && hasPassword && (
               <div>
                 <div style={labelStyle}>{L.currentPasswordLabel}</div>
-                <input type="password" style={inputStyle} value={confirmPw} onChange={e=>setConfirmPw(e.target.value)} />
+                <PasswordField style={inputStyle} value={confirmPw} onChange={e=>setConfirmPw(e.target.value)} textMuted2={textMuted2} autoComplete="current-password" />
               </div>
             )}
             {error && <div style={{fontSize:12, color:"#C0553F", fontWeight:600}}>{error}</div>}
@@ -683,16 +754,16 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
             <div style={{padding:"0 14px 14px", display:"flex", flexDirection:"column", gap:10}}>
               <div>
                 <div style={labelStyle}>{L.currentPasswordLabel}</div>
-                <input type="password" style={inputStyle} value={curPw} onChange={e=>setCurPw(e.target.value)} />
+                <PasswordField style={inputStyle} value={curPw} onChange={e=>setCurPw(e.target.value)} textMuted2={textMuted2} autoComplete="current-password" />
               </div>
               <div>
                 <div style={labelStyle}>{L.newPasswordLabel}</div>
-                <input type="password" style={inputStyle} value={newPw} onChange={e=>setNewPw(e.target.value)} minLength={8} />
+                <PasswordField style={inputStyle} value={newPw} onChange={e=>setNewPw(e.target.value)} minLength={8} textMuted2={textMuted2} autoComplete="new-password" />
                 <div style={{fontSize:11, color:textMuted2, marginTop:4}}>{L.pwHint}</div>
               </div>
               <div>
                 <div style={labelStyle}>{L.confirmPasswordLabel}</div>
-                <input type="password" style={inputStyle} value={newPw2} onChange={e=>setNewPw2(e.target.value)} minLength={8} />
+                <PasswordField style={inputStyle} value={newPw2} onChange={e=>setNewPw2(e.target.value)} minLength={8} textMuted2={textMuted2} autoComplete="new-password" />
               </div>
               {pwError && <div style={{fontSize:12, color:"#C0553F", fontWeight:600}}>{pwError}</div>}
               {pwInfo && <div style={{fontSize:12, color:"#6E8B5E", fontWeight:600}}>{pwInfo}</div>}
