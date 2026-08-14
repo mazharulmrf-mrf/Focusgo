@@ -1531,18 +1531,49 @@ export default function FocusGo() {
     container: { maxWidth: containerMaxWidth, margin: "0 auto", padding: containerPadding, width:"100%", boxSizing:"border-box", flex:"1 0 auto", transition: "max-width .2s ease" },
   };
 
-  // body/html-এর background সবসময় অ্যাপের থিমের সাথে মিলিয়ে রাখা — নাহলে iOS-এ overscroll bounce বা
-  // ছোট viewport gap-এ ব্রাউজারের ডিফল্ট সাদা রঙ উঁকি দেয়
+  // Keep the browser/Android UI (status bar + Chrome toolbar area) synced
+  // with FocusGo's ACTUAL selected theme. This prevents the purple browser
+  // bars that appear when the phone system theme differs from the app theme.
   useEffect(() => {
     try {
-      document.documentElement.style.background = bg;
-      document.body.style.background = bg;
+      const themeColor = dark ? "#121110" : "#F8F5EF";
+
+      document.documentElement.style.background = themeColor;
+      document.body.style.background = themeColor;
       document.documentElement.style.colorScheme = dark ? "dark" : "light";
       document.body.style.margin = "0";
       document.documentElement.style.overscrollBehaviorY = "none";
       document.body.style.overscrollBehaviorY = "none";
+
+      // Update <meta name=\"theme-color\"> dynamically. Chrome/Android uses
+      // this for the browser/status/navigation UI around the web app.
+      let meta = document.querySelector('meta[name="theme-color"]');
+      if (!meta) {
+        meta = document.createElement("meta");
+        meta.name = "theme-color";
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute("content", themeColor);
+
+      // Also update the light/dark variants if the browser supports them.
+      let lightMeta = document.querySelector('meta[name="theme-color"][media*="light"]');
+      let darkMeta = document.querySelector('meta[name="theme-color"][media*="dark"]');
+      if (!lightMeta) {
+        lightMeta = document.createElement("meta");
+        lightMeta.name = "theme-color";
+        lightMeta.media = "(prefers-color-scheme: light)";
+        document.head.appendChild(lightMeta);
+      }
+      if (!darkMeta) {
+        darkMeta = document.createElement("meta");
+        darkMeta.name = "theme-color";
+        darkMeta.media = "(prefers-color-scheme: dark)";
+        document.head.appendChild(darkMeta);
+      }
+      lightMeta.setAttribute("content", dark ? "#121110" : "#F8F5EF");
+      darkMeta.setAttribute("content", dark ? "#121110" : "#F8F5EF");
     } catch (e) { /* ignore */ }
-  }, [bg]);
+  }, [dark]);
 
   // Firebase এখনো auth স্টেট জানায়নি — একটা ছোট লোডিং স্ক্রিন
   if (!authChecked) {
