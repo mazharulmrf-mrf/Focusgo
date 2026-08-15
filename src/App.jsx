@@ -325,7 +325,7 @@ function UserMenu({ onOpen, cardBorder, cardBg, textMain, user }) {
 }
 
 // ডেস্কটপ (≥1024px) এ bottom-nav এর বদলে বাম পাশে সাইডবার — বড় স্ক্রিনে familiar "app" লেআউট
-function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, textMuted2, accent }) {
+function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, textMuted2, accent, collapsed, onToggleCollapse }) {
   const items = [
     { k: "today", Icon: Home },
     { k: "plan", Icon: CalendarDays },
@@ -335,26 +335,45 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
   ];
   return (
     <div style={{
-      width: 232, flexShrink: 0, borderRight: `1px solid ${cardBorder}`,
-      padding: "28px 14px", display: "flex", flexDirection: "column", gap: 3,
+      width: collapsed ? 68 : 232, flexShrink: 0, borderRight: `1px solid ${cardBorder}`,
+      padding: collapsed ? "28px 10px" : "28px 14px", display: "flex", flexDirection: "column", gap: 3,
       position: "sticky", top: 0, height: "100dvh", boxSizing: "border-box",
+      transition: "width .18s cubic-bezier(0.16,1,0.3,1), padding .18s cubic-bezier(0.16,1,0.3,1)",
     }}>
-      <button onClick={() => { vibrate(); setTab("today"); }} title={t.tabs.today}
-        style={{ border: "none", background: "transparent", cursor: "pointer", padding: 0, display: "flex", marginBottom: 26, marginLeft: 8 }}>
-        <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt="FocusGo" style={{ height: 26, width: "auto", objectFit: "contain" }} />
-      </button>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between", marginBottom: 26 }}>
+        <button onClick={() => { vibrate(); setTab("today"); }} title={t.tabs.today}
+          style={{ border: "none", background: "transparent", cursor: "pointer", padding: 0, display: "flex", marginLeft: collapsed ? 0 : 8, overflow: "hidden" }}>
+          {collapsed ? (
+            <div style={{ height: 22, width: 22, borderRadius: 7, background: accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 12 }}>F</div>
+          ) : (
+            <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt="FocusGo" style={{ height: 26, width: "auto", objectFit: "contain" }} />
+          )}
+        </button>
+        {!collapsed && (
+          <button onClick={() => { vibrate(); onToggleCollapse(); }} title="সাইডবার লুকান"
+            style={{ border: `1px solid ${cardBorder}`, background: "transparent", color: textMuted2, borderRadius: 8, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+            <ChevronLeft size={14} />
+          </button>
+        )}
+      </div>
       {items.map(({ k, Icon }) => (
-        <button key={k} onClick={() => { vibrate(); setTab(k); }} style={{
-          display: "flex", alignItems: "center", gap: 12, border: "none", borderRadius: 12,
-          padding: "11px 12px", fontSize: 14, fontWeight: 700, cursor: "pointer", textAlign: "left",
+        <button key={k} onClick={() => { vibrate(); setTab(k); }} title={collapsed ? t.tabs[k] : undefined} style={{
+          display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "flex-start", gap: 12, border: "none", borderRadius: 12,
+          padding: collapsed ? "11px 0" : "11px 12px", fontSize: 14, fontWeight: 700, cursor: "pointer", textAlign: "left",
           background: tab === k ? "rgba(217,119,87,0.14)" : "transparent",
           color: tab === k ? accent : textMuted2,
           transition: "background .2s ease, color .2s ease",
         }}>
           <Icon size={18} strokeWidth={tab === k ? 2.3 : 2} />
-          {t.tabs[k]}
+          {!collapsed && t.tabs[k]}
         </button>
       ))}
+      {collapsed && (
+        <button onClick={() => { vibrate(); onToggleCollapse(); }} title="সাইডবার দেখান"
+          style={{ marginTop: "auto", border: `1px solid ${cardBorder}`, background: "transparent", color: textMuted2, borderRadius: 8, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", alignSelf: "center" }}>
+          <ChevronRight size={14} />
+        </button>
+      )}
     </div>
   );
 }
@@ -1130,6 +1149,14 @@ export default function FocusGo() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  // ডেস্কটপ সাইডবার collapse/expand করা যায় কিনা — চাইলে ইউজার লুকিয়ে রাখতে পারবে,
+  // পছন্দটা localStorage-এ থেকে যায় (রিফ্রেশ করলেও মনে থাকবে)।
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try { return window.localStorage.getItem("focusgo_sidebar_collapsed") === "1"; } catch (e) { return false; }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("focusgo_sidebar_collapsed", sidebarCollapsed ? "1" : "0"); } catch (e) {}
+  }, [sidebarCollapsed]);
   const [calMonth, setCalMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
   const [timerTopicId, setTimerTopicId] = useState(null);
@@ -1787,12 +1814,11 @@ export default function FocusGo() {
   // ডেস্কটপ (≥1024px): বাম সাইডবার নেভিগেশন থাকবে, bottom dock হাইড হবে, আর content column
   // single-column-এই থাকবে কিন্তু zoom দিয়ে গোটা কনটেন্ট একসাথে বড় দেখানো হয় (অন্য অ্যাপগুলোর মতো)
   const isDesktop = breakpoint === "desktop";
-  const desktopZoom = isDesktop ? 1.4 : 1; // আরও বাড়িয়ে 1.3 থেকে 1.4 করা হলো
-  // maxWidth এখন আর ফিক্সড পিক্সেল না — viewport width থেকে সাইডবার+প্যাডিং বাদ দিয়ে zoom দিয়ে
-  // ভাগ করে হিসাব হচ্ছে (CSS calc/min দিয়ে), যাতে বড় স্ক্রিনে আরও চওড়া দেখায় কিন্তু ছোট
-  // ডেস্কটপ উইন্ডোতে (যেমন ১০২৪-১৩০০px) কনটেন্ট overflow করে ভেঙে না যায়।
+  // আগে zoom 1.4 আর maxWidth cap 1080px ছিল — বড় স্ক্রিনে সবকিছু অনেক বেশি "চাপানো"/ঠাসা লাগছিল।
+  // এখন একটু কমিয়ে আনা হলো, যাতে বড় দেখাবে কিন্তু ঘিঞ্জি না লাগে।
+  const desktopZoom = isDesktop ? 1.18 : 1;
   const containerMaxWidth = isDesktop
-    ? `min(1080px, calc((100vw - 260px) / ${desktopZoom}))`
+    ? `min(920px, calc((100vw - 260px) / ${desktopZoom}))`
     : breakpoint === "tablet" ? 640 : 480;
   const containerPadding = isDesktop ? "36px 0 48px" : breakpoint === "tablet" ? "22px 24px 28px" : "18px 16px 24px";
 
@@ -1967,7 +1993,7 @@ export default function FocusGo() {
         input:focus, select:focus, textarea:focus { outline: 2px solid rgba(217,119,87,0.30); outline-offset: 1px; transition: outline-color .15s ease; }
       `}</style>
       {isDesktop && (
-        <DesktopSidebar t={t} tab={tab} setTab={setTab} vibrate={vibrate} dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} />
+        <DesktopSidebar t={t} tab={tab} setTab={setTab} vibrate={vibrate} dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(v => !v)} />
       )}
       <div style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, ...(isDesktop ? { zoom: desktopZoom } : {})}}>
       <div style={styles.container}>
