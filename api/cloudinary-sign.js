@@ -1,17 +1,6 @@
-// /api/cloudinary-sign.js
-//
-// এই ফাইলটা আপনার প্রজেক্টের রুটে থাকা "api" ফোল্ডারে বসাতে হবে
-// (যদি আগে থেকে "api" ফোল্ডার না থাকে, নতুন বানিয়ে নিন)।
-// Vercel এই ফাইলটা স্বয়ংক্রিয়ভাবে /api/cloudinary-sign নামে একটা endpoint বানিয়ে দেবে।
-//
-// কাজ: ব্রাউজার থেকে একটা request আসে (কোন ফোল্ডারে আপলোড হবে সেটা জানিয়ে),
-// এই ফাংশন CLOUDINARY_API_SECRET (যেটা শুধু Vercel-এর environment variable-এ
-// থাকে, কখনো ব্রাউজারে যায় না) দিয়ে একটা "signature" বানিয়ে ফেরত পাঠায়।
-// ব্রাউজার সেই signature দিয়ে সরাসরি Cloudinary-তে আপলোড করে।
+import crypto from "crypto";
 
-const crypto = require("crypto");
-
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
     return;
@@ -58,4 +47,4 @@ module.exports = async function handler(req, res) {
     console.error("cloudinary-sign error:", err);
     res.status(500).json({ error: "Internal error generating signature" });
   }
-};
+}
