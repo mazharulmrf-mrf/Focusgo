@@ -81,16 +81,16 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
   const L = {
     title: "FocusGo",
     subtitle: isBn ? "পড়াশোনার সময় ট্র্যাক করুন, যেকোনো ডিভাইস থেকে" : "Track your study time, from any device",
-    login: isBn ? "লগইন" : "Log in",
-    signup: isBn ? "একাউন্ট খুলুন" : "Sign up",
+    login: isBn ? "লগইন" : "Log In",
+    signup: isBn ? "একাউন্ট খুলুন" : "Sign Up",
     name: isBn ? "নাম" : "Name",
     email: "Email",
     password: isBn ? "পাসওয়ার্ড" : "Password",
-    submitLogin: isBn ? "লগইন করুন" : "Log in",
-    submitSignup: isBn ? "একাউন্ট তৈরি করুন" : "Create account",
+    submitLogin: isBn ? "লগইন করুন" : "Log In",
+    submitSignup: isBn ? "একাউন্ট তৈরি করুন" : "Create Account",
     switchToSignup: isBn ? "একাউন্ট নেই? সাইন আপ করুন" : "No account? Sign up",
     switchToLogin: isBn ? "একাউন্ট আছে? লগইন করুন" : "Already have an account? Log in",
-    forgot: isBn ? "পাসওয়ার্ড ভুলে গেছেন?" : "Forgot password?",
+    forgot: isBn ? "পাসওয়ার্ড ভুলে গেছেন?" : "Forgot Password?",
     forgotTitle: isBn ? "পাসওয়ার্ড রিসেট করুন" : "Reset your password",
     forgotSubtitle: isBn ? "আপনার একাউন্টের ইমেইল লিখুন, আমরা একটা রিসেট লিংক পাঠাবো।" : "Enter your account's email and we'll send you a reset link.",
     sendResetLink: isBn ? "রিসেট লিংক পাঠান" : "Send reset link",
@@ -312,13 +312,13 @@ function UserMenu({ onOpen, cardBorder, cardBg, textMain, user }) {
   return (
     <button
       onClick={onOpen}
-      style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMain, borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, overflow:"hidden", padding:0 }}
+      style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMain, borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, overflow:"hidden", padding:0 }}
       title="Profile"
     >
       {user && user.photoURL ? (
         <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
       ) : (
-        <User size={14} />
+        <User size={16} />
       )}
     </button>
   );
@@ -505,12 +505,12 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
   const L = {
     nameLabel: isBn ? "নাম" : "Name",
     emailLabel: isBn ? "ইমেইল" : "Email",
-    currentPasswordLabel: isBn ? "বর্তমান পাসওয়ার্ড" : "Current password",
-    newPasswordLabel: isBn ? "নতুন পাসওয়ার্ড" : "New password",
+    currentPasswordLabel: isBn ? "বর্তমান পাসওয়ার্ড" : "Current Password",
+    newPasswordLabel: isBn ? "নতুন পাসওয়ার্ড" : "New Password",
     confirmPasswordLabel: isBn ? "নতুন পাসওয়ার্ড আবার লিখুন" : "Confirm new password",
-    changePassword: isBn ? "পাসওয়ার্ড পরিবর্তন করুন" : "Change password",
-    saveChanges: isBn ? "সংরক্ষণ করুন" : "Save changes",
-    changePhoto: isBn ? "ছবি পরিবর্তন" : "Change photo",
+    changePassword: isBn ? "পাসওয়ার্ড পরিবর্তন করুন" : "Change Password",
+    saveChanges: isBn ? "সংরক্ষণ করুন" : "Save Changes",
+    changePhoto: isBn ? "ছবি পরিবর্তন" : "Change Photo",
     profileUpdated: isBn ? "প্রোফাইল আপডেট হয়েছে।" : "Profile updated.",
     passwordUpdated: isBn ? "পাসওয়ার্ড পরিবর্তন হয়েছে।" : "Password updated.",
     needCurrentPw: isBn ? "ইমেইল পরিবর্তন করতে বর্তমান পাসওয়ার্ড দিন।" : "Enter your current password to change email.",
@@ -895,47 +895,48 @@ const T = {
     focusTimer: "Focus Timer", start: "Start", pause: "Pause", reset: "Reset",
     pickTopicForTimer: "Pick a topic to focus on", freeSession: "Free focus session",
     timerMode: "Timer", stopwatchMode: "Stopwatch",
-    editTopicTitle: "Edit topic", save: "Save", edit: "Edit",
-    yourRhythm: "Your Rhythm", todaysStudy: "Today's study", todaysProgress: "Today's Progress", addTopic: "Add topic",
+    editTopicTitle: "Edit Topic", save: "Save", edit: "Edit",
+    yourRhythm: "Your Rhythm", todaysStudy: "Today's Study", todaysProgress: "Today's Progress", addTopic: "Add Topic",
     noTopicsToday: "No topics yet. Add one to start your rhythm.",
     thisWeek: "This Week",
     longView: "Long View", syllabusProgress: "Subject Progress", complete: "Complete",
-    weeklySummary: "Weekly summary", monthlySummary: "Monthly summary",
+    weeklySummary: "Weekly Summary", monthlySummary: "Monthly Summary",
     covered: "Covered", missed: "Missed",
     noneCovered: "Nothing covered yet.", noneMissed: "Nothing missed — great job!",
     addTopicTitle: "Add a topic", subjectLabel: "Subject", subjectPlaceholder: "e.g. Physics, বাংলা...",
     topicLabel: "Topic", topicPlaceholder: "e.g. Newton's Laws",
     durationLabel: "Duration (minutes)", cancel: "Cancel", add: "Add",
-    dayDetail: "Day detail", planned: "Planned", done: "Done", notDone: "Not done", noData: "No study data for this day.",
+    dayDetail: "Day Detail", planned: "Planned", done: "Done", notDone: "Not Done", noData: "No study data for this day.",
+    noSubjectData: "No subject data for this period.",
     minutes: "min", close: "Close", deleteTopic: "Delete",
-    monthOverview: "Month overview", back: "Back",
-    todaysGoal: "Today's goal", adjustGoal: "Adjust goal", topics: "topics",
-    doneCount: "Done", remaining: "Remaining", setGoal: "Set goal",
+    monthOverview: "Month Overview", back: "Back",
+    todaysGoal: "Today's Goal", adjustGoal: "Adjust Goal", topics: "topics",
+    doneCount: "Done", remaining: "Remaining", setGoal: "Set Goal",
     goalLabel: "Number of topics to finish today", statusDone: "done",
-    manageSubjects: "Manage subjects", noSubjectsYet: "No subjects yet. Add your syllabus subjects here.",
-    addSubjectsFirst: "Add subjects in Syllabus first.", selectSubject: "Select subject",
-    startTimeLabel: "Start time", endTimeLabel: "End time",
+    manageSubjects: "Manage Subjects", noSubjectsYet: "No subjects yet. Add your syllabus subjects here.",
+    addSubjectsFirst: "Add subjects in Syllabus first.", selectSubject: "Select Subject",
+    startTimeLabel: "Start Time", endTimeLabel: "End Time",
     addTimeToggle: "Add a specific time", noTimeSet: "No time set",
     remainingHeader: "Remaining", doneHeader: "Done",
     next7Days: "Next 7 Days", subjectTimeBreakdown: "Time by subject", noTimeData: "No completed topics yet.",
     overview: "Overview", caughtUpNote: "Caught up later",
-    examSubjects: "Exam subjects", manageExams: "Manage exams", addExam: "Add exam subject",
+    examSubjects: "Exam Subjects", manageExams: "Manage Exams", addExam: "Add exam subject",
     examDateLabel: "Exam date (optional)", noExamSubjects: "No exam subjects yet. Add the subjects you're being examined on.",
-    noDateSet: "No date set", daysLeftLabel: "days left", examToday: "Exam today", examPassed: "Exam passed",
+    noDateSet: "No date set", daysLeftLabel: "days left", examToday: "Exam Today", examPassed: "Exam Passed",
     removeExam: "Remove", nextExam: "Next Exam", noUpcomingExam: "No upcoming exam dates set", examOverview: "Overview across all your exam subjects",
-    examScores: "Test scores", average: "Average", obtainedPlaceholder: "Marks", outOfPlaceholder: "Out of", noScoresYet: "No scores added yet",
-    examGivenLabel: "Exam given", examsCompletedLabel: "exams given",
-    topicsLabel: "Topics", addTopicBtn: "Add topic", noTopicsInSubject: "No topics yet.",
+    examScores: "Test Scores", average: "Average", obtainedPlaceholder: "Marks", outOfPlaceholder: "Out Of", noScoresYet: "No scores added yet",
+    examGivenLabel: "Exam Given", examsCompletedLabel: "exams given",
+    topicsLabel: "Topics", addTopicBtn: "Add Topic", noTopicsInSubject: "No topics yet.",
     topicNamePlaceholder: "Topic name (e.g. কারক)", attemptsLabel: "attempts", attemptsCountLabel: "Attempts",
-    addAttempt: "Add attempt", attemptDateLabel: "Date", noAttemptsYet: "No attempts yet",
+    addAttempt: "Add Attempt", attemptDateLabel: "Date", noAttemptsYet: "No attempts yet",
     generalTopic: "General", completedBadge: "Completed",
     nextExamCard: "Next Exam", setNextExam: "Set next exam", editNextExam: "Edit", clearNextExam: "Clear",
-    chooseSubject: "Choose subject", chooseTopic: "Choose topic or type new", noSubjectsForExam: "Add an exam subject first.",
-    monthlySummaryExam: "Monthly summary", totalExams: "Total exams", totalAttempts: "Total attempts",
-    avgScoreLabel: "Average score", maxScoreLabel: "Highest score", subjectBreakdown: "Subject breakdown",
+    chooseSubject: "Choose Subject", chooseTopic: "Choose topic or type new", noSubjectsForExam: "Add an exam subject first.",
+    monthlySummaryExam: "Monthly Summary", totalExams: "Total Exams", totalAttempts: "Total Attempts",
+    avgScoreLabel: "Average Score", maxScoreLabel: "Highest Score", subjectBreakdown: "Subject Breakdown",
     examsCol: "Exams", attemptsCol: "Attempts", avgCol: "Avg", noExamDataMonth: "No exam data this month.",
     deleteTopicConfirmNote: "This removes all attempts under this topic.",
-    signIn: "Sign in", signOut: "Sign out", syncing: "Syncing…", profile: "Profile",
+    signIn: "Sign In", signOut: "Sign Out", syncing: "Syncing…", profile: "Profile",
     nameExists: "This name is already used.",
     themeSystem: "System", themeLight: "Light", themeDark: "Dark",
     settings: "Settings", language: "Language", theme: "Theme",
@@ -943,6 +944,14 @@ const T = {
     aboutTagline: "Make every day count.",
     aboutBody: "FocusGo is a study companion built to help students plan, focus, and track their progress day by day.",
     creatorLabel: "Creator",
+    combinedExams: "Combined Exams", manageCombinedExams: "Manage", addCombinedExam: "Add Combined Exam",
+    noCombinedExams: "No combined exams yet. Combine multiple subjects into one recurring exam.",
+    combinedExamName: "Exam name", combinedExamNamePlaceholder: "e.g. Weekly Class Test", typeLabel: "Type",
+    typeDaily: "Daily", typeWeekly: "Weekly", typeMonthly: "Monthly",
+    subjectsLabel: "Subjects", selectSubjectsNote: "Pick the subjects covered by this exam",
+    noSubjectsForCombined: "Add subjects in Syllabus first.",
+    editCombinedExam: "Edit combined exam", deleteCombinedExam: "Delete",
+    deleteCombinedExamConfirmNote: "This removes all recorded attempts for this combined exam.",
   },
   bn: {
     tagline: "নিজের গতিতে পড়ো",
@@ -962,6 +971,7 @@ const T = {
     topicLabel: "টপিক", topicPlaceholder: "যেমন: নিউটনের সূত্র",
     durationLabel: "সময়কাল (মিনিট)", cancel: "বাতিল", add: "যোগ করো",
     dayDetail: "দিনের বিবরণ", planned: "পরিকল্পিত", done: "সম্পন্ন", notDone: "সম্পন্ন হয়নি", noData: "এই দিনের কোনো তথ্য নেই।",
+    noSubjectData: "এই সময়ের জন্য কোনো সাবজেক্ট তথ্য নেই।",
     minutes: "মিনিট", close: "বন্ধ", deleteTopic: "মুছুন",
     monthOverview: "মাসের সংক্ষিপ্ত দৃশ্য", back: "পেছনে",
     todaysGoal: "আজকের লক্ষ্য", adjustGoal: "লক্ষ্য পরিবর্তন করুন", topics: "টপিক",
@@ -998,6 +1008,14 @@ const T = {
     aboutTagline: "Make every day count.",
     aboutBody: "FocusGo একটি স্টাডি সঙ্গী — শিক্ষার্থীদের পরিকল্পনা করতে, মনোযোগী থাকতে, এবং দিন-প্রতিদিন অগ্রগতি ট্র্যাক করতে সাহায্য করার জন্য বানানো।",
     creatorLabel: "নির্মাতা",
+    combinedExams: "কম্বাইন্ড এক্সাম", manageCombinedExams: "ম্যানেজ", addCombinedExam: "কম্বাইন্ড এক্সাম যোগ করো",
+    noCombinedExams: "এখনো কোনো কম্বাইন্ড এক্সাম নেই। একাধিক সাবজেক্ট মিলিয়ে একটা রিকারিং এক্সাম বানাও।",
+    combinedExamName: "এক্সামের নাম", combinedExamNamePlaceholder: "যেমন: সাপ্তাহিক ক্লাস টেস্ট", typeLabel: "ধরন",
+    typeDaily: "দৈনিক", typeWeekly: "সাপ্তাহিক", typeMonthly: "মাসিক",
+    subjectsLabel: "সাবজেক্ট", selectSubjectsNote: "এই এক্সামে কোন কোন সাবজেক্ট থাকবে বেছে নাও",
+    noSubjectsForCombined: "আগে সিলেবাসে সাবজেক্ট যোগ করো।",
+    editCombinedExam: "কম্বাইন্ড এক্সাম এডিট করো", deleteCombinedExam: "মুছুন",
+    deleteCombinedExamConfirmNote: "এই কম্বাইন্ড এক্সামের সব স্কোর মুছে যাবে।",
   }
 };
 
@@ -1096,9 +1114,12 @@ export default function FocusGo() {
   const [entries, setEntries] = useState({}); // dateKey -> [{id, subject, topic, time, endTime, duration, done}]
   const [subjects, setSubjects] = useState([]); // manually managed syllabus subjects
   const [examSubjects, setExamSubjects] = useState({}); // subject -> { topics: { [topicName]: { attempts: [{id, date, obtained, total}] } } }
+  const [combinedExams, setCombinedExams] = useState({}); // id -> { name, type: "daily"|"weekly"|"monthly", subjects: [names], attempts: [{id, date, obtained, total}] }
   const [nextExam, setNextExam] = useState(null); // { subject, topic, date } | null
   const [examMonth, setExamMonth] = useState(new Date());
   const [showExams, setShowExams] = useState(false);
+  const [showCombinedExamEditor, setShowCombinedExamEditor] = useState(false);
+  const [editingCombinedExam, setEditingCombinedExam] = useState(null); // {id, name, type, subjects} | null when adding new
   const [showNextExamEditor, setShowNextExamEditor] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
@@ -1219,6 +1240,7 @@ export default function FocusGo() {
               if (cached.entries) setEntries(cached.entries);
               if (cached.subjects) setSubjects(cached.subjects);
               if (cached.examSubjects) setExamSubjects(cached.examSubjects);
+              if (cached.combinedExams) setCombinedExams(cached.combinedExams);
               if (cached.nextExam !== undefined) setNextExam(cached.nextExam);
               if (cached.lang) setLang(cached.lang);
               if (cached.themeMode && !themeLoadedOnceRef.current) { setThemeMode(cached.themeMode); themeLoadedOnceRef.current = true; }
@@ -1230,7 +1252,7 @@ export default function FocusGo() {
         }
       } else {
         // Sign out — remove the previous user's in-memory data.
-        setEntries({}); setSubjects([]); setExamSubjects({}); setNextExam(null);
+        setEntries({}); setSubjects([]); setExamSubjects({}); setCombinedExams({}); setNextExam(null);
         setLoaded(false);
         setServerSynced(false);
       }
@@ -1249,6 +1271,7 @@ export default function FocusGo() {
           if (saved.entries) setEntries(saved.entries);
           if (saved.subjects) setSubjects(saved.subjects);
           if (saved.examSubjects) setExamSubjects(saved.examSubjects);
+          if (saved.combinedExams) setCombinedExams(saved.combinedExams);
           if (saved.nextExam !== undefined) setNextExam(saved.nextExam);
           if (saved.lang) setLang(saved.lang);
           if (saved.themeMode && !themeLoadedOnceRef.current) { setThemeMode(saved.themeMode); themeLoadedOnceRef.current = true; }
@@ -1265,10 +1288,10 @@ export default function FocusGo() {
     if (!loaded || user || !isGuest) return;
     if (!isStandaloneApp()) return;
     const timer = setTimeout(() => {
-      saveGuestData({ entries, subjects, examSubjects, nextExam, lang, themeMode });
+      saveGuestData({ entries, subjects, examSubjects, combinedExams, nextExam, lang, themeMode });
     }, 600);
     return () => clearTimeout(timer);
-  }, [entries, subjects, examSubjects, nextExam, lang, themeMode, loaded, user, isGuest]);
+  }, [entries, subjects, examSubjects, combinedExams, nextExam, lang, themeMode, loaded, user, isGuest]);
 
   // ইউজার লগইন করার পর Firestore-এর সাথে real-time sync (users/{uid}) —
   // getDoc দিয়ে একবার read করার বদলে onSnapshot দিয়ে live listen করা হয়, তাই অন্য কোনো
@@ -1283,7 +1306,7 @@ export default function FocusGo() {
             const data = snap.data();
             const incomingKey = JSON.stringify({
               entries: data.entries, subjects: data.subjects, examSubjects: data.examSubjects,
-              nextExam: data.nextExam, lang: data.lang, themeMode: data.themeMode,
+              combinedExams: data.combinedExams, nextExam: data.nextExam, lang: data.lang, themeMode: data.themeMode,
             });
             // যদি এই data আমাদেরই সবশেষ write-এর echo হয়, আবার setState করে re-render/re-save লুপ তৈরি করার দরকার নেই
             if (incomingKey !== lastSavedPayloadRef.current) {
@@ -1306,6 +1329,7 @@ export default function FocusGo() {
                 setExamSubjects(migrated);
                 if (migratedNextExam) setNextExam(prev => prev || migratedNextExam);
               }
+              if (data.combinedExams) setCombinedExams(data.combinedExams);
               if (data.nextExam !== undefined) setNextExam(data.nextExam);
               if (data.lang) setLang(data.lang);
               if (data.themeMode && !themeLoadedOnceRef.current) { setThemeMode(data.themeMode); themeLoadedOnceRef.current = true; }
@@ -1334,7 +1358,7 @@ export default function FocusGo() {
   useEffect(() => {
     if (!serverSynced || !user) return;
     const payload = {
-      entries, subjects, examSubjects, nextExam, lang, themeMode,
+      entries, subjects, examSubjects, combinedExams, nextExam, lang, themeMode,
       updatedAt: new Date().toISOString(),
     };
 
@@ -1347,12 +1371,12 @@ export default function FocusGo() {
     const t = setTimeout(() => {
       // এই মুহূর্তে যা লিখছি তার একটা "ছাপ" রেখে দেওয়া — real-time listener পরে এই একই data
       // ফেরত পেলে বুঝবে এটা নিজেরই echo, আবার setState/re-save করবে না
-      lastSavedPayloadRef.current = JSON.stringify({ entries, subjects, examSubjects, nextExam, lang, themeMode });
+      lastSavedPayloadRef.current = JSON.stringify({ entries, subjects, examSubjects, combinedExams, nextExam, lang, themeMode });
       setDoc(doc(db, "users", user.uid), payload, { merge: true })
         .catch(e => console.error("Firestore save error:", e));
     }, 600); // দ্রুত একের পর এক change হলে বারবার write না করে একবারে সেভ করা
     return () => clearTimeout(t);
-  }, [entries, subjects, examSubjects, nextExam, lang, themeMode, serverSynced, user]);
+  }, [entries, subjects, examSubjects, combinedExams, nextExam, lang, themeMode, serverSynced, user]);
 
   // clock tick
   useEffect(() => {
@@ -1475,7 +1499,22 @@ export default function FocusGo() {
 
   // ---- syllabus subject management ----
   const addSubject = (name) => setSubjects(prev => prev.includes(name) ? prev : [...prev, name]);
-  const removeSubject = (name) => setSubjects(prev => prev.filter(s => s !== name));
+  const removeSubject = (name) => {
+    setSubjects(prev => prev.filter(s => s !== name));
+    setCombinedExams(prev => {
+      let changed = false;
+      const next = {};
+      Object.entries(prev).forEach(([id, ce]) => {
+        if (ce.subjects && ce.subjects.includes(name)) {
+          changed = true;
+          next[id] = { ...ce, subjects: ce.subjects.filter(s => s !== name) };
+        } else {
+          next[id] = ce;
+        }
+      });
+      return changed ? next : prev;
+    });
+  };
   const addExamSubject = (name) => setExamSubjects(prev => prev[name] ? prev : ({ ...prev, [name]: { topics: {} } }));
   const removeExamSubject = (name) => {
     setExamSubjects(prev => { const next = { ...prev }; delete next[name]; return next; });
@@ -1549,6 +1588,19 @@ export default function FocusGo() {
       return next;
     });
     setNextExam(prev => (prev && prev.subject === oldName) ? { ...prev, subject: n } : prev);
+    setCombinedExams(prev => {
+      let changed = false;
+      const next = {};
+      Object.entries(prev).forEach(([id, ce]) => {
+        if (ce.subjects && ce.subjects.includes(oldName)) {
+          changed = true;
+          next[id] = { ...ce, subjects: ce.subjects.map(s => s === oldName ? n : s) };
+        } else {
+          next[id] = ce;
+        }
+      });
+      return changed ? next : prev;
+    });
     return true;
   };
   const renameExamTopic = (subj, oldTopic, newTopic) => {
@@ -1566,6 +1618,50 @@ export default function FocusGo() {
     });
     setNextExam(prev => (prev && prev.subject === subj && prev.topic === oldTopic) ? { ...prev, topic: n } : prev);
     return true;
+  };
+
+  // ---- combined exam management (একসাথে একাধিক সাবজেক্ট নিয়ে daily/weekly/monthly পরীক্ষা) ----
+  const addCombinedExam = (name, type, subjectsList) => {
+    const n = (name || "").trim();
+    if (!n) return;
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+    setCombinedExams(prev => ({ ...prev, [id]: { name: n, type: type || "weekly", subjects: subjectsList || [], attempts: [] } }));
+  };
+  const removeCombinedExam = (id) => {
+    setCombinedExams(prev => { const next = { ...prev }; delete next[id]; return next; });
+  };
+  const editCombinedExam = (id, name, type, subjectsList) => {
+    const n = (name || "").trim();
+    if (!n) return;
+    setCombinedExams(prev => {
+      const cur = prev[id];
+      if (!cur) return prev;
+      return { ...prev, [id]: { ...cur, name: n, type: type || cur.type, subjects: subjectsList || cur.subjects } };
+    });
+  };
+  const addCombinedExamAttempt = (id, date, obtained, total) => {
+    setCombinedExams(prev => {
+      const cur = prev[id];
+      if (!cur) return prev;
+      const attempts = [...(cur.attempts || []), { id: `${Date.now()}-${Math.random().toString(36).slice(2,7)}`, date: date || null, obtained, total }];
+      return { ...prev, [id]: { ...cur, attempts } };
+    });
+  };
+  const removeCombinedExamAttempt = (id, attemptId) => {
+    setCombinedExams(prev => {
+      const cur = prev[id];
+      if (!cur) return prev;
+      const attempts = (cur.attempts || []).filter(a => a.id !== attemptId);
+      return { ...prev, [id]: { ...cur, attempts } };
+    });
+  };
+  const editCombinedExamAttempt = (id, attemptId, obtained, total, date) => {
+    setCombinedExams(prev => {
+      const cur = prev[id];
+      if (!cur) return prev;
+      const attempts = (cur.attempts || []).map(a => a.id === attemptId ? { ...a, obtained, total, date: date !== undefined ? date : a.date } : a);
+      return { ...prev, [id]: { ...cur, attempts } };
+    });
   };
 
   const startTimerFor = (id, duration) => {
@@ -1815,7 +1911,6 @@ export default function FocusGo() {
           </button>
 
           <div style={{display:"flex", alignItems:"center", gap:6}}>
-            <UserMenu onOpen={()=>{vibrate(); setShowProfile(true);}} cardBorder={cardBorder} cardBg={cardBg} textMain={textMain} user={user}/>
             <button onClick={()=>{vibrate(); setThemeMode(m => m==="system" ? "light" : m==="light" ? "dark" : "system");}}
               title={themeMode==="system" ? t.themeSystem : themeMode==="dark" ? t.themeDark : t.themeLight}
               style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
@@ -1826,6 +1921,7 @@ export default function FocusGo() {
               style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
               <Settings size={15}/>
             </button>
+            <UserMenu onOpen={()=>{vibrate(); setShowProfile(true);}} cardBorder={cardBorder} cardBg={cardBg} textMain={textMain} user={user}/>
           </div>
         </div>
 
@@ -1850,7 +1946,7 @@ export default function FocusGo() {
             <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
               border:"none",
               background: accent,
-              borderRadius:12,
+              borderRadius:18,
               width:48,
               height:46,
               display:"flex", alignItems:"center", justifyContent:"center",
@@ -1942,7 +2038,7 @@ export default function FocusGo() {
               <span style={{color:textMuted2, opacity:0.5}}>|</span>
               <span style={{color:textMuted2}}><Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}</span>
             </div>
-            <div style={{marginTop:10, height:6, width:150, borderRadius:4, background: dark?"#2C2820":"#EFE9DC", overflow:"hidden"}}>
+            <div style={{marginTop:10, height:6, width:150, borderRadius:4, background: dark?"#2C2820":"#EFE9DC", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
               <div style={{height:"100%", width:`${todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}%`, background:accent, borderRadius:4, transition:"width .3s"}}/>
             </div>
           </div>
@@ -1956,7 +2052,7 @@ export default function FocusGo() {
         <div className="fg-tab-panel" style={{marginTop:20}}>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12}}>
             <div style={{fontSize:22, fontWeight:800, letterSpacing:-0.3}}>{t.todaysStudy}</div>
-            <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} style={{display:"flex",alignItems:"center",gap:5, background: dark? "#F3EFE7":"#211D18", color: dark?"#211D18":"#F3EFE7", border:"none", borderRadius:12, padding:"9px 13px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+            <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} style={{display:"flex",alignItems:"center",gap:5, background: accent, color: "#FFFFFF", border:"none", borderRadius:12, padding:"9px 13px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
               <Plus size={14}/> {t.addTopic}
             </button>
           </div>
@@ -2030,7 +2126,7 @@ export default function FocusGo() {
                         <span style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subj}</span>
                         <span style={{fontSize:10, color:textMuted2, fontWeight:600, flexShrink:0}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num></span>
                       </div>
-                      <div style={{height:5, borderRadius:3, background: dark? "#2C2820":"#EFE9DC", overflow:"hidden"}}>
+                      <div style={{height:5, borderRadius:3, background: dark? "#2C2820":"#EFE9DC", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
                         <div style={{height:"100%", width:`${pct}%`, background:c.bg, borderRadius:3, transition:"width .3s"}}/>
                       </div>
                       <div style={{fontSize:10, fontWeight:700, color:c.bg, marginTop:5, letterSpacing:ls(0.3)}}><Num>{nf(pct)}</Num>% {t.complete}</div>
@@ -2069,7 +2165,7 @@ export default function FocusGo() {
               <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3}}>
                 {isPlanToday ? t.todaysStudy : <>{weekdayName(planDate)}, <Num>{nf(planDate.getDate())}</Num> {monthName(planDate.getMonth())}</>}
               </div>
-              <button onClick={()=>{setAddTargetKey(planKey); setShowAdd(true);}} style={{display:"flex",alignItems:"center",gap:5, background: dark? "#F3EFE7":"#211D18", color: dark?"#211D18":"#F3EFE7", border:"none", borderRadius:12, padding:"9px 13px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+              <button onClick={()=>{setAddTargetKey(planKey); setShowAdd(true);}} style={{display:"flex",alignItems:"center",gap:5, background: accent, color: "#FFFFFF", border:"none", borderRadius:12, padding:"9px 13px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
                 <Plus size={14}/> {t.addTopic}
               </button>
             </div>
@@ -2130,6 +2226,32 @@ export default function FocusGo() {
               )}
             </div>
 
+            {/* Combined exams — একাধিক সাবজেক্ট একসাথে, daily/weekly/monthly recurring */}
+            <div style={{marginTop:22}}>
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3}}>{t.combinedExams}</div>
+                <button onClick={()=>{vibrate(); setEditingCombinedExam(null); setShowCombinedExamEditor(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer", flexShrink:0}}>
+                  <Plus size={12}/> {t.addCombinedExam}
+                </button>
+              </div>
+              <div style={{display:"flex", flexDirection:"column", gap:12, marginTop:14}}>
+                {Object.keys(combinedExams).length === 0 && (
+                  <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16}}>
+                    {t.noCombinedExams}
+                  </div>
+                )}
+                {Object.entries(combinedExams).sort((a,b)=>a[1].name.localeCompare(b[1].name)).map(([id, ce]) => (
+                  <CombinedExamCard key={id} id={id} combinedExam={ce}
+                    t={t} nf={nf} lang={lang} allSubjects={allSubjects} cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent} dark={dark}
+                    onAddAttempt={(date,obtained,total)=>addCombinedExamAttempt(id,date,obtained,total)}
+                    onEditAttempt={(attemptId,obtained,total,date)=>editCombinedExamAttempt(id,attemptId,obtained,total,date)}
+                    onRemoveAttempt={(attemptId)=>removeCombinedExamAttempt(id,attemptId)}
+                    onEdit={()=>{ setEditingCombinedExam({ id, ...ce }); setShowCombinedExamEditor(true); }}
+                    onRemove={()=>removeCombinedExam(id)}/>
+                ))}
+              </div>
+            </div>
+
             {/* My exams */}
             <div style={{marginTop:22}}>
               <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
@@ -2148,7 +2270,7 @@ export default function FocusGo() {
                   const c = colorForSubject(subj, allSubjects);
                   const topics = examSubjects[subj]?.topics || {};
                   return (
-                    <div key={subj}>
+                    <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px"}}>
                       <div style={{display:"flex", alignItems:"center", gap:7, marginBottom:8}}>
                         <span style={{width:8,height:8,borderRadius:"50%", background:c.bg, flexShrink:0}}/>
                         <span style={{fontWeight:700, fontSize:14}}>{subj}</span>
@@ -2159,7 +2281,7 @@ export default function FocusGo() {
                         )}
                         {Object.entries(topics).map(([topicName, topicInfo]) => (
                           <TopicFolderCard key={topicName} subj={subj} topicName={topicName} attempts={topicInfo?.attempts || []}
-                            t={t} nf={nf} lang={lang} cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent} dark={dark}
+                            t={t} nf={nf} lang={lang} cardBg={dark?"#121110":"#F8F5EE"} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent} dark={dark}
                             onAddAttempt={(date,obtained,total)=>addExamAttempt(subj,topicName,date,obtained,total)}
                             onEditAttempt={(attemptId,obtained,total,date)=>editExamAttempt(subj,topicName,attemptId,obtained,total,date)}
                             onRemoveAttempt={(attemptId)=>removeExamAttempt(subj,topicName,attemptId)}
@@ -2259,6 +2381,18 @@ export default function FocusGo() {
       {/* Manage exams modal */}
       {showExams && (
         <ExamsModal t={t} nf={nf} subjects={allSubjects} examSubjects={examSubjects} onAdd={addExamSubject} onRemove={removeExamSubject} onClose={()=>setShowExams(false)}
+          cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
+      )}
+
+      {/* Combined exam add/edit modal */}
+      {showCombinedExamEditor && (
+        <CombinedExamEditorModal t={t} allSubjects={allSubjects} editingCombinedExam={editingCombinedExam}
+          onSave={(name,type,subjectsList)=>{
+            if (editingCombinedExam) editCombinedExam(editingCombinedExam.id, name, type, subjectsList);
+            else addCombinedExam(name, type, subjectsList);
+            setShowCombinedExamEditor(false); setEditingCombinedExam(null);
+          }}
+          onClose={()=>{setShowCombinedExamEditor(false); setEditingCombinedExam(null);}}
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
       )}
 
@@ -2364,7 +2498,7 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
         </div>
 
         {pct !== null && (
-          <div style={{height:6, width:220, borderRadius:4, background: dark?"#2C2820":"#EFE9DC", overflow:"hidden"}}>
+          <div style={{height:6, width:220, borderRadius:4, background: dark?"#2C2820":"#EFE9DC", border:`1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, overflow:"hidden"}}>
             <div style={{height:"100%", width:`${pct}%`, background:accent, borderRadius:4, transition:"width .3s"}}/>
           </div>
         )}
@@ -2585,6 +2719,137 @@ function AddTopicInline({ t, accent, cardBorder, textMuted2, dark, onAdd }) {
   );
 }
 
+function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, cardBorder, textMuted2, accent, dark, onAddAttempt, onEditAttempt, onRemoveAttempt, onEdit, onRemove }) {
+  const ls = (px) => (lang === "bn" ? 0 : px);
+  const [expanded, setExpanded] = useState(false);
+  const [date, setDate] = useState(() => dateKey(new Date()));
+  const [obtained, setObtained] = useState("");
+  const [total, setTotal] = useState("");
+  const green = "#6E8B5E";
+
+  const [editingAttemptId, setEditingAttemptId] = useState(null);
+  const [editObtained, setEditObtained] = useState("");
+  const [editTotal, setEditTotal] = useState("");
+  const [editDate, setEditDate] = useState("");
+
+  const { name, type, subjects, attempts = [] } = combinedExam;
+  const typeLabel = type === "daily" ? t.typeDaily : type === "monthly" ? t.typeMonthly : t.typeWeekly;
+
+  const avgPct = attempts.length
+    ? Math.round(attempts.reduce((sum, s) => sum + (s.total ? (s.obtained / s.total) * 100 : 0), 0) / attempts.length)
+    : null;
+  const hasAttempts = attempts.length > 0;
+
+  const submitAttempt = () => {
+    const o = parseFloat(obtained), tt = parseFloat(total);
+    if (!isFinite(o) || !isFinite(tt) || tt <= 0) return;
+    onAddAttempt(date, o, tt);
+    setObtained(""); setTotal("");
+  };
+
+  const startEditAttempt = (a) => {
+    setEditingAttemptId(a.id); setEditObtained(String(a.obtained)); setEditTotal(String(a.total)); setEditDate(a.date || "");
+  };
+  const cancelEditAttempt = () => setEditingAttemptId(null);
+  const saveEditAttempt = () => {
+    const o = parseFloat(editObtained), tt = parseFloat(editTotal);
+    if (!isFinite(o) || !isFinite(tt) || tt <= 0) return;
+    onEditAttempt(editingAttemptId, o, tt, editDate || null);
+    setEditingAttemptId(null);
+  };
+
+  const smallInput = { width:56, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#121110":"#F8F5EE", color: dark?"#F3EFE7":"#211D18", outline:"none" };
+  const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#121110":"#F8F5EE", color: dark?"#F3EFE7":"#211D18", outline:"none", flex:1 };
+
+  return (
+    <div className="fg-card" style={{background: hasAttempts ? (dark?"rgba(110,139,94,0.10)":"rgba(110,139,94,0.07)") : cardBg, border: hasAttempts ? `1px solid rgba(110,139,94,0.4)` : `1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px", transition:"background .2s ease, border-color .2s ease"}}>
+      <button onClick={()=>setExpanded(x=>!x)} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between", padding:0, color:"inherit", textAlign:"left"}}>
+        <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
+          <GraduationCap size={14} style={{color:textMuted2, flexShrink:0}}/>
+          <span style={{fontWeight:700, fontSize:13.5, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{name}</span>
+          <span style={{fontSize:9.5, fontWeight:700, letterSpacing:ls(0.5), color:accent, background: dark?"rgba(217,119,87,0.15)":"rgba(217,119,87,0.1)", padding:"2px 7px", borderRadius:20, flexShrink:0, textTransform:"uppercase"}}>{typeLabel}</span>
+        </div>
+        <ChevronDown size={15} style={{color:textMuted2, transform: expanded ? "rotate(180deg)" : "none", transition:"transform .15s", flexShrink:0}}/>
+      </button>
+
+      <div style={{display:"flex", flexWrap:"wrap", gap:5, marginTop:8, paddingLeft:22}}>
+        {(subjects || []).map(s => {
+          const c = colorForSubject(s, allSubjects);
+          return <span key={s} style={{fontSize:10.5, fontWeight:700, color:c.bg, background:c.bgSoft, padding:"2px 8px", borderRadius:20}}>{s}</span>;
+        })}
+      </div>
+
+      {hasAttempts && (
+        <div style={{display:"flex", gap:10, marginTop:8, paddingLeft:22, fontSize:11.5, color:textMuted2, fontWeight:600}}>
+          <span><Num>{nf(attempts.length)}</Num> {t.attemptsLabel}</span>
+          {avgPct !== null && <span style={{color:accent, fontWeight:700}}>{t.average} <Num>{nf(avgPct)}</Num>%</span>}
+        </div>
+      )}
+
+      {expanded && (
+        <div style={{marginTop:12, paddingTop:12, borderTop:`1px dashed ${cardBorder}`, animation:"fg-fade-up .22s cubic-bezier(0.16,1,0.3,1)"}}>
+          {attempts.length === 0 ? (
+            <div style={{fontSize:12, color:textMuted2, marginBottom:10, textAlign:"center", padding:"10px 0"}}>{t.noAttemptsYet}</div>
+          ) : (
+            <div style={{display:"flex", flexDirection:"column", gap:6, marginBottom:12, background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 10px"}}>
+              {[...attempts].sort((a,b)=>(a.date||"").localeCompare(b.date||"")).map(a => (
+                editingAttemptId === a.id ? (
+                  <div key={a.id} style={{display:"flex", alignItems:"center", gap:6}}>
+                    <input type="date" value={editDate} onChange={e=>setEditDate(e.target.value)} style={dateInput}/>
+                    <input type="number" inputMode="decimal" value={editObtained} onChange={e=>setEditObtained(e.target.value)} style={smallInput}/>
+                    <span style={{color:textMuted2, fontSize:12, fontWeight:700}}>/</span>
+                    <input type="number" inputMode="decimal" value={editTotal} onChange={e=>setEditTotal(e.target.value)} style={smallInput}/>
+                    <button onClick={saveEditAttempt} style={{border:"none", borderRadius:8, width:26, height:26, background:accent, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}><Check size={13}/></button>
+                    <button onClick={cancelEditAttempt} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, flexShrink:0}}><X size={16}/></button>
+                  </div>
+                ) : (
+                  <div key={a.id} style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"3px 0"}}>
+                    <span style={{fontSize:12.5, fontWeight:600}}>
+                      {a.date && <span style={{color:textMuted2, fontWeight:500, marginRight:6}}>{a.date}</span>}
+                      <Num>{nf(a.obtained)}</Num> / <Num>{nf(a.total)}</Num>
+                      <span style={{color:textMuted2, fontWeight:500}}> (<Num>{nf(a.total ? Math.round((a.obtained/a.total)*100) : 0)}</Num>%)</span>
+                    </span>
+                    <div style={{display:"flex", gap:10}}>
+                      <button onClick={()=>startEditAttempt(a)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex"}}>
+                        <Pencil size={13}/>
+                      </button>
+                      <button onClick={()=>onRemoveAttempt(a.id)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex"}}>
+                        <Trash2 size={13}/>
+                      </button>
+                    </div>
+                  </div>
+                )
+              ))}
+            </div>
+          )}
+
+          <div style={{background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px", marginBottom:10}}>
+            <div style={{fontSize:10, fontWeight:700, letterSpacing:ls(0.8), color:textMuted2, opacity:0.85, marginBottom:8, textTransform:"uppercase"}}>{t.addAttempt}</div>
+            <div style={{display:"flex", alignItems:"center", gap:6}}>
+              <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={dateInput}/>
+              <input type="number" inputMode="decimal" placeholder={t.obtainedPlaceholder} value={obtained} onChange={e=>setObtained(e.target.value)} style={smallInput}/>
+              <span style={{color:textMuted2, fontSize:12, fontWeight:700}}>/</span>
+              <input type="number" inputMode="decimal" placeholder={t.outOfPlaceholder} value={total} onChange={e=>setTotal(e.target.value)} style={smallInput}/>
+              <button onClick={submitAttempt} style={{border:"none", borderRadius:8, width:30, height:30, background:accent, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, boxShadow:`0 3px 8px ${accent}40`}}>
+                <Plus size={15}/>
+              </button>
+            </div>
+          </div>
+
+          <div style={{display:"flex", gap:14}}>
+            <button onClick={onEdit} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:11, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
+              <Pencil size={12}/> {t.edit}
+            </button>
+            <button onClick={onRemove} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0553F", fontSize:11, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
+              <Trash2 size={12}/> {t.deleteCombinedExam}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function NextExamModal({ t, examSubjects, nextExam, onSave, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const subjectNames = Object.keys(examSubjects);
   const [subject, setSubject] = useState(nextExam?.subject || subjectNames[0] || "");
@@ -2629,6 +2894,75 @@ function NextExamModal({ t, examSubjects, nextExam, onSave, onClose, cardBg, car
               <input type="date" style={inputStyle} value={date} onChange={e=>setDate(e.target.value)}/>
             </div>
             <button onClick={submit} style={{border:"none", borderRadius:12, padding:"12px 0", background:accent, color:"#fff", fontWeight:700, cursor:"pointer"}}>
+              {t.save}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CombinedExamEditorModal({ t, allSubjects, editingCombinedExam, onSave, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
+  const [name, setName] = useState(editingCombinedExam?.name || "");
+  const [type, setType] = useState(editingCombinedExam?.type || "weekly");
+  const [picked, setPicked] = useState(editingCombinedExam?.subjects || []);
+
+  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:13.5, background: dark?"#121110":"#F8F5EE", color: dark?"#F3EFE7":"#211D18", outline:"none", width:"100%" };
+  const typeOptions = [
+    { k:"daily", label:t.typeDaily }, { k:"weekly", label:t.typeWeekly }, { k:"monthly", label:t.typeMonthly },
+  ];
+
+  const toggleSubject = (s) => setPicked(prev => prev.includes(s) ? prev.filter(x=>x!==s) : [...prev, s]);
+
+  const submit = () => {
+    const n = name.trim();
+    if (!n || picked.length === 0) return;
+    onSave(n, type, picked);
+  };
+
+  return (
+    <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, display:"flex", flexDirection:"column", gap:14, maxHeight:"85vh", overflowY:"auto"}}>
+        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+          <div style={{fontSize:16, fontWeight:800}}>{editingCombinedExam ? t.editCombinedExam : t.addCombinedExam}</div>
+          <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
+        </div>
+
+        {allSubjects.length === 0 ? (
+          <div style={{fontSize:13, color:textMuted2, textAlign:"center", padding:"10px 0"}}>{t.noSubjectsForCombined}</div>
+        ) : (
+          <>
+            <div>
+              <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.combinedExamName}</div>
+              <input autoFocus style={inputStyle} value={name} onChange={e=>setName(e.target.value)} placeholder={t.combinedExamNamePlaceholder}/>
+            </div>
+            <div>
+              <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.typeLabel}</div>
+              <div style={{display:"flex", gap:8}}>
+                {typeOptions.map(o => (
+                  <button key={o.k} onClick={()=>setType(o.k)} style={{flex:1, border:`1px solid ${type===o.k ? accent : cardBorder}`, background: type===o.k ? (dark?"rgba(217,119,87,0.15)":"rgba(217,119,87,0.1)") : "transparent", color: type===o.k ? accent : textMuted2, borderRadius:10, padding:"9px 0", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:2}}>{t.subjectsLabel}</div>
+              <div style={{fontSize:11, color:textMuted2, opacity:0.85, marginBottom:8}}>{t.selectSubjectsNote}</div>
+              <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
+                {allSubjects.map(s => {
+                  const on = picked.includes(s);
+                  const c = colorForSubject(s, allSubjects);
+                  return (
+                    <button key={s} onClick={()=>toggleSubject(s)} style={{display:"flex", alignItems:"center", gap:5, border:`1px solid ${on ? c.bg : cardBorder}`, background: on ? c.bgSoft : "transparent", color: on ? c.bg : textMuted2, borderRadius:20, padding:"6px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+                      {on && <Check size={11}/>} {s}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <button onClick={submit} style={{border:"none", borderRadius:12, padding:"12px 0", background:accent, color:"#fff", fontWeight:700, cursor:"pointer", opacity: (name.trim() && picked.length>0) ? 1 : 0.5}}>
               {t.save}
             </button>
           </>
@@ -2783,7 +3117,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
               <div style={{fontSize:11, color:textMuted2, fontWeight:600}}>{t.remaining}</div>
             </div>
           </div>
-          <div style={{marginTop:10, height:6, width:120, borderRadius:4, background:trackColor, overflow:"hidden"}}>
+          <div style={{marginTop:10, height:6, width:120, borderRadius:4, background:trackColor, border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
             <div style={{height:"100%", width:`${overallPct}%`, background:accent, borderRadius:4, transition:"width .3s"}}/>
           </div>
         </div>
@@ -2809,7 +3143,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
                     <span style={{fontWeight:700, fontSize:13}}>{subj}</span>
                     <span style={{fontSize:12, fontWeight:700, color:c.bg}}>{formatDuration(mins, lang, nf)}</span>
                   </div>
-                  <div style={{height:6, borderRadius:4, background: dark? "#2C2820":"#EFE9DC", overflow:"hidden"}}>
+                  <div style={{height:6, borderRadius:4, background: dark? "#2C2820":"#EFE9DC", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
                     <div style={{height:"100%", width:`${pct}%`, background:c.bg, borderRadius:4, transition:"width .3s"}}/>
                   </div>
                 </div>
@@ -2822,7 +3156,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
           {Object.entries(subjTotals).length === 0 && (
             <div style={{textAlign:"center", padding:"26px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16, display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
               <Calendar size={20} style={{opacity:0.45}}/>
-              {t.noData}
+              {t.noSubjectData}
             </div>
           )}
           {Object.entries(subjTotals).map(([subj,v]) => {
@@ -2834,7 +3168,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
                   <span style={{fontWeight:700, fontSize:13}}>{subj}</span>
                   <span style={{fontSize:12, fontWeight:700, color:c.bg}}><Num>{nf(pct)}</Num>%</span>
                 </div>
-                <div style={{height:6, borderRadius:4, background: dark? "#2C2820":"#EFE9DC", overflow:"hidden"}}>
+                <div style={{height:6, borderRadius:4, background: dark? "#2C2820":"#EFE9DC", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
                   <div style={{height:"100%", width:`${pct}%`, background:c.bg, borderRadius:4, transition:"width .3s"}}/>
                 </div>
               </div>
