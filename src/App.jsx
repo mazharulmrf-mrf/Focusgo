@@ -1787,8 +1787,13 @@ export default function FocusGo() {
   // ডেস্কটপ (≥1024px): বাম সাইডবার নেভিগেশন থাকবে, bottom dock হাইড হবে, আর content column
   // single-column-এই থাকবে কিন্তু zoom দিয়ে গোটা কনটেন্ট একসাথে বড় দেখানো হয় (অন্য অ্যাপগুলোর মতো)
   const isDesktop = breakpoint === "desktop";
-  const desktopZoom = isDesktop ? 1.18 : 1; // Chromium/Safari/Android WebView সাপোর্ট করে; পুরনো Firefox-এ ignore হবে, লেআউট ভাঙবে না
-  const containerMaxWidth = isDesktop ? 560 : breakpoint === "tablet" ? 640 : 480;
+  const desktopZoom = isDesktop ? 1.4 : 1; // আরও বাড়িয়ে 1.3 থেকে 1.4 করা হলো
+  // maxWidth এখন আর ফিক্সড পিক্সেল না — viewport width থেকে সাইডবার+প্যাডিং বাদ দিয়ে zoom দিয়ে
+  // ভাগ করে হিসাব হচ্ছে (CSS calc/min দিয়ে), যাতে বড় স্ক্রিনে আরও চওড়া দেখায় কিন্তু ছোট
+  // ডেস্কটপ উইন্ডোতে (যেমন ১০২৪-১৩০০px) কনটেন্ট overflow করে ভেঙে না যায়।
+  const containerMaxWidth = isDesktop
+    ? `min(1080px, calc((100vw - 260px) / ${desktopZoom}))`
+    : breakpoint === "tablet" ? 640 : 480;
   const containerPadding = isDesktop ? "36px 0 48px" : breakpoint === "tablet" ? "22px 24px 28px" : "18px 16px 24px";
 
   const styles = {
