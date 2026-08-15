@@ -340,16 +340,12 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
       position: "sticky", top: 0, height: "100dvh", boxSizing: "border-box",
       transition: "width .18s cubic-bezier(0.16,1,0.3,1), padding .18s cubic-bezier(0.16,1,0.3,1)",
     }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between", marginBottom: 26 }}>
-        <button onClick={() => { vibrate(); setTab("today"); }} title={t.tabs.today}
-          style={{ border: "none", background: "transparent", cursor: "pointer", padding: 0, display: "flex", marginLeft: collapsed ? 0 : 8, overflow: "hidden" }}>
-          {collapsed ? (
-            <div style={{ height: 22, width: 22, borderRadius: 7, background: accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 12 }}>F</div>
-          ) : (
+      {!collapsed && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 26 }}>
+          <button onClick={() => { vibrate(); setTab("today"); }} title={t.tabs.today}
+            style={{ border: "none", background: "transparent", cursor: "pointer", padding: 0, display: "flex", marginLeft: 8, overflow: "hidden" }}>
             <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt="FocusGo" style={{ height: 26, width: "auto", objectFit: "contain" }} />
-          )}
-        </button>
-        {!collapsed && (
+          </button>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
             <button onClick={() => { vibrate(); onToggleCollapse(); }} title="সাইডবার সংকুচিত করুন"
               style={{ border: `1px solid ${cardBorder}`, background: "transparent", color: textMuted2, borderRadius: 8, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
@@ -362,8 +358,9 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
               </button>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+      <div style={{ marginTop: collapsed ? 4 : 0, display: "flex", flexDirection: "column", gap: 3 }}>
       {items.map(({ k, Icon }) => (
         <button key={k} onClick={() => { vibrate(); setTab(k); }} title={collapsed ? t.tabs[k] : undefined} style={{
           display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "flex-start", gap: 12, border: "none", borderRadius: 12,
@@ -376,6 +373,7 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
           {!collapsed && t.tabs[k]}
         </button>
       ))}
+      </div>
       {collapsed && (
         <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
           <button onClick={() => { vibrate(); onToggleCollapse(); }} title="সাইডবার দেখান"
