@@ -1143,6 +1143,8 @@ export default function FocusGo() {
   const [editTopic, setEditTopic] = useState(null);
   const timerRef = useRef(null);
   const stopwatchRef = useRef(null);
+  const timerEndAtRef = useRef(null);
+  const stopwatchStartAtRef = useRef(null);
   const audioCtxRef = useRef(null);
   const guestLoadedOnceRef = useRef(false); // এই গেস্ট সেশনে localStorage থেকে একবারই লোড হবে
   // "loaded" শুধু UI-তে splash/loading screen সরানোর জন্য (cache থেকে instant দেখাতে ব্যবহার হয়) —
@@ -1191,8 +1193,43 @@ export default function FocusGo() {
       osc.stop(ctx.currentTime + when + duration + 0.03);
     } catch (e) { /* audio unsupported or blocked — fail silently */ }
   };
-  const playStartSound = () => beep(880, 0.12);
-  const playEndSound = () => { beep(659, 0.14, 0); beep(880, 0.14, 0.16); beep(1046, 0.22, 0.32); };
+  const playStartSound = () => beep(880, 0.14, 0, 0.75);
+  const playEndSound = () => { beep(659, 0.16, 0, 0.75); beep(880, 0.16, 0.16, 0.8); beep(1046, 0.26, 0.32, 0.85); };
+
+  // ফোকাস টাইমার ফুলস্ক্রিন হলে ব্রাউজারের Fullscreen API + Screen Orientation API
+  // ব্যবহার করে অরিয়েন্টেশন "unlock" করে দেওয়া হয় — এতে ফোনের OS-এ auto-rotate বন্ধ
+  // থাকলেও শুধু এই ফুলস্ক্রিন ভিউ-তে ফোন ঘোরালে স্ক্রিন ঘুরে যাবে (ল্যান্ডস্কেপে ক্লক-ও
+  // বড় হয়ে দেখাবে, কারণ ক্লকের সাইজ vw-ভিত্তিক)। বন্ধ করলে আবার স্বাভাবিক অবস্থায় ফিরে আসে।
+  useEffect(() => {
+    const el = document.documentElement;
+    if (focusFullscreen) {
+      const reqFs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+      const lockOrientation = () => {
+        try {
+          if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+            window.screen.orientation.lock("any").catch(() => {});
+          }
+        } catch (e) { /* orientation lock unsupported — ignore */ }
+      };
+      if (reqFs) {
+        const result = reqFs.call(el);
+        if (result && result.then) result.then(lockOrientation).catch(() => {});
+        else lockOrientation();
+      } else {
+        lockOrientation();
+      }
+    } else {
+      try {
+        if (window.screen && window.screen.orientation && window.screen.orientation.unlock) {
+          window.screen.orientation.unlock();
+        }
+      } catch (e) { /* ignore */ }
+      const exitFs = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+      if (document.fullscreenElement && exitFs) {
+        exitFs.call(document).catch(() => {});
+      }
+    }
+  }, [focusFullscreen]);
 
   // Toggle helpers used by both the mini timer card and the fullscreen view,
   // so the start sound + auto-fullscreen behavior stays consistent everywhere.
@@ -1385,28 +1422,52 @@ export default function FocusGo() {
   }, []);
 
   // timer tick
+  // মোবাইলে অ্যাপ থেকে বের হয়ে (ব্যাকগ্রাউন্ডে) থাকলে ব্রাউজার setInterval-কে
+  // থ্রটল/পজ করে দেয়, তাই আগের কোডে (প্রতি টিকে -1 করে) ফিরে এসে ঘড়ি "থেমে/আটকে"
+  // আছে মনে হতো। এখন আসল ওয়াল-ক্লক সময় (Date.now()) দিয়ে হিসাব হয় এবং ট্যাব আবার
+  // visible হলে সাথে সাথে রিক্যালকুলেট হয়, তাই ফিরে এসেই সঠিক সময় দেখা যাবে।
   useEffect(() => {
     if (timerRunning) {
-      timerRef.current = setInterval(() => {
-        setTimerSeconds(s => {
-          if (s <= 1) { setTimerRunning(false); playEndSound(); return 0; }
-          return s - 1;
-        });
-      }, 1000);
+      timerEndAtRef.current = Date.now() + Math.max(0, timerSeconds) * 1000;
+      const tick = () => {
+        const remaining = Math.max(0, Math.round((timerEndAtRef.current - Date.now()) / 1000));
+        setTimerSeconds(remaining);
+        if (remaining <= 0) { setTimerRunning(false); playEndSound(); }
+      };
+      timerRef.current = setInterval(tick, 1000);
+      const onVisible = () => { if (document.visibilityState === "visible") tick(); };
+      document.addEventListener("visibilitychange", onVisible);
+      window.addEventListener("focus", onVisible);
+      return () => {
+        clearInterval(timerRef.current);
+        document.removeEventListener("visibilitychange", onVisible);
+        window.removeEventListener("focus", onVisible);
+      };
     } else if (timerRef.current) {
       clearInterval(timerRef.current);
     }
-    return () => timerRef.current && clearInterval(timerRef.current);
   }, [timerRunning]);
 
-  // stopwatch tick
+  // stopwatch tick — একই কারণে (ব্যাকগ্রাউন্ড থ্রটলিং) স্টার্ট-টাইম ধরে রেখে
+  // Date.now() দিয়ে হিসাব করা হচ্ছে, শুধু আগের ভ্যালুতে +1 করার বদলে।
   useEffect(() => {
     if (stopwatchRunning) {
-      stopwatchRef.current = setInterval(() => setStopwatchSeconds(s => s + 1), 1000);
+      stopwatchStartAtRef.current = Date.now() - Math.max(0, stopwatchSeconds) * 1000;
+      const tick = () => {
+        setStopwatchSeconds(Math.max(0, Math.round((Date.now() - stopwatchStartAtRef.current) / 1000)));
+      };
+      stopwatchRef.current = setInterval(tick, 1000);
+      const onVisible = () => { if (document.visibilityState === "visible") tick(); };
+      document.addEventListener("visibilitychange", onVisible);
+      window.addEventListener("focus", onVisible);
+      return () => {
+        clearInterval(stopwatchRef.current);
+        document.removeEventListener("visibilitychange", onVisible);
+        window.removeEventListener("focus", onVisible);
+      };
     } else if (stopwatchRef.current) {
       clearInterval(stopwatchRef.current);
     }
-    return () => stopwatchRef.current && clearInterval(stopwatchRef.current);
   }, [stopwatchRunning]);
 
   // keep screen awake while timer or stopwatch is running
@@ -1746,8 +1807,10 @@ export default function FocusGo() {
       document.body.style.background = themeColor;
       document.documentElement.style.colorScheme = dark ? "dark" : "light";
       document.body.style.margin = "0";
-      document.documentElement.style.overscrollBehaviorY = "none";
-      document.body.style.overscrollBehaviorY = "none";
+      // আগে এখানে overscrollBehaviorY:"none" সেট করা হতো, যেটা ব্রাউজারের নিজস্ব
+      // "উপর থেকে টেনে রিফ্রেশ" (pull-to-refresh) গেসচারটাও বন্ধ করে দিচ্ছিল।
+      // এখন সেটা সরিয়ে দেওয়া হলো, যাতে ইউজার চাইলে উপর থেকে নিচে ধীরে টেনে
+      // পেজ ম্যানুয়ালি রিফ্রেশ করতে পারে (কোনো auto-refresh নেই, শুধু এই gesture)।
 
       // Update <meta name=\"theme-color\"> dynamically. Chrome/Android uses
       // this for the browser/status/navigation UI around the web app.
@@ -1885,7 +1948,7 @@ export default function FocusGo() {
   return (
     <div style={{...styles.page, flexDirection: isDesktop ? "row" : "column"}}>
       <style>{`
-        html, body { margin:0; padding:0; background:${bg}; overscroll-behavior-y: none; }
+        html, body { margin:0; padding:0; background:${bg}; }
         #root, #__next { background:${bg}; }
 
         /* ---- subtle motion: tab switches, buttons, cards ---- */
