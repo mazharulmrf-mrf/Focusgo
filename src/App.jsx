@@ -325,7 +325,7 @@ function UserMenu({ onOpen, cardBorder, cardBg, textMain, user }) {
 }
 
 // ডেস্কটপ (≥1024px) এ bottom-nav এর বদলে বাম পাশে সাইডবার — বড় স্ক্রিনে familiar "app" লেআউট
-function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, textMuted2, accent, collapsed, onToggleCollapse }) {
+function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, textMuted2, accent, collapsed, onToggleCollapse, onHideAll }) {
   const items = [
     { k: "today", Icon: Home },
     { k: "plan", Icon: CalendarDays },
@@ -350,10 +350,18 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
           )}
         </button>
         {!collapsed && (
-          <button onClick={() => { vibrate(); onToggleCollapse(); }} title="সাইডবার লুকান"
-            style={{ border: `1px solid ${cardBorder}`, background: "transparent", color: textMuted2, borderRadius: 8, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-            <ChevronLeft size={14} />
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+            <button onClick={() => { vibrate(); onToggleCollapse(); }} title="সাইডবার সংকুচিত করুন"
+              style={{ border: `1px solid ${cardBorder}`, background: "transparent", color: textMuted2, borderRadius: 8, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+              <ChevronLeft size={14} />
+            </button>
+            {onHideAll && (
+              <button onClick={() => { vibrate(); onHideAll(); }} title="সাইডবার সম্পূর্ণ লুকান"
+                style={{ border: `1px solid ${cardBorder}`, background: "transparent", color: textMuted2, borderRadius: 8, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                <EyeOff size={14} />
+              </button>
+            )}
+          </div>
         )}
       </div>
       {items.map(({ k, Icon }) => (
@@ -369,10 +377,18 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
         </button>
       ))}
       {collapsed && (
-        <button onClick={() => { vibrate(); onToggleCollapse(); }} title="সাইডবার দেখান"
-          style={{ marginTop: "auto", border: `1px solid ${cardBorder}`, background: "transparent", color: textMuted2, borderRadius: 8, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", alignSelf: "center" }}>
-          <ChevronRight size={14} />
-        </button>
+        <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+          <button onClick={() => { vibrate(); onToggleCollapse(); }} title="সাইডবার দেখান"
+            style={{ border: `1px solid ${cardBorder}`, background: "transparent", color: textMuted2, borderRadius: 8, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+            <ChevronRight size={14} />
+          </button>
+          {onHideAll && (
+            <button onClick={() => { vibrate(); onHideAll(); }} title="সাইডবার সম্পূর্ণ লুকান"
+              style={{ border: `1px solid ${cardBorder}`, background: "transparent", color: textMuted2, borderRadius: 8, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+              <EyeOff size={14} />
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
@@ -1157,6 +1173,14 @@ export default function FocusGo() {
   useEffect(() => {
     try { window.localStorage.setItem("focusgo_sidebar_collapsed", sidebarCollapsed ? "1" : "0"); } catch (e) {}
   }, [sidebarCollapsed]);
+  // ডেস্কটপ সাইডবার সম্পূর্ণ hide/unhide করার অপশন — collapse (icon-only) থেকে আলাদা,
+  // এটা সাইডবারটাকে পুরোপুরি সরিয়ে দেয়, শুধু ছোট একটা "show" বাটন থেকে যায়।
+  const [sidebarHidden, setSidebarHidden] = useState(() => {
+    try { return window.localStorage.getItem("focusgo_sidebar_hidden") === "1"; } catch (e) { return false; }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("focusgo_sidebar_hidden", sidebarHidden ? "1" : "0"); } catch (e) {}
+  }, [sidebarHidden]);
   const [calMonth, setCalMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
   const [timerTopicId, setTimerTopicId] = useState(null);
@@ -1992,8 +2016,16 @@ export default function FocusGo() {
         .fg-card:active { transform: scale(0.985); }
         input:focus, select:focus, textarea:focus { outline: 2px solid rgba(217,119,87,0.30); outline-offset: 1px; transition: outline-color .15s ease; }
       `}</style>
-      {isDesktop && (
-        <DesktopSidebar t={t} tab={tab} setTab={setTab} vibrate={vibrate} dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(v => !v)} />
+      {isDesktop && !sidebarHidden && (
+        <DesktopSidebar t={t} tab={tab} setTab={setTab} vibrate={vibrate} dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(v => !v)} onHideAll={() => setSidebarHidden(true)} />
+      )}
+      {isDesktop && sidebarHidden && (
+        <div style={{ width: 40, flexShrink: 0, borderRight: `1px solid ${cardBorder}`, display: "flex", flexDirection: "column", alignItems: "center", padding: "28px 8px", position: "sticky", top: 0, height: "100dvh", boxSizing: "border-box" }}>
+          <button type="button" onClick={() => { vibrate(); setSidebarHidden(false); }} title="সাইডবার দেখান"
+            style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMuted2, borderRadius: 8, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+            <Eye size={14} />
+          </button>
+        </div>
       )}
       <div style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, ...(isDesktop ? { zoom: desktopZoom } : {})}}>
       <div style={styles.container}>
