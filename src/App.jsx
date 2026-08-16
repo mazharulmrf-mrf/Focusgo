@@ -1581,7 +1581,12 @@ export default function FocusGo() {
       const reqFs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
       const lockOrientation = () => {
         try {
-          if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+          // Screen Orientation lock() সাধারণ ব্রাউজার ট্যাবে ব্যর্থ হয়ে (silently)
+          // fullscreen-এর orientation-কে ফ্রিজ করে রাখে, ফলে Chrome mobile-এ
+          // ফোন ঘোরালেও স্ক্রিন rotate হয় না। তাই শুধু installed/standalone
+          // PWA মোডেই lock() ট্রাই করা হচ্ছে — regular ট্যাবে এটা স্কিপ করলে
+          // ডিভাইসের normal OS auto-rotate নিজে থেকেই কাজ করবে।
+          if (isStandaloneApp() && window.screen && window.screen.orientation && window.screen.orientation.lock) {
             window.screen.orientation.lock("any").catch(() => {});
           }
         } catch (e) { /* orientation lock unsupported — ignore */ }
