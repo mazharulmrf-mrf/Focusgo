@@ -2524,6 +2524,16 @@ export default function FocusGo() {
 
             <div style={{display:"flex", alignItems:"center", gap:10, margin:"20px 0 16px"}}>
               <div style={{flex:1, height:1, background:cardBorder}}/>
+              <span style={{fontSize:10.5, fontWeight:700, letterSpacing:0.8, color:textMuted2, textTransform:"uppercase", opacity:0.85}}>{lang==="bn" ? "মাস" : "Month"}</span>
+              <div style={{flex:1, height:1, background:cardBorder}}/>
+            </div>
+
+            <InlineMonthCalendar calMonth={statsCalMonth} setCalMonth={setStatsCalMonth} entries={entries}
+              selectedKey={dateKey(statsMonthDay)} onSelectDay={selectStatsDay} lang={lang} nf={nf} monthName={monthName} today={today}
+              cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
+
+            <div style={{display:"flex", alignItems:"center", gap:10, margin:"22px 0 16px"}}>
+              <div style={{flex:1, height:1, background:cardBorder}}/>
               <span style={{fontSize:10.5, fontWeight:700, letterSpacing:0.8, color:textMuted2, textTransform:"uppercase", opacity:0.85}}>{t.syllabusProgress}</span>
               <div style={{flex:1, height:1, background:cardBorder}}/>
             </div>
@@ -2573,22 +2583,6 @@ export default function FocusGo() {
                 );
               })()}
             </div>
-
-            <div style={{display:"flex", alignItems:"center", gap:10, margin:"22px 0 18px"}}>
-              <div style={{flex:1, height:1, background:cardBorder}}/>
-              <span style={{fontSize:10.5, fontWeight:700, letterSpacing:0.8, color:textMuted2, textTransform:"uppercase", opacity:0.85}}>{lang==="bn" ? "মাস" : "Month"}</span>
-              <div style={{flex:1, height:1, background:cardBorder}}/>
-            </div>
-
-            <InlineMonthCalendar calMonth={statsCalMonth} setCalMonth={setStatsCalMonth} entries={entries}
-              selectedKey={dateKey(statsMonthDay)} onSelectDay={selectStatsDay} lang={lang} nf={nf} monthName={monthName} today={today}
-              cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
-
-            {/* one shared day-detail card — reflects whichever day was tapped, in the week strip or the month grid */}
-            <DaySelectedCard day={statsMonthDay} entries={entries[dateKey(statsMonthDay)] || []} allSubjects={allSubjects}
-              t={t} nf={nf} lang={lang} weekdayName={weekdayName} monthName={monthName}
-              cardBg={cardBg} innerBg={dark?"#121110":"#F8F5EE"} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}
-              onToggle={(id)=>toggleDoneFor(dateKey(statsMonthDay), id)}/>
           </div>
         )}
 
