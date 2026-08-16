@@ -2926,6 +2926,24 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
     </>
   );
 
+  // ছোট আইকন বাটন — reset উপরে, start/pause নিচে (landscape-এ seconds বক্সের ডান পাশে বসবে)
+  const sideButtons = (
+    <div style={{display:"flex", flexDirection:"column", gap:10, marginLeft:"clamp(8px,1.6vw,16px)"}}>
+      <button onClick={onReset} title={t.reset} style={{background:resetBtnBg, border:"none", borderRadius:14, width:48, height:48, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+        <RotateCcw size={18} color={fgMain}/>
+      </button>
+      <button onClick={onToggleRun} title={running ? t.pause : t.start} style={{background:accent, border:"none", borderRadius:14, width:48, height:48, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+        {running ? <Pause size={18} fill="#fff" color="#fff"/> : <Play size={18} fill="#fff" color="#fff"/>}
+      </button>
+    </div>
+  );
+
+  const liveClock = now && (
+    <div style={{textAlign:"center", fontSize:12, fontWeight:700, color:fgMuted, fontVariantNumeric:"tabular-nums", letterSpacing:0.8, opacity:0.75, marginBottom: stacked ? 14 : 22}}>
+      <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num>
+    </div>
+  );
+
   return (
     <div style={{position:"fixed", inset:0, zIndex:100, background:screenBg, color:fgMain, display:"flex", flexDirection:"column"}}>
       <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 20px 0"}}>
@@ -2936,16 +2954,12 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
         <div style={{width:34}}/>
       </div>
 
-      {now && (
-        <div style={{textAlign:"center", marginTop:22, fontSize:12, fontWeight:700, color:fgMuted, fontVariantNumeric:"tabular-nums", letterSpacing:0.8, opacity:0.75}}>
-          <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num>
-        </div>
-      )}
-
+      {/* মূল কনটেন্ট এরিয়া উলম্বভাবে center করা — real-time ঘড়ি এখন এই ব্লকের অংশ, তাই স্ক্রিনের মাঝামাঝি বসে */}
       <div style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:18, padding:"0 24px"}}>
         {stacked ? (
-          // ---- vertical/stacked layout: mm উপরে, ss নিচে, bar নিচে (seconds বক্সের সমান width) ----
+          // ---- vertical/stacked layout: আগের মতোই — mm উপরে, ss নিচে, bar নিচে; শুধু real-time একটু নিচে নেমে এসেছে ----
           <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:0}}>
+            {liveClock}
             {clockDigits}
             {pct !== null && (
               <div style={{marginTop:16, height:6, width:blockWidth, borderRadius:4, background:trackColor, border:`1px solid ${trackBorder}`, overflow:"hidden"}}>
@@ -2954,29 +2968,37 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
             )}
           </div>
         ) : (
-          // ---- horizontal layout: mm : ss পাশাপাশি, মিনিটের বাম পাশে vertical bar ----
-          <div style={{display:"flex", alignItems:"stretch", gap:"clamp(10px,2vw,16px)"}}>
-            {pct !== null && (
-              <div style={{width:8, borderRadius:4, background:trackColor, border:`1px solid ${trackBorder}`, overflow:"hidden", display:"flex", alignItems:"flex-end", alignSelf:"stretch"}}>
-                <div style={{width:"100%", height:`${pct}%`, background:accent, borderRadius:4, transition:"height .3s"}}/>
+          // ---- horizontal layout: real-time উপরে center-এ, নিচে bar + mm : ss + (reset উপরে/play-pause নিচে) seconds-এর ডান পাশে ----
+          <div style={{display:"flex", flexDirection:"column", alignItems:"center"}}>
+            {liveClock}
+            <div style={{display:"flex", alignItems:"stretch", gap:"clamp(10px,2vw,16px)"}}>
+              {pct !== null && (
+                <div style={{width:8, borderRadius:4, background:trackColor, border:`1px solid ${trackBorder}`, overflow:"hidden", display:"flex", alignItems:"flex-end", alignSelf:"stretch"}}>
+                  <div style={{width:"100%", height:`${pct}%`, background:accent, borderRadius:4, transition:"height .3s"}}/>
+                </div>
+              )}
+              <div style={{display:"flex", alignItems:"center", gap:"clamp(4px,1vw,10px)"}}>
+                {clockDigits}
               </div>
-            )}
-            <div style={{display:"flex", alignItems:"center", gap:"clamp(4px,1vw,10px)"}}>
-              {clockDigits}
+              <div style={{display:"flex", alignItems:"center"}}>
+                {sideButtons}
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Start/Pause এবং Reset — দুটোই ছোট, একই আকারের আইকন বাটন, নিচে আরেকটু জায়গা রেখে বসানো */}
-      <div style={{display:"flex", gap:14, padding:"0 30px 64px", justifyContent:"center", alignItems:"center"}}>
-        <button onClick={onToggleRun} title={running ? t.pause : t.start} style={{background:accent, border:"none", borderRadius:16, width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
-          {running ? <Pause size={20} fill="#fff" color="#fff"/> : <Play size={20} fill="#fff" color="#fff"/>}
-        </button>
-        <button onClick={onReset} title={t.reset} style={{background:resetBtnBg, border:"none", borderRadius:16, width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
-          <RotateCcw size={20} color={fgMain}/>
-        </button>
-      </div>
+      {/* portrait/vertical মোডে বাটন আগের মতোই নিচে থাকবে */}
+      {stacked && (
+        <div style={{display:"flex", gap:14, padding:"0 30px 64px", justifyContent:"center", alignItems:"center"}}>
+          <button onClick={onToggleRun} title={running ? t.pause : t.start} style={{background:accent, border:"none", borderRadius:16, width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+            {running ? <Pause size={20} fill="#fff" color="#fff"/> : <Play size={20} fill="#fff" color="#fff"/>}
+          </button>
+          <button onClick={onReset} title={t.reset} style={{background:resetBtnBg, border:"none", borderRadius:16, width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+            <RotateCcw size={20} color={fgMain}/>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
