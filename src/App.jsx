@@ -2415,9 +2415,9 @@ export default function FocusGo() {
   // এখন একটু কমিয়ে আনা হলো, যাতে বড় দেখাবে কিন্তু ঘিঞ্জি না লাগে।
   const desktopZoom = isDesktop ? 1.18 : 1;
   const containerMaxWidth = isDesktop
-    ? `min(1140px, calc((100vw - 260px - 64px) / ${desktopZoom}))`
+    ? `min(1140px, calc((100vw - 260px) / ${desktopZoom}))`
     : breakpoint === "tablet" ? 640 : 480;
-  const containerPadding = isDesktop ? "24px 0 36px" : breakpoint === "tablet" ? "22px 24px 28px" : "18px 16px 24px";
+  const containerPadding = isDesktop ? "24px 28px 36px" : breakpoint === "tablet" ? "22px 24px 28px" : "18px 16px 24px";
 
   const styles = {
     page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Hind Siliguri','Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column" },
