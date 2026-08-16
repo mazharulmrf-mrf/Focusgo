@@ -2939,7 +2939,7 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
   );
 
   const liveClock = now && (
-    <div style={{textAlign:"center", fontSize:12, fontWeight:700, color:fgMuted, fontVariantNumeric:"tabular-nums", letterSpacing:0.8, opacity:0.75, marginBottom: stacked ? 14 : 22}}>
+    <div style={{textAlign:"center", fontSize:12, fontWeight:700, color:fgMuted, fontVariantNumeric:"tabular-nums", letterSpacing:0.8, opacity:0.75, marginBottom: stacked ? 14 : 12}}>
       <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num>
     </div>
   );
@@ -2969,7 +2969,8 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
           </div>
         ) : (
           // ---- horizontal layout: real-time উপরে center-এ, নিচে bar + mm : ss + (reset উপরে/play-pause নিচে) seconds-এর ডান পাশে ----
-          <div style={{display:"flex", flexDirection:"column", alignItems:"center"}}>
+          // পুরো গ্রুপটা সামান্য উপরে সরানো হয়েছে, যাতে real-time + digits একসাথে দেখতে সেন্টার্ড লাগে
+          <div style={{display:"flex", flexDirection:"column", alignItems:"center", transform:"translateY(-6vh)"}}>
             {liveClock}
             <div style={{display:"flex", alignItems:"stretch", gap:"clamp(10px,2vw,16px)"}}>
               {pct !== null && (
