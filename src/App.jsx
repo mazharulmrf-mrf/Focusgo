@@ -2017,6 +2017,8 @@ export default function FocusGo() {
         .fg-card { transition: transform .16s cubic-bezier(0.16,1,0.3,1), box-shadow .2s ease, border-color .2s ease; }
         .fg-card:active { transform: scale(0.985); }
         input:focus, select:focus, textarea:focus { outline: 2px solid rgba(217,119,87,0.30); outline-offset: 1px; transition: outline-color .15s ease; }
+        .fg-week-strip { scrollbar-width: none; -ms-overflow-style: none; }
+        .fg-week-strip::-webkit-scrollbar { display: none; }
       `}</style>
       {isDesktop && !sidebarHidden && (
         <DesktopSidebar t={t} tab={tab} setTab={setTab} vibrate={vibrate} dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(v => !v)} onHideAll={() => setSidebarHidden(true)} />
@@ -2196,48 +2198,12 @@ export default function FocusGo() {
         {/* TODAY tab */}
         {tab === "today" && (
           <div className="fg-tab-panel" style={{marginTop:20}}>
-            {/* week strip */}
+            {/* week strip — swipe sideways to see the rest of the week, no page indicator needed */}
             <div>
               <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:10}}>{t.thisWeek}</div>
               <WeekDayStrip days={weekDays} entries={entries} selectedKey={dateKey(weekStripDay)} onSelectDay={setWeekStripDay}
                 todayKey={todayKey} weekdayShort={weekdayShort} nf={nf} accent={accent} dark={dark}
                 textMuted2={textMuted2} textMain={textMain} cardBg={cardBg} cardBorder={cardBorder}/>
-              <DaySelectedCard day={weekStripDay} entries={entries[dateKey(weekStripDay)] || []} allSubjects={allSubjects}
-                t={t} nf={nf} lang={lang} weekdayName={weekdayName} monthName={monthName}
-                cardBg={cardBg} innerBg={dark?"#121110":"#F8F5EE"} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}
-                onToggle={(id)=>toggleDoneFor(dateKey(weekStripDay), id)}/>
-            </div>
-
-            {/* syllabus progress */}
-            <div style={{marginTop:22}}>
-              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                <div style={{fontSize:19, fontWeight:800}}>{t.syllabusProgress}</div>
-                <button onClick={()=>{vibrate(); setShowSubjects(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
-                  <Plus size={12}/> {t.manageSubjects}
-                </button>
-              </div>
-              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginTop:12}}>
-                {allSubjects.length === 0 && (
-                  <div style={{fontSize:13, color:textMuted2, padding:"14px 0", gridColumn:"1 / -1"}}>—</div>
-                )}
-                {[...allSubjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"})).map(subj => {
-                  const v = subjectProgress[subj] || { done:0, total:0 };
-                  const c = colorForSubject(subj, allSubjects);
-                  const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
-                  return (
-                    <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 12px", minWidth:0}}>
-                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", gap:4, marginBottom:6}}>
-                        <span style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subj}</span>
-                        <span style={{fontSize:10, color:textMuted2, fontWeight:600, flexShrink:0}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num></span>
-                      </div>
-                      <div style={{height:5, borderRadius:3, background: dark? "#2C2820":"#EFE9DC", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
-                        <div style={{height:"100%", width:`${pct}%`, background:c.bg, borderRadius:3, transition:"width .3s"}}/>
-                      </div>
-                      <div style={{fontSize:10, fontWeight:700, color:c.bg, marginTop:5, letterSpacing:ls(0.3)}}><Num>{nf(pct)}</Num>% {t.complete}</div>
-                    </div>
-                  );
-                })}
-              </div>
             </div>
           </div>
         )}
@@ -2295,6 +2261,38 @@ export default function FocusGo() {
               t={t} nf={nf} lang={lang} weekdayName={weekdayName} monthName={monthName}
               cardBg={cardBg} innerBg={dark?"#121110":"#F8F5EE"} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}
               onToggle={(id)=>toggleDoneFor(dateKey(weekStripDay), id)}/>
+
+            {/* syllabus / subject progress — moved here from the Today tab */}
+            <div style={{marginTop:22}}>
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                <div style={{fontSize:19, fontWeight:800}}>{t.syllabusProgress}</div>
+                <button onClick={()=>{vibrate(); setShowSubjects(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+                  <Plus size={12}/> {t.manageSubjects}
+                </button>
+              </div>
+              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginTop:12}}>
+                {allSubjects.length === 0 && (
+                  <div style={{fontSize:13, color:textMuted2, padding:"14px 0", gridColumn:"1 / -1"}}>—</div>
+                )}
+                {[...allSubjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"})).map(subj => {
+                  const v = subjectProgress[subj] || { done:0, total:0 };
+                  const c = colorForSubject(subj, allSubjects);
+                  const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
+                  return (
+                    <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 12px", minWidth:0}}>
+                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", gap:4, marginBottom:6}}>
+                        <span style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subj}</span>
+                        <span style={{fontSize:10, color:textMuted2, fontWeight:600, flexShrink:0}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num></span>
+                      </div>
+                      <div style={{height:5, borderRadius:3, background: dark? "#2C2820":"#EFE9DC", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
+                        <div style={{height:"100%", width:`${pct}%`, background:c.bg, borderRadius:3, transition:"width .3s"}}/>
+                      </div>
+                      <div style={{fontSize:10, fontWeight:700, color:c.bg, marginTop:5, letterSpacing:ls(0.3)}}><Num>{nf(pct)}</Num>% {t.complete}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
             <div style={{display:"flex", alignItems:"center", gap:10, margin:"22px 0 18px"}}>
               <div style={{flex:1, height:1, background:cardBorder}}/>
@@ -3662,7 +3660,7 @@ function ExamsModal({ t, nf, subjects, examSubjects, onAdd, onRemove, onClose, c
 
 function WeekDayStrip({ days, entries, selectedKey, onSelectDay, todayKey, weekdayShort, nf, accent, dark, textMuted2, textMain, cardBg, cardBorder }) {
   return (
-    <div style={{display:"flex", gap:8, overflowX:"auto", paddingBottom:2}}>
+    <div className="fg-week-strip" style={{display:"flex", gap:8, overflowX:"auto", paddingBottom:2, scrollSnapType:"x proximity"}}>
       {days.map((d,i) => {
         const dk = dateKey(d);
         const isToday = dk === todayKey;
@@ -3674,7 +3672,7 @@ function WeekDayStrip({ days, entries, selectedKey, onSelectDay, todayKey, weekd
         return (
           <button key={i} onClick={()=>onSelectDay(d)} style={{
             flex:"0 0 auto", width:56, display:"flex", flexDirection:"column", alignItems:"center", gap:6,
-            padding:"10px 0 12px", borderRadius:16,
+            padding:"10px 0 12px", borderRadius:16, scrollSnapAlign:"start",
             border: isToday ? `1px solid ${accent}` : `1px solid ${cardBorder}`,
             background: isSelected ? (isToday ? "rgba(217,119,87,0.14)" : (dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.03)")) : cardBg,
             cursor:"pointer", transition:"background .15s ease",
