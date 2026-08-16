@@ -1387,6 +1387,7 @@ export default function FocusGo() {
   // তাই আবার setState/re-save করার দরকার নেই। না মিললে সেটা অন্য device থেকে আসা আসল পরিবর্তন — সাথে সাথে UI-তে বসিয়ে দেওয়া হয়।
   const lastSavedPayloadRef = useRef(null);
   const skipNextWriteRef = useRef(false); // Firestore snapshot থেকে আসা ডেটা লোকাল state-এ বসানোর পরপরই যেন সেটা আবার Firestore-এ write-back না হয় (echo/race safety)
+  const hadServerDataRef = useRef(false); // এই ইউজারের Firestore-এ কখনো real (খালি নয়) ডেটা দেখা গেছে কিনা — accidental wipe আটকাতে ব্যবহার হয়
   // থিম/ভাষা ব্যাকগ্রাউন্ডে (Firestore/cache থেকে) শুধু সেশনের প্রথমবার লোড হবে —
   // এরপর ইউজার Settings থেকে যা বদলায় তা যেন token-refresh বা re-sync-এ চুপচাপ পুরনো
   // মান দিয়ে ওভাররাইট না হয়ে যায় (এটাই "Light সিলেক্ট করলেও Dark-ই থেকে যায়" বাগের কারণ ছিল)
@@ -1624,6 +1625,12 @@ export default function FocusGo() {
         try {
           if (snap.exists()) {
             const data = snap.data();
+            const nonEmpty = (data.entries && Object.keys(data.entries).length) ||
+              (data.subjects && data.subjects.length) ||
+              (data.topicBank && Object.keys(data.topicBank).length) ||
+              (data.examSubjects && Object.keys(data.examSubjects).length) ||
+              (data.combinedExams && Object.keys(data.combinedExams).length);
+            if (nonEmpty) hadServerDataRef.current = true;
             const incomingKey = JSON.stringify({
               entries: data.entries, subjects: data.subjects, topicBank: data.topicBank, examSubjects: data.examSubjects,
               combinedExams: data.combinedExams, nextExam: data.nextExam, lang: data.lang, themeMode: data.themeMode,
@@ -1682,6 +1689,20 @@ export default function FocusGo() {
   useEffect(() => {
     if (!serverSynced || !user) return;
     if (skipNextWriteRef.current) { skipNextWriteRef.current = false; return; } // এইমাত্র Firestore থেকেই ডেটা এসেছে — সেটাই আবার লেখার দরকার নেই
+
+    // সেফটি গার্ড: এই ইউজারের Firestore-এ আগে real ডেটা থাকতে দেখেছি (hadServerDataRef), কিন্তু এখন local
+    // state পুরোপুরি খালি — এমন অবস্থায় write করলে কোনো bug/race condition-এর কারণে ভুলবশত আসল ডেটা
+    // মুছে যেতে পারে। তাই সন্দেহজনক এই "সব খালি" write আটকে দেওয়া হচ্ছে, শুধু console-এ warning থাকবে।
+    const isEffectivelyEmpty = Object.keys(entries).length === 0 &&
+      subjects.length === 0 &&
+      Object.keys(topicBank).length === 0 &&
+      Object.keys(examSubjects).length === 0 &&
+      Object.keys(combinedExams).length === 0;
+    if (isEffectivelyEmpty && hadServerDataRef.current) {
+      console.warn("FocusGo: সন্দেহজনক খালি write আটকে দেওয়া হলো — Firestore-এর আসল ডেটা সুরক্ষিত থাকল।");
+      return;
+    }
+
     const payload = {
       entries, subjects, topicBank, examSubjects, combinedExams, nextExam, lang, themeMode,
       updatedAt: new Date().toISOString(),
@@ -1699,6 +1720,13 @@ export default function FocusGo() {
       lastSavedPayloadRef.current = JSON.stringify({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, lang, themeMode });
       setDoc(doc(db, "users", user.uid), payload, { merge: true })
         .catch(e => console.error("Firestore save error:", e));
+      // দৈনিক অটো-ব্যাকআপ — প্রতিদিন একবার (তারিখ অনুযায়ী ডকুমেন্ট আইডি, তাই বারবার ওভাররাইট হয়, জমতে থাকে না)।
+      // ভবিষ্যতে কোনো bug বা ভুলবশত ডিলিট হলে এখান থেকে আগের দিনের ডেটা ফিরিয়ে আনা যাবে।
+      if (!isEffectivelyEmpty) {
+        const backupId = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        setDoc(doc(db, "users", user.uid, "backups", backupId), payload)
+          .catch(e => console.error("Firestore backup save error:", e));
+      }
     }, 600); // দ্রুত একের পর এক change হলে বারবার write না করে একবারে সেভ করা
     return () => clearTimeout(t);
   }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, lang, themeMode, serverSynced, user]);
