@@ -1,24 +1,76 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail } from "lucide-react";
-// ================= REAL FIREBASE =================
-// Authentication + Firestore are handled by the real Firebase project.
-import {
-  onAuthStateChanged,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-  sendPasswordResetEmail,
-  updateProfile,
-  updateEmail,
-  updatePassword,
-  reauthenticateWithCredential,
-  EmailAuthProvider,
-} from "firebase/auth";
-import { doc, setDoc, onSnapshot } from "firebase/firestore";
-import { auth, db, googleProvider } from "./firebase";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff } from "lucide-react";
+// ================= MOCK FIREBASE (preview only) =================
+// The real app talks to a Firebase project via ./firebase. That file isn't
+// available in this preview sandbox, so this block emulates just enough of
+// the Firebase Auth + Firestore surface (backed by localStorage) for the
+// whole app to run and be clicked through end-to-end.
+const auth = {};
+const db = {};
+const googleProvider = {};
 
-// ================= END REAL FIREBASE =================
+let __mockUser = null;
+let __authListeners = [];
+const __usersKey = "focusgo_preview_users";
+const __loadUsers = () => { try { return JSON.parse(localStorage.getItem(__usersKey) || "{}"); } catch (e) { return {}; } };
+const __saveUsers = (u) => { try { localStorage.setItem(__usersKey, JSON.stringify(u)); } catch (e) {} };
+const __notify = () => { __authListeners.forEach((cb) => cb(__mockUser)); };
+
+function onAuthStateChanged(_auth, cb) {
+  __authListeners.push(cb);
+  setTimeout(() => cb(__mockUser), 0);
+  return () => { __authListeners = __authListeners.filter((l) => l !== cb); };
+}
+async function createUserWithEmailAndPassword(_auth, email, password) {
+  const users = __loadUsers();
+  if (users[email]) { const e = new Error("in-use"); e.code = "auth/email-already-in-use"; throw e; }
+  const user = { uid: "u_" + Date.now(), email, password, displayName: "" };
+  users[email] = user; __saveUsers(users);
+  __mockUser = { uid: user.uid, email: user.email, displayName: user.displayName };
+  __notify();
+  return { user: __mockUser };
+}
+async function signInWithEmailAndPassword(_auth, email, password) {
+  const users = __loadUsers();
+  const user = users[email];
+  if (!user || user.password !== password) { const e = new Error("bad-cred"); e.code = "auth/invalid-credential"; throw e; }
+  __mockUser = { uid: user.uid, email: user.email, displayName: user.displayName };
+  __notify();
+  return { user: __mockUser };
+}
+async function signInWithPopup(_auth, _provider) {
+  __mockUser = { uid: "u_google_demo", email: "demo@focusgo.app", displayName: "Demo User" };
+  __notify();
+  return { user: __mockUser };
+}
+async function signOut(_auth) { __mockUser = null; __notify(); }
+async function sendPasswordResetEmail(_auth, _email) { return Promise.resolve(); }
+async function updateProfile(user, { displayName }) {
+  if (__mockUser) __mockUser.displayName = displayName;
+  const users = __loadUsers();
+  if (users[user.email]) { users[user.email].displayName = displayName; __saveUsers(users); }
+}
+async function updateEmail(user, newEmail) { if (__mockUser) __mockUser.email = newEmail; }
+async function updatePassword(_user, _newPw) { return Promise.resolve(); }
+async function reauthenticateWithCredential(_user, _cred) { return Promise.resolve(); }
+const EmailAuthProvider = { credential: (email, password) => ({ email, password }) };
+
+let __snapListeners = {};
+function doc(_db, _collection, id) { return { id }; }
+async function setDoc(docRef, data) {
+  try { localStorage.setItem("focusgo_preview_doc_" + docRef.id, JSON.stringify(data)); } catch (e) {}
+  (__snapListeners[docRef.id] || []).forEach((cb) => cb({ exists: () => true, data: () => data }));
+}
+function onSnapshot(docRef, onNext, _onError) {
+  if (!__snapListeners[docRef.id]) __snapListeners[docRef.id] = [];
+  __snapListeners[docRef.id].push(onNext);
+  try {
+    const raw = localStorage.getItem("focusgo_preview_doc_" + docRef.id);
+    setTimeout(() => onNext(raw ? { exists: () => true, data: () => JSON.parse(raw) } : { exists: () => false, data: () => null }), 0);
+  } catch (e) { setTimeout(() => onNext({ exists: () => false, data: () => null }), 0); }
+  return () => { __snapListeners[docRef.id] = (__snapListeners[docRef.id] || []).filter((l) => l !== onNext); };
+}
+// ================= END MOCK FIREBASE =================
 
 // ---------- সোশ্যাল আইকন (lucide-react-এ brand logo নেই, তাই ছোট inline SVG) ----------
 const FacebookIcon = ({ size = 18 }) => (
@@ -946,6 +998,10 @@ const T = {
     todaysGoal: "Today's Goal", adjustGoal: "Adjust Goal", topics: "topics",
     doneCount: "Done", remaining: "Remaining", setGoal: "Set Goal",
     goalLabel: "Number of topics to finish today", statusDone: "done",
+    seeAll: "See all", showLess: "Show less",
+    offlineBadge: "Offline", offlineNote: "No internet — your changes are saved on this device and will sync once you're back online.",
+    pickFromBank: "Pick a topic, or type a new one below", newTopicAutoSaved: "A new topic you type here is saved for next time too.",
+    bulkAddTopics: "Add multiple at once", bulkAddPlaceholder: "One topic per line (or comma-separated)\ne.g.\nChapter 1\nChapter 2",
     manageSubjects: "Manage Subjects", noSubjectsYet: "No subjects yet. Add your syllabus subjects here.",
     addSubjectsFirst: "Add subjects in Syllabus first.", selectSubject: "Select Subject",
     startTimeLabel: "Start Time", endTimeLabel: "End Time",
@@ -1010,6 +1066,10 @@ const T = {
     todaysGoal: "আজকের লক্ষ্য", adjustGoal: "লক্ষ্য পরিবর্তন করুন", topics: "টপিক",
     doneCount: "সম্পন্ন", remaining: "বাকি", setGoal: "লক্ষ্য সেট করুন",
     goalLabel: "আজ কতগুলো টপিক শেষ করবেন", statusDone: "সম্পন্ন",
+    seeAll: "সব দেখুন", showLess: "কম দেখান",
+    offlineBadge: "অফলাইন", offlineNote: "ইন্টারনেট নেই — তোমার পরিবর্তনগুলো এই ডিভাইসেই সেভ থাকছে, নেট ফিরলে অটো sync হয়ে যাবে।",
+    pickFromBank: "একটা টপিক বেছে নাও, বা নিচে নতুন লিখো", newTopicAutoSaved: "এখানে নতুন যা লিখবে সেটাও পরের বারের জন্য সেভ হয়ে যাবে।",
+    bulkAddTopics: "একসাথে একাধিক যোগ করো", bulkAddPlaceholder: "প্রতি লাইনে একটা টপিক (বা কমা দিয়ে আলাদা)\nযেমন:\nChapter 1\nChapter 2",
     manageSubjects: "সাবজেক্ট ম্যানেজ করো", noSubjectsYet: "এখনো কোনো সাবজেক্ট নেই। এখানে সিলেবাসের সাবজেক্ট যোগ করো।",
     addSubjectsFirst: "আগে সিলেবাসে সাবজেক্ট যোগ করো।", selectSubject: "সাবজেক্ট বেছে নাও",
     startTimeLabel: "শুরুর সময়", endTimeLabel: "শেষের সময়",
@@ -1087,6 +1147,21 @@ const recentTopicsForSubject = (entries, subject, limit = 8) => {
     if (result.length >= limit) break;
   }
   return result;
+};
+
+// Topic Bank quick-pick order for one subject: topics that haven't been used/studied yet come first
+// (still pending), then previously-used bank topics ordered most-recent-first. Topics typed as
+// free text that aren't in the bank yet simply don't show up here — the plain input field below
+// is always the fallback, and whatever gets typed there is auto-saved into the bank on submit.
+const topicPickList = (topicBank, entries, subject) => {
+  if (!subject) return [];
+  const bank = (topicBank && topicBank[subject]) || [];
+  if (bank.length === 0) return [];
+  const recent = recentTopicsForSubject(entries || {}, subject, 999); // most-recent-first, every topic ever used
+  const recentSet = new Set(recent);
+  const neverUsed = bank.filter(x => !recentSet.has(x));
+  const usedInBankOrder = recent.filter(x => bank.includes(x));
+  return [...neverUsed, ...usedInBankOrder];
 };
 
 // Small reusable row of tappable "recent topic" chips shown under the Topic field.
@@ -1205,6 +1280,8 @@ export default function FocusGo() {
   const [now, setNow] = useState(new Date());
   const [entries, setEntries] = useState({}); // dateKey -> [{id, subject, topic, time, endTime, duration, done}]
   const [subjects, setSubjects] = useState([]); // manually managed syllabus subjects
+  const [topicBank, setTopicBank] = useState({}); // subject -> [topicName, ...] — pre-added topics for Today's Study/Plan, subject-scoped (mirrors examSubjects' subject->topics shape but as a flat list, no attempts)
+  const [showManageTopicsFor, setShowManageTopicsFor] = useState(null); // subject name | null — which subject's topic-bank editor is open
   const [examSubjects, setExamSubjects] = useState({}); // subject -> { topics: { [topicName]: { attempts: [{id, date, obtained, total}] } } }
   const [combinedExams, setCombinedExams] = useState({}); // id -> { name, type: "daily"|"weekly"|"monthly", subjects: [names], attempts: [{id, date, obtained, total}] }
   const [nextExam, setNextExam] = useState(null); // { subject, topic, date } | null
@@ -1217,6 +1294,7 @@ export default function FocusGo() {
   const [showAdd, setShowAdd] = useState(false);
   const [addTargetKey, setAddTargetKey] = useState(null);
   const [showSubjects, setShowSubjects] = useState(false);
+  const [showAllSubjectsProgress, setShowAllSubjectsProgress] = useState(false); // Stats-এ Subject Progress গ্রিড — সাবজেক্ট বেশি হলে ডিফল্টে ৬টা দেখায়, "See all" চাপলে বাকিগুলো
   const [planDate, setPlanDate] = useState(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d; });
   const [showCalendar, setShowCalendar] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -1256,6 +1334,7 @@ export default function FocusGo() {
   const timerEndAtRef = useRef(null);
   const stopwatchStartAtRef = useRef(null);
   const audioCtxRef = useRef(null);
+  const compressorRef = useRef(null);
   const guestLoadedOnceRef = useRef(false); // এই গেস্ট সেশনে localStorage থেকে একবারই লোড হবে
   // "loaded" শুধু UI-তে splash/loading screen সরানোর জন্য (cache থেকে instant দেখাতে ব্যবহার হয়) —
   // কিন্তু Firestore-এ write করার অনুমতি এই flag দিয়ে দিলে বিপদ: cache-এ যদি পুরনো/ফাঁকা data থাকে
@@ -1274,7 +1353,33 @@ export default function FocusGo() {
   // মান দিয়ে ওভাররাইট না হয়ে যায় (এটাই "Light সিলেক্ট করলেও Dark-ই থেকে যায়" বাগের কারণ ছিল)
   const themeLoadedOnceRef = useRef(false);
 
+  // ---- অফলাইন সাপোর্ট (ওয়েব-অনলি) ----
+  // navigator.onLine + online/offline ইভেন্ট দিয়ে নেট আছে কিনা ট্র্যাক করা হয়, যাতে ইউজারকে ছোট একটা
+  // ব্যাজ দেখানো যায় ("অফলাইন — ডেটা পরে sync হবে")। ডেটা নিজে (Firestore) অফলাইনে কাজ করার জন্য
+  // enableIndexedDbPersistence() লাগবে real firebase.js ফাইলে — এই preview mock-এ সেটা প্রযোজ্য না,
+  // নিচের কমেন্টে ঠিক কী করতে হবে লেখা আছে।
+  const [isOnline, setIsOnline] = useState(() => (typeof navigator !== "undefined" ? navigator.onLine : true));
+  useEffect(() => {
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => { window.removeEventListener("online", goOnline); window.removeEventListener("offline", goOffline); };
+  }, []);
+
+  // অ্যাপ শেল (HTML/JS/CSS) অফলাইনে লোড হওয়ার জন্য একটা Service Worker রেজিস্টার করা —
+  // এটা শুধু static asset ক্যাশিং করে, কোনো "Add to Home Screen"/install prompt দেখায় না (manifest নেই বলে)।
+  // /public/sw.js ফাইলটা আলাদাভাবে যোগ করতে হবে (এই কম্পোনেন্ট ফাইলে না) — নিচের নোট দেখো।
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      // sw.js ফাইল না থাকলে বা রেজিস্ট্রেশন ব্যর্থ হলে চুপচাপ ignore — অ্যাপ স্বাভাবিকভাবেই চলবে, শুধু অফলাইন ক্যাশিং কাজ করবে না
+    });
+  }, []);
+
   // Lightweight beep generator (Web Audio API) — no external sound files needed.
+  // একটা DynamicsCompressor বসানো হয়েছে যাতে gain 1.0-এর কাছাকাছি নিলেও সাউন্ড ক্লিপ/ক্র্যাক না করে,
+  // আর প্রতিটা বিপে দুইটা oscillator (মূল টোন + এক অক্টেভ নিচে সাব-টোন) লেয়ার করা — শুধু "জোরে" না, "ভরাট" শোনাবে বলে কানে বেশি জোরে মনে হয়।
   const getAudioCtx = () => {
     if (!audioCtxRef.current) {
       const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -1286,25 +1391,52 @@ export default function FocusGo() {
     }
     return audioCtxRef.current;
   };
-  const beep = (freq = 880, duration = 0.14, when = 0, volume = 0.45) => {
+  const getCompressor = (ctx) => {
+    if (!compressorRef.current) {
+      const comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = -18;
+      comp.knee.value = 12;
+      comp.ratio.value = 8;
+      comp.attack.value = 0.002;
+      comp.release.value = 0.15;
+      comp.connect(ctx.destination);
+      compressorRef.current = comp;
+    }
+    return compressorRef.current;
+  };
+  const beep = (freq = 880, duration = 0.16, when = 0, volume = 1) => {
     try {
       const ctx = getAudioCtx();
       if (!ctx) return;
+      const out = getCompressor(ctx);
+      // মূল টোন
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "sine";
       osc.frequency.value = freq;
       gain.gain.setValueAtTime(0.0001, ctx.currentTime + when);
-      gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + when + 0.01);
+      gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + when + 0.008);
       gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + when + duration);
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(out);
       osc.start(ctx.currentTime + when);
-      osc.stop(ctx.currentTime + when + duration + 0.03);
+      osc.stop(ctx.currentTime + when + duration + 0.04);
+      // এক অক্টেভ নিচের সাব-টোন — ভরাট/জোরে শোনানোর জন্য
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = "triangle";
+      osc2.frequency.value = freq / 2;
+      gain2.gain.setValueAtTime(0.0001, ctx.currentTime + when);
+      gain2.gain.exponentialRampToValueAtTime(volume * 0.55, ctx.currentTime + when + 0.008);
+      gain2.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + when + duration);
+      osc2.connect(gain2);
+      gain2.connect(out);
+      osc2.start(ctx.currentTime + when);
+      osc2.stop(ctx.currentTime + when + duration + 0.04);
     } catch (e) { /* audio unsupported or blocked — fail silently */ }
   };
-  const playStartSound = () => beep(880, 0.14, 0, 0.75);
-  const playEndSound = () => { beep(659, 0.16, 0, 0.75); beep(880, 0.16, 0.16, 0.8); beep(1046, 0.26, 0.32, 0.85); };
+  const playStartSound = () => beep(880, 0.18, 0, 1);
+  const playEndSound = () => { beep(659, 0.2, 0, 1); beep(880, 0.2, 0.18, 1); beep(1046, 0.34, 0.36, 1); };
 
   // ফোকাস টাইমার ফুলস্ক্রিন হলে ব্রাউজারের Fullscreen API + Screen Orientation API
   // ব্যবহার করে অরিয়েন্টেশন "unlock" করে দেওয়া হয় — এতে ফোনের OS-এ auto-rotate বন্ধ
@@ -1386,6 +1518,7 @@ export default function FocusGo() {
             if (cached && typeof cached === "object") {
               if (cached.entries) setEntries(cached.entries);
               if (cached.subjects) setSubjects(cached.subjects);
+              if (cached.topicBank) setTopicBank(cached.topicBank);
               if (cached.examSubjects) setExamSubjects(cached.examSubjects);
               if (cached.combinedExams) setCombinedExams(cached.combinedExams);
               if (cached.nextExam !== undefined) setNextExam(cached.nextExam);
@@ -1399,7 +1532,7 @@ export default function FocusGo() {
         }
       } else {
         // Sign out — remove the previous user's in-memory data.
-        setEntries({}); setSubjects([]); setExamSubjects({}); setCombinedExams({}); setNextExam(null);
+        setEntries({}); setSubjects([]); setTopicBank({}); setExamSubjects({}); setCombinedExams({}); setNextExam(null);
         setLoaded(false);
         setServerSynced(false);
       }
@@ -1417,6 +1550,7 @@ export default function FocusGo() {
         if (saved) {
           if (saved.entries) setEntries(saved.entries);
           if (saved.subjects) setSubjects(saved.subjects);
+          if (saved.topicBank) setTopicBank(saved.topicBank);
           if (saved.examSubjects) setExamSubjects(saved.examSubjects);
           if (saved.combinedExams) setCombinedExams(saved.combinedExams);
           if (saved.nextExam !== undefined) setNextExam(saved.nextExam);
@@ -1435,10 +1569,10 @@ export default function FocusGo() {
     if (!loaded || user || !isGuest) return;
     if (!isStandaloneApp()) return;
     const timer = setTimeout(() => {
-      saveGuestData({ entries, subjects, examSubjects, combinedExams, nextExam, lang, themeMode });
+      saveGuestData({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, lang, themeMode });
     }, 600);
     return () => clearTimeout(timer);
-  }, [entries, subjects, examSubjects, combinedExams, nextExam, lang, themeMode, loaded, user, isGuest]);
+  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, lang, themeMode, loaded, user, isGuest]);
 
   // ইউজার লগইন করার পর Firestore-এর সাথে real-time sync (users/{uid}) —
   // getDoc দিয়ে একবার read করার বদলে onSnapshot দিয়ে live listen করা হয়, তাই অন্য কোনো
@@ -1452,13 +1586,14 @@ export default function FocusGo() {
           if (snap.exists()) {
             const data = snap.data();
             const incomingKey = JSON.stringify({
-              entries: data.entries, subjects: data.subjects, examSubjects: data.examSubjects,
+              entries: data.entries, subjects: data.subjects, topicBank: data.topicBank, examSubjects: data.examSubjects,
               combinedExams: data.combinedExams, nextExam: data.nextExam, lang: data.lang, themeMode: data.themeMode,
             });
             // যদি এই data আমাদেরই সবশেষ write-এর echo হয়, আবার setState করে re-render/re-save লুপ তৈরি করার দরকার নেই
             if (incomingKey !== lastSavedPayloadRef.current) {
               if (data.entries) setEntries(data.entries);
               if (data.subjects) setSubjects(data.subjects);
+              if (data.topicBank) setTopicBank(data.topicBank);
               if (data.examSubjects) {
                 const raw = data.examSubjects;
                 // migrate old shape { date, scores:[...] } -> new shape { topics: { General: { attempts:[...] } } }
@@ -1505,7 +1640,7 @@ export default function FocusGo() {
   useEffect(() => {
     if (!serverSynced || !user) return;
     const payload = {
-      entries, subjects, examSubjects, combinedExams, nextExam, lang, themeMode,
+      entries, subjects, topicBank, examSubjects, combinedExams, nextExam, lang, themeMode,
       updatedAt: new Date().toISOString(),
     };
 
@@ -1518,12 +1653,12 @@ export default function FocusGo() {
     const t = setTimeout(() => {
       // এই মুহূর্তে যা লিখছি তার একটা "ছাপ" রেখে দেওয়া — real-time listener পরে এই একই data
       // ফেরত পেলে বুঝবে এটা নিজেরই echo, আবার setState/re-save করবে না
-      lastSavedPayloadRef.current = JSON.stringify({ entries, subjects, examSubjects, combinedExams, nextExam, lang, themeMode });
+      lastSavedPayloadRef.current = JSON.stringify({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, lang, themeMode });
       setDoc(doc(db, "users", user.uid), payload, { merge: true })
         .catch(e => console.error("Firestore save error:", e));
     }, 600); // দ্রুত একের পর এক change হলে বারবার write না করে একবারে সেভ করা
     return () => clearTimeout(t);
-  }, [entries, subjects, examSubjects, combinedExams, nextExam, lang, themeMode, serverSynced, user]);
+  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, lang, themeMode, serverSynced, user]);
 
   // clock tick
   useEffect(() => {
@@ -1672,6 +1807,7 @@ export default function FocusGo() {
   const addSubject = (name) => setSubjects(prev => prev.includes(name) ? prev : [...prev, name]);
   const removeSubject = (name) => {
     setSubjects(prev => prev.filter(s => s !== name));
+    setTopicBank(prev => { if (!prev[name]) return prev; const next = { ...prev }; delete next[name]; return next; });
     setCombinedExams(prev => {
       let changed = false;
       const next = {};
@@ -1751,6 +1887,13 @@ export default function FocusGo() {
       });
       return next;
     });
+    setTopicBank(prev => {
+      if (!prev[oldName]) return prev;
+      const next = { ...prev };
+      next[n] = next[oldName];
+      delete next[oldName];
+      return next;
+    });
     setExamSubjects(prev => {
       if (!prev[oldName]) return prev;
       const next = { ...prev };
@@ -1771,6 +1914,52 @@ export default function FocusGo() {
         }
       });
       return changed ? next : prev;
+    });
+    return true;
+  };
+
+  // ---- topic bank (Subject → pre-added Topics, ব্যবহৃত হয় Today's Study / Plan-এ) ----
+  const addTopicToBank = (subj, topicName) => {
+    const n = (topicName || "").trim();
+    if (!subj || !n) return;
+    setTopicBank(prev => {
+      const list = prev[subj] || [];
+      if (list.includes(n)) return prev;
+      return { ...prev, [subj]: [...list, n] };
+    });
+  };
+  // bulk add — একসাথে একাধিক টপিক (নতুন লাইনে বা কমা দিয়ে আলাদা করে) যোগ করা যায়, কোনো আপার লিমিট নেই
+  const addTopicsBulkToBank = (subj, rawText) => {
+    const names = (rawText || "").split(/[\n,]/).map(s => s.trim()).filter(Boolean);
+    if (!subj || names.length === 0) return;
+    setTopicBank(prev => {
+      const list = prev[subj] || [];
+      const merged = [...list];
+      names.forEach(n => { if (!merged.includes(n)) merged.push(n); });
+      return { ...prev, [subj]: merged };
+    });
+  };
+  const removeTopicFromBank = (subj, topicName) => {
+    setTopicBank(prev => {
+      const list = prev[subj];
+      if (!list) return prev;
+      return { ...prev, [subj]: list.filter(x => x !== topicName) };
+    });
+  };
+  // টপিক rename হলে ব্যাংকের পাশাপাশি এই সাবজেক্ট+টপিকের আগের সব Today's Study/Plan এন্ট্রিতেও propagate হয়,
+  // নাহলে Stats-এর হিসাব ভেঙে যাবে (একই টপিক দুই নামে গণনা হবে)
+  const renameTopicInBank = (subj, oldTopic, newTopic) => {
+    const n = (newTopic || "").trim();
+    if (!subj || !n || n === oldTopic) return false;
+    const list = topicBank[subj] || [];
+    if (list.includes(n)) return false; // নাম আগে থেকেই আছে
+    setTopicBank(prev => ({ ...prev, [subj]: (prev[subj] || []).map(x => x === oldTopic ? n : x) }));
+    setEntries(prev => {
+      const next = {};
+      Object.entries(prev).forEach(([dk, dayList]) => {
+        next[dk] = dayList.map(e => (e.subject === subj && e.topic === oldTopic) ? { ...e, topic: n } : e);
+      });
+      return next;
     });
     return true;
   };
@@ -2107,6 +2296,11 @@ export default function FocusGo() {
           </button>
 
           <div style={{display:"flex", alignItems:"center", gap:6}}>
+            {!isOnline && (
+              <div title={t.offlineNote} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#2C2820":"#F8F5EE", color:textMuted2, borderRadius:20, padding:"5px 9px 5px 8px", fontSize:10.5, fontWeight:700, flexShrink:0}}>
+                <WifiOff size={12}/> {t.offlineBadge}
+              </div>
+            )}
             <button onClick={()=>{vibrate(); setThemeMode(m => m==="system" ? "light" : m==="light" ? "dark" : "system");}}
               title={themeMode==="system" ? t.themeSystem : themeMode==="dark" ? t.themeDark : t.themeLight}
               style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
@@ -2121,7 +2315,10 @@ export default function FocusGo() {
           </div>
         </div>
 
-        {/* Date row */}
+        {/* Date row — Today tab এর নিজস্ব অ্যাঙ্কর (weekday + বড় তারিখ + লাইভ ক্লক), তাই শুধু Today-তেই দেখানো হয়।
+            Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
+            আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
+        {tab === "today" && (
         <div style={{marginTop:22}}>
           <div style={{fontSize:11, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:4}}>{weekdayName(today)}</div>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
@@ -2154,6 +2351,7 @@ export default function FocusGo() {
             </button>
           </div>
         </div>
+        )}
 
         {/* Focus timer - only on Today tab */}
         {tab === "today" && (
@@ -2337,28 +2535,43 @@ export default function FocusGo() {
                   <Plus size={12}/> {t.manageSubjects}
                 </button>
               </div>
-              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8}}>
-                {allSubjects.length === 0 && (
-                  <div style={{fontSize:13, color:textMuted2, padding:"14px 0", gridColumn:"1 / -1"}}>—</div>
-                )}
-                {[...allSubjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"})).map(subj => {
-                  const v = subjectProgress[subj] || { done:0, total:0 };
-                  const c = colorForSubject(subj, allSubjects);
-                  const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
-                  return (
-                    <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 12px", minWidth:0}}>
-                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", gap:4, marginBottom:6}}>
-                        <span style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subj}</span>
-                        <span style={{fontSize:10, color:textMuted2, fontWeight:600, flexShrink:0}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num></span>
-                      </div>
-                      <div style={{height:5, borderRadius:3, background: dark? "#2C2820":"#EFE9DC", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
-                        <div style={{height:"100%", width:`${pct}%`, background:c.bg, borderRadius:3, transition:"width .3s"}}/>
-                      </div>
-                      <div style={{fontSize:10, fontWeight:700, color:c.bg, marginTop:5, letterSpacing:ls(0.3)}}><Num>{nf(pct)}</Num>% {t.complete}</div>
+              {(() => {
+                const sorted = [...allSubjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"}));
+                const COLLAPSE_AT = 6;
+                const isLong = sorted.length > COLLAPSE_AT;
+                const visible = (isLong && !showAllSubjectsProgress) ? sorted.slice(0, COLLAPSE_AT) : sorted;
+                return (
+                  <>
+                    <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8}}>
+                      {sorted.length === 0 && (
+                        <div style={{fontSize:13, color:textMuted2, padding:"14px 0", gridColumn:"1 / -1"}}>—</div>
+                      )}
+                      {visible.map(subj => {
+                        const v = subjectProgress[subj] || { done:0, total:0 };
+                        const c = colorForSubject(subj, allSubjects);
+                        const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
+                        return (
+                          <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 12px", minWidth:0}}>
+                            <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", gap:4, marginBottom:6}}>
+                              <span style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subj}</span>
+                              <span style={{fontSize:10, color:textMuted2, fontWeight:600, flexShrink:0}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num></span>
+                            </div>
+                            <div style={{height:5, borderRadius:3, background: dark? "#2C2820":"#EFE9DC", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
+                              <div style={{height:"100%", width:`${pct}%`, background:c.bg, borderRadius:3, transition:"width .3s"}}/>
+                            </div>
+                            <div style={{fontSize:10, fontWeight:700, color:c.bg, marginTop:5, letterSpacing:ls(0.3)}}><Num>{nf(pct)}</Num>% {t.complete}</div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
-              </div>
+                    {isLong && (
+                      <button onClick={()=>{vibrate(); setShowAllSubjectsProgress(v=>!v);}} style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4, width:"100%", border:"none", background:"transparent", color:accent, borderRadius:10, padding:"10px 0 2px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+                        {showAllSubjectsProgress ? t.showLess : t.seeAll} <ChevronDown size={14} style={{transform: showAllSubjectsProgress ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
             </div>
 
             <div style={{display:"flex", alignItems:"center", gap:10, margin:"22px 0 18px"}}>
@@ -2540,19 +2753,21 @@ export default function FocusGo() {
 
       {/* Add topic modal */}
       {showAdd && (
-        <AddModal t={t} nf={nf} subjects={subjects} entries={entries} defaultStart={`${pad2(now.getHours())}:${pad2(now.getMinutes())}`}
+        <AddModal t={t} nf={nf} subjects={subjects} entries={entries} topicBank={topicBank} onAddTopicToBank={addTopicToBank} defaultStart={`${pad2(now.getHours())}:${pad2(now.getMinutes())}`}
           onClose={()=>setShowAdd(false)} onAdd={addTopic}
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
       )}
 
       {/* Edit topic modal */}
       {editTopic && (
-        <EditModal t={t} nf={nf} subjects={subjects} entries={entries} item={editTopic} onClose={()=>setEditTopic(null)} onSave={saveEditTopic} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
+        <EditModal t={t} nf={nf} subjects={subjects} entries={entries} topicBank={topicBank} onAddTopicToBank={addTopicToBank} item={editTopic} onClose={()=>setEditTopic(null)} onSave={saveEditTopic} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
       )}
 
-      {/* Manage subjects modal */}
+      {/* Manage subjects modal (Syllabus — সাবজেক্ট + প্রতি সাবজেক্টের Topic Bank) */}
       {showSubjects && (
         <SubjectsModal t={t} subjects={subjects} onAdd={addSubject} onRemove={removeSubject} onRename={renameSubject} onClose={()=>setShowSubjects(false)}
+          topicBank={topicBank} onAddTopic={addTopicToBank} onAddTopicsBulk={addTopicsBulkToBank} onRemoveTopic={removeTopicFromBank} onRenameTopic={renameTopicInBank}
+          expandedSubject={showManageTopicsFor} onToggleExpand={(s)=>setShowManageTopicsFor(prev => prev===s ? null : s)}
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
       )}
 
@@ -3472,7 +3687,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
   );
 }
 
-function AddModal({ t, nf, subjects, entries, defaultStart, onClose, onAdd, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
+function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, defaultStart, onClose, onAdd, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const [subject, setSubject] = useState(subjects[0] || "");
   const [topic, setTopic] = useState("");
   const [useTime, setUseTime] = useState(false);
@@ -3482,7 +3697,14 @@ function AddModal({ t, nf, subjects, entries, defaultStart, onClose, onAdd, card
   const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const duration = useTime ? diffMinutes(startTime, endTime) : (Number(durationInput) || 0);
   const canSubmit = subjects.length > 0 && subject && topic.trim();
-  const recentTopics = recentTopicsForSubject(entries || {}, subject);
+  // Topic Bank quick-pick: not-yet-used topics first (still pending), then previously-used ones by recency —
+  // ফ্রি-টেক্সট ফলব্যাক এখনো আছে (নিচের input), নতুন কিছু লিখলে সেটাও অটো ব্যাংকে যোগ হয়ে যাবে
+  const pickTopics = topicPickList(topicBank, entries, subject);
+  const submit = () => {
+    if (!canSubmit) return;
+    onAddTopicToBank && onAddTopicToBank(subject, topic.trim());
+    onAdd({subject, topic:topic.trim(), time: useTime ? startTime : null, endTime: useTime ? endTime : null, duration});
+  };
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain}}>
@@ -3503,8 +3725,12 @@ function AddModal({ t, nf, subjects, entries, defaultStart, onClose, onAdd, card
           </div>
           <div>
             <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.topicLabel}</div>
-            <input style={inputStyle} value={topic} onChange={e=>setTopic(e.target.value)} placeholder={t.topicPlaceholder}/>
-            <RecentTopicChips topics={recentTopics} onPick={setTopic} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}/>
+            {pickTopics.length > 0 && (
+              <div style={{fontSize:10, fontWeight:700, color:textMuted2, opacity:0.8, marginBottom:6}}>{t.pickFromBank}</div>
+            )}
+            <RecentTopicChips topics={pickTopics} onPick={setTopic} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}/>
+            <input style={{...inputStyle, marginTop: pickTopics.length ? 8 : 0}} value={topic} onChange={e=>setTopic(e.target.value)} placeholder={t.topicPlaceholder}/>
+            <div style={{fontSize:10.5, color:textMuted2, opacity:0.75, marginTop:5}}>{t.newTopicAutoSaved}</div>
           </div>
 
           <label style={{display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none"}}>
@@ -3535,7 +3761,7 @@ function AddModal({ t, nf, subjects, entries, defaultStart, onClose, onAdd, card
         </div>
         <div style={{display:"flex", gap:10, marginTop:20}}>
           <button onClick={onClose} style={{flex:1, padding:"12px 0", borderRadius:12, border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, fontWeight:700, cursor:"pointer"}}>{t.cancel}</button>
-          <button onClick={()=> canSubmit && onAdd({subject, topic:topic.trim(), time: useTime ? startTime : null, endTime: useTime ? endTime : null, duration})}
+          <button onClick={submit}
             style={{flex:1, padding:"12px 0", borderRadius:12, border:"none", background:accent, color:"#fff", fontWeight:700, cursor:"pointer", opacity: canSubmit?1:0.5}}>{t.add}</button>
         </div>
       </div>
@@ -3543,7 +3769,7 @@ function AddModal({ t, nf, subjects, entries, defaultStart, onClose, onAdd, card
   );
 }
 
-function EditModal({ t, nf, subjects, entries, item, onClose, onSave, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
+function EditModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, item, onClose, onSave, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const subjectOptions = Array.from(new Set([item.subject, ...subjects]));
   const [subject, setSubject] = useState(item.subject);
   const [topic, setTopic] = useState(item.topic);
@@ -3553,7 +3779,12 @@ function EditModal({ t, nf, subjects, entries, item, onClose, onSave, cardBg, ca
   const [durationInput, setDurationInput] = useState(item.duration || 30);
   const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const duration = useTime ? diffMinutes(startTime, endTime) : (Number(durationInput) || 0);
-  const recentTopics = recentTopicsForSubject(entries || {}, subject).filter(tp => tp !== item.topic);
+  const pickTopics = topicPickList(topicBank, entries, subject).filter(tp => tp !== item.topic);
+  const submit = () => {
+    if (!(subject && topic.trim())) return;
+    onAddTopicToBank && onAddTopicToBank(subject, topic.trim());
+    onSave({id:item.id, subject, topic:topic.trim(), time: useTime ? startTime : null, endTime: useTime ? endTime : null, duration});
+  };
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain}}>
@@ -3570,8 +3801,11 @@ function EditModal({ t, nf, subjects, entries, item, onClose, onSave, cardBg, ca
           </div>
           <div>
             <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.topicLabel}</div>
-            <input style={inputStyle} value={topic} onChange={e=>setTopic(e.target.value)} placeholder={t.topicPlaceholder}/>
-            <RecentTopicChips topics={recentTopics} onPick={setTopic} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}/>
+            {pickTopics.length > 0 && (
+              <div style={{fontSize:10, fontWeight:700, color:textMuted2, opacity:0.8, marginBottom:6}}>{t.pickFromBank}</div>
+            )}
+            <RecentTopicChips topics={pickTopics} onPick={setTopic} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}/>
+            <input style={{...inputStyle, marginTop: pickTopics.length ? 8 : 0}} value={topic} onChange={e=>setTopic(e.target.value)} placeholder={t.topicPlaceholder}/>
           </div>
 
           <label style={{display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none"}}>
@@ -3602,7 +3836,7 @@ function EditModal({ t, nf, subjects, entries, item, onClose, onSave, cardBg, ca
         </div>
         <div style={{display:"flex", gap:10, marginTop:20}}>
           <button onClick={onClose} style={{flex:1, padding:"12px 0", borderRadius:12, border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, fontWeight:700, cursor:"pointer"}}>{t.cancel}</button>
-          <button onClick={()=> subject && topic.trim() && onSave({id:item.id, subject, topic:topic.trim(), time: useTime ? startTime : null, endTime: useTime ? endTime : null, duration})}
+          <button onClick={submit}
             style={{flex:1, padding:"12px 0", borderRadius:12, border:"none", background:accent, color:"#fff", fontWeight:700, cursor:"pointer", opacity: (subject&&topic.trim())?1:0.5}}>{t.save}</button>
         </div>
       </div>
@@ -3610,7 +3844,7 @@ function EditModal({ t, nf, subjects, entries, item, onClose, onSave, cardBg, ca
   );
 }
 
-function SubjectsModal({ t, subjects, onAdd, onRemove, onRename, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
+function SubjectsModal({ t, subjects, onAdd, onRemove, onRename, onClose, topicBank, onAddTopic, onAddTopicsBulk, onRemoveTopic, onRenameTopic, expandedSubject, onToggleExpand, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const [name, setName] = useState("");
   const [editingSubject, setEditingSubject] = useState(null);
   const [editValue, setEditValue] = useState("");
@@ -3633,7 +3867,7 @@ function SubjectsModal({ t, subjects, onAdd, onRemove, onRename, onClose, cardBg
   };
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"75vh", display:"flex", flexDirection:"column"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"82vh", display:"flex", flexDirection:"column"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
           <div style={{fontSize:17, fontWeight:800, letterSpacing:-0.2}}>{t.manageSubjects}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
@@ -3658,17 +3892,99 @@ function SubjectsModal({ t, subjects, onAdd, onRemove, onRename, onClose, cardBg
                   {editError && <div style={{fontSize:11, color:"#C0553F", fontWeight:600}}>{editError}</div>}
                 </div>
               ) : (
-                <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-                  <span style={{fontSize:14, fontWeight:600}}>{s}</span>
-                  <div style={{display:"flex", gap:14, alignItems:"center"}}>
-                    <button onClick={()=>startEdit(s)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><Pencil size={14}/></button>
-                    <button onClick={()=>onRemove(s)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><Trash2 size={15}/></button>
+                <>
+                  <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+                    <button onClick={()=>onToggleExpand(s)} style={{display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", cursor:"pointer", padding:0, color:textMain}}>
+                      <ChevronDown size={14} style={{transform: expandedSubject===s ? "rotate(0deg)" : "rotate(-90deg)", transition:"transform .15s ease", color:textMuted2, flexShrink:0}}/>
+                      <span style={{fontSize:14, fontWeight:600, textAlign:"left"}}>{s}</span>
+                      <span style={{fontSize:10.5, fontWeight:700, color:textMuted2, opacity:0.8}}>· <Num>{((topicBank && topicBank[s]) || []).length}</Num> {t.topicsLabel.toLowerCase()}</span>
+                    </button>
+                    <div style={{display:"flex", gap:14, alignItems:"center"}}>
+                      <button onClick={()=>startEdit(s)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><Pencil size={14}/></button>
+                      <button onClick={()=>onRemove(s)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><Trash2 size={15}/></button>
+                    </div>
                   </div>
-                </div>
+                  {expandedSubject === s && (
+                    <SubjectTopicBank t={t} subject={s} topics={(topicBank && topicBank[s]) || []}
+                      onAddTopic={onAddTopic} onAddTopicsBulk={onAddTopicsBulk} onRemoveTopic={onRemoveTopic} onRenameTopic={onRenameTopic}
+                      cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
+                  )}
+                </>
               )}
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// প্রতিটা সাবজেক্টের নিজস্ব Topic Bank — SubjectsModal-এর ভেতরে expand করলে দেখা যায়।
+// এখানে একটা করে বা বাল্ক (এক লাইনে একটা করে / কমা দিয়ে আলাদা) টপিক যোগ করা যায়, কোনো আপার লিমিট নেই।
+function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onRemoveTopic, onRenameTopic, cardBorder, textMain, textMuted2, accent, dark }) {
+  const [single, setSingle] = useState("");
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkText, setBulkText] = useState("");
+  const [editingTopic, setEditingTopic] = useState(null);
+  const [editValue, setEditValue] = useState("");
+  const [editError, setEditError] = useState("");
+  const smallInput = { width:"100%", boxSizing:"border-box", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:10, padding:"8px 10px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit" };
+  const addSingle = () => { const v = single.trim(); if (!v) return; onAddTopic(subject, v); setSingle(""); };
+  const addBulk = () => { if (!bulkText.trim()) return; onAddTopicsBulk(subject, bulkText); setBulkText(""); setBulkOpen(false); };
+  const startEdit = (tp) => { setEditingTopic(tp); setEditValue(tp); setEditError(""); };
+  const saveEdit = () => {
+    const v = editValue.trim();
+    if (!v || v === editingTopic) { setEditingTopic(null); return; }
+    const ok = onRenameTopic(subject, editingTopic, v);
+    if (ok === false) { setEditError(t.nameExists); return; }
+    setEditingTopic(null); setEditError("");
+  };
+  return (
+    <div style={{marginTop:12, paddingTop:12, borderTop:`1px solid ${cardBorder}`}}>
+      <div style={{display:"flex", gap:6, marginBottom:8}}>
+        <input style={smallInput} value={single} onChange={e=>setSingle(e.target.value)} placeholder={t.topicNamePlaceholder}
+          onKeyDown={e=>{ if (e.key==="Enter") addSingle(); }}/>
+        <button onClick={addSingle} style={{border:"none", borderRadius:10, padding:"0 12px", background:accent, color:"#fff", fontWeight:700, cursor:"pointer", fontSize:12, flexShrink:0}}>{t.add}</button>
+      </div>
+      {!bulkOpen ? (
+        <button onClick={()=>setBulkOpen(true)} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", fontSize:11, fontWeight:700, padding:0, marginBottom:10}}>
+          + {t.bulkAddTopics}
+        </button>
+      ) : (
+        <div style={{marginBottom:10}}>
+          <textarea value={bulkText} onChange={e=>setBulkText(e.target.value)} placeholder={t.bulkAddPlaceholder} rows={3}
+            style={{...smallInput, resize:"vertical", marginBottom:6}}/>
+          <div style={{display:"flex", gap:6}}>
+            <button onClick={addBulk} style={{border:"none", borderRadius:10, padding:"6px 12px", background:accent, color:"#fff", fontWeight:700, cursor:"pointer", fontSize:11.5}}>{t.add}</button>
+            <button onClick={()=>{setBulkOpen(false); setBulkText("");}} style={{border:`1px solid ${cardBorder}`, borderRadius:10, padding:"6px 12px", background:"transparent", color:textMain, fontWeight:700, cursor:"pointer", fontSize:11.5}}>{t.cancel}</button>
+          </div>
+        </div>
+      )}
+      <div style={{display:"flex", flexDirection:"column", gap:6}}>
+        {topics.length === 0 && <div style={{fontSize:12, color:textMuted2, opacity:0.85}}>{t.noTopicsInSubject}</div>}
+        {topics.map(tp => (
+          <div key={tp} style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:10, padding:"7px 10px"}}>
+            {editingTopic === tp ? (
+              <div style={{display:"flex", flexDirection:"column", gap:4, flex:1}}>
+                <div style={{display:"flex", gap:6, alignItems:"center"}}>
+                  <input autoFocus style={{...smallInput, padding:"5px 8px", fontSize:12}} value={editValue} onChange={e=>setEditValue(e.target.value)}
+                    onKeyDown={e=>{ if (e.key==="Enter") saveEdit(); if (e.key==="Escape") setEditingTopic(null); }}/>
+                  <button onClick={saveEdit} style={{border:"none", background:"transparent", cursor:"pointer", color:accent, flexShrink:0}}><Check size={15}/></button>
+                  <button onClick={()=>setEditingTopic(null)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, flexShrink:0}}><X size={15}/></button>
+                </div>
+                {editError && <div style={{fontSize:10.5, color:"#C0553F", fontWeight:600}}>{editError}</div>}
+              </div>
+            ) : (
+              <>
+                <span style={{fontSize:12.5, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{tp}</span>
+                <div style={{display:"flex", gap:10, alignItems:"center", flexShrink:0}}>
+                  <button onClick={()=>startEdit(tp)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><Pencil size={12.5}/></button>
+                  <button onClick={()=>onRemoveTopic(subject, tp)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><Trash2 size={13}/></button>
+                </div>
+              </>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
