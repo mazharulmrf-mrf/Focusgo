@@ -14,6 +14,13 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+import { enableIndexedDbPersistence } from "firebase/firestore";
+
+enableIndexedDbPersistence(db).catch((err) => {
+  if (err.code === "failed-precondition") {
+    // একসাথে একাধিক ট্যাব খোলা থাকলে এটা হতে পারে — শুধু একটা ট্যাবেই persistence চলবে, সমস্যা না
+  }
+});
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
