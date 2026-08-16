@@ -1159,7 +1159,6 @@ export default function FocusGo() {
   const [addTargetKey, setAddTargetKey] = useState(null);
   const [showSubjects, setShowSubjects] = useState(false);
   const [planDate, setPlanDate] = useState(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d; });
-  const [weekExpanded, setWeekExpanded] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -1181,6 +1180,9 @@ export default function FocusGo() {
   }, [sidebarHidden]);
   const [calMonth, setCalMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
+  const [weekStripDay, setWeekStripDay] = useState(() => new Date());
+  const [statsMonthDay, setStatsMonthDay] = useState(() => new Date());
+  const [statsCalMonth, setStatsCalMonth] = useState(() => new Date());
   const [timerTopicId, setTimerTopicId] = useState(null);
   const [timerSeconds, setTimerSeconds] = useState(25*60);
   const [timerTotal, setTimerTotal] = useState(25*60);
@@ -2196,38 +2198,14 @@ export default function FocusGo() {
           <div className="fg-tab-panel" style={{marginTop:20}}>
             {/* week strip */}
             <div>
-
-              <div onClick={()=>setWeekExpanded(v=>!v)} style={{display:"flex", alignItems:"center", gap:4, cursor:"pointer", marginBottom:10}}>
-                <span style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.thisWeek}</span>
-                <ChevronRight size={12} color={textMuted2} style={{transform: weekExpanded ? "rotate(90deg)" : "none", transition:"transform .2s"}}/>
-              </div>
-              <div style={{display:"flex", justifyContent:"space-between", background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"12px 6px"}}>
-                {weekDays.map((d,i) => {
-                  const dk = dateKey(d);
-                  const isToday = dk === todayKey;
-                  const list = entries[dk] || [];
-                  const hasAny = list.length > 0;
-                  const doneAll = hasAny && list.every(x=>x.done);
-                  return (
-                    <div key={i} onClick={()=>{vibrate(); setSelectedDay(d);}} style={{textAlign:"center", cursor:"pointer", flex:1}}>
-                      <div style={{fontSize:9, fontWeight:700, color:textMuted2, marginBottom:6}}>{weekdayShort(d)}</div>
-                      <div style={{width:30,height:30, borderRadius:"50%", display:"flex",alignItems:"center",justifyContent:"center", margin:"0 auto", fontSize:12, fontWeight:700,
-                        background: isToday ? (dark ? accent : "#211D18") : "transparent", color: isToday ? (dark ? "#211D18" : "#F3EFE7") : textMain}}>
-                        <Num>{nf(d.getDate())}</Num>
-                      </div>
-                      <div style={{width:5,height:5,borderRadius:"50%", margin:"5px auto 0", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : accent)}}/>
-                    </div>
-                  );
-                })}
-              </div>
-              {weekExpanded && (
-                <div style={{marginTop:12, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px"}}>
-                  <SubjectGroupedList entries={weekEntries} nf={nf} t={t}
-                    remainingLabel={t.remainingHeader} doneLabel={t.doneHeader}
-                    remainingEmptyText={t.noneMissed} doneEmptyText={t.noneCovered}
-                    cardBg={dark?"#121110":"#F8F5EE"} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent}/>
-                </div>
-              )}
+              <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:10}}>{t.thisWeek}</div>
+              <WeekDayStrip days={weekDays} entries={entries} selectedKey={dateKey(weekStripDay)} onSelectDay={setWeekStripDay}
+                todayKey={todayKey} weekdayShort={weekdayShort} nf={nf} accent={accent} dark={dark}
+                textMuted2={textMuted2} textMain={textMain} cardBg={cardBg} cardBorder={cardBorder}/>
+              <DaySelectedCard day={weekStripDay} entries={entries[dateKey(weekStripDay)] || []} allSubjects={allSubjects}
+                t={t} nf={nf} lang={lang} weekdayName={weekdayName} monthName={monthName}
+                cardBg={cardBg} innerBg={dark?"#121110":"#F8F5EE"} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}
+                onToggle={(id)=>toggleDoneFor(dateKey(weekStripDay), id)}/>
             </div>
 
             {/* syllabus progress */}
@@ -2309,10 +2287,14 @@ export default function FocusGo() {
         {/* STATS tab - week summary + month summary merged */}
         {tab === "stats" && (
           <div key="stats" className="fg-tab-panel">
-            <SummaryView t={t} lang={lang} nf={nf} entries={weekEntries} title={t.weeklySummary} mode="count"
-              cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent} dark={dark}
-              rangeLabel={<><Num>{nf(weekDays[0].getDate())}</Num> {monthName(weekDays[0].getMonth())} – <Num>{nf(weekDays[6].getDate())}</Num> {monthName(weekDays[6].getMonth())}</>}
-              allSubjects={allSubjects}/>
+            <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:10}}>{t.thisWeek}</div>
+            <WeekDayStrip days={weekDays} entries={entries} selectedKey={dateKey(weekStripDay)} onSelectDay={setWeekStripDay}
+              todayKey={todayKey} weekdayShort={weekdayShort} nf={nf} accent={accent} dark={dark}
+              textMuted2={textMuted2} textMain={textMain} cardBg={cardBg} cardBorder={cardBorder}/>
+            <DaySelectedCard day={weekStripDay} entries={entries[dateKey(weekStripDay)] || []} allSubjects={allSubjects}
+              t={t} nf={nf} lang={lang} weekdayName={weekdayName} monthName={monthName}
+              cardBg={cardBg} innerBg={dark?"#121110":"#F8F5EE"} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}
+              onToggle={(id)=>toggleDoneFor(dateKey(weekStripDay), id)}/>
 
             <div style={{display:"flex", alignItems:"center", gap:10, margin:"22px 0 18px"}}>
               <div style={{flex:1, height:1, background:cardBorder}}/>
@@ -2320,10 +2302,13 @@ export default function FocusGo() {
               <div style={{flex:1, height:1, background:cardBorder}}/>
             </div>
 
-            <SummaryView t={t} lang={lang} nf={nf} entries={monthEntries} title={t.monthlySummary} mode="duration" crossWeekResolve
-              cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent} dark={dark}
-              rangeLabel={<>{monthName(today.getMonth())} <Num>{nf(today.getFullYear())}</Num></>}
-              allSubjects={allSubjects}/>
+            <InlineMonthCalendar calMonth={statsCalMonth} setCalMonth={setStatsCalMonth} entries={entries}
+              selectedKey={dateKey(statsMonthDay)} onSelectDay={setStatsMonthDay} lang={lang} nf={nf} monthName={monthName} today={today}
+              cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
+            <DaySelectedCard day={statsMonthDay} entries={entries[dateKey(statsMonthDay)] || []} allSubjects={allSubjects}
+              t={t} nf={nf} lang={lang} weekdayName={weekdayName} monthName={monthName}
+              cardBg={cardBg} innerBg={dark?"#121110":"#F8F5EE"} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}
+              onToggle={(id)=>toggleDoneFor(dateKey(statsMonthDay), id)}/>
           </div>
         )}
 
@@ -3667,6 +3652,107 @@ function ExamsModal({ t, nf, subjects, examSubjects, onAdd, onRemove, onClose, c
                 </div>
                 <button onClick={()=>onRemove(s)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><Trash2 size={15}/></button>
               </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WeekDayStrip({ days, entries, selectedKey, onSelectDay, todayKey, weekdayShort, nf, accent, dark, textMuted2, textMain, cardBg, cardBorder }) {
+  return (
+    <div style={{display:"flex", gap:8, overflowX:"auto", paddingBottom:2}}>
+      {days.map((d,i) => {
+        const dk = dateKey(d);
+        const isToday = dk === todayKey;
+        const isSelected = dk === selectedKey;
+        const list = entries[dk] || [];
+        const hasAny = list.length > 0;
+        const doneAll = hasAny && list.every(x=>x.done);
+        const pct = hasAny ? Math.round((list.filter(x=>x.done).length/list.length)*100) : 0;
+        return (
+          <button key={i} onClick={()=>onSelectDay(d)} style={{
+            flex:"0 0 auto", width:56, display:"flex", flexDirection:"column", alignItems:"center", gap:6,
+            padding:"10px 0 12px", borderRadius:16,
+            border: isToday ? `1px solid ${accent}` : `1px solid ${cardBorder}`,
+            background: isSelected ? (isToday ? "rgba(217,119,87,0.14)" : (dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.03)")) : cardBg,
+            cursor:"pointer", transition:"background .15s ease",
+          }}>
+            <span style={{fontSize:10.5, fontWeight:700, color: isToday ? accent : textMuted2}}>{weekdayShort(d)}</span>
+            <span style={{fontSize:16, fontWeight:800, color: isToday ? accent : textMain}}><Num>{nf(d.getDate())}</Num></span>
+            {hasAny ? (
+              <div style={{width:26, height:3, borderRadius:2, background: dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)", overflow:"hidden"}}>
+                <div style={{width:`${pct}%`, height:"100%", background: doneAll ? "#6E8B5E" : accent}}/>
+              </div>
+            ) : <div style={{width:4, height:4, borderRadius:"50%", background:textMuted2, opacity:0.4}}/>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function DaySelectedCard({ day, entries, allSubjects, t, nf, lang, weekdayName, monthName, cardBg, innerBg, cardBorder, textMain, textMuted2, accent, onToggle }) {
+  const list = entries || [];
+  const doneCount = list.filter(x=>x.done).length;
+  return (
+    <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px", marginTop:14}}>
+      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
+        <span style={{fontSize:13.5, fontWeight:700}}>{weekdayName(day)}, <Num>{nf(day.getDate())}</Num> {monthName(day.getMonth())}</span>
+        {list.length > 0 && <span style={{fontSize:11.5, color:textMuted2, fontWeight:600}}><Num>{nf(doneCount)}</Num>/<Num>{nf(list.length)}</Num></span>}
+      </div>
+      <TopicsList items={list} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
+        cardBg={innerBg} cardBorder={cardBorder} textMuted2={textMuted2}
+        onToggle={onToggle} emptyText={t.noData}/>
+    </div>
+  );
+}
+
+function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSelectDay, lang, nf, monthName, today, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
+  const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  const firstDay = new Date(y, m, 1);
+  const startOffset = firstDay.getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const cells = [];
+  for (let i=0;i<startOffset;i++) cells.push(null);
+  for (let d=1; d<=daysInMonth; d++) cells.push(new Date(y,m,d));
+  const shortDays = lang==="bn" ? ["র","সো","ম","বু","বৃ","শু","শ"] : ["S","M","T","W","T","F","S"];
+
+  return (
+    <div>
+      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12}}>
+        <button onClick={()=>setCalMonth(new Date(y,m-1,1))} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", display:"flex", padding:4}}><ChevronLeft size={18}/></button>
+        <span style={{fontSize:14.5, fontWeight:800}}>{monthName(m)} <Num>{nf(y)}</Num></span>
+        <button onClick={()=>setCalMonth(new Date(y,m+1,1))} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", display:"flex", padding:4}}><ChevronRight size={18}/></button>
+      </div>
+      <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 12px"}}>
+        <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:8}}>
+          {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:10.5, fontWeight:700, color:textMuted2}}>{d}</div>))}
+        </div>
+        <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", rowGap:6}}>
+          {cells.map((d,i) => {
+            if (!d) return <div key={i}/>;
+            const dk = dateKey(d);
+            const list = entries[dk] || [];
+            const hasAny = list.length > 0;
+            const doneAll = hasAny && list.every(x=>x.done);
+            const isToday = dk === dateKey(today);
+            const isSelected = dk === selectedKey;
+            const holiday = getHoliday(dk);
+            const future = d > today && !holiday;
+            return (
+              <button key={i} onClick={()=>onSelectDay(d)} disabled={future && !hasAny}
+                style={{display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"4px 0", border:"none", background:"transparent", cursor:(future&&!hasAny)?"default":"pointer", opacity:(future&&!hasAny)?0.4:1}}>
+                <div style={{position:"relative", width:26, height:26, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700,
+                  background: isSelected ? accent : "transparent",
+                  border: isToday && !isSelected ? `1px solid ${accent}` : "none",
+                  color: isSelected ? "#fff" : textMain}}>
+                  {holiday && <span style={{position:"absolute", top:-2, right:-2, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
+                  <Num>{nf(d.getDate())}</Num>
+                </div>
+                <span style={{width:4, height:4, borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : accent)}}/>
+              </button>
             );
           })}
         </div>
