@@ -3990,7 +3990,7 @@ function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onR
               </div>
             ) : (
               <>
-                <span style={{fontSize:12.5, fontWeight:600, wordBreak:"break-word"}}>{tp}</span>
+                <span style={{fontSize:11.5, fontWeight:600, wordBreak:"break-word"}}>{tp}</span>
                 <div style={{display:"flex", gap:10, alignItems:"center", flexShrink:0}}>
                   <button onClick={()=>startEdit(tp)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><Pencil size={12.5}/></button>
                   <button onClick={()=>onRemoveTopic(subject, tp)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><Trash2 size={13}/></button>
