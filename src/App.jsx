@@ -855,6 +855,26 @@ function passwordErrorCode(pw) {
 const dateKey = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
 
 const startOfWeek = (d) => { const x = new Date(d); const day = x.getDay(); x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x; };
+const stripTime = (d) => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
+
+// একগুচ্ছ ডেট-কি (YYYY-MM-DD) এর entries থেকে Subject+Topic নাম মিলিয়ে ইউনিক টপিক লিস্ট বানায়।
+// একই নামের টপিক যেকোনো দিন done থাকলে সম্পূর্ণ ধরা হয়, নাহলে বাদ পড়েছে (missed) ধরা হয়।
+const buildTopicSummary = (dateKeys, entries) => {
+  const map = new Map();
+  dateKeys.forEach(dk => {
+    (entries[dk] || []).forEach(e => {
+      const key = `${e.subject}||${e.topic}`;
+      const cur = map.get(key);
+      if (cur) { if (e.done) cur.done = true; }
+      else map.set(key, { subject: e.subject, topic: e.topic, done: !!e.done });
+    });
+  });
+  const all = Array.from(map.values());
+  return {
+    covered: all.filter(x => x.done),
+    missed: all.filter(x => !x.done),
+  };
+};
 
 // ---------- বাংলাদেশ সরকারি ছুটি (২০২৬) ----------
 // জনপ্রশাসন মন্ত্রণালয়ের নভেম্বর ২০২৫-এর প্রজ্ঞাপন অনুযায়ী ২০২৬ সালের সাধারণ ছুটি + নির্বাহী আদেশে ছুটি।
@@ -1007,6 +1027,8 @@ const T = {
     weeklySummary: "Weekly Summary", monthlySummary: "Monthly Summary",
     covered: "Covered", missed: "Missed",
     noneCovered: "Nothing covered yet.", noneMissed: "Nothing missed — great job!",
+    summaryPendingWeek: "Summary will show once this week ends.",
+    summaryPendingMonth: "Summary will show once this month ends.",
     addTopicTitle: "Add a topic", subjectLabel: "Subject", subjectPlaceholder: "e.g. Physics, বাংলা...",
     topicLabel: "Topic", topicPlaceholder: "e.g. Newton's Laws",
     durationLabel: "Duration (minutes)", cancel: "Cancel", add: "Add",
@@ -1109,6 +1131,8 @@ const T = {
     weeklySummary: "সাপ্তাহিক সারাংশ", monthlySummary: "মাসিক সারাংশ",
     covered: "কভার হয়েছে", missed: "বাদ পড়েছে",
     noneCovered: "এখনো কিছু কভার হয়নি।", noneMissed: "কিছুই বাদ পড়েনি — চমৎকার!",
+    summaryPendingWeek: "এই সপ্তাহ শেষ হলে সারাংশ দেখা যাবে।",
+    summaryPendingMonth: "এই মাস শেষ হলে সারাংশ দেখা যাবে।",
     addTopicTitle: "টপিক যোগ করুন", subjectLabel: "সাবজেক্ট", subjectPlaceholder: "যেমন: Physics, বাংলা...",
     topicLabel: "টপিক", topicPlaceholder: "যেমন: নিউটনের সূত্র",
     durationLabel: "সময়কাল (মিনিট)", cancel: "বাতিল", add: "যোগ করো",
@@ -1405,6 +1429,9 @@ export default function FocusGo() {
   const [weekStripDay, setWeekStripDay] = useState(() => new Date());
   const [statsMonthDay, setStatsMonthDay] = useState(() => new Date()); // shared "selected day" for the whole Stats tab (week strip + month grid)
   const [statsCalMonth, setStatsCalMonth] = useState(() => new Date());
+  // Weekly/Monthly topic summary (Stats tab) — নেভিগেশন অ্যাংকর, ডিফল্টে সর্বশেষ সম্পূর্ণ হওয়া সপ্তাহ/মাস দেখানো হয়
+  const [summaryWeekAnchor, setSummaryWeekAnchor] = useState(() => { const d = new Date(); d.setDate(d.getDate()-7); return d; });
+  const [summaryMonthAnchor, setSummaryMonthAnchor] = useState(() => { const d = new Date(); d.setMonth(d.getMonth()-1); return d; });
   const [timerTopicId, setTimerTopicId] = useState(null);
   const [showTopicPicker, setShowTopicPicker] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(30*60);
@@ -2321,6 +2348,24 @@ export default function FocusGo() {
     return { day: d, min };
   });
 
+  // ---- weekly topic summary (Subject+Topic matched, covered vs missed) — শুধু সপ্তাহ সম্পূর্ণ শেষ হলেই দেখানো হয় ----
+  const summaryWeekStart = startOfWeek(summaryWeekAnchor);
+  const summaryWeekEnd = (() => { const d = new Date(summaryWeekStart); d.setDate(d.getDate()+6); return d; })();
+  const summaryWeekComplete = summaryWeekEnd < stripTime(today);
+  const summaryWeekDayKeys = Array.from({length:7}, (_,i) => { const d = new Date(summaryWeekStart); d.setDate(d.getDate()+i); return dateKey(d); });
+  const summaryWeekTopics = buildTopicSummary(summaryWeekDayKeys, entries, allSubjects);
+  const nextSummaryWeekStart = (() => { const d = new Date(summaryWeekStart); d.setDate(d.getDate()+7); return d; })();
+  const canGoNextSummaryWeek = (() => { const d = new Date(nextSummaryWeekStart); d.setDate(d.getDate()+6); return d < stripTime(today); })();
+
+  // ---- monthly topic summary (Subject+Topic matched, covered vs missed) — শুধু মাস সম্পূর্ণ শেষ হলেই দেখানো হয় ----
+  const summaryMonthY = summaryMonthAnchor.getFullYear(), summaryMonthM = summaryMonthAnchor.getMonth();
+  const summaryMonthDaysCount = new Date(summaryMonthY, summaryMonthM+1, 0).getDate();
+  const summaryMonthLastDay = new Date(summaryMonthY, summaryMonthM, summaryMonthDaysCount);
+  const summaryMonthComplete = summaryMonthLastDay < stripTime(today);
+  const summaryMonthDayKeys = Array.from({length:summaryMonthDaysCount}, (_,i) => dateKey(new Date(summaryMonthY, summaryMonthM, i+1)));
+  const summaryMonthTopics = buildTopicSummary(summaryMonthDayKeys, entries, allSubjects);
+  const canGoNextSummaryMonth = (() => { const lastDayNext = new Date(summaryMonthY, summaryMonthM+2, 0); return lastDayNext < stripTime(today); })();
+
   // ---- dates with an exam attempt or the set next-exam date (for the Stats calendar legend) ----
   const examDateKeys = (() => {
     const set = new Set();
@@ -2861,6 +2906,10 @@ export default function FocusGo() {
               <WeekDayStrip days={weekDays} entries={entries} selectedKey={dateKey(weekStripDay)} onSelectDay={setWeekStripDay}
                 todayKey={todayKey} weekdayShort={weekdayShort} nf={nf} accent={accent} dark={dark}
                 textMuted2={textMuted2} textMain={textMain} cardBg={cardBg} cardBorder={cardBorder}/>
+              <DaySelectedCard day={weekStripDay} entries={entries[dateKey(weekStripDay)] || []} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
+                weekdayName={weekdayName} monthName={monthName} cardBg={cardBg} innerBg={cardBg} cardBorder={cardBorder}
+                textMain={textMain} textMuted2={textMuted2} accent={accent}
+                onToggle={(id)=>toggleDoneFor(dateKey(weekStripDay), id)}/>
             </div>
           </div>
         )}
@@ -2984,6 +3033,17 @@ export default function FocusGo() {
               todayKey={todayKey} weekdayShort={weekdayShort} nf={nf} accent={accent} dark={dark}
               textMuted2={textMuted2} textMain={textMain} cardBg={cardBg} cardBorder={cardBorder}/>
 
+            <TopicSummaryPeriodCard
+              label={t.weeklySummary}
+              rangeLabel={`${nf(summaryWeekStart.getDate())} ${monthName(summaryWeekStart.getMonth())} – ${nf(summaryWeekEnd.getDate())} ${monthName(summaryWeekEnd.getMonth())}`}
+              isComplete={summaryWeekComplete}
+              pendingText={t.summaryPendingWeek}
+              covered={summaryWeekTopics.covered} missed={summaryWeekTopics.missed}
+              canGoPrev={true} canGoNext={canGoNextSummaryWeek}
+              onPrev={()=>setSummaryWeekAnchor(d=>{const x=new Date(d); x.setDate(x.getDate()-7); return x;})}
+              onNext={()=>setSummaryWeekAnchor(d=>{const x=new Date(d); x.setDate(x.getDate()+7); return x;})}
+              t={t} nf={nf} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
+
             <div style={{display:"flex", alignItems:"center", gap:10, margin:"20px 0 16px"}}>
               <div style={{flex:1, height:1, background:cardBorder}}/>
               <span style={{fontSize:10.5, fontWeight:700, letterSpacing:0.8, color:textMuted2, textTransform:"uppercase", opacity:0.85}}>{lang==="bn" ? "মাস" : "Month"}</span>
@@ -3007,6 +3067,17 @@ export default function FocusGo() {
                 <span style={{width:7,height:7,borderRadius:"50%", background:accent}}/>{t.calendarLegendPlanned}
               </span>
             </div>
+
+            <TopicSummaryPeriodCard
+              label={t.monthlySummary}
+              rangeLabel={`${monthName(summaryMonthM)} ${nf(summaryMonthY)}`}
+              isComplete={summaryMonthComplete}
+              pendingText={t.summaryPendingMonth}
+              covered={summaryMonthTopics.covered} missed={summaryMonthTopics.missed}
+              canGoPrev={true} canGoNext={canGoNextSummaryMonth}
+              onPrev={()=>setSummaryMonthAnchor(d=>new Date(d.getFullYear(), d.getMonth()-1, 1))}
+              onNext={()=>setSummaryMonthAnchor(d=>new Date(d.getFullYear(), d.getMonth()+1, 1))}
+              t={t} nf={nf} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
 
             <div style={{display:"flex", alignItems:"center", gap:10, margin:"22px 0 16px"}}>
               <div style={{flex:1, height:1, background:cardBorder}}/>
@@ -4253,6 +4324,42 @@ function SubjectGroupedList({ entries, nf, t, remainingLabel, doneLabel, remaini
             ))}
           </div>}
       </div>
+    </div>
+  );
+}
+
+// সাপ্তাহিক/মাসিক টপিক সারাংশ কার্ড — নেভিগেশন হেডার + covered/missed লিস্ট (Subject+Topic নাম মিলিয়ে)।
+// পিরিয়ড শেষ না হলে শুধু একটা "pending" মেসেজ দেখায়, কোনো ভুল/অসম্পূর্ণ হিসেব দেখায় না।
+function TopicSummaryPeriodCard({ label, rangeLabel, isComplete, pendingText, covered, missed, canGoPrev, canGoNext, onPrev, onNext, t, nf, cardBg, cardBorder, textMain, textMuted2, accent }) {
+  const toEntry = (x, done) => ({ id: `${x.subject}||${x.topic}`, subject: x.subject, topic: x.topic, done });
+  const entries = [
+    ...missed.map(x => toEntry(x, false)),
+    ...covered.map(x => toEntry(x, true)),
+  ];
+  return (
+    <div style={{marginTop:20}}>
+      <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10}}>
+        <div style={{fontSize:10, letterSpacing:0.5, color:textMuted2, fontWeight:700, opacity:0.85}}>{label}</div>
+        <div style={{display:"flex", alignItems:"center", gap:4}}>
+          <button onClick={onPrev} disabled={!canGoPrev} style={{border:`1px solid ${cardBorder}`, background:cardBg, color: canGoPrev?textMain:textMuted2, borderRadius:8, width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", cursor: canGoPrev?"pointer":"default", opacity: canGoPrev?1:0.4}}>
+            <ChevronLeft size={14}/>
+          </button>
+          <span style={{fontSize:11.5, fontWeight:700, color:textMain, minWidth:0, whiteSpace:"nowrap"}}>{rangeLabel}</span>
+          <button onClick={onNext} disabled={!canGoNext} style={{border:`1px solid ${cardBorder}`, background:cardBg, color: canGoNext?textMain:textMuted2, borderRadius:8, width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", cursor: canGoNext?"pointer":"default", opacity: canGoNext?1:0.4}}>
+            <ChevronRight size={14}/>
+          </button>
+        </div>
+      </div>
+      {!isComplete ? (
+        <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:12.5, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16}}>
+          {pendingText}
+        </div>
+      ) : (
+        <SubjectGroupedList entries={entries} nf={nf} t={t}
+          remainingLabel={t.missed} doneLabel={t.covered}
+          remainingEmptyText={t.noneMissed} doneEmptyText={t.noneCovered}
+          cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent}/>
+      )}
     </div>
   );
 }
