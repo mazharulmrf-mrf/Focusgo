@@ -2417,11 +2417,11 @@ export default function FocusGo() {
   const containerMaxWidth = isDesktop
     ? `min(920px, calc((100vw - 260px) / ${desktopZoom}))`
     : breakpoint === "tablet" ? 640 : 480;
-  const containerPadding = isDesktop ? "36px 0 48px" : breakpoint === "tablet" ? "22px 24px 28px" : "18px 16px 24px";
+  const containerPadding = isDesktop ? "36px 28px 48px" : breakpoint === "tablet" ? "22px 24px 28px" : "18px 16px 24px";
 
   const styles = {
     page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Hind Siliguri','Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column" },
-    container: { maxWidth: containerMaxWidth, margin: "0 auto", padding: containerPadding, width:"100%", boxSizing:"border-box", flex:"1 0 auto", transition: "max-width .2s ease" },
+    container: { maxWidth: containerMaxWidth, margin: "0 auto", padding: containerPadding, width: isDesktop ? undefined : "100%", boxSizing:"border-box", flex: isDesktop ? "0 1 auto" : "1 0 auto", transition: "max-width .2s ease" },
   };
 
   // Keep the browser/Android UI (status bar + Chrome toolbar area) synced
@@ -2607,7 +2607,7 @@ export default function FocusGo() {
           </button>
         </div>
       )}
-      <div style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, ...(isDesktop ? { zoom: desktopZoom } : {})}}>
+      <div style={{flex:"1 1 auto", display:"flex", flexDirection: isDesktop ? "row" : "column", justifyContent: isDesktop ? "center" : undefined, minWidth:0, ...(isDesktop ? { zoom: desktopZoom } : {})}}>
       <div style={styles.container}>
         {/* Header row: logo | clock | toggles */}
         <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap: 8}}>
