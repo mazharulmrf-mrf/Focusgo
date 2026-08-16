@@ -1386,6 +1386,7 @@ export default function FocusGo() {
   // Real-time listener থেকে data এলে সেটা এই ref-এর সাথে মিলিয়ে দেখা হয়; মিললে সেটা আমাদেরই echo,
   // তাই আবার setState/re-save করার দরকার নেই। না মিললে সেটা অন্য device থেকে আসা আসল পরিবর্তন — সাথে সাথে UI-তে বসিয়ে দেওয়া হয়।
   const lastSavedPayloadRef = useRef(null);
+  const skipNextWriteRef = useRef(false); // Firestore snapshot থেকে আসা ডেটা লোকাল state-এ বসানোর পরপরই যেন সেটা আবার Firestore-এ write-back না হয় (echo/race safety)
   // থিম/ভাষা ব্যাকগ্রাউন্ডে (Firestore/cache থেকে) শুধু সেশনের প্রথমবার লোড হবে —
   // এরপর ইউজার Settings থেকে যা বদলায় তা যেন token-refresh বা re-sync-এ চুপচাপ পুরনো
   // মান দিয়ে ওভাররাইট না হয়ে যায় (এটাই "Light সিলেক্ট করলেও Dark-ই থেকে যায়" বাগের কারণ ছিল)
@@ -1629,6 +1630,9 @@ export default function FocusGo() {
             });
             // যদি এই data আমাদেরই সবশেষ write-এর echo হয়, আবার setState করে re-render/re-save লুপ তৈরি করার দরকার নেই
             if (incomingKey !== lastSavedPayloadRef.current) {
+              // এই setState-গুলো থেকে যেই write-effect ট্রিগার হবে, সেটা যেন আবার এই একই ডেটা
+              // Firestore-এ ফেরত না লেখে — নাহলে দুর্বল নেটওয়ার্ক/race অবস্থায় আসল ডেটা ওভাররাইট হয়ে যাওয়ার ঝুঁকি থাকে
+              skipNextWriteRef.current = true;
               if (data.entries) setEntries(data.entries);
               if (data.subjects) setSubjects(data.subjects);
               if (data.topicBank) setTopicBank(data.topicBank);
@@ -1677,6 +1681,7 @@ export default function FocusGo() {
   // ভুলবশত আসল data মুছে দিতে পারে — দেখুন serverSynced-এর উপরের কমেন্ট)
   useEffect(() => {
     if (!serverSynced || !user) return;
+    if (skipNextWriteRef.current) { skipNextWriteRef.current = false; return; } // এইমাত্র Firestore থেকেই ডেটা এসেছে — সেটাই আবার লেখার দরকার নেই
     const payload = {
       entries, subjects, topicBank, examSubjects, combinedExams, nextExam, lang, themeMode,
       updatedAt: new Date().toISOString(),
