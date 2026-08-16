@@ -2102,7 +2102,7 @@ export default function FocusGo() {
   const fmtTime = (h, m, s) => <>{<Num>{nf(pad2(h))}</Num>}:{<Num>{nf(pad2(m))}</Num>}{s !== undefined ? <>:{<Num>{nf(pad2(s))}</Num>}</> : null}</>;
 
   // theme tokens
-  const bg = dark ? "#121110" : "#F8F5EF";
+  const bg = dark ? "#121110" : "#FAFAF8";
   const cardBg = dark ? "#1B1815" : "#FFFFFF";
   const cardBorder = dark ? "#2C2820" : "#E9E3D6";
   const textMain = dark ? "#F3EFE7" : "#211D18";
