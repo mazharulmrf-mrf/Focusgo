@@ -1,116 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Flame, Target, TrendingUp } from "lucide-react";
-
-// ================================================================
-// PREVIEW-ONLY MOCK of Firebase (auth + firestore). The real app
-// imports these from "./firebase" / "firebase/auth" / "firebase/firestore",
-// which aren't available in this sandbox. This in-memory mock reproduces
-// just enough behavior (sign up / log in / Google / profile edits /
-// live "Firestore" sync) so the whole app can be clicked through.
-// Nothing here persists beyond this browser session.
-// ================================================================
-let __mockAccounts = {};      // email -> {uid,email,password,displayName,photoURL}
-let __mockCurrentUser = null; // {uid,email,displayName,photoURL} | null
-let __mockAuthListeners = [];
-let __mockDocs = {};          // path -> data object
-let __mockDocListeners = {};  // path -> [callback]
-let __mockUidCounter = 1;
-
-function __notifyAuth() { __mockAuthListeners.forEach((cb) => cb(__mockCurrentUser)); }
-function __makeUserObj(acc) {
-  return { uid: acc.uid, email: acc.email, displayName: acc.displayName || null, photoURL: acc.photoURL || null };
-}
-
-const auth = {};
-const db = {};
-const googleProvider = {};
-
-function onAuthStateChanged(_auth, cb) {
-  __mockAuthListeners.push(cb);
-  cb(__mockCurrentUser);
-  return () => { __mockAuthListeners = __mockAuthListeners.filter((f) => f !== cb); };
-}
-
-async function createUserWithEmailAndPassword(_auth, email, password) {
-  if (__mockAccounts[email]) { const e = new Error("exists"); e.code = "auth/email-already-in-use"; throw e; }
-  const acc = { uid: "u" + __mockUidCounter++, email, password, displayName: null, photoURL: null };
-  __mockAccounts[email] = acc;
-  __mockCurrentUser = __makeUserObj(acc);
-  __notifyAuth();
-  return { user: __mockCurrentUser };
-}
-
-async function signInWithEmailAndPassword(_auth, email, password) {
-  const acc = __mockAccounts[email];
-  if (!acc || acc.password !== password) { const e = new Error("invalid"); e.code = "auth/invalid-credential"; throw e; }
-  __mockCurrentUser = __makeUserObj(acc);
-  __notifyAuth();
-  return { user: __mockCurrentUser };
-}
-
-async function signInWithPopup(_auth, _provider) {
-  const email = "demo.google@example.com";
-  let acc = __mockAccounts[email];
-  if (!acc) { acc = { uid: "u" + __mockUidCounter++, email, password: null, displayName: "Demo User", photoURL: null }; __mockAccounts[email] = acc; }
-  __mockCurrentUser = __makeUserObj(acc);
-  __notifyAuth();
-  return { user: __mockCurrentUser };
-}
-
-async function signOut(_auth) { __mockCurrentUser = null; __notifyAuth(); }
-
-async function sendPasswordResetEmail(_auth, _email) { return Promise.resolve(); }
-
-async function updateProfile(user, updates) {
-  const acc = __mockAccounts[user.email];
-  if (acc) Object.assign(acc, updates);
-  Object.assign(user, updates);
-  if (__mockCurrentUser && __mockCurrentUser.email === user.email) Object.assign(__mockCurrentUser, updates);
-}
-
-async function updateEmail(user, newEmail) {
-  const acc = __mockAccounts[user.email];
-  if (acc) { delete __mockAccounts[user.email]; acc.email = newEmail; __mockAccounts[newEmail] = acc; }
-  user.email = newEmail;
-  if (__mockCurrentUser) __mockCurrentUser.email = newEmail;
-}
-
-async function updatePassword(user, newPassword) {
-  const acc = __mockAccounts[user.email];
-  if (acc) acc.password = newPassword;
-}
-
-async function reauthenticateWithCredential(user, credential) {
-  const acc = __mockAccounts[user.email];
-  if (acc && acc.password !== null && acc.password !== credential.password) {
-    const e = new Error("wrong"); e.code = "auth/wrong-password"; throw e;
-  }
-}
-
-const EmailAuthProvider = { credential: (email, password) => ({ email, password }) };
-
-function doc(_db, ...pathParts) { return pathParts.join("/"); }
-
-function __mockSnap(path) {
-  const data = __mockDocs[path];
-  return { exists: () => data !== undefined, data: () => data };
-}
-
-async function setDoc(path, payload, opts) {
-  const prev = __mockDocs[path] || {};
-  __mockDocs[path] = opts && opts.merge ? { ...prev, ...payload } : payload;
-  (__mockDocListeners[path] || []).forEach((cb) => cb(__mockSnap(path)));
-}
-
-function onSnapshot(path, onNext, _onError) {
-  if (!__mockDocListeners[path]) __mockDocListeners[path] = [];
-  __mockDocListeners[path].push(onNext);
-  onNext(__mockSnap(path));
-  return () => { __mockDocListeners[path] = (__mockDocListeners[path] || []).filter((f) => f !== onNext); };
-}
-// ================================================================
-// END mock Firebase
-// ================================================================
+import { auth, db, googleProvider } from "./firebase";
+import {
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  sendPasswordResetEmail,
+  updateProfile,
+  updateEmail,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+} from "firebase/auth";
+import { doc, setDoc, onSnapshot } from "firebase/firestore";
 
 // ---------- সোশ্যাল আইকন (lucide-react-এ brand logo নেই, তাই ছোট inline SVG) ----------
 const FacebookIcon = ({ size = 18 }) => (
@@ -2751,11 +2655,6 @@ export default function FocusGo() {
                   <RotateCcw size={15} color={textMain}/>
                 </button>
               </div>
-              {!timerRunning && timerTopic && (
-                <div style={{textAlign:"center", fontSize:11, color:textMuted2, marginTop:6}}>
-                  {timerTopic.subject} · <Num>{nf(Math.round(timerTotal/60))}</Num> {t.minutes}
-                </div>
-              )}
             </>
           ) : (
             <>
