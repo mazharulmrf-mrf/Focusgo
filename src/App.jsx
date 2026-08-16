@@ -2147,9 +2147,11 @@ export default function FocusGo() {
   // Keep the browser/Android UI (status bar + Chrome toolbar area) synced
   // with FocusGo's ACTUAL selected theme. This prevents the purple browser
   // bars that appear when the phone system theme differs from the app theme.
+  // ব্যতিক্রম: focus timer fullscreen খোলা থাকলে এই বার কালো থাকবে (immersive mode),
+  // বাকি সময় app-এর নিজস্ব light/dark theme অনুযায়ী রঙ ফিরে আসবে।
   useEffect(() => {
     try {
-      const themeColor = dark ? "#121110" : "#F8F5EF";
+      const themeColor = focusFullscreen ? "#000000" : bg;
 
       document.documentElement.style.background = themeColor;
       document.body.style.background = themeColor;
@@ -2185,10 +2187,11 @@ export default function FocusGo() {
         darkMeta.media = "(prefers-color-scheme: dark)";
         document.head.appendChild(darkMeta);
       }
-      lightMeta.setAttribute("content", dark ? "#121110" : "#F8F5EF");
-      darkMeta.setAttribute("content", dark ? "#121110" : "#F8F5EF");
+      lightMeta.setAttribute("content", themeColor);
+      darkMeta.setAttribute("content", themeColor);
     } catch (e) { /* ignore */ }
-  }, [dark]);
+  }, [dark, bg, focusFullscreen]);
+
 
   // Firebase এখনো auth স্টেট জানায়নি — একটা ছোট লোডিং স্ক্রিন
   if (!authChecked) {
