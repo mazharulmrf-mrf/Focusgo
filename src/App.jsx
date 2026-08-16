@@ -2375,7 +2375,7 @@ export default function FocusGo() {
 
         {/* Focus timer - only on Today tab */}
         {tab === "today" && (
-        <div className="fg-tab-panel" style={{marginTop:18, background: dark ? "#1F1B17" : "#FBF3EC", border:`1px solid ${dark? "#332E25":"#F0DCC9"}`, borderRadius:18, padding:"12px 16px 13px", color:textMain, boxShadow: dark ? "0 10px 28px rgba(0,0,0,0.28)" : "0 10px 28px rgba(201,106,69,0.16)"}}>
+        <div className="fg-tab-panel" style={{marginTop:18, background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:18, padding:"12px 16px 13px", color:textMain}}>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
             <span style={{fontSize:10, letterSpacing:ls(1.5), fontWeight:700, color:textMuted2}}>{t.focusTimer}</span>
             <div style={{display:"flex", alignItems:"center", gap:6}}>
