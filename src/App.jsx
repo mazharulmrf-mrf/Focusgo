@@ -2935,7 +2935,7 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
         <button onClick={()=>setExpanded(x=>!x)} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between", padding:0, color:"inherit", textAlign:"left"}}>
           <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
             <Folder size={14} style={{color:textMuted2, flexShrink:0}}/>
-            <span style={{fontWeight:700, fontSize:13.5, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{topicName}</span>
+            <span style={{fontWeight:700, fontSize:13.5, wordBreak:"break-word"}}>{topicName}</span>
           </div>
           <div style={{display:"flex", alignItems:"center", gap:6, flexShrink:0}}>
             {completed ? (
@@ -3096,7 +3096,7 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
       <button onClick={()=>setExpanded(x=>!x)} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between", padding:0, color:"inherit", textAlign:"left"}}>
         <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
           <GraduationCap size={14} style={{color:textMuted2, flexShrink:0}}/>
-          <span style={{fontWeight:700, fontSize:13.5, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{name}</span>
+          <span style={{fontWeight:700, fontSize:13.5, wordBreak:"break-word"}}>{name}</span>
           <span style={{fontSize:9.5, fontWeight:700, letterSpacing:ls(0.5), color:accent, background: dark?"rgba(217,119,87,0.15)":"rgba(217,119,87,0.1)", padding:"2px 7px", borderRadius:20, flexShrink:0, textTransform:"uppercase"}}>{typeLabel}</span>
         </div>
         <ChevronDown size={15} style={{color:textMuted2, transform: expanded ? "rotate(180deg)" : "none", transition:"transform .15s", flexShrink:0}}/>
@@ -3598,7 +3598,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
             </button>
             <div style={{flex:1, minWidth:0}} onClick={onStartTimer ? ()=>onStartTimer(item.id, item.duration) : undefined}>
               <div style={{fontSize:10, fontWeight:700, letterSpacing:ls(0.5), color:c.bg}}>{item.subject.toUpperCase()}</div>
-              <div style={{fontSize:14, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{item.topic}</div>
+              <div style={{fontSize:14, fontWeight:600, wordBreak:"break-word"}}>{item.topic}</div>
             </div>
             <div style={{textAlign:"right", flexShrink:0}}>
               <div style={{fontSize:12, fontWeight:600, color:textMuted2}}>
@@ -3914,7 +3914,7 @@ function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onR
               </div>
             ) : (
               <>
-                <span style={{fontSize:12.5, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{tp}</span>
+                <span style={{fontSize:12.5, fontWeight:600, wordBreak:"break-word"}}>{tp}</span>
                 <div style={{display:"flex", gap:10, alignItems:"center", flexShrink:0}}>
                   <button onClick={()=>startEdit(tp)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><Pencil size={12.5}/></button>
                   <button onClick={()=>onRemoveTopic(subject, tp)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><Trash2 size={13}/></button>
