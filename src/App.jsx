@@ -2906,10 +2906,12 @@ export default function FocusGo() {
               <WeekDayStrip days={weekDays} entries={entries} selectedKey={dateKey(weekStripDay)} onSelectDay={setWeekStripDay}
                 todayKey={todayKey} weekdayShort={weekdayShort} nf={nf} accent={accent} dark={dark}
                 textMuted2={textMuted2} textMain={textMain} cardBg={cardBg} cardBorder={cardBorder}/>
-              <DaySelectedCard day={weekStripDay} entries={entries[dateKey(weekStripDay)] || []} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
-                weekdayName={weekdayName} monthName={monthName} cardBg={cardBg} innerBg={cardBg} cardBorder={cardBorder}
-                textMain={textMain} textMuted2={textMuted2} accent={accent}
-                onToggle={(id)=>toggleDoneFor(dateKey(weekStripDay), id)}/>
+              {dateKey(weekStripDay) !== todayKey && (
+                <DaySelectedCard day={weekStripDay} entries={entries[dateKey(weekStripDay)] || []} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
+                  weekdayName={weekdayName} monthName={monthName} cardBg={cardBg} innerBg={cardBg} cardBorder={cardBorder}
+                  textMain={textMain} textMuted2={textMuted2} accent={accent}
+                  onToggle={(id)=>toggleDoneFor(dateKey(weekStripDay), id)}/>
+              )}
             </div>
           </div>
         )}
