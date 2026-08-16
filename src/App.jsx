@@ -310,7 +310,7 @@ function UserMenu({ onOpenProfile, onOpenSettings, cardBorder, cardBg, textMain,
     <div style={{position:"relative", flexShrink:0}}>
       <button
         onClick={() => setOpen(v => !v)}
-        style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMain, borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, overflow:"hidden", padding:0 }}
+        style={{ border: "1px solid #D97757", background: cardBg, color: textMain, borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, overflow:"hidden", padding:0 }}
         title={profileLabel}
       >
         {user && user.photoURL ? (
@@ -2576,7 +2576,7 @@ export default function FocusGo() {
             )}
             <button onClick={()=>{vibrate(); setThemeMode(m => m==="system" ? "light" : m==="light" ? "dark" : "system");}}
               title={themeMode==="system" ? t.themeSystem : themeMode==="dark" ? t.themeDark : t.themeLight}
-              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
+              style={{border:"1px solid #D97757", background:cardBg, color:textMain, borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
               {themeMode === "system" ? <Contrast size={15}/> : themeMode === "dark" ? <Moon size={15}/> : <Sun size={15}/>}
             </button>
             <div style={{position:"relative", flexShrink:0}}>
