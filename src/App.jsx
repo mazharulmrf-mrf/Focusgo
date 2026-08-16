@@ -2897,9 +2897,8 @@ function FlipBlock({ children, textMain, dark, stacked, running, blockWidth }) {
 }
 
 // Fullscreen focus session view, entered when the timer/stopwatch is started.
-// Keeps the app's own color palette (light/dark) rather than a hardcoded theme —
-// except while running, when the whole screen (header থেকে বাটন পর্যন্ত) turns black
-// for a distraction-free focus mode.
+// পুরো fullscreen সবসময় কালো — অ্যাপের light/dark/system theme যাই থাকুক না কেন,
+// আর running/paused যেকোনো অবস্থাতেই (শুধু running হলে বদলাতো না, এখন expand করলেই কালো)।
 function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, accent, dark, bg, textMain, textMuted2, onToggleRun, onReset, onClose, now }) {
   const orientation = useOrientation();
   const stacked = orientation === "portrait"; // portrait -> mm উপরে/ss নিচে (বড় সংখ্যা), landscape -> পাশাপাশি
@@ -2907,25 +2906,25 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
   const ss = pad2(Math.max(0,seconds)%60);
   const pct = mode === "timer" && total ? Math.min(100, Math.max(0, Math.round(((total-seconds)/total)*100))) : null;
 
-  // running অবস্থায় পুরো স্ক্রিন কালো, নাহলে অ্যাপের নিজস্ব থিম (light/dark) অনুযায়ী।
-  const screenBg = running ? "#000000" : bg;
-  const fgMain = running ? "#F5F1E8" : textMain;
-  const fgMuted = running ? "#8A8272" : textMuted2;
-  const trackColor = running ? "#2A2A2A" : (dark?"#2C2820":"#EFE9DC");
-  const trackBorder = running ? "rgba(255,255,255,0.08)" : (dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)");
-  const resetBtnBg = running ? "#1E1E1E" : (dark?"#332E25":"#F0DCC9");
+  // fullscreen-এ সবসময় fixed কালো প্যালেট — app theme (light/dark/system) থেকে independent।
+  const screenBg = "#000000";
+  const fgMain = "#F5F1E8";
+  const fgMuted = "#8A8272";
+  const trackColor = "#2A2A2A";
+  const trackBorder = "rgba(255,255,255,0.08)";
+  const resetBtnBg = "#1E1E1E";
   const blockWidth = stacked ? "clamp(210px, 78vw, 360px)" : "clamp(130px, 30vw, 260px)";
 
   const clockDigits = (
     <>
-      <FlipBlock textMain={fgMain} dark={dark} running={running} stacked={stacked} blockWidth={blockWidth}>{nf(mm)}</FlipBlock>
+      <FlipBlock textMain={fgMain} dark={true} running={true} stacked={stacked} blockWidth={blockWidth}>{nf(mm)}</FlipBlock>
       <div style={{fontFamily:"'Bebas Neue','Hind Siliguri',sans-serif", fontSize: stacked ? "clamp(40px,9vw,72px)" : "clamp(55px,11vw,100px)", fontWeight:400, color:fgMuted, ...(stacked ? {margin:"-6px 0"} : {marginBottom:6})}}>:</div>
-      <FlipBlock textMain={fgMain} dark={dark} running={running} stacked={stacked} blockWidth={blockWidth}>{nf(ss)}</FlipBlock>
+      <FlipBlock textMain={fgMain} dark={true} running={true} stacked={stacked} blockWidth={blockWidth}>{nf(ss)}</FlipBlock>
     </>
   );
 
   return (
-    <div style={{position:"fixed", inset:0, zIndex:100, background:screenBg, color:fgMain, display:"flex", flexDirection:"column", transition:"background .25s"}}>
+    <div style={{position:"fixed", inset:0, zIndex:100, background:screenBg, color:fgMain, display:"flex", flexDirection:"column"}}>
       <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 20px 0"}}>
         <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:fgMuted, display:"flex", alignItems:"center", padding:6}}>
           <ChevronDown size={22}/>
@@ -2966,11 +2965,12 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
         )}
       </div>
 
-      <div style={{display:"flex", gap:14, padding:"0 30px 48px", justifyContent:"center"}}>
-        <button onClick={onToggleRun} style={{flex:1, maxWidth:240, background:accent, border:"none", borderRadius:16, padding:"16px 0", color:"#fff", fontWeight:700, fontSize:16, display:"flex",alignItems:"center",justifyContent:"center", gap:8, cursor:"pointer"}}>
-          {running ? <Pause size={18} fill="#fff"/> : <Play size={18} fill="#fff"/>} {running ? t.pause : t.start}
+      {/* Start/Pause এবং Reset — দুটোই ছোট, একই আকারের আইকন বাটন, নিচে আরেকটু জায়গা রেখে বসানো */}
+      <div style={{display:"flex", gap:14, padding:"0 30px 64px", justifyContent:"center", alignItems:"center"}}>
+        <button onClick={onToggleRun} title={running ? t.pause : t.start} style={{background:accent, border:"none", borderRadius:16, width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+          {running ? <Pause size={20} fill="#fff" color="#fff"/> : <Play size={20} fill="#fff" color="#fff"/>}
         </button>
-        <button onClick={onReset} style={{background:resetBtnBg, border:"none", borderRadius:16, width:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+        <button onClick={onReset} title={t.reset} style={{background:resetBtnBg, border:"none", borderRadius:16, width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
           <RotateCcw size={20} color={fgMain}/>
         </button>
       </div>
