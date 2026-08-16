@@ -1065,6 +1065,65 @@ const colorForSubject = (name, subjects) => {
   return SUBJECT_COLORS[(idx < 0 ? 0 : idx) % SUBJECT_COLORS.length];
 };
 
+// Looks through all past entries (every date, not just today) and returns the topic names
+// previously used for one specific subject — most recently added first, no duplicates.
+// This is what powers the "recent topic" suggestion chips, so nobody has to retype a topic
+// they've already studied before. Nothing is stored separately; it's derived from `entries`.
+const recentTopicsForSubject = (entries, subject, limit = 8) => {
+  if (!subject) return [];
+  const matches = Object.values(entries).flat().filter(e => e.subject === subject && (e.topic || "").trim());
+  matches.sort((a, b) => {
+    const ta = parseInt(String(a.id || "").split("-")[0], 10) || 0;
+    const tb = parseInt(String(b.id || "").split("-")[0], 10) || 0;
+    return tb - ta; // newest id first
+  });
+  const seen = new Set();
+  const result = [];
+  for (const e of matches) {
+    const topic = e.topic.trim();
+    if (seen.has(topic)) continue;
+    seen.add(topic);
+    result.push(topic);
+    if (result.length >= limit) break;
+  }
+  return result;
+};
+
+// Small reusable row of tappable "recent topic" chips shown under the Topic field.
+// Tapping a chip fills the topic input; typing a new topic still works as before.
+function RecentTopicChips({ topics, onPick, accent, cardBorder, textMuted2, dark }) {
+  if (!topics.length) return null;
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+      {topics.map((topic) => (
+        <button
+          key={topic}
+          type="button"
+          onClick={() => onPick(topic)}
+          title={topic}
+          style={{
+            border: `1px solid ${cardBorder}`,
+            background: dark ? "#121110" : "#F8F5EE",
+            color: textMuted2,
+            borderRadius: 20,
+            padding: "6px 12px",
+            fontSize: 11.5,
+            fontWeight: 600,
+            cursor: "pointer",
+            maxWidth: 220,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {topic}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+
 // Renders digits in Noto Sans Bengali (clean, reliable Bengali numeral rendering, Google-hosted).
 const Num = ({ children }) => <span style={{ fontFamily: "'Noto Sans Bengali','Hind Siliguri',serif" }}>{children}</span>;
 
@@ -1181,7 +1240,7 @@ export default function FocusGo() {
   const [calMonth, setCalMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
   const [weekStripDay, setWeekStripDay] = useState(() => new Date());
-  const [statsMonthDay, setStatsMonthDay] = useState(() => new Date());
+  const [statsMonthDay, setStatsMonthDay] = useState(() => new Date()); // shared "selected day" for the whole Stats tab (week strip + month grid)
   const [statsCalMonth, setStatsCalMonth] = useState(() => new Date());
   const [timerTopicId, setTimerTopicId] = useState(null);
   const [timerSeconds, setTimerSeconds] = useState(25*60);
@@ -1799,6 +1858,13 @@ export default function FocusGo() {
   const weekStart = startOfWeek(today);
   const weekDays = Array.from({length:7}, (_,i) => { const d = new Date(weekStart); d.setDate(d.getDate()+i); return d; });
 
+  // Stats tab: one shared "selected day" for both the week strip and the month grid.
+  // Keeps the visible month in sync so a week-strip tap near a month boundary still shows correctly.
+  const selectStatsDay = (d) => {
+    setStatsMonthDay(d);
+    setStatsCalMonth(new Date(d.getFullYear(), d.getMonth(), 1));
+  };
+
   // ---- subject progress across all entries ----
   const subjectProgress = {};
   Object.values(entries).flat().forEach(e => {
@@ -2250,27 +2316,28 @@ export default function FocusGo() {
           </div>
         )}
 
-        {/* STATS tab - week summary + month summary merged */}
+        {/* STATS tab - week + subjects + month, one shared day-detail card at the bottom */}
         {tab === "stats" && (
           <div key="stats" className="fg-tab-panel">
             <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:10}}>{t.thisWeek}</div>
-            <WeekDayStrip days={weekDays} entries={entries} selectedKey={dateKey(weekStripDay)} onSelectDay={setWeekStripDay}
+            <WeekDayStrip days={weekDays} entries={entries} selectedKey={dateKey(statsMonthDay)} onSelectDay={selectStatsDay}
               todayKey={todayKey} weekdayShort={weekdayShort} nf={nf} accent={accent} dark={dark}
               textMuted2={textMuted2} textMain={textMain} cardBg={cardBg} cardBorder={cardBorder}/>
-            <DaySelectedCard day={weekStripDay} entries={entries[dateKey(weekStripDay)] || []} allSubjects={allSubjects}
-              t={t} nf={nf} lang={lang} weekdayName={weekdayName} monthName={monthName}
-              cardBg={cardBg} innerBg={dark?"#121110":"#F8F5EE"} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}
-              onToggle={(id)=>toggleDoneFor(dateKey(weekStripDay), id)}/>
+
+            <div style={{display:"flex", alignItems:"center", gap:10, margin:"20px 0 16px"}}>
+              <div style={{flex:1, height:1, background:cardBorder}}/>
+              <span style={{fontSize:10.5, fontWeight:700, letterSpacing:0.8, color:textMuted2, textTransform:"uppercase", opacity:0.85}}>{t.syllabusProgress}</span>
+              <div style={{flex:1, height:1, background:cardBorder}}/>
+            </div>
 
             {/* syllabus / subject progress — moved here from the Today tab */}
-            <div style={{marginTop:22}}>
-              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                <div style={{fontSize:19, fontWeight:800}}>{t.syllabusProgress}</div>
+            <div>
+              <div style={{display:"flex", justifyContent:"flex-end", marginBottom:12}}>
                 <button onClick={()=>{vibrate(); setShowSubjects(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
                   <Plus size={12}/> {t.manageSubjects}
                 </button>
               </div>
-              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginTop:12}}>
+              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8}}>
                 {allSubjects.length === 0 && (
                   <div style={{fontSize:13, color:textMuted2, padding:"14px 0", gridColumn:"1 / -1"}}>—</div>
                 )}
@@ -2301,8 +2368,10 @@ export default function FocusGo() {
             </div>
 
             <InlineMonthCalendar calMonth={statsCalMonth} setCalMonth={setStatsCalMonth} entries={entries}
-              selectedKey={dateKey(statsMonthDay)} onSelectDay={setStatsMonthDay} lang={lang} nf={nf} monthName={monthName} today={today}
+              selectedKey={dateKey(statsMonthDay)} onSelectDay={selectStatsDay} lang={lang} nf={nf} monthName={monthName} today={today}
               cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
+
+            {/* one shared day-detail card — reflects whichever day was tapped, in the week strip or the month grid */}
             <DaySelectedCard day={statsMonthDay} entries={entries[dateKey(statsMonthDay)] || []} allSubjects={allSubjects}
               t={t} nf={nf} lang={lang} weekdayName={weekdayName} monthName={monthName}
               cardBg={cardBg} innerBg={dark?"#121110":"#F8F5EE"} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}
@@ -2471,14 +2540,14 @@ export default function FocusGo() {
 
       {/* Add topic modal */}
       {showAdd && (
-        <AddModal t={t} nf={nf} subjects={subjects} defaultStart={`${pad2(now.getHours())}:${pad2(now.getMinutes())}`}
+        <AddModal t={t} nf={nf} subjects={subjects} entries={entries} defaultStart={`${pad2(now.getHours())}:${pad2(now.getMinutes())}`}
           onClose={()=>setShowAdd(false)} onAdd={addTopic}
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
       )}
 
       {/* Edit topic modal */}
       {editTopic && (
-        <EditModal t={t} nf={nf} subjects={subjects} item={editTopic} onClose={()=>setEditTopic(null)} onSave={saveEditTopic} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
+        <EditModal t={t} nf={nf} subjects={subjects} entries={entries} item={editTopic} onClose={()=>setEditTopic(null)} onSave={saveEditTopic} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
       )}
 
       {/* Manage subjects modal */}
@@ -3403,7 +3472,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
   );
 }
 
-function AddModal({ t, nf, subjects, defaultStart, onClose, onAdd, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
+function AddModal({ t, nf, subjects, entries, defaultStart, onClose, onAdd, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const [subject, setSubject] = useState(subjects[0] || "");
   const [topic, setTopic] = useState("");
   const [useTime, setUseTime] = useState(false);
@@ -3413,6 +3482,7 @@ function AddModal({ t, nf, subjects, defaultStart, onClose, onAdd, cardBg, cardB
   const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const duration = useTime ? diffMinutes(startTime, endTime) : (Number(durationInput) || 0);
   const canSubmit = subjects.length > 0 && subject && topic.trim();
+  const recentTopics = recentTopicsForSubject(entries || {}, subject);
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain}}>
@@ -3434,6 +3504,7 @@ function AddModal({ t, nf, subjects, defaultStart, onClose, onAdd, cardBg, cardB
           <div>
             <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.topicLabel}</div>
             <input style={inputStyle} value={topic} onChange={e=>setTopic(e.target.value)} placeholder={t.topicPlaceholder}/>
+            <RecentTopicChips topics={recentTopics} onPick={setTopic} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}/>
           </div>
 
           <label style={{display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none"}}>
@@ -3472,7 +3543,7 @@ function AddModal({ t, nf, subjects, defaultStart, onClose, onAdd, cardBg, cardB
   );
 }
 
-function EditModal({ t, nf, subjects, item, onClose, onSave, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
+function EditModal({ t, nf, subjects, entries, item, onClose, onSave, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const subjectOptions = Array.from(new Set([item.subject, ...subjects]));
   const [subject, setSubject] = useState(item.subject);
   const [topic, setTopic] = useState(item.topic);
@@ -3482,6 +3553,7 @@ function EditModal({ t, nf, subjects, item, onClose, onSave, cardBg, cardBorder,
   const [durationInput, setDurationInput] = useState(item.duration || 30);
   const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const duration = useTime ? diffMinutes(startTime, endTime) : (Number(durationInput) || 0);
+  const recentTopics = recentTopicsForSubject(entries || {}, subject).filter(tp => tp !== item.topic);
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain}}>
@@ -3499,6 +3571,7 @@ function EditModal({ t, nf, subjects, item, onClose, onSave, cardBg, cardBorder,
           <div>
             <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.topicLabel}</div>
             <input style={inputStyle} value={topic} onChange={e=>setTopic(e.target.value)} placeholder={t.topicPlaceholder}/>
+            <RecentTopicChips topics={recentTopics} onPick={setTopic} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}/>
           </div>
 
           <label style={{display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none"}}>
