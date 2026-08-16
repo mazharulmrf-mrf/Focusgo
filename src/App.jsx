@@ -2566,6 +2566,19 @@ export default function FocusGo() {
               style={{display:"flex", alignItems:"center", gap:10, border:"none", background:"transparent", cursor:"pointer", padding:0}}>
               <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt="FocusGo" style={{height:26, width:"auto", objectFit:"contain"}}/>
             </button>
+          </div>
+
+          <div style={{display:"flex", alignItems:"center", gap:6}}>
+            {!isOnline && (
+              <div title={t.offlineNote} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#2C2820":"#F8F5EE", color:textMuted2, borderRadius:20, padding:"5px 9px 5px 8px", fontSize:10.5, fontWeight:700, flexShrink:0}}>
+                <WifiOff size={12}/> {t.offlineBadge}
+              </div>
+            )}
+            <button onClick={()=>{vibrate(); setThemeMode(m => m==="system" ? "light" : m==="light" ? "dark" : "system");}}
+              title={themeMode==="system" ? t.themeSystem : themeMode==="dark" ? t.themeDark : t.themeLight}
+              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
+              {themeMode === "system" ? <Contrast size={15}/> : themeMode === "dark" ? <Moon size={15}/> : <Sun size={15}/>}
+            </button>
             <div style={{position:"relative", flexShrink:0}}>
               <button onClick={()=>{vibrate(); setShowQuickAdd(v=>!v);}}
                 title={t.quickAdd}
@@ -2575,7 +2588,7 @@ export default function FocusGo() {
               {showQuickAdd && (
                 <>
                   <div onClick={()=>setShowQuickAdd(false)} style={{position:"fixed", inset:0, zIndex:59}}/>
-                  <div style={{position:"absolute", left:0, top:"100%", marginTop:6, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, boxShadow:"0 8px 22px rgba(0,0,0,0.18)", zIndex:60, minWidth:170, overflow:"hidden", padding:4}}>
+                  <div style={{position:"absolute", right:0, top:"100%", marginTop:6, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, boxShadow:"0 8px 22px rgba(0,0,0,0.18)", zIndex:60, minWidth:170, overflow:"hidden", padding:4}}>
                     <button onClick={()=>{setShowQuickAdd(false); setAddTargetKey(todayKey); setShowAdd(true);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:8, padding:"9px 10px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
                       <Clock size={14} color={textMuted2}/> {t.addStudyTopicQuick}
                     </button>
@@ -2592,19 +2605,6 @@ export default function FocusGo() {
                 </>
               )}
             </div>
-          </div>
-
-          <div style={{display:"flex", alignItems:"center", gap:6}}>
-            {!isOnline && (
-              <div title={t.offlineNote} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#2C2820":"#F8F5EE", color:textMuted2, borderRadius:20, padding:"5px 9px 5px 8px", fontSize:10.5, fontWeight:700, flexShrink:0}}>
-                <WifiOff size={12}/> {t.offlineBadge}
-              </div>
-            )}
-            <button onClick={()=>{vibrate(); setThemeMode(m => m==="system" ? "light" : m==="light" ? "dark" : "system");}}
-              title={themeMode==="system" ? t.themeSystem : themeMode==="dark" ? t.themeDark : t.themeLight}
-              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
-              {themeMode === "system" ? <Contrast size={15}/> : themeMode === "dark" ? <Moon size={15}/> : <Sun size={15}/>}
-            </button>
             <UserMenu
               onOpenProfile={()=>{vibrate(); setShowProfile(true);}}
               onOpenSettings={()=>{vibrate(); setShowSettings(true);}}
