@@ -390,11 +390,41 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
 // ---------- Settings modal: Language, Theme, About Us ----------
 function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const [showAbout, setShowAbout] = useState(false);
+  const [legalDoc, setLegalDoc] = useState(null); // null | "privacy" | "terms"
   const isBn = lang === "bn";
 
   const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:`1px solid ${cardBorder}` };
   const labelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14, fontWeight:700, color:textMain };
   const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:accent };
+
+  if (legalDoc) {
+    const sections = legalDoc === "privacy" ? t.privacySections : t.termsSections;
+    const title = legalDoc === "privacy" ? t.privacyPolicy : t.termsOfUse;
+    return (
+      <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
+        <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"85vh", display:"flex", flexDirection:"column"}}>
+          <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:6, flexShrink:0}}>
+            <button onClick={()=>setLegalDoc(null)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
+              <ChevronLeft size={20}/>
+            </button>
+            <div style={{fontSize:17, fontWeight:800, flex:1}}>{title}</div>
+            <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
+          </div>
+          <div style={{fontSize:11, color:textMuted2, fontWeight:600, marginBottom:14, paddingLeft:32}}>{t.lastUpdated}: {t.effectiveDate}</div>
+          <div style={{overflowY:"auto", paddingRight:2}}>
+            {sections.map((sec, i) => (
+              <div key={i} style={{marginBottom:18}}>
+                <div style={{fontSize:13.5, fontWeight:800, marginBottom:6, color:textMain}}>{sec.title}</div>
+                {sec.body.split("\n\n").map((para, j) => (
+                  <div key={j} style={{fontSize:13, color:textMain, lineHeight:1.7, marginBottom:8, opacity:0.9}}>{para}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (showAbout) {
     return (
@@ -420,17 +450,25 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, car
                   style={{...iconWrapStyle, textDecoration:"none"}}><LinkedinIcon size={15}/></a>
                 <a href="https://www.facebook.com/mazharul.mrf" target="_blank" rel="noopener noreferrer" title="Facebook"
                   style={{...iconWrapStyle, textDecoration:"none"}}><FacebookIcon size={15}/></a>
-                <a href="https://www.instagram.com/mazharul.mrf" target="_blank" rel="noopener noreferrer" title="Instagram"
-                  style={{...iconWrapStyle, textDecoration:"none"}}><InstagramIcon size={15}/></a>
                 <a href="https://www.behance.net/mazharulmrf" target="_blank" rel="noopener noreferrer" title="Behance"
                   style={{...iconWrapStyle, textDecoration:"none"}}><BehanceIcon size={15}/></a>
-                <a href="https://github.com/mazharulmrf-mrf" target="_blank" rel="noopener noreferrer" title="GitHub"
-                  style={{...iconWrapStyle, textDecoration:"none"}}><GithubIcon size={15}/></a>
               </div>
 
               <a href="mailto:mazharul.mrf@gmail.com" style={{display:"inline-flex", alignItems:"center", gap:7, textDecoration:"none", color:textMuted2, fontSize:12.5, fontWeight:600}}>
                 <Mail size={14}/> mazharul.mrf@gmail.com
               </a>
+            </div>
+
+            <div style={{width:"100%", borderTop:`1px solid ${cardBorder}`, marginTop:20, paddingTop:6}}>
+              <div style={{fontSize:10.5, letterSpacing: isBn ? 0 : "1.3px", color:textMuted2, fontWeight:700, opacity:0.85, margin:"12px 0 2px", textAlign:"left"}}>{t.legalSection}</div>
+              <button onClick={()=>setLegalDoc("privacy")} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", padding:"12px 0", display:"flex", alignItems:"center", justifyContent:"space-between", color:textMain}}>
+                <span style={{fontSize:13.5, fontWeight:700}}>{t.privacyPolicy}</span>
+                <ChevronRight size={16} style={{color:textMuted2}}/>
+              </button>
+              <button onClick={()=>setLegalDoc("terms")} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", padding:"12px 0", display:"flex", alignItems:"center", justifyContent:"space-between", color:textMain, borderTop:`1px solid ${cardBorder}`}}>
+                <span style={{fontSize:13.5, fontWeight:700}}>{t.termsOfUse}</span>
+                <ChevronRight size={16} style={{color:textMuted2}}/>
+              </button>
             </div>
           </div>
           <div style={{display:"flex", justifyContent:"space-between", fontSize:11.5, color:textMuted2, paddingTop:14, borderTop:`1px solid ${cardBorder}`}}>
@@ -977,6 +1015,25 @@ const T = {
     aboutTagline: "Make every day count.",
     aboutBody: "FocusGo is a study companion built to help students plan, focus, and track their progress day by day.",
     creatorLabel: "Creator",
+    privacyPolicy: "Privacy Policy", termsOfUse: "Terms of Use", legalSection: "Legal",
+    lastUpdated: "Last updated", effectiveDate: "August 16, 2026",
+    privacySections: [
+      { title: "1. Information We Collect", body: "Account information: your email, name (if provided), and basic profile info from Google when you sign in with Google.\n\nStudy data: what you add in the app — subjects, topics, study time, exam results, and related notes.\n\nTechnical information: basic settings needed to run the app, such as theme and language preference.\n\nWe do not collect your location, contacts, or any other personal data from your device." },
+      { title: "2. How We Use This Information", body: "To create and manage your account and login.\n\nTo save and sync your study data so you can access it across devices.\n\nTo power app features such as progress tracking, calendar, and statistics.\n\nWe do not use your information for advertising, and we do not sell it to any third party." },
+      { title: "3. Where Your Data Is Stored", body: "Your account and study data are stored on Google Firebase (Authentication and Firestore), a third-party cloud service. Data is encrypted according to Firebase's own security and privacy standards. We only use what's necessary to run the app." },
+      { title: "4. Your Rights", body: "You can update your profile information (name, email, password) at any time.\n\nYou can request deletion of your account and all associated data — contact us at the email below.\n\nYou can also reach out with any questions about your data." },
+      { title: "5. Changes", body: "This privacy policy may be updated from time to time. Significant changes will be communicated within the app." },
+      { title: "6. Contact", body: "For any questions: mazharul.mrf@gmail.com" },
+    ],
+    termsSections: [
+      { title: "1. Description of Service", body: "FocusGo is a study-tracking and planning app where you can plan by subject/topic, track study time, view progress, and stay organized for exam preparation." },
+      { title: "2. Your Account", body: "You are responsible for providing accurate information when creating your account.\n\nYou are responsible for keeping your login credentials (password) secure. You are responsible for any activity that happens under your account.\n\nPlease notify us promptly if you notice any suspicious activity." },
+      { title: "3. Acceptable Use", body: "You agree to use the app only for personal, lawful purposes, and not to attempt anything harmful (spam, malware, or unauthorized access attempts) against any part of the app." },
+      { title: "4. Disclaimer", body: "FocusGo is an organizational tool only. It does not guarantee study outcomes, exam scores, or academic success. You are responsible for the accuracy of the data you store in the app.\n\nWe make reasonable efforts to keep the app running smoothly, but we cannot guarantee it will always be free of technical issues, downtime, or data loss. We recommend keeping your own backup of important information." },
+      { title: "5. Changes and Termination", body: "We reserve the right to change, add, or remove app features at any time. We also reserve the right to suspend your account if needed, particularly for violations of these terms." },
+      { title: "6. Changes to These Terms", body: "These terms may be updated from time to time. Continuing to use the app after changes means you accept the updated terms." },
+      { title: "7. Contact", body: "For any questions: mazharul.mrf@gmail.com" },
+    ],
     combinedExams: "Combined Exams", manageCombinedExams: "Manage", addCombinedExam: "Add Combined Exam",
     noCombinedExams: "No combined exams yet. Combine multiple subjects into one recurring exam.",
     combinedExamName: "Exam name", combinedExamNamePlaceholder: "e.g. Weekly Class Test", typeLabel: "Type",
@@ -1045,6 +1102,25 @@ const T = {
     aboutTagline: "Make every day count.",
     aboutBody: "FocusGo একটি স্টাডি সঙ্গী — শিক্ষার্থীদের পরিকল্পনা করতে, মনোযোগী থাকতে, এবং দিন-প্রতিদিন অগ্রগতি ট্র্যাক করতে সাহায্য করার জন্য বানানো।",
     creatorLabel: "নির্মাতা",
+    privacyPolicy: "প্রাইভেসি পলিসি", termsOfUse: "শর্তাবলি", legalSection: "লিগ্যাল",
+    lastUpdated: "সর্বশেষ আপডেট", effectiveDate: "১৬ আগস্ট, ২০২৬",
+    privacySections: [
+      { title: "১. আমরা কী তথ্য সংগ্রহ করি", body: "অ্যাকাউন্ট তথ্য: আপনার ইমেইল, নাম (যদি দেন), এবং Google দিয়ে সাইন-ইন করলে Google থেকে পাওয়া বেসিক প্রোফাইল তথ্য।\n\nস্টাডি ডেটা: আপনি অ্যাপে যা যোগ করেন — সাবজেক্ট, টপিক, পড়াশোনার সময়, পরীক্ষার ফলাফল, এবং সংশ্লিষ্ট নোট।\n\nটেকনিক্যাল তথ্য: অ্যাপ ঠিকভাবে চালানোর জন্য প্রয়োজনীয় বেসিক সেটিং, যেমন থিম ও ভাষা প্রেফারেন্স।\n\nআমরা আপনার লোকেশন, কন্টাক্ট লিস্ট, বা ডিভাইসের অন্য কোনো ব্যক্তিগত ডেটা সংগ্রহ করি না।" },
+      { title: "২. কীভাবে আমরা এই তথ্য ব্যবহার করি", body: "আপনার অ্যাকাউন্ট তৈরি ও লগইন পরিচালনা করতে।\n\nআপনার স্টাডি ডেটা সেভ ও সিঙ্ক রাখতে, যাতে বিভিন্ন ডিভাইস থেকে অ্যাক্সেস করতে পারেন।\n\nঅ্যাপের ফিচার (প্রোগ্রেস ট্র্যাকিং, ক্যালেন্ডার, পরিসংখ্যান) কাজ করানোর জন্য।\n\nআমরা আপনার তথ্য বিজ্ঞাপনের জন্য ব্যবহার করি না, এবং কোনো তৃতীয়পক্ষের কাছে বিক্রি করি না।" },
+      { title: "৩. তথ্য কোথায় সংরক্ষিত হয়", body: "আপনার অ্যাকাউন্ট ও স্টাডি ডেটা Google Firebase (Authentication ও Firestore)-এ সংরক্ষিত হয়, যা একটি তৃতীয়পক্ষের ক্লাউড সার্ভিস। Firebase-এর নিজস্ব সিকিউরিটি ও প্রাইভেসি স্ট্যান্ডার্ড অনুযায়ী ডেটা এনক্রিপ্টেড থাকে। আমরা শুধুমাত্র আমাদের অ্যাপ পরিচালনার জন্য প্রয়োজনীয় অংশটুকু ব্যবহার করি।" },
+      { title: "৪. আপনার অধিকার", body: "আপনি যেকোনো সময় আপনার প্রোফাইল তথ্য (নাম, ইমেইল, পাসওয়ার্ড) পরিবর্তন করতে পারেন।\n\nআপনি চাইলে আপনার অ্যাকাউন্ট ও সংশ্লিষ্ট সব ডেটা ডিলিট করার অনুরোধ করতে পারেন — এর জন্য নিচের ইমেইলে যোগাযোগ করুন।\n\nআপনার ডেটা সংক্রান্ত যেকোনো প্রশ্নের জন্যও যোগাযোগ করতে পারেন।" },
+      { title: "৫. পরিবর্তন", body: "এই প্রাইভেসি পলিসি সময়ে সময়ে আপডেট হতে পারে। বড় কোনো পরিবর্তন হলে অ্যাপের মধ্যে জানিয়ে দেওয়া হবে।" },
+      { title: "৬. যোগাযোগ", body: "কোনো প্রশ্ন থাকলে: mazharul.mrf@gmail.com" },
+    ],
+    termsSections: [
+      { title: "১. সার্ভিসের বর্ণনা", body: "FocusGo একটি স্টাডি-ট্র্যাকিং ও প্ল্যানিং অ্যাপ, যেখানে আপনি সাবজেক্ট/টপিক অনুযায়ী পড়াশোনার প্ল্যান করতে, সময় ট্র্যাক করতে, প্রোগ্রেস দেখতে, এবং পরীক্ষার প্রস্তুতি সংগঠিত রাখতে পারেন।" },
+      { title: "২. অ্যাকাউন্ট", body: "অ্যাকাউন্ট তৈরির সময় সঠিক তথ্য দেওয়ার দায়িত্ব আপনার।\n\nআপনার লগইন তথ্য (পাসওয়ার্ড) নিরাপদ রাখার দায়িত্বও আপনার। আপনার অ্যাকাউন্টে ঘটা যেকোনো কার্যকলাপের জন্য আপনি দায়ী।\n\nসন্দেহজনক কোনো অ্যাক্টিভিটি দেখলে দ্রুত আমাদের জানান।" },
+      { title: "৩. সঠিক ব্যবহার", body: "আপনি সম্মত হচ্ছেন যে অ্যাপটি শুধুমাত্র ব্যক্তিগত, বৈধ উদ্দেশ্যে ব্যবহার করবেন, এবং অ্যাপের কোনো অংশে ক্ষতিকর কিছু (স্প্যাম, ম্যালওয়্যার, বা অননুমোদিত অ্যাক্সেসের চেষ্টা) করবেন না।" },
+      { title: "৪. দায়বদ্ধতা সীমাবদ্ধতা", body: "FocusGo একটি organizational টুল মাত্র। পড়াশোনার ফলাফল, পরীক্ষার নম্বর, বা একাডেমিক সাফল্যের কোনো গ্যারান্টি এই অ্যাপ দেয় না। অ্যাপে সংরক্ষিত ডেটার নির্ভুলতা বজায় রাখার দায়িত্ব ব্যবহারকারীর নিজের।\n\nআমরা যথাসাধ্য চেষ্টা করি অ্যাপ নির্বিঘ্নে চালু রাখতে, তবে টেকনিক্যাল সমস্যা, ডাউনটাইম, বা ডেটা লসের সম্পূর্ণ ঝুঁকিমুক্ত নিশ্চয়তা দেওয়া সম্ভব না। গুরুত্বপূর্ণ তথ্যের ক্ষেত্রে নিজের ব্যাকআপ রাখার পরামর্শ দেওয়া হচ্ছে।" },
+      { title: "৫. পরিবর্তন ও বন্ধ হওয়া", body: "আমরা যেকোনো সময় অ্যাপের ফিচার পরিবর্তন, যোগ, বা বন্ধ করার অধিকার রাখি। প্রয়োজনে আপনার অ্যাকাউন্ট বন্ধ করারও অধিকার রাখি, বিশেষত এই শর্তাবলি লঙ্ঘন করা হলে।" },
+      { title: "৬. শর্তাবলির পরিবর্তন", body: "এই শর্তাবলি সময়ে সময়ে আপডেট হতে পারে। পরিবর্তনের পর অ্যাপ ব্যবহার চালিয়ে যাওয়া মানে নতুন শর্তে সম্মতি।" },
+      { title: "৭. যোগাযোগ", body: "কোনো প্রশ্ন থাকলে: mazharul.mrf@gmail.com" },
+    ],
     combinedExams: "কম্বাইন্ড এক্সাম", manageCombinedExams: "ম্যানেজ", addCombinedExam: "কম্বাইন্ড এক্সাম যোগ করো",
     noCombinedExams: "এখনো কোনো কম্বাইন্ড এক্সাম নেই। একাধিক সাবজেক্ট মিলিয়ে একটা রিকারিং এক্সাম বানাও।",
     combinedExamName: "এক্সামের নাম", combinedExamNamePlaceholder: "যেমন: সাপ্তাহিক ক্লাস টেস্ট", typeLabel: "ধরন",
