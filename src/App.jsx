@@ -932,6 +932,24 @@ function useViewport() {
   return breakpoint;
 }
 
+// ---------- orientation hook (fullscreen focus timer layout) ----------
+// "portrait" -> stacked (mm উপরে, ss নিচে) বড় সংখ্যা দেখানোর জন্য
+// "landscape" -> পাশাপাশি (mm : ss), বাম পাশে vertical progress bar
+function useOrientation() {
+  const [orientation, setOrientation] = useState(() => {
+    try { return (window.matchMedia && window.matchMedia("(orientation: portrait)").matches) ? "portrait" : "landscape"; }
+    catch (e) { return "portrait"; }
+  });
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia("(orientation: portrait)");
+    const handler = () => setOrientation(mq.matches ? "portrait" : "landscape");
+    if (mq.addEventListener) mq.addEventListener("change", handler); else mq.addListener(handler);
+    return () => { if (mq.removeEventListener) mq.removeEventListener("change", handler); else mq.removeListener(handler); };
+  }, []);
+  return orientation;
+}
+
 // ---------- time-range helpers ----------
 const timeToMinutes = (hhmm) => { const [h,m] = (hhmm||"00:00").split(":").map(Number); return (h||0)*60 + (m||0); };
 const minutesToTime = (mins) => { const m = ((mins % 1440) + 1440) % 1440; return `${pad2(Math.floor(m/60))}:${pad2(m%60)}`; };
@@ -2844,22 +2862,25 @@ export default function FocusGo() {
 }
 
 // Big flip-clock-style digit block for the fullscreen focus timer.
-function FlipBlock({ children, textMain, dark }) {
+// stacked=true -> vertical (portrait) layout: wider block, bigger digits.
+// running=true -> timer চলছে, তখন কালো ব্যাকগ্রাউন্ডে মিশে যাওয়ার জন্য কার্ডের বক্স/বর্ডার সরিয়ে দেওয়া হয়।
+function FlipBlock({ children, textMain, dark, stacked, running, blockWidth }) {
+  const width = blockWidth || (stacked ? "clamp(210px, 78vw, 360px)" : "clamp(130px, 30vw, 260px)");
   return (
     <div style={{
       position:"relative",
-      background: dark ? "#1F1B17" : "#FFFFFF",
-      border:`1px solid ${dark ? "#332E25" : "#F0DCC9"}`,
+      background: running ? "transparent" : (dark ? "#1F1B17" : "#FFFFFF"),
+      border: running ? "1px solid rgba(245,241,232,0.28)" : `1px solid ${dark ? "#332E25" : "#F0DCC9"}`,
       borderRadius:32,
-      padding:"clamp(14px,3vw,28px) clamp(8px,1.5vw,16px)",
-      width:"clamp(130px, 30vw, 260px)",
+      padding: stacked ? "clamp(10px,2vw,20px) clamp(8px,1.5vw,16px)" : "clamp(14px,3vw,28px) clamp(8px,1.5vw,16px)",
+      width,
       textAlign:"center",
       overflow:"hidden",
-      boxShadow: dark ? "none" : "0 6px 18px rgba(33,29,24,0.06)",
+      boxShadow: (!running && !dark) ? "0 6px 18px rgba(33,29,24,0.06)" : "none",
     }}>
       <div style={{
         fontFamily:"'Bebas Neue','Hind Siliguri',sans-serif",
-        fontSize:"clamp(90px, 24vw, 210px)",
+        fontSize: stacked ? "clamp(120px, 42vw, 270px)" : "clamp(90px, 24vw, 210px)",
         fontWeight:400,
         lineHeight:0.85,
         color:textMain,
@@ -2868,46 +2889,79 @@ function FlipBlock({ children, textMain, dark }) {
       }}>
         {children}
       </div>
-      <div style={{position:"absolute", left:0, right:0, top:"50%", height:1, background: dark ? "rgba(0,0,0,0.35)" : "rgba(33,29,24,0.08)"}}/>
+      {!running && (
+        <div style={{position:"absolute", left:0, right:0, top:"50%", height:1, background: dark ? "rgba(0,0,0,0.35)" : "rgba(33,29,24,0.08)"}}/>
+      )}
     </div>
   );
 }
 
 // Fullscreen focus session view, entered when the timer/stopwatch is started.
-// Keeps the app's own color palette (light/dark) rather than a hardcoded theme.
+// Keeps the app's own color palette (light/dark) rather than a hardcoded theme —
+// except while running, when the whole screen (header থেকে বাটন পর্যন্ত) turns black
+// for a distraction-free focus mode.
 function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, accent, dark, bg, textMain, textMuted2, onToggleRun, onReset, onClose, now }) {
+  const orientation = useOrientation();
+  const stacked = orientation === "portrait"; // portrait -> mm উপরে/ss নিচে (বড় সংখ্যা), landscape -> পাশাপাশি
   const mm = pad2(Math.floor(Math.max(0,seconds)/60));
   const ss = pad2(Math.max(0,seconds)%60);
   const pct = mode === "timer" && total ? Math.min(100, Math.max(0, Math.round(((total-seconds)/total)*100))) : null;
 
+  // running অবস্থায় পুরো স্ক্রিন কালো, নাহলে অ্যাপের নিজস্ব থিম (light/dark) অনুযায়ী।
+  const screenBg = running ? "#000000" : bg;
+  const fgMain = running ? "#F5F1E8" : textMain;
+  const fgMuted = running ? "#8A8272" : textMuted2;
+  const trackColor = running ? "#2A2A2A" : (dark?"#2C2820":"#EFE9DC");
+  const trackBorder = running ? "rgba(255,255,255,0.08)" : (dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)");
+  const resetBtnBg = running ? "#1E1E1E" : (dark?"#332E25":"#F0DCC9");
+  const blockWidth = stacked ? "clamp(210px, 78vw, 360px)" : "clamp(130px, 30vw, 260px)";
+
+  const clockDigits = (
+    <>
+      <FlipBlock textMain={fgMain} dark={dark} running={running} stacked={stacked} blockWidth={blockWidth}>{nf(mm)}</FlipBlock>
+      <div style={{fontFamily:"'Bebas Neue','Hind Siliguri',sans-serif", fontSize: stacked ? "clamp(40px,9vw,72px)" : "clamp(55px,11vw,100px)", fontWeight:400, color:fgMuted, ...(stacked ? {margin:"-6px 0"} : {marginBottom:6})}}>:</div>
+      <FlipBlock textMain={fgMain} dark={dark} running={running} stacked={stacked} blockWidth={blockWidth}>{nf(ss)}</FlipBlock>
+    </>
+  );
+
   return (
-    <div style={{position:"fixed", inset:0, zIndex:100, background:bg, color:textMain, display:"flex", flexDirection:"column"}}>
+    <div style={{position:"fixed", inset:0, zIndex:100, background:screenBg, color:fgMain, display:"flex", flexDirection:"column", transition:"background .25s"}}>
       <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 20px 0"}}>
-        <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex", alignItems:"center", padding:6}}>
+        <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:fgMuted, display:"flex", alignItems:"center", padding:6}}>
           <ChevronDown size={22}/>
         </button>
-        <span style={{fontSize:11, letterSpacing:2, fontWeight:700, color:textMuted2}}>
-          {mode === "timer" ? t.focusTimer : t.stopwatchMode}
-        </span>
+        <div/>
         <div style={{width:34}}/>
       </div>
 
       {now && (
-        <div style={{textAlign:"center", marginTop:22, fontSize:12, fontWeight:700, color:textMuted2, fontVariantNumeric:"tabular-nums", letterSpacing:0.8, opacity:0.75}}>
+        <div style={{textAlign:"center", marginTop:22, fontSize:12, fontWeight:700, color:fgMuted, fontVariantNumeric:"tabular-nums", letterSpacing:0.8, opacity:0.75}}>
           <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num>
         </div>
       )}
 
       <div style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:18, padding:"0 24px"}}>
-        <div style={{display:"flex", alignItems:"center", gap:"clamp(4px,1vw,10px)"}}>
-          <FlipBlock textMain={textMain} dark={dark}>{nf(mm)}</FlipBlock>
-          <div style={{fontFamily:"'Bebas Neue','Hind Siliguri',sans-serif", fontSize:"clamp(55px,11vw,100px)", fontWeight:400, color:textMuted2, marginBottom:6}}>:</div>
-          <FlipBlock textMain={textMain} dark={dark}>{nf(ss)}</FlipBlock>
-        </div>
-
-        {pct !== null && (
-          <div style={{height:6, width:220, borderRadius:4, background: dark?"#2C2820":"#EFE9DC", border:`1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, overflow:"hidden"}}>
-            <div style={{height:"100%", width:`${pct}%`, background:accent, borderRadius:4, transition:"width .3s"}}/>
+        {stacked ? (
+          // ---- vertical/stacked layout: mm উপরে, ss নিচে, bar নিচে (seconds বক্সের সমান width) ----
+          <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:0}}>
+            {clockDigits}
+            {pct !== null && (
+              <div style={{marginTop:16, height:6, width:blockWidth, borderRadius:4, background:trackColor, border:`1px solid ${trackBorder}`, overflow:"hidden"}}>
+                <div style={{height:"100%", width:`${pct}%`, background:accent, borderRadius:4, transition:"width .3s"}}/>
+              </div>
+            )}
+          </div>
+        ) : (
+          // ---- horizontal layout: mm : ss পাশাপাশি, মিনিটের বাম পাশে vertical bar ----
+          <div style={{display:"flex", alignItems:"stretch", gap:"clamp(10px,2vw,16px)"}}>
+            {pct !== null && (
+              <div style={{width:8, borderRadius:4, background:trackColor, border:`1px solid ${trackBorder}`, overflow:"hidden", display:"flex", alignItems:"flex-end", alignSelf:"stretch"}}>
+                <div style={{width:"100%", height:`${pct}%`, background:accent, borderRadius:4, transition:"height .3s"}}/>
+              </div>
+            )}
+            <div style={{display:"flex", alignItems:"center", gap:"clamp(4px,1vw,10px)"}}>
+              {clockDigits}
+            </div>
           </div>
         )}
       </div>
@@ -2916,8 +2970,8 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
         <button onClick={onToggleRun} style={{flex:1, maxWidth:240, background:accent, border:"none", borderRadius:16, padding:"16px 0", color:"#fff", fontWeight:700, fontSize:16, display:"flex",alignItems:"center",justifyContent:"center", gap:8, cursor:"pointer"}}>
           {running ? <Pause size={18} fill="#fff"/> : <Play size={18} fill="#fff"/>} {running ? t.pause : t.start}
         </button>
-        <button onClick={onReset} style={{background: dark?"#332E25":"#F0DCC9", border:"none", borderRadius:16, width:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
-          <RotateCcw size={20} color={textMain}/>
+        <button onClick={onReset} style={{background:resetBtnBg, border:"none", borderRadius:16, width:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+          <RotateCcw size={20} color={fgMain}/>
         </button>
       </div>
     </div>
