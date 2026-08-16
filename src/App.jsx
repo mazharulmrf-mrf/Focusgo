@@ -1,20 +1,116 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff } from "lucide-react";
-import { auth, db, googleProvider } from "./firebase";
-import {
-  onAuthStateChanged,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-  sendPasswordResetEmail,
-  updateProfile,
-  updateEmail,
-  updatePassword,
-  reauthenticateWithCredential,
-  EmailAuthProvider,
-} from "firebase/auth";
-import { doc, setDoc, onSnapshot } from "firebase/firestore";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Flame, Target, TrendingUp } from "lucide-react";
+
+// ================================================================
+// PREVIEW-ONLY MOCK of Firebase (auth + firestore). The real app
+// imports these from "./firebase" / "firebase/auth" / "firebase/firestore",
+// which aren't available in this sandbox. This in-memory mock reproduces
+// just enough behavior (sign up / log in / Google / profile edits /
+// live "Firestore" sync) so the whole app can be clicked through.
+// Nothing here persists beyond this browser session.
+// ================================================================
+let __mockAccounts = {};      // email -> {uid,email,password,displayName,photoURL}
+let __mockCurrentUser = null; // {uid,email,displayName,photoURL} | null
+let __mockAuthListeners = [];
+let __mockDocs = {};          // path -> data object
+let __mockDocListeners = {};  // path -> [callback]
+let __mockUidCounter = 1;
+
+function __notifyAuth() { __mockAuthListeners.forEach((cb) => cb(__mockCurrentUser)); }
+function __makeUserObj(acc) {
+  return { uid: acc.uid, email: acc.email, displayName: acc.displayName || null, photoURL: acc.photoURL || null };
+}
+
+const auth = {};
+const db = {};
+const googleProvider = {};
+
+function onAuthStateChanged(_auth, cb) {
+  __mockAuthListeners.push(cb);
+  cb(__mockCurrentUser);
+  return () => { __mockAuthListeners = __mockAuthListeners.filter((f) => f !== cb); };
+}
+
+async function createUserWithEmailAndPassword(_auth, email, password) {
+  if (__mockAccounts[email]) { const e = new Error("exists"); e.code = "auth/email-already-in-use"; throw e; }
+  const acc = { uid: "u" + __mockUidCounter++, email, password, displayName: null, photoURL: null };
+  __mockAccounts[email] = acc;
+  __mockCurrentUser = __makeUserObj(acc);
+  __notifyAuth();
+  return { user: __mockCurrentUser };
+}
+
+async function signInWithEmailAndPassword(_auth, email, password) {
+  const acc = __mockAccounts[email];
+  if (!acc || acc.password !== password) { const e = new Error("invalid"); e.code = "auth/invalid-credential"; throw e; }
+  __mockCurrentUser = __makeUserObj(acc);
+  __notifyAuth();
+  return { user: __mockCurrentUser };
+}
+
+async function signInWithPopup(_auth, _provider) {
+  const email = "demo.google@example.com";
+  let acc = __mockAccounts[email];
+  if (!acc) { acc = { uid: "u" + __mockUidCounter++, email, password: null, displayName: "Demo User", photoURL: null }; __mockAccounts[email] = acc; }
+  __mockCurrentUser = __makeUserObj(acc);
+  __notifyAuth();
+  return { user: __mockCurrentUser };
+}
+
+async function signOut(_auth) { __mockCurrentUser = null; __notifyAuth(); }
+
+async function sendPasswordResetEmail(_auth, _email) { return Promise.resolve(); }
+
+async function updateProfile(user, updates) {
+  const acc = __mockAccounts[user.email];
+  if (acc) Object.assign(acc, updates);
+  Object.assign(user, updates);
+  if (__mockCurrentUser && __mockCurrentUser.email === user.email) Object.assign(__mockCurrentUser, updates);
+}
+
+async function updateEmail(user, newEmail) {
+  const acc = __mockAccounts[user.email];
+  if (acc) { delete __mockAccounts[user.email]; acc.email = newEmail; __mockAccounts[newEmail] = acc; }
+  user.email = newEmail;
+  if (__mockCurrentUser) __mockCurrentUser.email = newEmail;
+}
+
+async function updatePassword(user, newPassword) {
+  const acc = __mockAccounts[user.email];
+  if (acc) acc.password = newPassword;
+}
+
+async function reauthenticateWithCredential(user, credential) {
+  const acc = __mockAccounts[user.email];
+  if (acc && acc.password !== null && acc.password !== credential.password) {
+    const e = new Error("wrong"); e.code = "auth/wrong-password"; throw e;
+  }
+}
+
+const EmailAuthProvider = { credential: (email, password) => ({ email, password }) };
+
+function doc(_db, ...pathParts) { return pathParts.join("/"); }
+
+function __mockSnap(path) {
+  const data = __mockDocs[path];
+  return { exists: () => data !== undefined, data: () => data };
+}
+
+async function setDoc(path, payload, opts) {
+  const prev = __mockDocs[path] || {};
+  __mockDocs[path] = opts && opts.merge ? { ...prev, ...payload } : payload;
+  (__mockDocListeners[path] || []).forEach((cb) => cb(__mockSnap(path)));
+}
+
+function onSnapshot(path, onNext, _onError) {
+  if (!__mockDocListeners[path]) __mockDocListeners[path] = [];
+  __mockDocListeners[path].push(onNext);
+  onNext(__mockSnap(path));
+  return () => { __mockDocListeners[path] = (__mockDocListeners[path] || []).filter((f) => f !== onNext); };
+}
+// ================================================================
+// END mock Firebase
+// ================================================================
 
 // ---------- সোশ্যাল আইকন (lucide-react-এ brand logo নেই, তাই ছোট inline SVG) ----------
 const FacebookIcon = ({ size = 18 }) => (
@@ -304,19 +400,35 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
 }
 
 // সাইন ইন করার পর হেডারে শুধু একটা ইউজার আইকন দেখা যাবে — ক্লিক করলে প্রোফাইল মোডাল খুলবে
-function UserMenu({ onOpen, cardBorder, cardBg, textMain, user }) {
+function UserMenu({ onOpenProfile, onOpenSettings, cardBorder, cardBg, textMain, textMuted2, user, profileLabel, settingsLabel }) {
+  const [open, setOpen] = useState(false);
   return (
-    <button
-      onClick={onOpen}
-      style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMain, borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, overflow:"hidden", padding:0 }}
-      title="Profile"
-    >
-      {user && user.photoURL ? (
-        <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
-      ) : (
-        <User size={16} />
+    <div style={{position:"relative", flexShrink:0}}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMain, borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, overflow:"hidden", padding:0 }}
+        title={profileLabel}
+      >
+        {user && user.photoURL ? (
+          <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
+        ) : (
+          <User size={16} />
+        )}
+      </button>
+      {open && (
+        <>
+          <div onClick={() => setOpen(false)} style={{position:"fixed", inset:0, zIndex:59}}/>
+          <div style={{position:"absolute", right:0, top:"100%", marginTop:6, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, boxShadow:"0 8px 22px rgba(0,0,0,0.18)", zIndex:60, minWidth:160, overflow:"hidden", padding:4}}>
+            <button onClick={() => { setOpen(false); onOpenProfile(); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:8, padding:"9px 10px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+              <User size={14} color={textMuted2}/> {profileLabel}
+            </button>
+            <button onClick={() => { setOpen(false); onOpenSettings(); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:8, padding:"9px 10px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+              <Settings size={14} color={textMuted2}/> {settingsLabel}
+            </button>
+          </div>
+        </>
       )}
-    </button>
+    </div>
   );
 }
 
@@ -977,8 +1089,8 @@ const T = {
   en: {
     tagline: "Study Smarter",
     tabs: { today: "Today", plan: "Plan", stats: "Stats", exam: "Exam" },
-    focusTimer: "Focus Timer", start: "Start", pause: "Pause", reset: "Reset",
-    pickTopicForTimer: "Pick a topic to focus on", freeSession: "Free focus session",
+    focusTimer: "Focus Timer", start: "Start Focus", pause: "Pause", reset: "Reset",
+    pickTopicForTimer: "Pick a topic to focus on", freeSession: "Free Session",
     timerMode: "Timer", stopwatchMode: "Stopwatch",
     editTopicTitle: "Edit Topic", save: "Save", edit: "Edit",
     yourRhythm: "Your Rhythm", todaysStudy: "Today's Study", todaysProgress: "Today's Progress", addTopic: "Add Topic",
@@ -1060,12 +1172,24 @@ const T = {
     noSubjectsForCombined: "Add subjects in Syllabus first.",
     editCombinedExam: "Edit combined exam", deleteCombinedExam: "Delete",
     deleteCombinedExamConfirmNote: "This removes all recorded attempts for this combined exam.",
+    selectTodaysTopic: "Select Today's Topic", freeSessionOption: "Free Session",
+    noTopicsPlanned: "No study topics planned", noTopicsPlannedSub: "Add your first topic to get started.",
+    totalPlannedLabel: "Total planned",
+    studyOverview: "Study Overview", focusedLabel: "focused", topicsCompletedLabel: "topics completed",
+    completionLabel: "completion", streakLabel: "day streak", weeklyActivity: "Weekly Activity",
+    calendarLegendCompleted: "Study completed", calendarLegendExam: "Exam", calendarLegendPlanned: "Planned",
+    noTopicsSubjectShort: "No topics yet", addTopicsShort: "Add Topics",
+    examSetupTitle: "Set up your exam", examSetupSubtitle: "Get your exam prep organized in a few quick steps.",
+    examSetupStep1: "Add exam subjects", examSetupStep2: "Set exam date", examSetupStep3: "Create combined exams",
+    preparationLabel: "Preparation",
+    quickAdd: "Quick Add", addStudyTopicQuick: "Study Topic", addSubjectQuick: "Subject",
+    addExamQuick: "Exam", addCombinedExamQuick: "Combined Exam",
   },
   bn: {
     tagline: "নিজের গতিতে পড়ো",
     tabs: { today: "আজ", plan: "প্ল্যান", stats: "স্ট্যাটস", exam: "এক্সাম" },
-    focusTimer: "ফোকাস টাইমার", start: "শুরু", pause: "থামাও", reset: "রিসেট",
-    pickTopicForTimer: "ফোকাস করার জন্য একটা টপিক বাছাই করো", freeSession: "টপিক ছাড়া ফোকাস সেশন",
+    focusTimer: "ফোকাস টাইমার", start: "ফোকাস শুরু", pause: "থামাও", reset: "রিসেট",
+    pickTopicForTimer: "ফোকাস করার জন্য একটা টপিক বাছাই করো", freeSession: "ফ্রি সেশন",
     timerMode: "টাইমার", stopwatchMode: "স্টপওয়াচ",
     editTopicTitle: "টপিক এডিট করুন", save: "সেভ করো", edit: "এডিট",
     yourRhythm: "আপনার ছন্দ", todaysStudy: "আজকের পড়া", todaysProgress: "আজকের অগ্রগতি", addTopic: "টপিক যোগ করো",
@@ -1147,6 +1271,18 @@ const T = {
     noSubjectsForCombined: "আগে সিলেবাসে সাবজেক্ট যোগ করো।",
     editCombinedExam: "কম্বাইন্ড এক্সাম এডিট করো", deleteCombinedExam: "মুছুন",
     deleteCombinedExamConfirmNote: "এই কম্বাইন্ড এক্সামের সব স্কোর মুছে যাবে।",
+    selectTodaysTopic: "আজকের টপিক বেছে নাও", freeSessionOption: "ফ্রি সেশন",
+    noTopicsPlanned: "এখনো কোনো টপিক প্ল্যান করা হয়নি", noTopicsPlannedSub: "শুরু করতে প্রথম টপিকটি যোগ করুন।",
+    totalPlannedLabel: "মোট পরিকল্পিত সময়",
+    studyOverview: "পড়াশোনার সারসংক্ষেপ", focusedLabel: "ফোকাস করা হয়েছে", topicsCompletedLabel: "টি টপিক সম্পন্ন",
+    completionLabel: "সম্পন্ন হয়েছে", streakLabel: "দিনের স্ট্রিক", weeklyActivity: "সাপ্তাহিক কার্যক্রম",
+    calendarLegendCompleted: "পড়া সম্পন্ন", calendarLegendExam: "পরীক্ষা", calendarLegendPlanned: "পরিকল্পিত",
+    noTopicsSubjectShort: "এখনো কোনো টপিক নেই", addTopicsShort: "টপিক যোগ করো",
+    examSetupTitle: "তোমার এক্সাম সেট করো", examSetupSubtitle: "কয়েকটি সহজ ধাপে এক্সাম প্রস্তুতি গুছিয়ে নাও।",
+    examSetupStep1: "এক্সাম সাবজেক্ট যোগ করো", examSetupStep2: "এক্সামের তারিখ ঠিক করো", examSetupStep3: "কম্বাইন্ড এক্সাম তৈরি করো",
+    preparationLabel: "প্রস্তুতি",
+    quickAdd: "কুইক অ্যাড", addStudyTopicQuick: "স্টাডি টপিক", addSubjectQuick: "সাবজেক্ট",
+    addExamQuick: "এক্সাম", addCombinedExamQuick: "কম্বাইন্ড এক্সাম",
   }
 };
 
@@ -1337,6 +1473,7 @@ export default function FocusGo() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
   // ডেস্কটপ সাইডবার collapse/expand করা যায় কিনা — চাইলে ইউজার লুকিয়ে রাখতে পারবে,
   // পছন্দটা localStorage-এ থেকে যায় (রিফ্রেশ করলেও মনে থাকবে)।
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -1359,9 +1496,12 @@ export default function FocusGo() {
   const [statsMonthDay, setStatsMonthDay] = useState(() => new Date()); // shared "selected day" for the whole Stats tab (week strip + month grid)
   const [statsCalMonth, setStatsCalMonth] = useState(() => new Date());
   const [timerTopicId, setTimerTopicId] = useState(null);
-  const [timerSeconds, setTimerSeconds] = useState(25*60);
-  const [timerTotal, setTimerTotal] = useState(25*60);
+  const [showTopicPicker, setShowTopicPicker] = useState(false);
+  const [timerSeconds, setTimerSeconds] = useState(30*60);
+  const [timerTotal, setTimerTotal] = useState(30*60);
   const [timerRunning, setTimerRunning] = useState(false);
+  const [editingDuration, setEditingDuration] = useState(false);
+  const [durationInput, setDurationInput] = useState("");
   const [focusMode, setFocusMode] = useState("timer"); // "timer" | "stopwatch"
   const [stopwatchSeconds, setStopwatchSeconds] = useState(0);
   const [stopwatchRunning, setStopwatchRunning] = useState(false);
@@ -2097,12 +2237,25 @@ export default function FocusGo() {
 
   const startTimerFor = (id, duration) => {
     setTimerTopicId(id);
-    setTimerSeconds((duration||25)*60);
-    setTimerTotal((duration||25)*60);
+    setTimerSeconds((duration||30)*60);
+    setTimerTotal((duration||30)*60);
     setTimerRunning(true);
     setFocusFullscreen(true);
     playStartSound();
     vibrate();
+  };
+
+  // Pick a topic to attach to the (not-yet-running) timer/stopwatch, without starting it —
+  // used by the "Select Today's Topic" picker under the Focus Timer card.
+  const selectTimerTopic = (item) => {
+    vibrate();
+    if (item) {
+      setTimerTopicId(item.id);
+      if (focusMode === "timer") { setTimerSeconds((item.duration||30)*60); setTimerTotal((item.duration||30)*60); }
+    } else {
+      setTimerTopicId(null);
+    }
+    setShowTopicPicker(false);
   };
 
   const adjustTimer = (deltaMin) => {
@@ -2112,6 +2265,24 @@ export default function FocusGo() {
       setTimerSeconds(next);
       return next;
     });
+  };
+
+  const setPresetDuration = (mins) => {
+    if (timerRunning) return;
+    setTimerTotal(mins*60);
+    setTimerSeconds(mins*60);
+  };
+
+  const startEditDuration = () => {
+    if (timerRunning) return;
+    setDurationInput(String(Math.round(timerTotal/60)));
+    setEditingDuration(true);
+  };
+  const commitDurationEdit = () => {
+    const mins = Math.max(1, Math.min(180, parseInt(durationInput, 10) || Math.round(timerTotal/60)));
+    setTimerTotal(mins*60);
+    setTimerSeconds(mins*60);
+    setEditingDuration(false);
   };
 
   // ---- week data ----
@@ -2132,6 +2303,42 @@ export default function FocusGo() {
     subjectProgress[e.subject].total += 1;
     if (e.done) subjectProgress[e.subject].done += 1;
   });
+
+  // ---- overall study overview (Stats tab) — total focused minutes, topics done, completion %, streak ----
+  const studyOverview = (() => {
+    let totalMin = 0, doneCount = 0, totalCount = 0;
+    Object.values(entries).flat().forEach(e => {
+      totalCount += 1;
+      if (e.done) { doneCount += 1; totalMin += (e.duration || 0); }
+    });
+    const pct = totalCount ? Math.round((doneCount/totalCount)*100) : 0;
+    // streak: consecutive days up to today with at least one completed topic
+    let streak = 0;
+    let cursor = new Date(today);
+    while (true) {
+      const dk = dateKey(cursor);
+      const list = entries[dk] || [];
+      if (list.some(x=>x.done)) { streak += 1; cursor.setDate(cursor.getDate()-1); }
+      else break;
+    }
+    return { totalMin, doneCount, pct, streak };
+  })();
+
+  // ---- weekly activity — minutes studied per day, this week (for the Stats mini bar chart) ----
+  const weeklyActivity = weekDays.map(d => {
+    const list = entries[dateKey(d)] || [];
+    const min = list.filter(x=>x.done).reduce((s,x)=>s+(x.duration||0), 0);
+    return { day: d, min };
+  });
+
+  // ---- dates with an exam attempt or the set next-exam date (for the Stats calendar legend) ----
+  const examDateKeys = (() => {
+    const set = new Set();
+    Object.values(examSubjects).forEach(s => Object.values(s.topics || {}).forEach(tp => (tp.attempts||[]).forEach(a => a.date && set.add(a.date))));
+    Object.values(combinedExams).forEach(ce => (ce.attempts||[]).forEach(a => a.date && set.add(a.date)));
+    if (nextExam?.date) set.add(nextExam.date);
+    return set;
+  })();
 
   // ---- weekly / monthly summary ----
   const rangeEntries = (days) => days.flatMap(d => (entries[dateKey(d)] || []).map(e => ({...e, _dk: dateKey(d)})));
@@ -2375,17 +2582,43 @@ export default function FocusGo() {
                 <WifiOff size={12}/> {t.offlineBadge}
               </div>
             )}
+            <div style={{position:"relative", flexShrink:0}}>
+              <button onClick={()=>{vibrate(); setShowQuickAdd(v=>!v);}}
+                title={t.quickAdd}
+                style={{border:"none", background:accent, color:"#fff", borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
+                <Plus size={16} strokeWidth={2.4} style={{transform: showQuickAdd ? "rotate(45deg)" : "none", transition:"transform .15s ease"}}/>
+              </button>
+              {showQuickAdd && (
+                <>
+                  <div onClick={()=>setShowQuickAdd(false)} style={{position:"fixed", inset:0, zIndex:59}}/>
+                  <div style={{position:"absolute", right:0, top:"100%", marginTop:6, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, boxShadow:"0 8px 22px rgba(0,0,0,0.18)", zIndex:60, minWidth:170, overflow:"hidden", padding:4}}>
+                    <button onClick={()=>{setShowQuickAdd(false); setAddTargetKey(todayKey); setShowAdd(true);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:8, padding:"9px 10px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                      <Clock size={14} color={textMuted2}/> {t.addStudyTopicQuick}
+                    </button>
+                    <button onClick={()=>{setShowQuickAdd(false); setShowSubjects(true);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:8, padding:"9px 10px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                      <Folder size={14} color={textMuted2}/> {t.addSubjectQuick}
+                    </button>
+                    <button onClick={()=>{setShowQuickAdd(false); setShowExams(true);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:8, padding:"9px 10px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                      <GraduationCap size={14} color={textMuted2}/> {t.addExamQuick}
+                    </button>
+                    <button onClick={()=>{setShowQuickAdd(false); setEditingCombinedExam(null); setShowCombinedExamEditor(true);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:8, padding:"9px 10px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                      <GraduationCap size={14} color={textMuted2}/> {t.addCombinedExamQuick}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
             <button onClick={()=>{vibrate(); setThemeMode(m => m==="system" ? "light" : m==="light" ? "dark" : "system");}}
               title={themeMode==="system" ? t.themeSystem : themeMode==="dark" ? t.themeDark : t.themeLight}
               style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
               {themeMode === "system" ? <Contrast size={15}/> : themeMode === "dark" ? <Moon size={15}/> : <Sun size={15}/>}
             </button>
-            <button onClick={()=>{vibrate(); setShowSettings(true);}}
-              title={t.settings}
-              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
-              <Settings size={15}/>
-            </button>
-            <UserMenu onOpen={()=>{vibrate(); setShowProfile(true);}} cardBorder={cardBorder} cardBg={cardBg} textMain={textMain} user={user}/>
+            <UserMenu
+              onOpenProfile={()=>{vibrate(); setShowProfile(true);}}
+              onOpenSettings={()=>{vibrate(); setShowSettings(true);}}
+              cardBorder={cardBorder} cardBg={cardBg} textMain={textMain} textMuted2={textMuted2}
+              user={user} profileLabel={t.profile} settingsLabel={t.settings}
+            />
           </div>
         </div>
 
@@ -2446,17 +2679,65 @@ export default function FocusGo() {
           {focusMode === "timer" ? (
             <>
               <div style={{textAlign:"center", margin: timerRunning ? "10px 0 6px" : "6px 0 2px", transition:"margin .25s ease"}}>
-                <div style={{fontSize: timerRunning ? 48 : 32, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:1, color: textMain, transition:"font-size .25s ease"}}>
-                  <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
-                </div>
-                <div style={{fontSize:12, color:textMuted2, marginTop:2}}>
-                  {timerTopic ? `${timerTopic.subject} · ${timerTopic.topic}` : t.freeSession}
-                </div>
-                {!timerRunning && (
-                  <div style={{display:"flex", justifyContent:"center", alignItems:"center", gap:12, marginTop:6}}>
-                    <button onClick={()=>adjustTimer(-5)} style={{width:22,height:22,borderRadius:"50%", border:`1px solid ${dark?"#332E25":"#F0DCC9"}`, background:"transparent", color:textMain, fontSize:13, fontWeight:700, cursor:"pointer", lineHeight:1}}>−</button>
-                    <span style={{fontSize:11, color:textMuted2, fontWeight:700}}><Num>{nf(Math.round(timerTotal/60))}</Num> {t.minutes}</span>
-                    <button onClick={()=>adjustTimer(5)} style={{width:22,height:22,borderRadius:"50%", border:`1px solid ${dark?"#332E25":"#F0DCC9"}`, background:"transparent", color:textMain, fontSize:13, fontWeight:700, cursor:"pointer", lineHeight:1}}>+</button>
+                {editingDuration ? (
+                  <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4}}>
+                    <input
+                      type="number"
+                      autoFocus
+                      value={durationInput}
+                      onChange={(e)=>setDurationInput(e.target.value)}
+                      onBlur={commitDurationEdit}
+                      onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
+                      min={1}
+                      max={180}
+                      style={{width:90, fontSize:32, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:1, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${accent}`, textAlign:"center", outline:"none"}}
+                    />
+                    <span style={{fontSize:14, fontWeight:700, color:textMuted2}}>{t.minutes}</span>
+                  </div>
+                ) : (
+                  <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} style={{fontSize: timerRunning ? 48 : 32, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:1, color: textMain, transition:"font-size .25s ease", cursor: timerRunning ? "default" : "pointer"}}>
+                    <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
+                  </div>
+                )}
+                {timerTopic && (
+                  !timerRunning ? (
+                    <button onClick={()=>setShowTopicPicker(v=>!v)} style={{display:"inline-flex", alignItems:"center", gap:3, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, marginTop:2, padding:0}}>
+                      {`${timerTopic.subject} — ${timerTopic.topic}`}
+                      <ChevronDown size={12} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+                    </button>
+                  ) : (
+                    <div style={{fontSize:12, color:textMuted2, marginTop:2}}>
+                      {`${timerTopic.subject} — ${timerTopic.topic}`}
+                    </div>
+                  )
+                )}
+                {!timerTopic && !timerRunning && (
+                  <button onClick={()=>setShowTopicPicker(v=>!v)} style={{display:"inline-flex", alignItems:"center", border:"none", background:"transparent", cursor:"pointer", color:textMuted2, marginTop:4, padding:2}}>
+                    <ChevronDown size={13} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+                  </button>
+                )}
+                {!timerRunning && showTopicPicker && (
+                  <div style={{display:"flex", flexWrap:"wrap", justifyContent:"center", gap:6, marginTop:8}}>
+                    <button onClick={()=>selectTimerTopic(null)} style={{border:`1px solid ${!timerTopic ? accent : cardBorder}`, background: !timerTopic ? `${accent}1A` : "transparent", color: !timerTopic ? accent : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+                      {t.freeSessionOption}
+                    </button>
+                    {todayTopics.filter(x=>!x.done).map(x => (
+                      <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? accent : cardBorder}`, background: timerTopicId===x.id ? `${accent}1A` : "transparent", color: timerTopicId===x.id ? accent : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                        {x.topic}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {!timerRunning && showTopicPicker && (
+                  <div style={{display:"flex", justifyContent:"center", gap:6, marginTop:6, flexWrap:"wrap"}}>
+                    {[15,30,45,60].map(mins => {
+                      const active = Math.round(timerTotal/60) === mins;
+                      return (
+                        <button key={mins} onClick={()=>setPresetDuration(mins)} style={{border:`1px solid ${active ? accent : cardBorder}`, background: active ? `${accent}1A` : "transparent", color: active ? accent : textMuted2, borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+                          <Num>{nf(mins)}</Num> {t.minutes}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -2470,6 +2751,11 @@ export default function FocusGo() {
                   <RotateCcw size={15} color={textMain}/>
                 </button>
               </div>
+              {!timerRunning && timerTopic && (
+                <div style={{textAlign:"center", fontSize:11, color:textMuted2, marginTop:6}}>
+                  {timerTopic.subject} · <Num>{nf(Math.round(timerTotal/60))}</Num> {t.minutes}
+                </div>
+              )}
             </>
           ) : (
             <>
@@ -2477,9 +2763,28 @@ export default function FocusGo() {
                 <div style={{fontSize: stopwatchRunning ? 48 : 32, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:1, color: textMain, transition:"font-size .25s ease"}}>
                   <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
                 </div>
-                <div style={{fontSize:12, color:textMuted2, marginTop:2}}>
-                  {timerTopic ? `${timerTopic.subject} · ${timerTopic.topic}` : t.pickTopicForTimer}
-                </div>
+                {!stopwatchRunning ? (
+                  <button onClick={()=>setShowTopicPicker(v=>!v)} style={{display:"inline-flex", alignItems:"center", gap:3, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, marginTop:2, padding:0}}>
+                    {timerTopic ? `${timerTopic.subject} — ${timerTopic.topic}` : t.pickTopicForTimer}
+                    <ChevronDown size={12} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+                  </button>
+                ) : (
+                  <div style={{fontSize:12, color:textMuted2, marginTop:2}}>
+                    {timerTopic ? `${timerTopic.subject} — ${timerTopic.topic}` : t.pickTopicForTimer}
+                  </div>
+                )}
+                {!stopwatchRunning && showTopicPicker && (
+                  <div style={{display:"flex", flexWrap:"wrap", justifyContent:"center", gap:6, marginTop:8}}>
+                    <button onClick={()=>selectTimerTopic(null)} style={{border:`1px solid ${!timerTopic ? accent : cardBorder}`, background: !timerTopic ? `${accent}1A` : "transparent", color: !timerTopic ? accent : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+                      {t.freeSessionOption}
+                    </button>
+                    {todayTopics.filter(x=>!x.done).map(x => (
+                      <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? accent : cardBorder}`, background: timerTopicId===x.id ? `${accent}1A` : "transparent", color: timerTopicId===x.id ? accent : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                        {x.topic}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div style={{display:"flex", gap:8, marginTop:8}}>
                 <button
@@ -2505,9 +2810,6 @@ export default function FocusGo() {
               <span style={{color:accent}}><Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.doneCount}</span>
               <span style={{color:textMuted2, opacity:0.5}}>|</span>
               <span style={{color:textMuted2}}><Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}</span>
-            </div>
-            <div style={{marginTop:10, height:6, width:150, borderRadius:4, background: dark?"#2C2820":"#EFE9DC", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
-              <div style={{height:"100%", width:`${todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}%`, background:accent, borderRadius:4, transition:"width .3s"}}/>
             </div>
           </div>
           <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
@@ -2584,13 +2886,82 @@ export default function FocusGo() {
               onStartTimer={isPlanToday ? startTimerFor : null}
               onEdit={(item)=>setEditTopic({...item, _dk: planKey})}
               onDelete={(id)=>deleteTopicFor(planKey, id)}
-              emptyText={t.noTopicsToday}/>
+              emptyText={t.noTopicsPlanned} emptySubtext={t.noTopicsPlannedSub}/>
+
+            {planTopics.length > 0 && (() => {
+              const totalMin = planTopics.reduce((sum,x)=>sum+(x.duration||0), 0);
+              const h = Math.floor(totalMin/60), m = totalMin%60;
+              return (
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:12, padding:"10px 14px", background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14}}>
+                  <span style={{fontSize:12, fontWeight:700, color:textMuted2}}>{t.totalPlannedLabel}</span>
+                  <span style={{fontSize:13, fontWeight:800, color:accent}}>
+                    {h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m
+                  </span>
+                </div>
+              );
+            })()}
           </div>
         )}
 
         {/* STATS tab - week + subjects + month, one shared day-detail card at the bottom */}
         {tab === "stats" && (
           <div key="stats" className="fg-tab-panel">
+            {/* Study Overview — headline numbers, justifies the "Stats" name */}
+            <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3, marginBottom:12}}>{t.studyOverview}</div>
+            <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:20}}>
+              {(() => {
+                const h = Math.floor(studyOverview.totalMin/60), m = studyOverview.totalMin%60;
+                return (
+                  <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px", display:"flex", alignItems:"center", gap:10}}>
+                    <div style={{width:34,height:34, borderRadius:10, background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}><Clock size={16} color={accent}/></div>
+                    <div style={{minWidth:0}}>
+                      <div style={{fontSize:15, fontWeight:800, whiteSpace:"nowrap"}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
+                      <div style={{fontSize:10.5, color:textMuted2, fontWeight:600}}>{t.focusedLabel}</div>
+                    </div>
+                  </div>
+                );
+              })()}
+              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px", display:"flex", alignItems:"center", gap:10}}>
+                <div style={{width:34,height:34, borderRadius:10, background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}><Check size={16} color={accent}/></div>
+                <div style={{minWidth:0}}>
+                  <div style={{fontSize:15, fontWeight:800}}><Num>{nf(studyOverview.doneCount)}</Num></div>
+                  <div style={{fontSize:10.5, color:textMuted2, fontWeight:600}}>{t.topicsCompletedLabel}</div>
+                </div>
+              </div>
+              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px", display:"flex", alignItems:"center", gap:10}}>
+                <div style={{width:34,height:34, borderRadius:10, background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}><TrendingUp size={16} color={accent}/></div>
+                <div style={{minWidth:0}}>
+                  <div style={{fontSize:15, fontWeight:800}}><Num>{nf(studyOverview.pct)}</Num>%</div>
+                  <div style={{fontSize:10.5, color:textMuted2, fontWeight:600}}>{t.completionLabel}</div>
+                </div>
+              </div>
+              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px", display:"flex", alignItems:"center", gap:10}}>
+                <div style={{width:34,height:34, borderRadius:10, background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}><Flame size={16} color={accent}/></div>
+                <div style={{minWidth:0}}>
+                  <div style={{fontSize:15, fontWeight:800}}><Num>{nf(studyOverview.streak)}</Num></div>
+                  <div style={{fontSize:10.5, color:textMuted2, fontWeight:600}}>{t.streakLabel}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Weekly Activity — small bar chart, minutes studied per day this week */}
+            <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:10}}>{t.weeklyActivity}</div>
+            <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"16px 12px 10px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:96, marginBottom:20}}>
+              {(() => {
+                const maxMin = Math.max(1, ...weeklyActivity.map(w=>w.min));
+                return weeklyActivity.map((w,i) => {
+                  const h = Math.max(3, Math.round((w.min/maxMin)*56));
+                  const isToday = dateKey(w.day) === todayKey;
+                  return (
+                    <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6}}>
+                      <div style={{width:"60%", maxWidth:20, height:h, borderRadius:4, background: w.min>0 ? (isToday?accent:`${accent}99`) : (dark?"#2C2820":"#EFE9DC"), transition:"height .3s"}}/>
+                      <span style={{fontSize:9, fontWeight:700, color: isToday?accent:textMuted2}}>{weekdayShort(w.day)}</span>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+
             <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:10}}>{t.thisWeek}</div>
             <WeekDayStrip days={weekDays} entries={entries} selectedKey={dateKey(statsMonthDay)} onSelectDay={selectStatsDay}
               todayKey={todayKey} weekdayShort={weekdayShort} nf={nf} accent={accent} dark={dark}
@@ -2604,7 +2975,21 @@ export default function FocusGo() {
 
             <InlineMonthCalendar calMonth={statsCalMonth} setCalMonth={setStatsCalMonth} entries={entries}
               selectedKey={dateKey(statsMonthDay)} onSelectDay={selectStatsDay} lang={lang} nf={nf} monthName={monthName} today={today}
+              examDateKeys={examDateKeys}
               cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
+
+            {/* Calendar legend */}
+            <div style={{display:"flex", justifyContent:"center", alignItems:"center", gap:14, marginTop:10, flexWrap:"wrap"}}>
+              <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10.5, color:textMuted2, fontWeight:600}}>
+                <span style={{width:7,height:7,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
+              </span>
+              <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10.5, color:textMuted2, fontWeight:600}}>
+                <span style={{width:7,height:7,borderRadius:"50%", background:"#C0392B"}}/>{t.calendarLegendExam}
+              </span>
+              <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10.5, color:textMuted2, fontWeight:600}}>
+                <span style={{width:7,height:7,borderRadius:"50%", background:accent}}/>{t.calendarLegendPlanned}
+              </span>
+            </div>
 
             <div style={{display:"flex", alignItems:"center", gap:10, margin:"22px 0 16px"}}>
               <div style={{flex:1, height:1, background:cardBorder}}/>
@@ -2634,6 +3019,17 @@ export default function FocusGo() {
                         const v = subjectProgress[subj] || { done:0, total:0 };
                         const c = colorForSubject(subj, allSubjects);
                         const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
+                        if (v.total === 0) {
+                          return (
+                            <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 12px", minWidth:0}}>
+                              <div style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginBottom:6}}>{subj}</div>
+                              <div style={{fontSize:10.5, color:textMuted2, fontWeight:600, marginBottom:6}}>{t.noTopicsSubjectShort}</div>
+                              <button onClick={()=>{vibrate(); setShowManageTopicsFor(subj); setShowSubjects(true);}} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:c.bg, fontSize:10.5, fontWeight:700, cursor:"pointer", padding:0}}>
+                                <Plus size={11}/> {t.addTopicsShort}
+                              </button>
+                            </div>
+                          );
+                        }
                         return (
                           <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 12px", minWidth:0}}>
                             <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", gap:4, marginBottom:6}}>
@@ -2663,6 +3059,27 @@ export default function FocusGo() {
         {/* EXAM tab - dedicated exam overview */}
         {tab === "exam" && (
           <div key="exam" className="fg-tab-panel" style={{marginTop:20}}>
+            {(!nextExam && Object.keys(combinedExams).length === 0 && Object.keys(examSubjects).length === 0) && (
+              <div style={{background: dark?"#1F1B17":"#FBF3EC", border:`1px solid ${dark?"#332E25":"#F0DCC9"}`, borderRadius:18, padding:"20px 18px", marginBottom:20}}>
+                <div style={{fontSize:16, fontWeight:800}}>{t.examSetupTitle}</div>
+                <div style={{fontSize:12.5, color:textMuted2, marginTop:4}}>{t.examSetupSubtitle}</div>
+                <div style={{display:"flex", flexDirection:"column", gap:10, marginTop:16}}>
+                  <button onClick={()=>{vibrate(); setShowExams(true);}} style={{display:"flex", alignItems:"center", gap:10, border:"none", background:cardBg, borderRadius:14, padding:"12px 14px", cursor:"pointer", textAlign:"left"}}>
+                    <span style={{width:24,height:24, borderRadius:"50%", background:accent, color:"#fff", fontSize:12, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>1</span>
+                    <span style={{fontSize:13, fontWeight:700, color:textMain}}>{t.examSetupStep1}</span>
+                  </button>
+                  <button onClick={()=>{vibrate(); setShowNextExamEditor(true);}} style={{display:"flex", alignItems:"center", gap:10, border:"none", background:cardBg, borderRadius:14, padding:"12px 14px", cursor:"pointer", textAlign:"left"}}>
+                    <span style={{width:24,height:24, borderRadius:"50%", background:accent, color:"#fff", fontSize:12, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>2</span>
+                    <span style={{fontSize:13, fontWeight:700, color:textMain}}>{t.examSetupStep2}</span>
+                  </button>
+                  <button onClick={()=>{vibrate(); setEditingCombinedExam(null); setShowCombinedExamEditor(true);}} style={{display:"flex", alignItems:"center", gap:10, border:"none", background:cardBg, borderRadius:14, padding:"12px 14px", cursor:"pointer", textAlign:"left"}}>
+                    <span style={{width:24,height:24, borderRadius:"50%", background:accent, color:"#fff", fontSize:12, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>3</span>
+                    <span style={{fontSize:13, fontWeight:700, color:textMain}}>{t.examSetupStep3}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Next exam card (manually set) */}
             <div style={{position:"relative", background: dark?"#1F1B17":"#FBF3EC", border:`1px solid ${dark?"#332E25":"#F0DCC9"}`, borderRadius:18, padding:"18px 18px 20px", textAlign:"center"}}>
               <div style={{position:"absolute", top:10, right:10, display:"flex", gap:4}}>
@@ -2672,6 +3089,8 @@ export default function FocusGo() {
               <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.nextExamCard}</div>
               {nextExam ? (() => {
                 const diff = Math.round((new Date(nextExam.date + "T00:00:00") - new Date(dateKey(today) + "T00:00:00")) / 86400000);
+                const prep = subjectProgress[nextExam.subject];
+                const prepPct = prep && prep.total ? Math.round((prep.done/prep.total)*100) : null;
                 return (
                   <>
                     <div style={{fontSize:16, fontWeight:800, marginTop:6}}>{nextExam.subject}{nextExam.topic ? ` · ${nextExam.topic}` : ""}</div>
@@ -2679,6 +3098,15 @@ export default function FocusGo() {
                       {diff === 0 ? t.examToday : (diff < 0 ? t.examPassed : <Num>{nf(diff)}</Num>)}
                     </div>
                     {diff > 0 && <div style={{fontSize:11, color:textMuted2, fontWeight:700, marginTop:4}}>{t.daysLeftLabel}</div>}
+                    {prepPct !== null && (
+                      <div style={{marginTop:14, display:"flex", alignItems:"center", gap:8, justifyContent:"center"}}>
+                        <span style={{fontSize:11, color:textMuted2, fontWeight:700}}>{t.preparationLabel}</span>
+                        <div style={{width:80, height:5, borderRadius:3, background: dark?"#332E25":"#F0DCC9", overflow:"hidden"}}>
+                          <div style={{height:"100%", width:`${prepPct}%`, background:accent, borderRadius:3}}/>
+                        </div>
+                        <span style={{fontSize:11, color:accent, fontWeight:800}}><Num>{nf(prepPct)}</Num>%</span>
+                      </div>
+                    )}
                   </>
                 );
               })() : (
@@ -2808,7 +3236,7 @@ export default function FocusGo() {
           seconds={focusMode === "timer" ? timerSeconds : stopwatchSeconds}
           total={timerTotal}
           running={focusMode === "timer" ? timerRunning : stopwatchRunning}
-          topicLabel={timerTopic ? `${timerTopic.subject} · ${timerTopic.topic}` : (focusMode === "timer" ? t.freeSession : t.pickTopicForTimer)}
+          topicLabel={timerTopic ? `${timerTopic.subject} — ${timerTopic.topic}` : (focusMode === "timer" ? t.freeSession : t.pickTopicForTimer)}
           accent={accent} dark={dark} bg={bg} textMain={textMain} textMuted2={textMuted2}
           onToggleRun={focusMode === "timer" ? toggleTimerRunning : toggleStopwatchRunning}
           onReset={()=>{
@@ -3766,12 +4194,14 @@ function SubjectGroupedList({ entries, nf, t, remainingLabel, doneLabel, remaini
 }
 
 // Read-only-capable list of topics used by the Today and Plan tabs.
-function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textMuted2, onToggle, onStartTimer, onEdit, onDelete, emptyText }) {
+function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textMuted2, onToggle, onStartTimer, onEdit, onDelete, emptyText, emptySubtext }) {
   const ls = (px) => (lang === "bn" ? 0 : px);
+  const [openMenuId, setOpenMenuId] = useState(null);
   if (items.length === 0) {
     return (
       <div style={{textAlign:"center", padding:"30px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16}}>
-        {emptyText}
+        <div>{emptyText}</div>
+        {emptySubtext && <div style={{fontSize:12, opacity:0.8, marginTop:4}}>{emptySubtext}</div>}
       </div>
     );
   }
@@ -3780,7 +4210,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
       {items.map(item => {
         const c = colorForSubject(item.subject, allSubjects);
         return (
-          <div key={item.id} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px", display:"flex", alignItems:"center", gap:12}}>
+          <div key={item.id} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px", display:"flex", alignItems:"center", gap:12, position:"relative"}}>
             <button onClick={onToggle ? ()=>onToggle(item.id) : undefined} disabled={!onToggle}
               style={{width:34,height:34, borderRadius:"50%", border:"none", flexShrink:0, cursor: onToggle?"pointer":"default", background: item.done ? "#6E8B5E" : c.bgSoft, display:"flex",alignItems:"center",justifyContent:"center"}}>
               {item.done ? <Check size={16} color="#fff" strokeWidth={3}/> : <span style={{width:9,height:9,borderRadius:"50%", background:c.bg}}/>}
@@ -3797,15 +4227,44 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
               </div>
               <div style={{fontSize:11, color:textMuted2}}><Num>{nf(item.duration)}</Num> {t.minutes}</div>
             </div>
-            {onEdit && (
-              <button onClick={()=>onEdit(item)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:2}}>
-                <Pencil size={15}/>
-              </button>
-            )}
-            {onDelete && (
-              <button onClick={()=>onDelete(item.id)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:2}}>
-                <Trash2 size={15}/>
-              </button>
+            {item.done ? (
+              (onEdit || onDelete) && (
+                <div style={{position:"relative", flexShrink:0}}>
+                  <button onClick={()=>setOpenMenuId(v => v===item.id ? null : item.id)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4}}>
+                    <MoreVertical size={16}/>
+                  </button>
+                  {openMenuId === item.id && (
+                    <>
+                      <div onClick={()=>setOpenMenuId(null)} style={{position:"fixed", inset:0, zIndex:59}}/>
+                      <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 6px 18px rgba(0,0,0,0.15)", zIndex:60, minWidth:110, overflow:"hidden"}}>
+                        {onEdit && (
+                          <button onClick={()=>{setOpenMenuId(null); onEdit(item);}} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                            <Pencil size={13}/> {t.edit}
+                          </button>
+                        )}
+                        {onDelete && (
+                          <button onClick={()=>{setOpenMenuId(null); onDelete(item.id);}} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                            <Trash2 size={13}/> {t.deleteTopic}
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )
+            ) : (
+              <>
+                {onEdit && (
+                  <button onClick={()=>onEdit(item)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:2}}>
+                    <Pencil size={15}/>
+                  </button>
+                )}
+                {onDelete && (
+                  <button onClick={()=>onDelete(item.id)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:2}}>
+                    <Trash2 size={15}/>
+                  </button>
+                )}
+              </>
             )}
           </div>
         );
@@ -4223,7 +4682,7 @@ function DaySelectedCard({ day, entries, allSubjects, t, nf, lang, weekdayName, 
   );
 }
 
-function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSelectDay, lang, nf, monthName, today, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
+function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSelectDay, lang, nf, monthName, today, examDateKeys, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const y = calMonth.getFullYear(), m = calMonth.getMonth();
   const firstDay = new Date(y, m, 1);
   const startOffset = firstDay.getDay();
@@ -4251,10 +4710,10 @@ function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSe
             const list = entries[dk] || [];
             const hasAny = list.length > 0;
             const doneAll = hasAny && list.every(x=>x.done);
+            const isExam = examDateKeys ? examDateKeys.has(dk) : false;
             const isToday = dk === dateKey(today);
             const isSelected = dk === selectedKey;
-            const holiday = getHoliday(dk);
-            const future = d > today && !holiday;
+            const future = d > today;
             return (
               <button key={i} onClick={()=>onSelectDay(d)} disabled={future && !hasAny}
                 style={{display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"4px 0", border:"none", background:"transparent", cursor:(future&&!hasAny)?"default":"pointer", opacity:(future&&!hasAny)?0.4:1}}>
@@ -4262,7 +4721,7 @@ function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSe
                   background: isSelected ? accent : "transparent",
                   border: isToday && !isSelected ? `1px solid ${accent}` : "none",
                   color: isSelected ? "#fff" : textMain}}>
-                  {holiday && <span style={{position:"absolute", top:-2, right:-2, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
+                  {isExam && <span style={{position:"absolute", top:-2, right:-2, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
                   <Num>{nf(d.getDate())}</Num>
                 </div>
                 <span style={{width:4, height:4, borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : accent)}}/>
@@ -4309,12 +4768,10 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
             const hasAny = list.length > 0;
             const doneAll = hasAny && list.every(x=>x.done);
             const isToday = dk === dateKey(today);
-            const holiday = getHoliday(dk);
-            const future = d > today && !holiday;
+            const future = d > today;
             return (
               <button key={i} onClick={()=>onSelectDay(d)} disabled={future && !hasAny}
                 style={{position:"relative", aspectRatio:"1", border: isToday ? `1.5px solid ${accent}` : "1px solid transparent", borderRadius:10, background: dark?"#121110":"#F8F5EE", cursor:(future&&!hasAny)?"default":"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:3, opacity: (future&&!hasAny)?0.4:1}}>
-                {holiday && <span style={{position:"absolute", top:4, right:4, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
                 <span style={{fontSize:12, fontWeight:600, color:textMain}}><Num>{nf(d.getDate())}</Num></span>
                 <span style={{width:5,height:5,borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : accent)}}/>
               </button>
@@ -4327,7 +4784,6 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
 }
 
 function DayDetailModal({ t, lang, nf, weekdayName, monthName, day, entries, allSubjects, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
-  const holiday = getHoliday(dateKey(day));
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"75vh", overflowY:"auto"}}>
@@ -4338,12 +4794,6 @@ function DayDetailModal({ t, lang, nf, weekdayName, monthName, day, entries, all
           </div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
-        {holiday && (
-          <div style={{display:"flex", alignItems:"center", gap:7, marginTop:10, padding:"7px 12px", borderRadius:20, background:"rgba(192,57,43,0.12)", width:"fit-content"}}>
-            <span style={{width:6, height:6, borderRadius:"50%", background:"#C0392B", flexShrink:0}}/>
-            <span style={{fontSize:12, fontWeight:700, color:"#C0392B"}}>{lang==="bn" ? holiday.bn : holiday.en}</span>
-          </div>
-        )}
         <div style={{marginTop:16, display:"flex", flexDirection:"column", gap:8}}>
           {entries.length === 0 && <div style={{fontSize:13, color:textMuted2, textAlign:"center", padding:"20px 0"}}>{t.noData}</div>}
           {entries.map(e => {
