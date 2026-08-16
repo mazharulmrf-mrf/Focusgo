@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, Paperclip, FileText, Loader2 } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail } from "lucide-react";
 // ================= REAL FIREBASE =================
 // Authentication + Firestore are handled by the real Firebase project.
 import {
@@ -329,8 +329,7 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
   const items = [
     { k: "today", Icon: Home },
     { k: "plan", Icon: CalendarDays },
-    { k: "week", Icon: CalendarDays },
-    { k: "month", Icon: BarChart3 },
+    { k: "stats", Icon: BarChart3 },
     { k: "exam", Icon: GraduationCap },
   ];
   return (
@@ -805,42 +804,6 @@ function passwordErrorCode(pw) {
 }
 const dateKey = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
 
-// টপিকের সাথে ছবি/পিডিএফ অ্যাটাচ করার জন্য Cloudinary-তে আপলোড —
-// আসল secret ব্রাউজারে থাকে না, আগে আমাদের নিজের /api/cloudinary-sign থেকে
-// একটা signature নেওয়া হয়, তারপর সরাসরি Cloudinary-তে আপলোড করা হয়।
-async function uploadToCloudinary(file, folder) {
-  const signRes = await fetch("/api/cloudinary-sign", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ folder }),
-  });
-  if (!signRes.ok) throw new Error("sign-failed");
-  const { signature, timestamp, apiKey, cloudName } = await signRes.json();
-
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("api_key", apiKey);
-  formData.append("timestamp", timestamp);
-  formData.append("signature", signature);
-  formData.append("folder", folder);
-
-  const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
-    method: "POST",
-    body: formData,
-  });
-  if (!uploadRes.ok) throw new Error("upload-failed");
-  const data = await uploadRes.json();
-
-  return {
-    id: data.public_id,
-    url: data.secure_url,
-    name: file.name,
-    format: data.format || "",
-    resourceType: data.resource_type || "",
-    bytes: data.bytes || 0,
-    uploadedAt: new Date().toISOString(),
-  };
-}
 const startOfWeek = (d) => { const x = new Date(d); const day = x.getDay(); x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x; };
 
 // ---------- বাংলাদেশ সরকারি ছুটি (২০২৬) ----------
@@ -961,7 +924,7 @@ const MONTHS_BN = ["জানুয়ারি","ফেব্রুয়ার
 const T = {
   en: {
     tagline: "Study Smarter",
-    tabs: { today: "Today", plan: "Plan", week: "Week", month: "Month", exam: "Exam" },
+    tabs: { today: "Today", plan: "Plan", stats: "Stats", exam: "Exam" },
     focusTimer: "Focus Timer", start: "Start", pause: "Pause", reset: "Reset",
     pickTopicForTimer: "Pick a topic to focus on", freeSession: "Free focus session",
     timerMode: "Timer", stopwatchMode: "Stopwatch",
@@ -998,7 +961,6 @@ const T = {
     examGivenLabel: "Exam Given", examsCompletedLabel: "exams given",
     topicsLabel: "Topics", addTopicBtn: "Add Topic", noTopicsInSubject: "No topics yet.",
     topicNamePlaceholder: "Topic name (e.g. কারক)", attemptsLabel: "attempts", attemptsCountLabel: "Attempts",
-    attachmentsLabel: "Attachments", attachFile: "Attach photo/PDF", uploading: "Uploading...", attachmentTooLarge: "File too large (max 10MB)", attachmentUploadFailed: "Upload failed, try again",
     addAttempt: "Add Attempt", attemptDateLabel: "Date", noAttemptsYet: "No attempts yet",
     generalTopic: "General", completedBadge: "Completed",
     nextExamCard: "Next Exam", setNextExam: "Set next exam", editNextExam: "Edit", clearNextExam: "Clear",
@@ -1026,7 +988,7 @@ const T = {
   },
   bn: {
     tagline: "নিজের গতিতে পড়ো",
-    tabs: { today: "আজ", plan: "প্ল্যান", week: "সপ্তাহ", month: "মাস", exam: "এক্সাম" },
+    tabs: { today: "আজ", plan: "প্ল্যান", stats: "স্ট্যাটস", exam: "এক্সাম" },
     focusTimer: "ফোকাস টাইমার", start: "শুরু", pause: "থামাও", reset: "রিসেট",
     pickTopicForTimer: "ফোকাস করার জন্য একটা টপিক বাছাই করো", freeSession: "টপিক ছাড়া ফোকাস সেশন",
     timerMode: "টাইমার", stopwatchMode: "স্টপওয়াচ",
@@ -1063,7 +1025,6 @@ const T = {
     examGivenLabel: "এক্সাম দেয়া হয়েছে", examsCompletedLabel: "টা এক্সাম দেয়া হয়েছে",
     topicsLabel: "টপিক", addTopicBtn: "টপিক যোগ করো", noTopicsInSubject: "এখনো কোনো টপিক নেই।",
     topicNamePlaceholder: "টপিকের নাম (যেমন: কারক)", attemptsLabel: "বার", attemptsCountLabel: "প্রচেষ্টা",
-    attachmentsLabel: "সংযুক্ত ফাইল", attachFile: "ছবি/পিডিএফ যুক্ত করুন", uploading: "আপলোড হচ্ছে...", attachmentTooLarge: "ফাইল অনেক বড় (সর্বোচ্চ ১০MB)", attachmentUploadFailed: "আপলোড ব্যর্থ হয়েছে, আবার চেষ্টা করুন",
     addAttempt: "নতুন স্কোর যোগ করো", attemptDateLabel: "তারিখ", noAttemptsYet: "এখনো কোনো স্কোর যোগ হয়নি",
     generalTopic: "সাধারণ", completedBadge: "সম্পন্ন",
     nextExamCard: "পরবর্তী পরীক্ষা", setNextExam: "পরবর্তী পরীক্ষা সেট করো", editNextExam: "এডিট", clearNextExam: "মুছুন",
@@ -1716,26 +1677,6 @@ export default function FocusGo() {
       return { ...prev, [subj]: { ...cur, topics: { ...cur.topics, [topicName]: { attempts } } } };
     });
   };
-  // টপিকের সাথে একটা আপলোড করা ফাইল (ছবি/পিডিএফ) যুক্ত করা
-  const addTopicAttachment = (subj, topicName, attachment) => {
-    setExamSubjects(prev => {
-      const cur = prev[subj] || { topics: {} };
-      const curTopic = cur.topics[topicName] || { attempts: [] };
-      const attachments = [...(curTopic.attachments || []), attachment];
-      return { ...prev, [subj]: { ...cur, topics: { ...cur.topics, [topicName]: { ...curTopic, attachments } } } };
-    });
-  };
-  // টপিক থেকে একটা অ্যাটাচমেন্ট মুছে ফেলা
-  const removeTopicAttachment = (subj, topicName, attachmentId) => {
-    setExamSubjects(prev => {
-      const cur = prev[subj];
-      if (!cur) return prev;
-      const curTopic = cur.topics[topicName];
-      if (!curTopic) return prev;
-      const attachments = (curTopic.attachments || []).filter(a => a.id !== attachmentId);
-      return { ...prev, [subj]: { ...cur, topics: { ...cur.topics, [topicName]: { ...curTopic, attachments } } } };
-    });
-  };
   // সাবজেক্টের নাম বদলালে সেটা syllabus তালিকা, সব দিনের এন্ট্রি, এক্সাম সাবজেক্ট আর নেক্সট-এক্সাম — সবখানে আপডেট হয়
   const renameSubject = (oldName, newName) => {
     const n = (newName || "").trim();
@@ -2365,19 +2306,20 @@ export default function FocusGo() {
           </div>
         )}
 
-        {/* WEEK tab - summary */}
-        {tab === "week" && (
-          <div key="week" className="fg-tab-panel">
+        {/* STATS tab - week summary + month summary merged */}
+        {tab === "stats" && (
+          <div key="stats" className="fg-tab-panel">
             <SummaryView t={t} lang={lang} nf={nf} entries={weekEntries} title={t.weeklySummary} mode="count"
               cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent} dark={dark}
               rangeLabel={<><Num>{nf(weekDays[0].getDate())}</Num> {monthName(weekDays[0].getMonth())} – <Num>{nf(weekDays[6].getDate())}</Num> {monthName(weekDays[6].getMonth())}</>}
               allSubjects={allSubjects}/>
-          </div>
-        )}
 
-        {/* MONTH tab - summary */}
-        {tab === "month" && (
-          <div key="month" className="fg-tab-panel">
+            <div style={{display:"flex", alignItems:"center", gap:10, margin:"22px 0 18px"}}>
+              <div style={{flex:1, height:1, background:cardBorder}}/>
+              <span style={{fontSize:10.5, fontWeight:700, letterSpacing:0.8, color:textMuted2, textTransform:"uppercase", opacity:0.85}}>{lang==="bn" ? "মাস" : "Month"}</span>
+              <div style={{flex:1, height:1, background:cardBorder}}/>
+            </div>
+
             <SummaryView t={t} lang={lang} nf={nf} entries={monthEntries} title={t.monthlySummary} mode="duration" crossWeekResolve
               cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent} dark={dark}
               rangeLabel={<>{monthName(today.getMonth())} <Num>{nf(today.getFullYear())}</Num></>}
@@ -2466,15 +2408,12 @@ export default function FocusGo() {
                         )}
                         {Object.entries(topics).map(([topicName, topicInfo]) => (
                           <TopicFolderCard key={topicName} subj={subj} topicName={topicName} attempts={topicInfo?.attempts || []}
-                            attachments={topicInfo?.attachments || []} uid={user?.uid || "guest"}
                             t={t} nf={nf} lang={lang} cardBg={dark?"#121110":"#F8F5EE"} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent} dark={dark}
                             onAddAttempt={(date,obtained,total)=>addExamAttempt(subj,topicName,date,obtained,total)}
                             onEditAttempt={(attemptId,obtained,total,date)=>editExamAttempt(subj,topicName,attemptId,obtained,total,date)}
                             onRemoveAttempt={(attemptId)=>removeExamAttempt(subj,topicName,attemptId)}
                             onRenameTopic={(newName)=>renameExamTopic(subj,topicName,newName)}
-                            onRemoveTopic={()=>removeExamTopic(subj,topicName)}
-                            onAddAttachment={(attachment)=>addTopicAttachment(subj,topicName,attachment)}
-                            onRemoveAttachment={(attachmentId)=>removeTopicAttachment(subj,topicName,attachmentId)}/>
+                            onRemoveTopic={()=>removeExamTopic(subj,topicName)}/>
                         ))}
                         <AddTopicInline t={t} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}
                           onAdd={(name)=>addExamTopic(subj,name)}/>
@@ -2510,8 +2449,7 @@ export default function FocusGo() {
           {[
             {k:"today", Icon: Home},
             {k:"plan", Icon: CalendarDays},
-            {k:"week", Icon: Calendar},
-            {k:"month", Icon: BarChart3},
+            {k:"stats", Icon: BarChart3},
             {k:"exam", Icon: GraduationCap},
           ].map(({k, Icon}) => (
             <button key={k} onClick={()=>{vibrate(); setTab(k);}} style={{
@@ -2663,12 +2601,7 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
 
   return (
     <div style={{position:"fixed", inset:0, zIndex:100, background:bg, color:textMain, display:"flex", flexDirection:"column"}}>
-      {now && (
-        <div style={{textAlign:"center", paddingTop:10, fontSize:11, fontWeight:700, color:textMuted2, fontVariantNumeric:"tabular-nums", letterSpacing:0.5}}>
-          <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num>
-        </div>
-      )}
-      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 20px 0"}}>
+      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 20px 0"}}>
         <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex", alignItems:"center", padding:6}}>
           <ChevronDown size={22}/>
         </button>
@@ -2677,6 +2610,12 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
         </span>
         <div style={{width:34}}/>
       </div>
+
+      {now && (
+        <div style={{textAlign:"center", marginTop:22, fontSize:12, fontWeight:700, color:textMuted2, fontVariantNumeric:"tabular-nums", letterSpacing:0.8, opacity:0.75}}>
+          <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num>
+        </div>
+      )}
 
       <div style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:18, padding:"0 24px"}}>
         <div style={{display:"flex", alignItems:"center", gap:"clamp(4px,1vw,10px)"}}>
@@ -2690,8 +2629,6 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
             <div style={{height:"100%", width:`${pct}%`, background:accent, borderRadius:4, transition:"width .3s"}}/>
           </div>
         )}
-
-        <div style={{fontSize:11, fontWeight:600, color:textMuted2, textAlign:"center", maxWidth:280, letterSpacing:0.2, marginTop:2}}>{topicLabel}</div>
       </div>
 
       <div style={{display:"flex", gap:14, padding:"0 30px 48px", justifyContent:"center"}}>
@@ -2722,36 +2659,13 @@ function PercentRing({ pct, size = 56, stroke = 5, accent, trackColor, textMain,
   );
 }
 
-function TopicFolderCard({ subj, topicName, attempts, attachments = [], uid, t, nf, lang, cardBg, cardBorder, textMuted2, accent, dark, onAddAttempt, onEditAttempt, onRemoveAttempt, onRenameTopic, onRemoveTopic, onAddAttachment, onRemoveAttachment }) {
+function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardBorder, textMuted2, accent, dark, onAddAttempt, onEditAttempt, onRemoveAttempt, onRenameTopic, onRemoveTopic }) {
   const ls = (px) => (lang === "bn" ? 0 : px);
   const [expanded, setExpanded] = useState(false);
   const [date, setDate] = useState(() => { const d = new Date(); return dateKey(d); });
   const [obtained, setObtained] = useState("");
   const [total, setTotal] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState("");
-  const fileInputRef = useRef(null);
   const green = "#6E8B5E";
-
-  const handleFilePick = async (e) => {
-    const file = e.target.files && e.target.files[0];
-    e.target.value = ""; // একই ফাইল আবার সিলেক্ট করলেও onChange যেন ফায়ার হয়
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { setUploadError(t.attachmentTooLarge || "File too large (max 10MB)"); return; }
-    setUploading(true);
-    setUploadError("");
-    try {
-      const folder = `examfiles/${uid}/${subj}/${topicName}`.replace(/\s+/g, "_");
-      const attachment = await uploadToCloudinary(file, folder);
-      attachment.id = `${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
-      onAddAttachment(attachment);
-    } catch (err) {
-      console.error("attachment upload error:", err);
-      setUploadError(t.attachmentUploadFailed || "Upload failed, try again");
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const [renaming, setRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(topicName);
@@ -2831,13 +2745,10 @@ function TopicFolderCard({ subj, topicName, attempts, attachments = [], uid, t, 
         </button>
       )}
 
-      {(attempts.length > 0 || attachments.length > 0) && (
+      {attempts.length > 0 && (
         <div style={{display:"flex", gap:10, marginTop:8, paddingLeft:22, fontSize:11.5, color:textMuted2, fontWeight:600, flexWrap:"wrap"}}>
-          {attempts.length > 0 && <span><Num>{nf(attempts.length)}</Num> {t.attemptsLabel}</span>}
+          <span><Num>{nf(attempts.length)}</Num> {t.attemptsLabel}</span>
           {avgPct !== null && <span style={{color:accent, fontWeight:700}}>{t.average} <Num>{nf(avgPct)}</Num>%</span>}
-          {attachments.length > 0 && (
-            <span style={{display:"flex", alignItems:"center", gap:3}}><Paperclip size={11}/> <Num>{nf(attachments.length)}</Num></span>
-          )}
         </div>
       )}
 
@@ -2889,34 +2800,6 @@ function TopicFolderCard({ subj, topicName, attempts, attachments = [], uid, t, 
                 <Plus size={15}/>
               </button>
             </div>
-          </div>
-
-          <div style={{background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px", marginBottom:10}}>
-            <div style={{fontSize:10, fontWeight:700, letterSpacing:ls(0.8), color:textMuted2, opacity:0.85, marginBottom:8, textTransform:"uppercase"}}>{t.attachmentsLabel || "Attachments"}</div>
-
-            {attachments.length > 0 && (
-              <div style={{display:"flex", flexDirection:"column", gap:6, marginBottom:8}}>
-                {attachments.map(a => (
-                  <div key={a.id} style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
-                    <a href={a.url} target="_blank" rel="noopener noreferrer" style={{display:"flex", alignItems:"center", gap:6, color:"inherit", textDecoration:"none", minWidth:0, flex:1}}>
-                      <FileText size={13} style={{color:accent, flexShrink:0}}/>
-                      <span style={{fontSize:12, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{a.name}</span>
-                    </a>
-                    <button onClick={()=>onRemoveAttachment(a.id)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex", flexShrink:0}}>
-                      <Trash2 size={13}/>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <input ref={fileInputRef} type="file" accept="image/*,application/pdf" onChange={handleFilePick} style={{display:"none"}}/>
-            <button onClick={()=>fileInputRef.current && fileInputRef.current.click()} disabled={uploading}
-              style={{display:"flex", alignItems:"center", gap:6, border:`1px dashed ${cardBorder}`, background:"transparent", color: uploading ? textMuted2 : accent, borderRadius:10, padding:"7px 10px", fontSize:12, fontWeight:700, cursor: uploading ? "default" : "pointer"}}>
-              {uploading ? <Loader2 size={13} className="fg-spin"/> : <Paperclip size={13}/>}
-              {uploading ? (t.uploading || "Uploading...") : (t.attachFile || "Attach photo/PDF")}
-            </button>
-            {uploadError && <div style={{fontSize:11, color:"#C0553F", fontWeight:600, marginTop:6}}>{uploadError}</div>}
           </div>
 
           <div style={{display:"flex", gap:14}}>
