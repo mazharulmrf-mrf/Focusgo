@@ -3598,7 +3598,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
             </button>
             <div style={{flex:1, minWidth:0}} onClick={onStartTimer ? ()=>onStartTimer(item.id, item.duration) : undefined}>
               <div style={{fontSize:10, fontWeight:700, letterSpacing:ls(0.5), color:c.bg}}>{item.subject.toUpperCase()}</div>
-              <div style={{fontSize:14, fontWeight:600, textDecoration: item.done ? "line-through":"none", opacity: item.done?0.55:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{item.topic}</div>
+              <div style={{fontSize:14, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{item.topic}</div>
             </div>
             <div style={{textAlign:"right", flexShrink:0}}>
               <div style={{fontSize:12, fontWeight:600, color:textMuted2}}>
