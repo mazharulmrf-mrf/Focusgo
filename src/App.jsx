@@ -996,6 +996,9 @@ const T = {
     focusTimer: "Focus Timer", start: "Start Focus", pause: "Pause", reset: "Reset",
     pickTopicForTimer: "Pick a topic to focus on", freeSession: "Free Session",
     timerMode: "Timer", stopwatchMode: "Stopwatch",
+    sessionTypeLabel: "Session Type", focusOption: "Focus", breakOption: "Break", customOption: "Custom",
+    sessionLabel: "Session", focusCompleteTitle: "Focus complete", takeBreakQuestion: "Take a", breakQSuffix: "min break?",
+    startBreakBtn: "Start Break", skipBreakBtn: "Skip",
     editTopicTitle: "Edit Topic", save: "Save", edit: "Edit",
     yourRhythm: "Your Rhythm", todaysStudy: "Today's Study", todaysProgress: "Today's Progress", addTopic: "Add Topic",
     noTopicsToday: "No topics yet. Add one to start your rhythm.",
@@ -1095,6 +1098,9 @@ const T = {
     focusTimer: "ফোকাস টাইমার", start: "ফোকাস শুরু", pause: "থামাও", reset: "রিসেট",
     pickTopicForTimer: "ফোকাস করার জন্য একটা টপিক বাছাই করো", freeSession: "ফ্রি সেশন",
     timerMode: "টাইমার", stopwatchMode: "স্টপওয়াচ",
+    sessionTypeLabel: "সেশন টাইপ", focusOption: "ফোকাস", breakOption: "ব্রেক", customOption: "কাস্টম",
+    sessionLabel: "সেশন", focusCompleteTitle: "ফোকাস সম্পন্ন হয়েছে", takeBreakQuestion: "", breakQSuffix: "মিনিট ব্রেক নেবে?",
+    startBreakBtn: "ব্রেক শুরু করো", skipBreakBtn: "স্কিপ",
     editTopicTitle: "টপিক এডিট করুন", save: "সেভ করো", edit: "এডিট",
     yourRhythm: "আপনার ছন্দ", todaysStudy: "আজকের পড়া", todaysProgress: "আজকের অগ্রগতি", addTopic: "টপিক যোগ করো",
     noTopicsToday: "এখনো কোনো টপিক নেই। শুরু করতে একটা যোগ করুন।",
@@ -1411,10 +1417,26 @@ export default function FocusGo() {
   const [stopwatchRunning, setStopwatchRunning] = useState(false);
   const [focusFullscreen, setFocusFullscreen] = useState(false);
   const [editTopic, setEditTopic] = useState(null);
+  // ---- Pomodoro: session type (focus/break), remembered durations, and cycle progress ----
+  const [sessionType, setSessionType] = useState("focus"); // "focus" | "break"
+  const [showCustomDurationPicker, setShowCustomDurationPicker] = useState(false);
+  const [focusMinutes, setFocusMinutes] = useState(30); // last-selected Focus duration (minutes)
+  const [breakMinutes, setBreakMinutes] = useState(5); // last-selected Break duration (minutes)
+  const [pomodoroSession, setPomodoroSession] = useState(1); // current Focus session number, 1..4
+  const [showBreakPrompt, setShowBreakPrompt] = useState(false); // "Focus complete — take a break?" prompt
   const timerRef = useRef(null);
   const stopwatchRef = useRef(null);
   const timerEndAtRef = useRef(null);
   const stopwatchStartAtRef = useRef(null);
+  // refs so the running timer's tick() always sees the latest values without restarting the interval
+  const sessionTypeRef = useRef(sessionType);
+  useEffect(() => { sessionTypeRef.current = sessionType; }, [sessionType]);
+  const pomodoroSessionRef = useRef(pomodoroSession);
+  useEffect(() => { pomodoroSessionRef.current = pomodoroSession; }, [pomodoroSession]);
+  const focusMinutesRef = useRef(focusMinutes);
+  useEffect(() => { focusMinutesRef.current = focusMinutes; }, [focusMinutes]);
+  const breakMinutesRef = useRef(breakMinutes);
+  useEffect(() => { breakMinutesRef.current = breakMinutes; }, [breakMinutes]);
   const audioCtxRef = useRef(null);
   const compressorRef = useRef(null);
   const guestLoadedOnceRef = useRef(false); // এই গেস্ট সেশনে localStorage থেকে একবারই লোড হবে
@@ -1792,7 +1814,27 @@ export default function FocusGo() {
       const tick = () => {
         const remaining = Math.max(0, Math.round((timerEndAtRef.current - Date.now()) / 1000));
         setTimerSeconds(remaining);
-        if (remaining <= 0) { setTimerRunning(false); playEndSound(); }
+        if (remaining <= 0) {
+          playEndSound();
+          if (sessionTypeRef.current === "focus") {
+            // একটা Focus session শেষ — থামাও, ইউজারকে ব্রেক নেওয়ার প্রম্পট দেখাও (auto-start করা হচ্ছে না)
+            setTimerRunning(false);
+            vibrate();
+            setShowBreakPrompt(true);
+          } else {
+            // Break শেষ — পরের Focus session সাথে সাথে শুরু হয়ে যাবে, timer running-ই থাকবে (তাই interval restart লাগবে না)
+            vibrate();
+            const nextSession = pomodoroSessionRef.current >= 4 ? 1 : pomodoroSessionRef.current + 1;
+            setPomodoroSession(nextSession);
+            setSessionType("focus");
+            const mins = focusMinutesRef.current;
+            const newTotal = mins * 60;
+            setTimerTotal(newTotal);
+            setTimerSeconds(newTotal);
+            timerEndAtRef.current = Date.now() + newTotal * 1000;
+            setFocusFullscreen(true);
+          }
+        }
       };
       timerRef.current = setInterval(tick, 1000);
       const onVisible = () => { if (document.visibilityState === "visible") tick(); };
@@ -2141,8 +2183,13 @@ export default function FocusGo() {
 
   const startTimerFor = (id, duration) => {
     setTimerTopicId(id);
-    setTimerSeconds((duration||30)*60);
-    setTimerTotal((duration||30)*60);
+    const mins = duration || 30;
+    setTimerSeconds(mins*60);
+    setTimerTotal(mins*60);
+    setSessionType("focus");
+    setFocusMinutes(mins);
+    setPomodoroSession(1);
+    setShowBreakPrompt(false);
     setTimerRunning(true);
     setFocusFullscreen(true);
     playStartSound();
@@ -2155,7 +2202,10 @@ export default function FocusGo() {
     vibrate();
     if (item) {
       setTimerTopicId(item.id);
-      if (focusMode === "timer") { setTimerSeconds((item.duration||30)*60); setTimerTotal((item.duration||30)*60); }
+      if (focusMode === "timer" && sessionType === "focus") {
+        const mins = item.duration || 30;
+        setTimerSeconds(mins*60); setTimerTotal(mins*60); setFocusMinutes(mins);
+      }
     } else {
       setTimerTopicId(null);
     }
@@ -2171,10 +2221,22 @@ export default function FocusGo() {
     });
   };
 
+  // Session Type dropdown-এ Focus/Break পাল্টালে সেই টাইপের শেষবার বেছে নেওয়া duration আবার বসে যায়
+  const changeSessionType = (type) => {
+    if (timerRunning) return;
+    setSessionType(type);
+    setShowCustomDurationPicker(false);
+    const mins = type === "focus" ? focusMinutes : breakMinutes;
+    setTimerTotal(mins*60);
+    setTimerSeconds(mins*60);
+  };
+
   const setPresetDuration = (mins) => {
     if (timerRunning) return;
     setTimerTotal(mins*60);
     setTimerSeconds(mins*60);
+    setShowCustomDurationPicker(false);
+    if (sessionType === "focus") setFocusMinutes(mins); else setBreakMinutes(mins);
   };
 
   const startEditDuration = () => {
@@ -2187,6 +2249,30 @@ export default function FocusGo() {
     setTimerTotal(mins*60);
     setTimerSeconds(mins*60);
     setEditingDuration(false);
+    if (sessionType === "focus") setFocusMinutes(mins); else setBreakMinutes(mins);
+  };
+
+  // "Focus complete — Take a X min break?" প্রম্পটে ইউজার ব্রেক শুরু করলে
+  const acceptBreak = () => {
+    setShowBreakPrompt(false);
+    setSessionType("break");
+    const mins = breakMinutes;
+    setTimerTotal(mins*60);
+    setTimerSeconds(mins*60);
+    setTimerRunning(true);
+    setFocusFullscreen(true);
+    playStartSound();
+    vibrate();
+  };
+  // ব্রেক স্কিপ করে সরাসরি পরের Focus session-এ চলে যাওয়া
+  const skipBreak = () => {
+    setShowBreakPrompt(false);
+    const nextSession = pomodoroSession >= 4 ? 1 : pomodoroSession + 1;
+    setPomodoroSession(nextSession);
+    setSessionType("focus");
+    const mins = focusMinutes;
+    setTimerTotal(mins*60);
+    setTimerSeconds(mins*60);
   };
 
   // ---- week data ----
@@ -2582,6 +2668,18 @@ export default function FocusGo() {
 
           {focusMode === "timer" ? (
             <>
+              {/* Session Type dropdown: Focus নাকি Break এখন সেট করা হচ্ছে */}
+              <div style={{display:"flex", justifyContent:"center", marginTop:8}}>
+                <select
+                  value={sessionType}
+                  disabled={timerRunning}
+                  onChange={(e)=>changeSessionType(e.target.value)}
+                  title={t.sessionTypeLabel}
+                  style={{border:`1px solid ${cardBorder}`, borderRadius:10, padding:"4px 22px 4px 10px", fontSize:11, fontWeight:700, background: dark?"#121110":"#fff", color:textMain, cursor: timerRunning?"default":"pointer", outline:"none", appearance:"auto"}}>
+                  <option value="focus">{t.focusOption}</option>
+                  <option value="break">{t.breakOption}</option>
+                </select>
+              </div>
               <div style={{textAlign:"center", margin: timerRunning ? "10px 0 6px" : "6px 0 2px", transition:"margin .25s ease"}}>
                 {editingDuration ? (
                   <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4}}>
@@ -2634,14 +2732,19 @@ export default function FocusGo() {
                 )}
                 {!timerRunning && showTopicPicker && (
                   <div style={{display:"flex", justifyContent:"center", gap:6, marginTop:6, flexWrap:"wrap"}}>
-                    {[15,30,45,60].map(mins => {
-                      const active = Math.round(timerTotal/60) === mins;
+                    {(sessionType === "focus" ? [25,30,45,50,60] : [5,10,15]).map(mins => {
+                      const active = !showCustomDurationPicker && Math.round(timerTotal/60) === mins;
                       return (
                         <button key={mins} onClick={()=>setPresetDuration(mins)} style={{border:`1px solid ${active ? accent : cardBorder}`, background: active ? `${accent}1A` : "transparent", color: active ? accent : textMuted2, borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
                           <Num>{nf(mins)}</Num> {t.minutes}
                         </button>
                       );
                     })}
+                    {sessionType === "focus" && (
+                      <button onClick={()=>{ setShowCustomDurationPicker(true); startEditDuration(); }} style={{border:`1px solid ${showCustomDurationPicker ? accent : cardBorder}`, background: showCustomDurationPicker ? `${accent}1A` : "transparent", color: showCustomDurationPicker ? accent : textMuted2, borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+                        {t.customOption}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -2654,6 +2757,19 @@ export default function FocusGo() {
                 <button onClick={()=>{setTimerRunning(false); setTimerSeconds(timerTotal);}} style={{background: dark?"#332E25":"#F0DCC9", border:"none", borderRadius:12, width:42, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
                   <RotateCcw size={15} color={textMain}/>
                 </button>
+              </div>
+              {/* Pomodoro cycle progress: Session X/4 + ● ○ ○ ○ */}
+              <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, marginTop:10}}>
+                <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>
+                  {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(4)}</Num>
+                </div>
+                <div style={{display:"flex", gap:5}}>
+                  {[1,2,3,4].map(i => (
+                    <span key={i} style={{fontSize:13, lineHeight:1, color: i===pomodoroSession ? accent : textMuted2, opacity: i===pomodoroSession ? 1 : 0.45}}>
+                      {i===pomodoroSession ? "●" : "○"}
+                    </span>
+                  ))}
+                </div>
               </div>
             </>
           ) : (
@@ -3143,7 +3259,14 @@ export default function FocusGo() {
             else { setStopwatchRunning(false); setStopwatchSeconds(0); }
           }}
           onClose={()=>setFocusFullscreen(false)}
+          sessionType={sessionType} pomodoroSession={pomodoroSession}
         />
+      )}
+
+      {/* "Focus complete — Take a X min break?" প্রম্পট */}
+      {showBreakPrompt && (
+        <BreakPromptModal t={t} nf={nf} breakMinutes={breakMinutes} accent={accent}
+          onAccept={acceptBreak} onSkip={skipBreak}/>
       )}
 
       {/* Add topic modal */}
@@ -3262,7 +3385,29 @@ function FlipBlock({ children, textMain, dark, stacked, running, blockWidth }) {
 // Fullscreen focus session view, entered when the timer/stopwatch is started.
 // পুরো fullscreen সবসময় কালো — অ্যাপের light/dark/system theme যাই থাকুক না কেন,
 // আর running/paused যেকোনো অবস্থাতেই (শুধু running হলে বদলাতো না, এখন expand করলেই কালো)।
-function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, accent, dark, bg, textMain, textMuted2, onToggleRun, onReset, onClose, now }) {
+// "Focus complete — Take a X min break?" প্রম্পট — Focus session শেষ হলে টাইমারের ওপর ওভারলে হিসেবে দেখা যায়
+function BreakPromptModal({ t, nf, breakMinutes, accent, onAccept, onSkip }) {
+  return (
+    <div style={{position:"fixed", inset:0, zIndex:200, background:"rgba(0,0,0,0.55)", display:"flex", alignItems:"center", justifyContent:"center", padding:20}}>
+      <div style={{background:"#1A1A1A", color:"#F5F1E8", borderRadius:20, padding:"26px 22px", maxWidth:320, width:"100%", textAlign:"center"}}>
+        <div style={{fontSize:17, fontWeight:800, marginBottom:8}}>{t.focusCompleteTitle}</div>
+        <div style={{fontSize:14, color:"#B8B2A2", marginBottom:20}}>
+          {t.takeBreakQuestion} <Num>{nf(breakMinutes)}</Num> {t.breakQSuffix}
+        </div>
+        <div style={{display:"flex", gap:10}}>
+          <button onClick={onSkip} style={{flex:1, background:"#333029", border:"none", borderRadius:12, padding:"10px 0", color:"#F5F1E8", fontWeight:700, fontSize:13, cursor:"pointer"}}>
+            {t.skipBreakBtn}
+          </button>
+          <button onClick={onAccept} style={{flex:1, background:accent, border:"none", borderRadius:12, padding:"10px 0", color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer"}}>
+            {t.startBreakBtn}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, accent, dark, bg, textMain, textMuted2, onToggleRun, onReset, onClose, now, sessionType, pomodoroSession }) {
   const orientation = useOrientation();
   const stacked = orientation === "portrait"; // portrait -> mm উপরে/ss নিচে (বড় সংখ্যা), landscape -> পাশাপাশি
   const mm = pad2(Math.floor(Math.max(0,seconds)/60));
@@ -3304,6 +3449,22 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
     </div>
   );
 
+  // Pomodoro cycle progress — Timer mode-এই শুধু দেখা যাবে (Stopwatch-এ প্রযোজ্য না)
+  const pomodoroIndicator = mode === "timer" && pomodoroSession ? (
+    <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:5, marginTop:16}}>
+      <div style={{fontSize:11, fontWeight:700, color:fgMuted, letterSpacing:0.6}}>
+        {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(4)}</Num>
+      </div>
+      <div style={{display:"flex", gap:6}}>
+        {[1,2,3,4].map(i => (
+          <span key={i} style={{fontSize:13, lineHeight:1, color: i===pomodoroSession ? accent : fgMuted, opacity: i===pomodoroSession ? 1 : 0.5}}>
+            {i===pomodoroSession ? "●" : "○"}
+          </span>
+        ))}
+      </div>
+    </div>
+  ) : null;
+
   return (
     <div style={{position:"fixed", inset:0, zIndex:100, background:screenBg, color:fgMain, display:"flex", flexDirection:"column"}}>
       <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 20px 0"}}>
@@ -3326,6 +3487,7 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
                 <div style={{height:"100%", width:`${pct}%`, background:accent, borderRadius:4, transition:"width .3s"}}/>
               </div>
             )}
+            {pomodoroIndicator}
           </div>
         ) : (
           // ---- horizontal layout: real-time উপরে center-এ, নিচে bar + mm : ss + (reset উপরে/play-pause নিচে) seconds-এর ডান পাশে ----
@@ -3345,6 +3507,7 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
                 {sideButtons}
               </div>
             </div>
+            {pomodoroIndicator}
           </div>
         )}
       </div>
