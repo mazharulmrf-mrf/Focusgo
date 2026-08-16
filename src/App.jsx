@@ -1,76 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff } from "lucide-react";
-// ================= MOCK FIREBASE (preview only) =================
-// The real app talks to a Firebase project via ./firebase. That file isn't
-// available in this preview sandbox, so this block emulates just enough of
-// the Firebase Auth + Firestore surface (backed by localStorage) for the
-// whole app to run and be clicked through end-to-end.
-const auth = {};
-const db = {};
-const googleProvider = {};
-
-let __mockUser = null;
-let __authListeners = [];
-const __usersKey = "focusgo_preview_users";
-const __loadUsers = () => { try { return JSON.parse(localStorage.getItem(__usersKey) || "{}"); } catch (e) { return {}; } };
-const __saveUsers = (u) => { try { localStorage.setItem(__usersKey, JSON.stringify(u)); } catch (e) {} };
-const __notify = () => { __authListeners.forEach((cb) => cb(__mockUser)); };
-
-function onAuthStateChanged(_auth, cb) {
-  __authListeners.push(cb);
-  setTimeout(() => cb(__mockUser), 0);
-  return () => { __authListeners = __authListeners.filter((l) => l !== cb); };
-}
-async function createUserWithEmailAndPassword(_auth, email, password) {
-  const users = __loadUsers();
-  if (users[email]) { const e = new Error("in-use"); e.code = "auth/email-already-in-use"; throw e; }
-  const user = { uid: "u_" + Date.now(), email, password, displayName: "" };
-  users[email] = user; __saveUsers(users);
-  __mockUser = { uid: user.uid, email: user.email, displayName: user.displayName };
-  __notify();
-  return { user: __mockUser };
-}
-async function signInWithEmailAndPassword(_auth, email, password) {
-  const users = __loadUsers();
-  const user = users[email];
-  if (!user || user.password !== password) { const e = new Error("bad-cred"); e.code = "auth/invalid-credential"; throw e; }
-  __mockUser = { uid: user.uid, email: user.email, displayName: user.displayName };
-  __notify();
-  return { user: __mockUser };
-}
-async function signInWithPopup(_auth, _provider) {
-  __mockUser = { uid: "u_google_demo", email: "demo@focusgo.app", displayName: "Demo User" };
-  __notify();
-  return { user: __mockUser };
-}
-async function signOut(_auth) { __mockUser = null; __notify(); }
-async function sendPasswordResetEmail(_auth, _email) { return Promise.resolve(); }
-async function updateProfile(user, { displayName }) {
-  if (__mockUser) __mockUser.displayName = displayName;
-  const users = __loadUsers();
-  if (users[user.email]) { users[user.email].displayName = displayName; __saveUsers(users); }
-}
-async function updateEmail(user, newEmail) { if (__mockUser) __mockUser.email = newEmail; }
-async function updatePassword(_user, _newPw) { return Promise.resolve(); }
-async function reauthenticateWithCredential(_user, _cred) { return Promise.resolve(); }
-const EmailAuthProvider = { credential: (email, password) => ({ email, password }) };
-
-let __snapListeners = {};
-function doc(_db, _collection, id) { return { id }; }
-async function setDoc(docRef, data) {
-  try { localStorage.setItem("focusgo_preview_doc_" + docRef.id, JSON.stringify(data)); } catch (e) {}
-  (__snapListeners[docRef.id] || []).forEach((cb) => cb({ exists: () => true, data: () => data }));
-}
-function onSnapshot(docRef, onNext, _onError) {
-  if (!__snapListeners[docRef.id]) __snapListeners[docRef.id] = [];
-  __snapListeners[docRef.id].push(onNext);
-  try {
-    const raw = localStorage.getItem("focusgo_preview_doc_" + docRef.id);
-    setTimeout(() => onNext(raw ? { exists: () => true, data: () => JSON.parse(raw) } : { exists: () => false, data: () => null }), 0);
-  } catch (e) { setTimeout(() => onNext({ exists: () => false, data: () => null }), 0); }
-  return () => { __snapListeners[docRef.id] = (__snapListeners[docRef.id] || []).filter((l) => l !== onNext); };
-}
-// ================= END MOCK FIREBASE =================
+import { auth, db, googleProvider } from "./firebase";
+import {
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  sendPasswordResetEmail,
+  updateProfile,
+  updateEmail,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+} from "firebase/auth";
+import { doc, setDoc, onSnapshot } from "firebase/firestore";
 
 // ---------- সোশ্যাল আইকন (lucide-react-এ brand logo নেই, তাই ছোট inline SVG) ----------
 const FacebookIcon = ({ size = 18 }) => (

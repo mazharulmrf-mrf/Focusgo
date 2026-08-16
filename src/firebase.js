@@ -1,7 +1,7 @@
 // src/firebase.js
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBYKhaF6RXwQ9IkgsrGrrmpLlZcynas-Kg",
@@ -14,16 +14,15 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-import { enableIndexedDbPersistence } from "firebase/firestore";
+
+export const auth = getAuth(app);
+export const db = getFirestore(app);
 
 enableIndexedDbPersistence(db).catch((err) => {
   if (err.code === "failed-precondition") {
     // একসাথে একাধিক ট্যাব খোলা থাকলে এটা হতে পারে — শুধু একটা ট্যাবেই persistence চলবে, সমস্যা না
   }
 });
-
-export const auth = getAuth(app);
-export const db = getFirestore(app);
 
 export const googleProvider = new GoogleAuthProvider();
 // প্রতিবার Google sign-in-এ account picker force করে দেখানোর জন্য —
