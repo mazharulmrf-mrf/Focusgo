@@ -3432,28 +3432,32 @@ export default function FocusGo() {
 // Big flip-clock-style digit block for the fullscreen focus timer.
 // stacked=true -> vertical (portrait) layout: wider block, bigger digits.
 // running=true -> timer চলছে, তখন কালো ব্যাকগ্রাউন্ডে মিশে যাওয়ার জন্য কার্ডের বক্স/বর্ডার সরিয়ে দেওয়া হয়।
-function FlipBlock({ children, textMain, dark, stacked, running, blockWidth }) {
-  const width = blockWidth || (stacked ? "clamp(210px, 78vw, 360px)" : "clamp(130px, 30vw, 260px)");
+function FlipBlock({ children, textMain, dark, stacked, running, blockWidth, blockHeight }) {
+  const width = blockWidth || (stacked ? "clamp(190px, 70vw, 320px)" : "clamp(120px, 28vw, 240px)");
+  const height = blockHeight || (stacked ? "clamp(110px, 40vw, 200px)" : "clamp(95px, 24vw, 170px)");
   return (
     <div style={{
       position:"relative",
       background: running ? "transparent" : (dark ? "#1F1B17" : "#FFFFFF"),
       border: running ? "1px solid rgba(245,241,232,0.28)" : `1px solid ${dark ? "#332E25" : "#F0DCC9"}`,
-      borderRadius:32,
-      padding: stacked ? "clamp(10px,2vw,20px) clamp(8px,1.5vw,16px)" : "clamp(14px,3vw,28px) clamp(8px,1.5vw,16px)",
+      borderRadius:26,
       width,
-      textAlign:"center",
+      height,
+      display:"flex",
+      alignItems:"center",
+      justifyContent:"center",
       overflow:"hidden",
       boxShadow: (!running && !dark) ? "0 6px 18px rgba(33,29,24,0.06)" : "none",
     }}>
       <div style={{
         fontFamily:"'Bebas Neue','Hind Siliguri',sans-serif",
-        fontSize: stacked ? "clamp(120px, 42vw, 270px)" : "clamp(90px, 24vw, 210px)",
+        fontSize: stacked ? "clamp(100px, 36vw, 230px)" : "clamp(80px, 20vw, 170px)",
         fontWeight:400,
-        lineHeight:0.85,
+        lineHeight:1,
         color:textMain,
         fontVariantNumeric:"tabular-nums",
         letterSpacing:2,
+        textAlign:"center",
       }}>
         {children}
       </div>
@@ -3503,13 +3507,26 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
   const trackColor = "#2A2A2A";
   const trackBorder = "rgba(255,255,255,0.08)";
   const resetBtnBg = "#1E1E1E";
-  const blockWidth = stacked ? "clamp(210px, 78vw, 360px)" : "clamp(130px, 30vw, 260px)";
+  const blockWidth = stacked ? "clamp(190px, 70vw, 320px)" : "clamp(120px, 28vw, 240px)";
+  const blockHeight = stacked ? "clamp(110px, 40vw, 200px)" : "clamp(95px, 24vw, 170px)";
+
+  // stacked (portrait) লেআউটে mm বক্স উপরে, ss বক্স নিচে — তাই এখানে সেপারেটর হিসেবে
+  // ভার্টিক্যাল কোলন (দুইটা ডট উপর-নিচ) না দেখিয়ে দুইটা ডট পাশাপাশি (হরাইজন্টাল) দেখানো হচ্ছে,
+  // যাতে দুই বক্সের মাঝের গ্যাপে ঠিকভাবে সেন্টার্ড দেখায়।
+  const separator = stacked ? (
+    <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:"clamp(7px,1.8vw,11px)", margin:"clamp(10px,2.4vw,16px) 0"}}>
+      <span style={{width:"clamp(7px,1.8vw,11px)", height:"clamp(7px,1.8vw,11px)", borderRadius:"50%", background:fgMuted}}/>
+      <span style={{width:"clamp(7px,1.8vw,11px)", height:"clamp(7px,1.8vw,11px)", borderRadius:"50%", background:fgMuted}}/>
+    </div>
+  ) : (
+    <div style={{fontFamily:"'Bebas Neue','Hind Siliguri',sans-serif", fontSize:"clamp(55px,11vw,100px)", fontWeight:400, color:fgMuted, marginBottom:6}}>:</div>
+  );
 
   const clockDigits = (
     <>
-      <FlipBlock textMain={fgMain} dark={true} running={true} stacked={stacked} blockWidth={blockWidth}>{nf(mm)}</FlipBlock>
-      <div style={{fontFamily:"'Bebas Neue','Hind Siliguri',sans-serif", fontSize: stacked ? "clamp(40px,9vw,72px)" : "clamp(55px,11vw,100px)", fontWeight:400, color:fgMuted, ...(stacked ? {margin:"-6px 0"} : {marginBottom:6})}}>:</div>
-      <FlipBlock textMain={fgMain} dark={true} running={true} stacked={stacked} blockWidth={blockWidth}>{nf(ss)}</FlipBlock>
+      <FlipBlock textMain={fgMain} dark={true} running={true} stacked={stacked} blockWidth={blockWidth} blockHeight={blockHeight}>{nf(mm)}</FlipBlock>
+      {separator}
+      <FlipBlock textMain={fgMain} dark={true} running={true} stacked={stacked} blockWidth={blockWidth} blockHeight={blockHeight}>{nf(ss)}</FlipBlock>
     </>
   );
 
