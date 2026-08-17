@@ -4388,7 +4388,6 @@ function TopicSummaryPeriodCard({ label, rangeLabel, isComplete, pendingText, co
 // Read-only-capable list of topics used by the Today and Plan tabs.
 function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textMuted2, textMain, accent, onToggle, onStartTimer, onEdit, onDelete, onRename, emptyText, emptySubtext }) {
   const ls = (px) => (lang === "bn" ? 0 : px);
-  const [openMenuId, setOpenMenuId] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState("");
   const startInlineEdit = (item) => { setEditingId(item.id); setEditValue(item.topic); };
@@ -4428,7 +4427,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
                   style={{fontSize:14, fontWeight:600, width:"100%", background:"transparent", border:"none", borderBottom:`1.5px solid ${accent||"#E07A4E"}`, color:textMain||"inherit", padding:"2px 0", outline:"none", fontFamily:"inherit"}}
                 />
               ) : (
-                <div style={{fontSize:14, fontWeight:600, wordBreak:"break-word"}}>{item.topic}</div>
+                <div style={{fontSize:14, fontWeight:600, wordBreak:"break-word", textDecoration: item.done ? "line-through" : "none", opacity: item.done ? 0.6 : 1}}>{item.topic}</div>
               )}
             </div>
             <div style={{textAlign:"right", flexShrink:0}}>
@@ -4439,52 +4438,23 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
               </div>
               <div style={{fontSize:11, color:textMuted2}}><Num>{nf(item.duration)}</Num> {t.minutes}</div>
             </div>
-            {item.done ? (
-              (onEdit || onDelete) && (
-                <div style={{position:"relative", flexShrink:0}}>
-                  <button onClick={()=>setOpenMenuId(v => v===item.id ? null : item.id)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4}}>
-                    <MoreVertical size={16}/>
-                  </button>
-                  {openMenuId === item.id && (
-                    <>
-                      <div onClick={()=>setOpenMenuId(null)} style={{position:"fixed", inset:0, zIndex:59}}/>
-                      <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 6px 18px rgba(0,0,0,0.15)", zIndex:60, minWidth:110, overflow:"hidden"}}>
-                        {onEdit && (
-                          <button onClick={()=>{setOpenMenuId(null); onEdit(item);}} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
-                            <Pencil size={13}/> {t.edit}
-                          </button>
-                        )}
-                        {onDelete && (
-                          <button onClick={()=>{setOpenMenuId(null); onDelete(item.id);}} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
-                            <Trash2 size={13}/> {t.deleteTopic}
-                          </button>
-                        )}
-                      </div>
-                    </>
-                  )}
-                </div>
-              )
-            ) : (
+            {editingId === item.id ? (
               <>
-                {editingId === item.id ? (
-                  <>
-                    <button onClick={()=>commitInlineEdit(item)} style={{border:"none", background:"transparent", cursor:"pointer", color: accent||textMuted2, padding:2}}>
-                      <Check size={16}/>
-                    </button>
-                    {onDelete && (
-                      <button onClick={()=>{ setEditingId(null); onDelete(item.id); }} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0392B", padding:2}}>
-                        <Trash2 size={15}/>
-                      </button>
-                    )}
-                  </>
-                ) : (
-                  onEdit && (
-                    <button onClick={()=>startInlineEdit(item)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:2}}>
-                      <Pencil size={15}/>
-                    </button>
-                  )
+                <button onClick={()=>commitInlineEdit(item)} style={{border:"none", background:"transparent", cursor:"pointer", color: accent||textMuted2, padding:2}}>
+                  <Check size={16}/>
+                </button>
+                {onDelete && (
+                  <button onClick={()=>{ setEditingId(null); onDelete(item.id); }} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0392B", padding:2}}>
+                    <Trash2 size={15}/>
+                  </button>
                 )}
               </>
+            ) : (
+              onEdit && (
+                <button onClick={()=>startInlineEdit(item)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:2}}>
+                  <Pencil size={15}/>
+                </button>
+              )
             )}
           </div>
         );
