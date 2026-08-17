@@ -527,7 +527,12 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, car
 // প্রোফাইল ট্যাব/মোডাল — নাম, ইমেইল, পাসওয়ার্ড, প্রোফাইল ছবি এডিট করা যায় এবং সাইন আউট করার অপশন থাকে
 function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpdate, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const isBn = lang === "bn";
-
+  // ডেস্কটপে (≥1024px) এটা নিচ থেকে উঠে আসা bottom-sheet না হয়ে, স্ক্রিনের মাঝে একটা সেন্টার্ড ডায়ালগ হিসেবে দেখাবে —
+  // মোবাইল/ট্যাবলেটে আগের মতোই bottom-sheet থাকবে
+  const breakpoint = useViewport();
+  const isDesktop = breakpoint === "desktop";
+  const overlayStyle = { position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems: isDesktop ? "center" : "flex-end", justifyContent:"center", zIndex:50, padding: isDesktop ? 16 : 0 };
+  const sheetRadius = isDesktop ? 22 : "22px 22px 0 0";
 
   // গেস্ট মোডে কোনো real user অবজেক্ট নেই — সংক্ষিপ্ত "sign in to save" কার্ড দেখানো, এডিট ফর্ম নয়
   if (isGuest) {
@@ -541,8 +546,8 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
       cta: isBn ? "লগইন / একাউন্ট খুলুন" : "Log in / Sign up",
     };
     return (
-      <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-        <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain}}>
+      <div style={overlayStyle} onClick={onClose}>
+        <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:sheetRadius, padding:"20px 20px 28px", color:textMain}}>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14}}>
             <div style={{fontSize:17, fontWeight:800, letterSpacing:-0.2}}>{t.profile}</div>
             <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
@@ -706,8 +711,8 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
   };
 
   return (
-    <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"88vh", overflowY:"auto"}}>
+    <div style={overlayStyle} onClick={onClose}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:sheetRadius, padding:"20px 20px 28px", color:textMain, maxHeight:"88vh", overflowY:"auto"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18}}>
           <div style={{fontSize:17, fontWeight:800, letterSpacing:-0.2}}>{t.profile}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
@@ -3060,13 +3065,13 @@ export default function FocusGo() {
                 <span style={{width:7,height:7,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
               </span>
               <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10.5, color:textMuted2, fontWeight:600}}>
-                <span style={{width:7,height:7,borderRadius:"50%", background:"#C0392B"}}/>{t.calendarLegendExam}
+                <span style={{width:7,height:7,borderRadius:"50%", background:"#1A1814"}}/>{t.calendarLegendExam}
               </span>
               <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10.5, color:textMuted2, fontWeight:600}}>
-                <span style={{width:7,height:7,borderRadius:"50%", background:accent}}/>{t.calendarLegendPlanned}
+                <span style={{width:7,height:7,borderRadius:"50%", background:"#4C8FA6"}}/>{t.calendarLegendPlanned}
               </span>
               <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10.5, color:textMuted2, fontWeight:600}}>
-                <span style={{width:7,height:7,borderRadius:"50%", background:"#1A1814"}}/>{t.calendarLegendHoliday}
+                <span style={{width:7,height:7,borderRadius:"50%", background:"#C0392B"}}/>{t.calendarLegendHoliday}
               </span>
             </div>
 
@@ -4835,7 +4840,7 @@ function WeekDayStrip({ days, entries, selectedKey, onSelectDay, todayKey, weekd
             <span style={{fontSize:16, fontWeight:800, color: isToday ? accent : textMain}}><Num>{nf(d.getDate())}</Num></span>
             {hasAny ? (
               <div style={{width:26, height:3, borderRadius:2, background: dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)", overflow:"hidden"}}>
-                <div style={{width:`${pct}%`, height:"100%", background: doneAll ? "#6E8B5E" : accent}}/>
+                <div style={{width:`${pct}%`, height:"100%", background: doneAll ? "#6E8B5E" : "#4C8FA6"}}/>
               </div>
             ) : <div style={{width:4, height:4, borderRadius:"50%", background:textMuted2, opacity:0.4}}/>}
           </button>
@@ -4902,11 +4907,11 @@ function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSe
                   background: isSelected ? accent : "transparent",
                   border: isToday && !isSelected ? `1px solid ${accent}` : "none",
                   color: isSelected ? "#fff" : textMain}}>
-                  {isExam && <span style={{position:"absolute", top:-2, right:-2, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
-                  {isHoliday && <span style={{position:"absolute", top:-2, left:-2, width:5, height:5, borderRadius:"50%", background:"#1A1814"}}/>}
+                  {isExam && <span style={{position:"absolute", top:-2, right:-2, width:5, height:5, borderRadius:"50%", background:"#1A1814"}}/>}
+                  {isHoliday && <span style={{position:"absolute", top:-2, left:-2, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
                   <Num>{nf(d.getDate())}</Num>
                 </div>
-                <span style={{width:4, height:4, borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : accent)}}/>
+                <span style={{width:4, height:4, borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : "#4C8FA6")}}/>
               </button>
             );
           })}
@@ -4957,10 +4962,10 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
               <button key={i} onClick={()=>onSelectDay(d)} disabled={future && !hasAny}
                 title={isHoliday ? holidayName(dk, lang) : undefined}
                 style={{position:"relative", aspectRatio:"1", border: isToday ? `1.5px solid ${accent}` : "1px solid transparent", borderRadius:10, background: dark?"#121110":"#F8F5EE", cursor:(future&&!hasAny)?"default":"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:3, opacity: (future&&!hasAny)?0.4:1}}>
-                {isExam && <span style={{position:"absolute", top:4, right:4, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
-                {isHoliday && <span style={{position:"absolute", top:4, left:4, width:5, height:5, borderRadius:"50%", background:"#1A1814"}}/>}
+                {isExam && <span style={{position:"absolute", top:4, right:4, width:5, height:5, borderRadius:"50%", background:"#1A1814"}}/>}
+                {isHoliday && <span style={{position:"absolute", top:4, left:4, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
                 <span style={{fontSize:12, fontWeight:600, color:textMain}}><Num>{nf(d.getDate())}</Num></span>
-                <span style={{width:5,height:5,borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : accent)}}/>
+                <span style={{width:5,height:5,borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : "#4C8FA6")}}/>
               </button>
             );
           })}
@@ -4971,13 +4976,13 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
             <span style={{width:6,height:6,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
           </span>
           <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10, color:textMuted2, fontWeight:600}}>
-            <span style={{width:6,height:6,borderRadius:"50%", background:"#C0392B"}}/>{t.calendarLegendExam}
+            <span style={{width:6,height:6,borderRadius:"50%", background:"#1A1814"}}/>{t.calendarLegendExam}
           </span>
           <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10, color:textMuted2, fontWeight:600}}>
-            <span style={{width:6,height:6,borderRadius:"50%", background:accent}}/>{t.calendarLegendPlanned}
+            <span style={{width:6,height:6,borderRadius:"50%", background:"#4C8FA6"}}/>{t.calendarLegendPlanned}
           </span>
           <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10, color:textMuted2, fontWeight:600}}>
-            <span style={{width:6,height:6,borderRadius:"50%", background:"#1A1814"}}/>{t.calendarLegendHoliday}
+            <span style={{width:6,height:6,borderRadius:"50%", background:"#C0392B"}}/>{t.calendarLegendHoliday}
           </span>
         </div>
       </div>
@@ -4998,7 +5003,7 @@ function DayDetailModal({ t, lang, nf, weekdayName, monthName, day, entries, all
         </div>
         {isHolidayKey(dateKey(day)) && (
           <div style={{marginTop:12, display:"flex", alignItems:"center", gap:7, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 12px"}}>
-            <span style={{width:8,height:8,borderRadius:"50%", background:"#1A1814", flexShrink:0}}/>
+            <span style={{width:8,height:8,borderRadius:"50%", background:"#C0392B", flexShrink:0}}/>
             <span style={{fontSize:12.5, fontWeight:700, color:textMain}}>{holidayName(dateKey(day), lang)}</span>
           </div>
         )}
