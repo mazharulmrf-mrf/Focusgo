@@ -854,6 +854,41 @@ function passwordErrorCode(pw) {
 }
 const dateKey = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
 
+// বাংলাদেশ সরকারি ছুটির তালিকা (২০২৬) — সাধারণ ছুটি + নির্বাহী আদেশে ছুটি (জনপ্রশাসন মন্ত্রণালয়ের প্রজ্ঞাপন অনুযায়ী)।
+// চাঁদ দেখার উপর নির্ভরশীল তারিখগুলো (ঈদ, শব-ই-বরাত, শব-ই-ক্বদর, আশুরা ইত্যাদি) সরকারি ঘোষণার সাথে ১ দিন এদিক-ওদিক হতে পারে।
+// পরের বছর নতুন তালিকা প্রকাশ হলে এখানে হাতে আপডেট করে নিতে হবে।
+const BD_HOLIDAYS_2026 = {
+  "2026-02-04": { bn: "শব-ই-বরাত", en: "Shab-e-Barat" },
+  "2026-02-21": { bn: "শহিদ দিবস ও আন্তর্জাতিক মাতৃভাষা দিবস", en: "Shaheed Day & Int'l Mother Language Day" },
+  "2026-03-17": { bn: "শব-ই-ক্বদর", en: "Shab-e-Qadr" },
+  "2026-03-19": { bn: "ঈদ-উল-ফিতরের ছুটি", en: "Eid-ul-Fitr holiday" },
+  "2026-03-20": { bn: "জুমাতুল বিদা", en: "Jumatul Bidah" },
+  "2026-03-21": { bn: "ঈদ-উল-ফিতর", en: "Eid-ul-Fitr" },
+  "2026-03-22": { bn: "ঈদ-উল-ফিতরের ছুটি", en: "Eid-ul-Fitr holiday" },
+  "2026-03-23": { bn: "ঈদ-উল-ফিতরের ছুটি", en: "Eid-ul-Fitr holiday" },
+  "2026-03-26": { bn: "স্বাধীনতা ও জাতীয় দিবস", en: "Independence & National Day" },
+  "2026-04-13": { bn: "চৈত্র সংক্রান্তি", en: "Choitro Sangkranti" },
+  "2026-04-14": { bn: "বাংলা নববর্ষ", en: "Bengali New Year" },
+  "2026-05-01": { bn: "মে দিবস ও বুদ্ধ পূর্ণিমা", en: "May Day & Buddha Purnima" },
+  "2026-05-26": { bn: "ঈদ-উল-আজহার ছুটি", en: "Eid-ul-Adha holiday" },
+  "2026-05-27": { bn: "ঈদ-উল-আজহার ছুটি", en: "Eid-ul-Adha holiday" },
+  "2026-05-28": { bn: "ঈদ-উল-আজহা", en: "Eid-ul-Adha" },
+  "2026-05-29": { bn: "ঈদ-উল-আজহার ছুটি", en: "Eid-ul-Adha holiday" },
+  "2026-05-30": { bn: "ঈদ-উল-আজহার ছুটি", en: "Eid-ul-Adha holiday" },
+  "2026-05-31": { bn: "ঈদ-উল-আজহার ছুটি", en: "Eid-ul-Adha holiday" },
+  "2026-06-26": { bn: "আশুরা", en: "Ashura" },
+  "2026-08-05": { bn: "জুলাই গণঅভ্যুত্থান দিবস", en: "July Uprising Day" },
+  "2026-08-26": { bn: "ঈদে মিলাদুন্নবী (সা.)", en: "Eid-e-Miladunnabi" },
+  "2026-09-04": { bn: "জন্মাষ্টমী", en: "Janmashtami" },
+  "2026-10-20": { bn: "দুর্গাপূজা (নবমী)", en: "Durga Puja (Nabami)" },
+  "2026-10-21": { bn: "দুর্গাপূজা (বিজয়া দশমী)", en: "Durga Puja (Bijoya Dashami)" },
+  "2026-12-16": { bn: "বিজয় দিবস", en: "Victory Day" },
+  "2026-12-25": { bn: "যিশু খ্রিষ্টের জন্মদিন (বড়দিন)", en: "Christmas Day" },
+};
+const isHolidayKey = (dk) => Object.prototype.hasOwnProperty.call(BD_HOLIDAYS_2026, dk);
+const holidayName = (dk, lang) => { const h = BD_HOLIDAYS_2026[dk]; if (!h) return ""; return lang === "bn" ? h.bn : h.en; };
+
+
 const startOfWeek = (d) => { const x = new Date(d); const day = x.getDay(); x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x; };
 const stripTime = (d) => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
 
@@ -875,42 +910,6 @@ const buildTopicSummary = (dateKeys, entries) => {
     missed: all.filter(x => !x.done),
   };
 };
-
-// ---------- বাংলাদেশ সরকারি ছুটি (২০২৬) ----------
-// জনপ্রশাসন মন্ত্রণালয়ের নভেম্বর ২০২৫-এর প্রজ্ঞাপন অনুযায়ী ২০২৬ সালের সাধারণ ছুটি + নির্বাহী আদেশে ছুটি।
-// চন্দ্র-ক্যালেন্ডার নির্ভর ছুটি (ঈদ, শব-ই-বরাত, পূজা ইত্যাদি) প্রতি বছর তারিখ বদলায়, তাই এই তালিকা শুধু ২০২৬-এর জন্য —
-// পরের বছর সরকারি নতুন প্রজ্ঞাপন এলে এখানে ম্যানুয়ালি আপডেট করা লাগবে।
-const BD_HOLIDAYS_2026 = {
-  "2026-01-01": { en: "English New Year", bn: "ইংরেজি নববর্ষ" },
-  "2026-02-04": { en: "Shab-e-Barat", bn: "শব-ই-বরাত" },
-  "2026-02-21": { en: "Shaheed Day & Int'l Mother Language Day", bn: "শহিদ দিবস ও আন্তর্জাতিক মাতৃভাষা দিবস" },
-  "2026-03-14": { en: "Bengali New Year (Pahela Boishakh)", bn: "নববর্ষ (পহেলা বৈশাখ)" },
-  "2026-03-17": { en: "Shab-e-Qadr", bn: "শব-ই-ক্বদর" },
-  "2026-03-19": { en: "Eid-ul-Fitr holiday", bn: "ঈদ-উল-ফিতরের ছুটি" },
-  "2026-03-20": { en: "Jumatul Bidah / Eid-ul-Fitr holiday", bn: "জুমাতুল বিদা / ঈদ-উল-ফিতরের ছুটি" },
-  "2026-03-21": { en: "Eid-ul-Fitr", bn: "ঈদ-উল-ফিতর" },
-  "2026-03-22": { en: "Eid-ul-Fitr holiday", bn: "ঈদ-উল-ফিতরের ছুটি" },
-  "2026-03-23": { en: "Eid-ul-Fitr holiday", bn: "ঈদ-উল-ফিতরের ছুটি" },
-  "2026-03-26": { en: "Independence & National Day", bn: "স্বাধীনতা ও জাতীয় দিবস" },
-  "2026-04-13": { en: "Choitro Sangkranti", bn: "চৈত্র সংক্রান্তি" },
-  "2026-04-14": { en: "Bengali New Year Holiday", bn: "নববর্ষের ছুটি" },
-  "2026-05-01": { en: "May Day / Buddha Purnima", bn: "মে দিবস / বুদ্ধপূর্ণিমা" },
-  "2026-05-26": { en: "Eid-ul-Adha holiday", bn: "ঈদ-উল-আজহার ছুটি" },
-  "2026-05-27": { en: "Eid-ul-Adha holiday", bn: "ঈদ-উল-আজহার ছুটি" },
-  "2026-05-28": { en: "Eid-ul-Adha", bn: "ঈদ-উল-আজহা" },
-  "2026-05-29": { en: "Eid-ul-Adha holiday", bn: "ঈদ-উল-আজহার ছুটি" },
-  "2026-05-30": { en: "Eid-ul-Adha holiday", bn: "ঈদ-উল-আজহার ছুটি" },
-  "2026-05-31": { en: "Eid-ul-Adha holiday", bn: "ঈদ-উল-আজহার ছুটি" },
-  "2026-06-26": { en: "Ashura", bn: "আশুরা" },
-  "2026-08-05": { en: "July Uprising Day", bn: "জুলাই গণঅভ্যুত্থান দিবস" },
-  "2026-08-26": { en: "Eid-e-Miladunnabi (S.)", bn: "ঈদে মিলাদুন্নবী (সা.)" },
-  "2026-09-04": { en: "Janmashtami", bn: "জন্মাষ্টমী" },
-  "2026-10-20": { en: "Durga Puja (Nabami)", bn: "দুর্গাপূজা (নবমী)" },
-  "2026-10-21": { en: "Durga Puja (Bijoya Dashami)", bn: "দুর্গাপূজা (বিজয়া দশমী)" },
-  "2026-12-16": { en: "Victory Day", bn: "বিজয় দিবস" },
-  "2026-12-25": { en: "Christmas Day", bn: "যিশু খ্রিস্টের জন্মদিন (বড়দিন)" },
-};
-function getHoliday(dateKeyStr) { return BD_HOLIDAYS_2026[dateKeyStr] || null; }
 
 // ---------- guest mode persistence ----------
 // "অ্যাপ" (হোমস্ক্রিনে ইনস্টল করা / standalone) হিসেবে চলছে কিনা সেটা বোঝার উপায়।
@@ -1110,6 +1109,7 @@ const T = {
     studyOverview: "Study Overview", focusedLabel: "focused", topicsCompletedLabel: "topics completed",
     completionLabel: "completion", streakLabel: "day streak", weeklyActivity: "Weekly Activity",
     calendarLegendCompleted: "Study completed", calendarLegendExam: "Exam", calendarLegendPlanned: "Planned",
+    calendarLegendHoliday: "Govt holiday",
     noTopicsSubjectShort: "No topics yet", addTopicsShort: "Add Topics",
     examSetupTitle: "Set up your exam", examSetupSubtitle: "Get your exam prep organized in a few quick steps.",
     examSetupStep1: "Add exam subjects", examSetupStep2: "Set exam date", examSetupStep3: "Create combined exams",
@@ -1217,6 +1217,7 @@ const T = {
     studyOverview: "পড়াশোনার সারসংক্ষেপ", focusedLabel: "ফোকাস করা হয়েছে", topicsCompletedLabel: "টি টপিক সম্পন্ন",
     completionLabel: "সম্পন্ন হয়েছে", streakLabel: "দিনের স্ট্রিক", weeklyActivity: "সাপ্তাহিক কার্যক্রম",
     calendarLegendCompleted: "পড়া সম্পন্ন", calendarLegendExam: "পরীক্ষা", calendarLegendPlanned: "পরিকল্পিত",
+    calendarLegendHoliday: "সরকারি ছুটি",
     noTopicsSubjectShort: "এখনো কোনো টপিক নেই", addTopicsShort: "টপিক যোগ করো",
     examSetupTitle: "তোমার এক্সাম সেট করো", examSetupSubtitle: "কয়েকটি সহজ ধাপে এক্সাম প্রস্তুতি গুছিয়ে নাও।",
     examSetupStep1: "এক্সাম সাবজেক্ট যোগ করো", examSetupStep2: "এক্সামের তারিখ ঠিক করো", examSetupStep3: "কম্বাইন্ড এক্সাম তৈরি করো",
@@ -3064,6 +3065,9 @@ export default function FocusGo() {
               <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10.5, color:textMuted2, fontWeight:600}}>
                 <span style={{width:7,height:7,borderRadius:"50%", background:accent}}/>{t.calendarLegendPlanned}
               </span>
+              <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10.5, color:textMuted2, fontWeight:600}}>
+                <span style={{width:7,height:7,borderRadius:"50%", background:"#1A1814"}}/>{t.calendarLegendHoliday}
+              </span>
             </div>
 
             <TopicSummaryPeriodCard
@@ -3388,7 +3392,7 @@ export default function FocusGo() {
       {/* Calendar month view */}
       {showCalendar && (
         <CalendarModal t={t} lang={lang} nf={nf} monthName={monthName} weekdayShort={weekdayShort}
-          calMonth={calMonth} setCalMonth={setCalMonth} entries={entries}
+          calMonth={calMonth} setCalMonth={setCalMonth} entries={entries} examDateKeys={examDateKeys}
           onClose={()=>setShowCalendar(false)} onSelectDay={(d)=>{setSelectedDay(d); setShowCalendar(false);}}
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark} today={today}/>
       )}
@@ -4886,17 +4890,20 @@ function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSe
             const hasAny = list.length > 0;
             const doneAll = hasAny && list.every(x=>x.done);
             const isExam = examDateKeys ? examDateKeys.has(dk) : false;
+            const isHoliday = isHolidayKey(dk);
             const isToday = dk === dateKey(today);
             const isSelected = dk === selectedKey;
             const future = d > today;
             return (
               <button key={i} onClick={()=>onSelectDay(d)} disabled={future && !hasAny}
+                title={isHoliday ? holidayName(dk, lang) : undefined}
                 style={{display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"4px 0", border:"none", background:"transparent", cursor:(future&&!hasAny)?"default":"pointer", opacity:(future&&!hasAny)?0.4:1}}>
                 <div style={{position:"relative", width:26, height:26, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700,
                   background: isSelected ? accent : "transparent",
                   border: isToday && !isSelected ? `1px solid ${accent}` : "none",
                   color: isSelected ? "#fff" : textMain}}>
                   {isExam && <span style={{position:"absolute", top:-2, right:-2, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
+                  {isHoliday && <span style={{position:"absolute", top:-2, left:-2, width:5, height:5, borderRadius:"50%", background:"#1A1814"}}/>}
                   <Num>{nf(d.getDate())}</Num>
                 </div>
                 <span style={{width:4, height:4, borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : accent)}}/>
@@ -4909,7 +4916,7 @@ function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSe
   );
 }
 
-function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalMonth, entries, onClose, onSelectDay, cardBg, cardBorder, textMain, textMuted2, accent, dark, today }) {
+function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalMonth, entries, onClose, onSelectDay, examDateKeys, cardBg, cardBorder, textMain, textMuted2, accent, dark, today }) {
   const y = calMonth.getFullYear(), m = calMonth.getMonth();
   const firstDay = new Date(y, m, 1);
   const startOffset = firstDay.getDay();
@@ -4943,15 +4950,35 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
             const hasAny = list.length > 0;
             const doneAll = hasAny && list.every(x=>x.done);
             const isToday = dk === dateKey(today);
+            const isExam = examDateKeys ? examDateKeys.has(dk) : false;
+            const isHoliday = isHolidayKey(dk);
             const future = d > today;
             return (
               <button key={i} onClick={()=>onSelectDay(d)} disabled={future && !hasAny}
+                title={isHoliday ? holidayName(dk, lang) : undefined}
                 style={{position:"relative", aspectRatio:"1", border: isToday ? `1.5px solid ${accent}` : "1px solid transparent", borderRadius:10, background: dark?"#121110":"#F8F5EE", cursor:(future&&!hasAny)?"default":"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:3, opacity: (future&&!hasAny)?0.4:1}}>
+                {isExam && <span style={{position:"absolute", top:4, right:4, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
+                {isHoliday && <span style={{position:"absolute", top:4, left:4, width:5, height:5, borderRadius:"50%", background:"#1A1814"}}/>}
                 <span style={{fontSize:12, fontWeight:600, color:textMain}}><Num>{nf(d.getDate())}</Num></span>
                 <span style={{width:5,height:5,borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : accent)}}/>
               </button>
             );
           })}
+        </div>
+        {/* Calendar legend */}
+        <div style={{display:"flex", justifyContent:"center", alignItems:"center", gap:12, marginTop:14, flexWrap:"wrap"}}>
+          <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10, color:textMuted2, fontWeight:600}}>
+            <span style={{width:6,height:6,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
+          </span>
+          <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10, color:textMuted2, fontWeight:600}}>
+            <span style={{width:6,height:6,borderRadius:"50%", background:"#C0392B"}}/>{t.calendarLegendExam}
+          </span>
+          <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10, color:textMuted2, fontWeight:600}}>
+            <span style={{width:6,height:6,borderRadius:"50%", background:accent}}/>{t.calendarLegendPlanned}
+          </span>
+          <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10, color:textMuted2, fontWeight:600}}>
+            <span style={{width:6,height:6,borderRadius:"50%", background:"#1A1814"}}/>{t.calendarLegendHoliday}
+          </span>
         </div>
       </div>
     </div>
@@ -4969,6 +4996,12 @@ function DayDetailModal({ t, lang, nf, weekdayName, monthName, day, entries, all
           </div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
+        {isHolidayKey(dateKey(day)) && (
+          <div style={{marginTop:12, display:"flex", alignItems:"center", gap:7, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 12px"}}>
+            <span style={{width:8,height:8,borderRadius:"50%", background:"#1A1814", flexShrink:0}}/>
+            <span style={{fontSize:12.5, fontWeight:700, color:textMain}}>{holidayName(dateKey(day), lang)}</span>
+          </div>
+        )}
         <div style={{marginTop:16, display:"flex", flexDirection:"column", gap:8}}>
           {entries.length === 0 && <div style={{fontSize:13, color:textMuted2, textAlign:"center", padding:"20px 0"}}>{t.noData}</div>}
           {entries.map(e => {
