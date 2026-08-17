@@ -1035,6 +1035,7 @@ const T = {
     dayDetail: "Day Detail", planned: "Planned", done: "Done", notDone: "Not Done", noData: "No study data for this day.",
     noSubjectData: "No subject data for this period.",
     minutes: "min", close: "Close", deleteTopic: "Delete",
+    confirmDeleteTopic: "Delete this topic?", confirmDelete: "Yes, delete",
     monthOverview: "Month Overview", back: "Back",
     todaysGoal: "Today's Goal", adjustGoal: "Adjust Goal", topics: "topics",
     doneCount: "Done", remaining: "Remaining", setGoal: "Set Goal",
@@ -1139,6 +1140,7 @@ const T = {
     dayDetail: "দিনের বিবরণ", planned: "পরিকল্পিত", done: "সম্পন্ন", notDone: "সম্পন্ন হয়নি", noData: "এই দিনের কোনো তথ্য নেই।",
     noSubjectData: "এই সময়ের জন্য কোনো সাবজেক্ট তথ্য নেই।",
     minutes: "মিনিট", close: "বন্ধ", deleteTopic: "মুছুন",
+    confirmDeleteTopic: "এই টপিকটি মুছে ফেলবে?", confirmDelete: "হ্যাঁ, মুছে ফেলো",
     monthOverview: "মাসের সংক্ষিপ্ত দৃশ্য", back: "পেছনে",
     todaysGoal: "আজকের লক্ষ্য", adjustGoal: "লক্ষ্য পরিবর্তন করুন", topics: "টপিক",
     doneCount: "সম্পন্ন", remaining: "বাকি", setGoal: "লক্ষ্য সেট করুন",
@@ -4388,14 +4390,9 @@ function TopicSummaryPeriodCard({ label, rangeLabel, isComplete, pendingText, co
 // Read-only-capable list of topics used by the Today and Plan tabs.
 function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textMuted2, textMain, accent, onToggle, onStartTimer, onEdit, onDelete, onRename, emptyText, emptySubtext }) {
   const ls = (px) => (lang === "bn" ? 0 : px);
-  const [editingId, setEditingId] = useState(null);
-  const [editValue, setEditValue] = useState("");
-  const startInlineEdit = (item) => { setEditingId(item.id); setEditValue(item.topic); };
-  const commitInlineEdit = (item) => {
-    const val = editValue.trim();
-    if (onRename && val && val !== item.topic) onRename(item, val);
-    setEditingId(null);
-  };
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const closeMenu = () => { setOpenMenuId(null); setConfirmDeleteId(null); };
   if (items.length === 0) {
     return (
       <div style={{textAlign:"center", padding:"30px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16}}>
@@ -4414,21 +4411,9 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
               style={{width:34,height:34, borderRadius:"50%", border:"none", flexShrink:0, cursor: onToggle?"pointer":"default", background: item.done ? "#6E8B5E" : c.bgSoft, display:"flex",alignItems:"center",justifyContent:"center"}}>
               {item.done ? <Check size={16} color="#fff" strokeWidth={3}/> : <span style={{width:9,height:9,borderRadius:"50%", background:c.bg}}/>}
             </button>
-            <div style={{flex:1, minWidth:0}} onClick={(!onStartTimer || editingId===item.id) ? undefined : ()=>onStartTimer(item.id, item.duration)}>
+            <div style={{flex:1, minWidth:0}} onClick={onStartTimer ? ()=>onStartTimer(item.id, item.duration) : undefined}>
               <div style={{fontSize:10, fontWeight:700, letterSpacing:ls(0.5), color:c.bg}}>{item.subject.toUpperCase()}</div>
-              {editingId === item.id ? (
-                <input
-                  autoFocus
-                  value={editValue}
-                  onChange={e=>setEditValue(e.target.value)}
-                  onClick={e=>e.stopPropagation()}
-                  onKeyDown={e=>{ if (e.key==="Enter") commitInlineEdit(item); if (e.key==="Escape") setEditingId(null); }}
-                  onBlur={()=>commitInlineEdit(item)}
-                  style={{fontSize:14, fontWeight:600, width:"100%", background:"transparent", border:"none", borderBottom:`1.5px solid ${accent||"#E07A4E"}`, color:textMain||"inherit", padding:"2px 0", outline:"none", fontFamily:"inherit"}}
-                />
-              ) : (
-                <div style={{fontSize:14, fontWeight:600, wordBreak:"break-word", textDecoration: item.done ? "line-through" : "none", opacity: item.done ? 0.6 : 1}}>{item.topic}</div>
-              )}
+              <div style={{fontSize:14, fontWeight:600, wordBreak:"break-word", textDecoration: item.done ? "line-through" : "none", opacity: item.done ? 0.6 : 1}}>{item.topic}</div>
             </div>
             <div style={{textAlign:"right", flexShrink:0}}>
               <div style={{fontSize:12, fontWeight:600, color:textMuted2}}>
@@ -4438,23 +4423,43 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
               </div>
               <div style={{fontSize:11, color:textMuted2}}><Num>{nf(item.duration)}</Num> {t.minutes}</div>
             </div>
-            {editingId === item.id ? (
-              <>
-                <button onClick={()=>commitInlineEdit(item)} style={{border:"none", background:"transparent", cursor:"pointer", color: accent||textMuted2, padding:2}}>
-                  <Check size={16}/>
+            {(onEdit || onDelete) && (
+              <div style={{position:"relative", flexShrink:0}}>
+                <button onClick={()=>{ setOpenMenuId(v => v===item.id ? null : item.id); setConfirmDeleteId(null); }} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4}}>
+                  <MoreVertical size={16}/>
                 </button>
-                {onDelete && (
-                  <button onClick={()=>{ setEditingId(null); onDelete(item.id); }} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0392B", padding:2}}>
-                    <Trash2 size={15}/>
-                  </button>
+                {openMenuId === item.id && (
+                  <>
+                    <div onClick={closeMenu} style={{position:"fixed", inset:0, zIndex:59}}/>
+                    <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 6px 18px rgba(0,0,0,0.15)", zIndex:60, minWidth:150, overflow:"hidden"}}>
+                      {confirmDeleteId === item.id ? (
+                        <>
+                          <div style={{padding:"9px 12px", fontSize:11.5, color:textMuted2, fontWeight:600}}>{t.confirmDeleteTopic || t.deleteTopic}</div>
+                          <button onClick={()=>{ closeMenu(); onDelete(item.id); }} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:12.5, fontWeight:700, cursor:"pointer", textAlign:"left"}}>
+                            <Trash2 size={13}/> {t.confirmDelete || t.deleteTopic}
+                          </button>
+                          <button onClick={()=>setConfirmDeleteId(null)} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                            {t.cancel}
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          {onEdit && (
+                            <button onClick={()=>{closeMenu(); onEdit(item);}} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                              <Pencil size={13}/> {t.edit}
+                            </button>
+                          )}
+                          {onDelete && (
+                            <button onClick={()=>setConfirmDeleteId(item.id)} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                              <Trash2 size={13}/> {t.deleteTopic}
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </>
                 )}
-              </>
-            ) : (
-              onEdit && (
-                <button onClick={()=>startInlineEdit(item)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:2}}>
-                  <Pencil size={15}/>
-                </button>
-              )
+              </div>
             )}
           </div>
         );
