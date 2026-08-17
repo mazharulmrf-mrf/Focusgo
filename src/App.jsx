@@ -1036,6 +1036,7 @@ const T = {
     addTopicTitle: "Add a topic", subjectLabel: "Subject", subjectPlaceholder: "e.g. Physics, বাংলা...",
     pickSubject: "Pick a subject, or type a new one below", newSubjectAutoSaved: "A new subject you type here is added to your subject list too.",
     lightMode: "Switch to light mode", darkMode: "Switch to dark mode",
+    themeSystem: "System", themeLight: "Light", themeDark: "Dark",
     topicLabel: "Topic", topicPlaceholder: "e.g. Newton's Laws",
     durationLabel: "Duration (minutes)", cancel: "Cancel", add: "Add",
     dayDetail: "Day Detail", planned: "Planned", done: "Done", notDone: "Not Done", noData: "No study data for this day.",
@@ -1144,6 +1145,7 @@ const T = {
     addTopicTitle: "টপিক যোগ করুন", subjectLabel: "সাবজেক্ট", subjectPlaceholder: "যেমন: Physics, বাংলা...",
     pickSubject: "একটা সাবজেক্ট বেছে নাও, বা নিচে নতুন লিখো", newSubjectAutoSaved: "এখানে নতুন যা লিখবে সেটাও তোমার সাবজেক্ট লিস্টে যোগ হয়ে যাবে।",
     lightMode: "লাইট মোডে যান", darkMode: "ডার্ক মোডে যান",
+    themeSystem: "সিস্টেম", themeLight: "লাইট", themeDark: "ডার্ক",
     topicLabel: "টপিক", topicPlaceholder: "যেমন: নিউটনের সূত্র",
     durationLabel: "সময়কাল (মিনিট)", cancel: "বাতিল", add: "যোগ করো",
     dayDetail: "দিনের বিবরণ", planned: "পরিকল্পিত", done: "সম্পন্ন", notDone: "সম্পন্ন হয়নি", noData: "এই দিনের কোনো তথ্য নেই।",
@@ -2645,10 +2647,10 @@ export default function FocusGo() {
                 <WifiOff size={12}/> {t.offlineBadge}
               </div>
             )}
-            <button onClick={()=>{vibrate(); setThemeMode(dark ? "light" : "dark");}}
-              title={dark ? t.lightMode : t.darkMode}
+            <button onClick={()=>{vibrate(); setThemeMode(themeMode==="system" ? "light" : themeMode==="light" ? "dark" : "system");}}
+              title={themeMode==="system" ? t.themeSystem : themeMode==="light" ? t.themeLight : t.themeDark}
               style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
-              {dark ? <Sun size={16}/> : <Moon size={16}/>}
+              {themeMode==="system" ? <Contrast size={16}/> : themeMode==="light" ? <Sun size={16}/> : <Moon size={16}/>}
             </button>
             <UserMenu
               onOpenProfile={()=>{vibrate(); setShowProfile(true);}}
