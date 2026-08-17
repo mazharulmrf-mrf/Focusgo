@@ -1030,6 +1030,7 @@ const T = {
     summaryPendingWeek: "Summary will show once this week ends.",
     summaryPendingMonth: "Summary will show once this month ends.",
     addTopicTitle: "Add a topic", subjectLabel: "Subject", subjectPlaceholder: "e.g. Physics, বাংলা...",
+    pickSubject: "Pick a subject, or type a new one below", newSubjectAutoSaved: "A new subject you type here is added to your subject list too.",
     topicLabel: "Topic", topicPlaceholder: "e.g. Newton's Laws",
     durationLabel: "Duration (minutes)", cancel: "Cancel", add: "Add",
     dayDetail: "Day Detail", planned: "Planned", done: "Done", notDone: "Not Done", noData: "No study data for this day.",
@@ -1135,6 +1136,7 @@ const T = {
     summaryPendingWeek: "এই সপ্তাহ শেষ হলে সারাংশ দেখা যাবে।",
     summaryPendingMonth: "এই মাস শেষ হলে সারাংশ দেখা যাবে।",
     addTopicTitle: "টপিক যোগ করুন", subjectLabel: "সাবজেক্ট", subjectPlaceholder: "যেমন: Physics, বাংলা...",
+    pickSubject: "একটা সাবজেক্ট বেছে নাও, বা নিচে নতুন লিখো", newSubjectAutoSaved: "এখানে নতুন যা লিখবে সেটাও তোমার সাবজেক্ট লিস্টে যোগ হয়ে যাবে।",
     topicLabel: "টপিক", topicPlaceholder: "যেমন: নিউটনের সূত্র",
     durationLabel: "সময়কাল (মিনিট)", cancel: "বাতিল", add: "যোগ করো",
     dayDetail: "দিনের বিবরণ", planned: "পরিকল্পিত", done: "সম্পন্ন", notDone: "সম্পন্ন হয়নি", noData: "এই দিনের কোনো তথ্য নেই।",
@@ -1409,7 +1411,6 @@ export default function FocusGo() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [showQuickAdd, setShowQuickAdd] = useState(false);
   // ডেস্কটপ সাইডবার collapse/expand করা যায় কিনা — চাইলে ইউজার লুকিয়ে রাখতে পারবে,
   // পছন্দটা localStorage-এ থেকে যায় (রিফ্রেশ করলেও মনে থাকবে)।
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -2636,37 +2637,6 @@ export default function FocusGo() {
                 <WifiOff size={12}/> {t.offlineBadge}
               </div>
             )}
-            <button onClick={()=>{vibrate(); setThemeMode(m => m==="system" ? "light" : m==="light" ? "dark" : "system");}}
-              title={themeMode==="system" ? t.themeSystem : themeMode==="dark" ? t.themeDark : t.themeLight}
-              style={{border:"1px solid #D97757", background:cardBg, color:textMain, borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
-              {themeMode === "system" ? <Contrast size={15}/> : themeMode === "dark" ? <Moon size={15}/> : <Sun size={15}/>}
-            </button>
-            <div style={{position:"relative", flexShrink:0}}>
-              <button onClick={()=>{vibrate(); setShowQuickAdd(v=>!v);}}
-                title={t.quickAdd}
-                style={{border:"none", background:accent, color:"#fff", borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
-                <Plus size={16} strokeWidth={2.4} style={{transform: showQuickAdd ? "rotate(45deg)" : "none", transition:"transform .15s ease"}}/>
-              </button>
-              {showQuickAdd && (
-                <>
-                  <div onClick={()=>setShowQuickAdd(false)} style={{position:"fixed", inset:0, zIndex:59}}/>
-                  <div style={{position:"absolute", right:0, top:"100%", marginTop:6, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, boxShadow:"0 8px 22px rgba(0,0,0,0.18)", zIndex:60, minWidth:170, overflow:"hidden", padding:4}}>
-                    <button onClick={()=>{setShowQuickAdd(false); setAddTargetKey(todayKey); setShowAdd(true);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:8, padding:"9px 10px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
-                      <Clock size={14} color={textMuted2}/> {t.addStudyTopicQuick}
-                    </button>
-                    <button onClick={()=>{setShowQuickAdd(false); setShowSubjects(true);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:8, padding:"9px 10px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
-                      <Folder size={14} color={textMuted2}/> {t.addSubjectQuick}
-                    </button>
-                    <button onClick={()=>{setShowQuickAdd(false); setShowExams(true);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:8, padding:"9px 10px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
-                      <GraduationCap size={14} color={textMuted2}/> {t.addExamQuick}
-                    </button>
-                    <button onClick={()=>{setShowQuickAdd(false); setEditingCombinedExam(null); setShowCombinedExamEditor(true);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:8, padding:"9px 10px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
-                      <GraduationCap size={14} color={textMuted2}/> {t.addCombinedExamQuick}
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
             <UserMenu
               onOpenProfile={()=>{vibrate(); setShowProfile(true);}}
               onOpenSettings={()=>{vibrate(); setShowSettings(true);}}
@@ -3365,7 +3335,7 @@ export default function FocusGo() {
 
       {/* Add topic modal */}
       {showAdd && (
-        <AddModal t={t} nf={nf} subjects={subjects} entries={entries} topicBank={topicBank} onAddTopicToBank={addTopicToBank} defaultStart={`${pad2(now.getHours())}:${pad2(now.getMinutes())}`}
+        <AddModal t={t} nf={nf} subjects={subjects} entries={entries} topicBank={topicBank} onAddTopicToBank={addTopicToBank} onAddSubject={addSubject} defaultStart={`${pad2(now.getHours())}:${pad2(now.getMinutes())}`}
           onClose={()=>setShowAdd(false)} onAdd={addTopic}
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
       )}
@@ -4468,7 +4438,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
   );
 }
 
-function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, defaultStart, onClose, onAdd, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
+function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAddSubject, defaultStart, onClose, onAdd, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const [subject, setSubject] = useState(subjects[0] || "");
   const [topic, setTopic] = useState("");
   const [useTime, setUseTime] = useState(false);
@@ -4477,14 +4447,18 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, defau
   const [durationInput, setDurationInput] = useState(30);
   const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const duration = useTime ? diffMinutes(startTime, endTime) : (Number(durationInput) || 0);
-  const canSubmit = subjects.length > 0 && subject && topic.trim();
+  const canSubmit = subject.trim() && topic.trim();
   // Topic Bank quick-pick: not-yet-used topics first (still pending), then previously-used ones by recency —
   // ফ্রি-টেক্সট ফলব্যাক এখনো আছে (নিচের input), নতুন কিছু লিখলে সেটাও অটো ব্যাংকে যোগ হয়ে যাবে
   const pickTopics = topicPickList(topicBank, entries, subject);
+  // সাবজেক্ট চিপ লিস্ট — আগে থেকে যোগ করা সাবজেক্টগুলো, ক্লিক করলেই সিলেক্ট হয়ে যাবে (টপিক চিপের মতোই)
+  const subjectChips = [...subjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"}));
   const submit = () => {
     if (!canSubmit) return;
-    onAddTopicToBank && onAddTopicToBank(subject, topic.trim());
-    onAdd({subject, topic:topic.trim(), time: useTime ? startTime : null, endTime: useTime ? endTime : null, duration});
+    const subj = subject.trim();
+    onAddSubject && onAddSubject(subj);
+    onAddTopicToBank && onAddTopicToBank(subj, topic.trim());
+    onAdd({subject: subj, topic:topic.trim(), time: useTime ? startTime : null, endTime: useTime ? endTime : null, duration});
   };
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
@@ -4496,13 +4470,12 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, defau
         <div style={{display:"flex", flexDirection:"column", gap:12}}>
           <div>
             <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.subjectLabel}</div>
-            {subjects.length === 0 ? (
-              <div style={{fontSize:13, color:textMuted2, padding:"6px 0"}}>{t.addSubjectsFirst}</div>
-            ) : (
-              <select style={inputStyle} value={subject} onChange={e=>setSubject(e.target.value)}>
-                {[...subjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"})).map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
+            {subjectChips.length > 0 && (
+              <div style={{fontSize:10, fontWeight:700, color:textMuted2, opacity:0.8, marginBottom:0}}>{t.pickSubject}</div>
             )}
+            <RecentTopicChips topics={subjectChips} onPick={setSubject} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}/>
+            <input style={{...inputStyle, marginTop: subjectChips.length ? 8 : 0}} value={subject} onChange={e=>setSubject(e.target.value)} placeholder={t.subjectPlaceholder}/>
+            <div style={{fontSize:10.5, color:textMuted2, opacity:0.75, marginTop:5}}>{t.newSubjectAutoSaved}</div>
           </div>
           <div>
             <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.topicLabel}</div>
