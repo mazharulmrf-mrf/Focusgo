@@ -1581,13 +1581,23 @@ export default function FocusGo() {
       const reqFs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
       const lockOrientation = () => {
         try {
-          // Screen Orientation lock() সাধারণ ব্রাউজার ট্যাবে ব্যর্থ হয়ে (silently)
-          // fullscreen-এর orientation-কে ফ্রিজ করে রাখে, ফলে Chrome mobile-এ
-          // ফোন ঘোরালেও স্ক্রিন rotate হয় না। তাই শুধু installed/standalone
-          // PWA মোডেই lock() ট্রাই করা হচ্ছে — regular ট্যাবে এটা স্কিপ করলে
-          // ডিভাইসের normal OS auto-rotate নিজে থেকেই কাজ করবে।
-          if (isStandaloneApp() && window.screen && window.screen.orientation && window.screen.orientation.lock) {
+          // Chrome (regular, non-installed tab)-এ lock("any") ব্যর্থ হয়ে fullscreen-এর
+          // orientation ফ্রিজ করে রাখে, তাই Chrome-এর ক্ষেত্রে regular ট্যাবে এটা স্কিপ
+          // করে ডিভাইসের normal OS auto-rotate-এর উপর ছেড়ে দেওয়া হচ্ছে। অন্য ব্রাউজারে
+          // (Firefox, Samsung Internet, Edge, Opera ইত্যাদি) এই সমস্যা না থাকায় সেগুলোতে
+          // সবসময় lock() ট্রাই করা হচ্ছে যাতে OS auto-rotate বন্ধ থাকলেও rotate করা যায়।
+          const ua = navigator.userAgent || "";
+          const isChrome = /Chrome\//i.test(ua) && !/Edg\/|OPR\/|SamsungBrowser\//i.test(ua);
+          const skip = isChrome && !isStandaloneApp();
+          if (skip) return;
+          if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
             window.screen.orientation.lock("any").catch(() => {});
+          } else if (window.screen && window.screen.lockOrientation) {
+            window.screen.lockOrientation("any");
+          } else if (window.screen && window.screen.mozLockOrientation) {
+            window.screen.mozLockOrientation("any");
+          } else if (window.screen && window.screen.msLockOrientation) {
+            window.screen.msLockOrientation("any");
           }
         } catch (e) { /* orientation lock unsupported — ignore */ }
       };
@@ -3577,15 +3587,17 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
           <div style={{display:"flex", flexDirection:"column", alignItems:"center", transform:"translateY(-6vh)"}}>
             {liveClock}
             <div style={{display:"flex", alignItems:"stretch", gap:"clamp(10px,2vw,16px)"}}>
-              {pct !== null && (
-                <div style={{width:8, borderRadius:4, background:trackColor, border:`1px solid ${trackBorder}`, overflow:"hidden", display:"flex", alignItems:"flex-end", alignSelf:"stretch"}}>
-                  <div style={{width:"100%", height:`${pct}%`, background:accent, borderRadius:4, transition:"height .3s"}}/>
-                </div>
-              )}
+              <div style={{width:48, flexShrink:0, display:"flex", justifyContent:"center", alignItems:"flex-end"}}>
+                {pct !== null && (
+                  <div style={{width:8, borderRadius:4, background:trackColor, border:`1px solid ${trackBorder}`, overflow:"hidden", display:"flex", alignItems:"flex-end", alignSelf:"stretch"}}>
+                    <div style={{width:"100%", height:`${pct}%`, background:accent, borderRadius:4, transition:"height .3s"}}/>
+                  </div>
+                )}
+              </div>
               <div style={{display:"flex", alignItems:"center", gap:"clamp(4px,1vw,10px)"}}>
                 {clockDigits}
               </div>
-              <div style={{display:"flex", alignItems:"center"}}>
+              <div style={{width:48, flexShrink:0, display:"flex", justifyContent:"center", alignItems:"center"}}>
                 {sideButtons}
               </div>
             </div>
