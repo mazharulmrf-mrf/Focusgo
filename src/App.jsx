@@ -2895,9 +2895,10 @@ export default function FocusGo() {
           </div>
 
           <TopicsList items={todayTopics} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
-            cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2}
+            cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} textMain={textMain} accent={accent}
             onToggle={(id)=>toggleDoneFor(todayKey, id)} onStartTimer={startTimerFor}
             onEdit={(item)=>setEditTopic({...item, _dk: todayKey})} onDelete={(id)=>deleteTopicFor(todayKey, id)}
+            onRename={(item, newTopic)=>saveEditFor(todayKey, {...item, topic:newTopic})}
             emptyText={t.noTopicsToday}/>
         </div>
         )}
@@ -2954,11 +2955,12 @@ export default function FocusGo() {
             </div>
 
             <TopicsList items={planTopics} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
-              cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2}
+              cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} textMain={textMain} accent={accent}
               onToggle={isPlanToday ? (id)=>toggleDoneFor(planKey, id) : null}
               onStartTimer={isPlanToday ? startTimerFor : null}
               onEdit={(item)=>setEditTopic({...item, _dk: planKey})}
               onDelete={(id)=>deleteTopicFor(planKey, id)}
+              onRename={(item, newTopic)=>saveEditFor(planKey, {...item, topic:newTopic})}
               emptyText={t.noTopicsPlanned} emptySubtext={t.noTopicsPlannedSub}/>
 
             {planTopics.length > 0 && (() => {
@@ -4372,9 +4374,17 @@ function TopicSummaryPeriodCard({ label, rangeLabel, isComplete, pendingText, co
 }
 
 // Read-only-capable list of topics used by the Today and Plan tabs.
-function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textMuted2, onToggle, onStartTimer, onEdit, onDelete, emptyText, emptySubtext }) {
+function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textMuted2, textMain, accent, onToggle, onStartTimer, onEdit, onDelete, onRename, emptyText, emptySubtext }) {
   const ls = (px) => (lang === "bn" ? 0 : px);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editValue, setEditValue] = useState("");
+  const startInlineEdit = (item) => { setEditingId(item.id); setEditValue(item.topic); };
+  const commitInlineEdit = (item) => {
+    const val = editValue.trim();
+    if (onRename && val && val !== item.topic) onRename(item, val);
+    setEditingId(null);
+  };
   if (items.length === 0) {
     return (
       <div style={{textAlign:"center", padding:"30px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16}}>
@@ -4393,9 +4403,21 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
               style={{width:34,height:34, borderRadius:"50%", border:"none", flexShrink:0, cursor: onToggle?"pointer":"default", background: item.done ? "#6E8B5E" : c.bgSoft, display:"flex",alignItems:"center",justifyContent:"center"}}>
               {item.done ? <Check size={16} color="#fff" strokeWidth={3}/> : <span style={{width:9,height:9,borderRadius:"50%", background:c.bg}}/>}
             </button>
-            <div style={{flex:1, minWidth:0}} onClick={onStartTimer ? ()=>onStartTimer(item.id, item.duration) : undefined}>
+            <div style={{flex:1, minWidth:0}} onClick={(!onStartTimer || editingId===item.id) ? undefined : ()=>onStartTimer(item.id, item.duration)}>
               <div style={{fontSize:10, fontWeight:700, letterSpacing:ls(0.5), color:c.bg}}>{item.subject.toUpperCase()}</div>
-              <div style={{fontSize:14, fontWeight:600, wordBreak:"break-word"}}>{item.topic}</div>
+              {editingId === item.id ? (
+                <input
+                  autoFocus
+                  value={editValue}
+                  onChange={e=>setEditValue(e.target.value)}
+                  onClick={e=>e.stopPropagation()}
+                  onKeyDown={e=>{ if (e.key==="Enter") commitInlineEdit(item); if (e.key==="Escape") setEditingId(null); }}
+                  onBlur={()=>commitInlineEdit(item)}
+                  style={{fontSize:14, fontWeight:600, width:"100%", background:"transparent", border:"none", borderBottom:`1.5px solid ${accent||"#E07A4E"}`, color:textMain||"inherit", padding:"2px 0", outline:"none", fontFamily:"inherit"}}
+                />
+              ) : (
+                <div style={{fontSize:14, fontWeight:600, wordBreak:"break-word"}}>{item.topic}</div>
+              )}
             </div>
             <div style={{textAlign:"right", flexShrink:0}}>
               <div style={{fontSize:12, fontWeight:600, color:textMuted2}}>
@@ -4432,15 +4454,23 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
               )
             ) : (
               <>
-                {onEdit && (
-                  <button onClick={()=>onEdit(item)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:2}}>
-                    <Pencil size={15}/>
-                  </button>
-                )}
-                {onDelete && (
-                  <button onClick={()=>onDelete(item.id)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:2}}>
-                    <Trash2 size={15}/>
-                  </button>
+                {editingId === item.id ? (
+                  <>
+                    <button onClick={()=>commitInlineEdit(item)} style={{border:"none", background:"transparent", cursor:"pointer", color: accent||textMuted2, padding:2}}>
+                      <Check size={16}/>
+                    </button>
+                    {onDelete && (
+                      <button onClick={()=>{ setEditingId(null); onDelete(item.id); }} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0392B", padding:2}}>
+                        <Trash2 size={15}/>
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  onEdit && (
+                    <button onClick={()=>startInlineEdit(item)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:2}}>
+                      <Pencil size={15}/>
+                    </button>
+                  )
                 )}
               </>
             )}
