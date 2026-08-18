@@ -310,7 +310,7 @@ function UserMenu({ onOpenProfile, onOpenSettings, cardBorder, cardBg, textMain,
     <div style={{position:"relative", flexShrink:0}}>
       <button
         onClick={() => setOpen(v => !v)}
-        style={{ border: "1px solid #D97757", background: cardBg, color: textMain, borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, overflow:"hidden", padding:0 }}
+        style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMain, borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, overflow:"hidden", padding:0 }}
         title={profileLabel}
       >
         {user && user.photoURL ? (
@@ -411,7 +411,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, car
 
   const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:`1px solid ${cardBorder}` };
   const labelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14, fontWeight:700, color:textMain };
-  const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:accent };
+  const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#C9C0AC" : "#6B6353" };
 
   if (legalDoc) {
     const sections = legalDoc === "privacy" ? t.privacySections : t.termsSections;
@@ -554,7 +554,7 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
           </div>
           <div style={{display:"flex", alignItems:"center", gap:14, marginBottom:16}}>
             <div style={{width:56, height:56, borderRadius:"50%", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-              <User size={24} color={accent}/>
+              <User size={24} color={dark ? "#C9C0AC" : "#6B6353"}/>
             </div>
             <div style={{fontSize:14, fontWeight:800}}>{gL.title}</div>
           </div>
@@ -725,7 +725,7 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
               {user.photoURL ? (
                 <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
               ) : (
-                <User size={24} color={accent}/>
+                <User size={24} color={dark ? "#C9C0AC" : "#6B6353"}/>
               )}
             </div>
             <button onClick={handlePickPhoto} disabled={photoBusy} title={L.changePhoto} style={{
@@ -2436,6 +2436,9 @@ export default function FocusGo() {
   const textMuted = dark ? "#9C948400" : "#8A8272";
   const textMuted2 = dark ? "#A69E8C" : "#8A8272";
   const accent = "#D97757";
+  const accentLight = dark ? "#3A2A22" : "#FBEAE0"; // primary light — very light peach, শুধু active/selected state-এর হালকা background-এ ব্যবহার হবে
+  const neutralIconBg = dark ? "#26231D" : "#F3EEE3"; // decorative icon/avatar background — orange নয়, warm neutral
+  const neutralIconColor = dark ? "#C9C0AC" : "#6B6353"; // decorative icon color — warm gray, orange নয়
 
   // ডেস্কটপ (≥1024px): বাম সাইডবার নেভিগেশন থাকবে, bottom dock হাইড হবে, আর content column
   // single-column-এই থাকবে কিন্তু zoom দিয়ে গোটা কনটেন্ট একসাথে বড় দেখানো হয় (অন্য অ্যাপগুলোর মতো)
@@ -2930,16 +2933,22 @@ export default function FocusGo() {
               {planDays.map((d,i) => {
                 const dk = dateKey(d);
                 const isSel = dk === planKey;
-                const count = (entries[dk] || []).length;
+                const dayList = entries[dk] || [];
+                const hasAny = dayList.length > 0;
+                const doneAll = hasAny && dayList.every(x=>x.done);
+                const statusColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : "#4C8FA6");
                 return (
                   <div key={i} onClick={()=>setPlanDate(d)} style={{textAlign:"center", cursor:"pointer", flex:1, padding:"0 2px"}}>
-                    <div style={{fontSize:9, fontWeight:700, color:textMuted2, opacity:0.85, marginBottom:8, letterSpacing:0.3}}>{weekdayShort(d)}</div>
-                    <div style={{width:32,height:32, borderRadius:"50%", display:"flex",alignItems:"center",justifyContent:"center", margin:"0 auto", fontSize:12, fontWeight:700,
-                      transition:"background .18s ease, color .18s ease, transform .18s ease", transform: isSel ? "scale(1.06)" : "scale(1)",
-                      background: isSel ? accent : "transparent", color: isSel ? "#fff" : textMain}}>
+                    <div style={{fontSize:9, fontWeight:700, color: isSel ? accent : textMuted2, opacity: isSel ? 1 : 0.85, marginBottom:8, letterSpacing:0.3}}>{weekdayShort(d)}</div>
+                    <div style={{width:34,height:34, borderRadius:"50%", display:"flex",alignItems:"center",justifyContent:"center", margin:"0 auto", fontSize:13, fontWeight:800,
+                      transition:"background .18s ease, color .18s ease, box-shadow .18s ease", boxShadow: isSel ? `0 0 0 1.5px ${accent}` : "none",
+                      background: isSel ? (dark ? "rgba(217,119,87,0.22)" : "rgba(217,119,87,0.14)") : "transparent", color: isSel ? accent : textMain}}>
                       <Num>{nf(d.getDate())}</Num>
                     </div>
-                    <div style={{fontSize:9, color:textMuted2, marginTop:7, fontWeight:700}}>{count > 0 ? <Num>{nf(count)}</Num> : "·"}</div>
+                    {/* status dot — same legend colors as Calendar (green completed / blue planned) */}
+                    <div style={{marginTop:8, display:"flex", justifyContent:"center"}}>
+                      <span style={{width:6, height:6, borderRadius:"50%", background: statusColor, opacity: hasAny ? 1 : 0.3}}/>
+                    </div>
                   </div>
                 );
               })}
@@ -2988,39 +2997,31 @@ export default function FocusGo() {
             {(() => {
               const h = Math.floor(studyOverview.totalMin/60), m = studyOverview.totalMin%60;
               return (
-                <div style={{background: dark ? "linear-gradient(135deg, rgba(76,143,166,0.16), rgba(76,143,166,0.03))" : "linear-gradient(135deg, #4C8FA614, #4C8FA603)", border:`1px solid ${cardBorder}`, borderRadius:18, padding:"16px 18px", display:"flex", alignItems:"center", gap:14, marginBottom:10}}>
-                  <div style={{width:46,height:46, borderRadius:13, background: dark?"rgba(76,143,166,0.22)":"#4C8FA61F", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                    <Clock size={22} color="#4C8FA6"/>
+                <div style={{background: dark ? "linear-gradient(135deg, rgba(76,143,166,0.16), rgba(76,143,166,0.03))" : "linear-gradient(135deg, #4C8FA614, #4C8FA603)", border:`1px solid ${cardBorder}`, borderRadius:18, padding:"22px 18px 20px", display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:8, marginBottom:10}}>
+                  <div style={{width:44,height:44, borderRadius:13, background: dark?"rgba(76,143,166,0.22)":"#4C8FA61F", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginBottom:2}}>
+                    <Clock size={21} color="#4C8FA6"/>
                   </div>
-                  <div style={{minWidth:0}}>
-                    <div style={{fontSize:26, fontWeight:800, letterSpacing:-0.6, color:textMain, lineHeight:1.1}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
-                    <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, opacity:0.8, marginTop:2}}>{t.focusedLabel}</div>
-                  </div>
+                  <div style={{fontSize:26, fontWeight:800, letterSpacing:-0.6, color:textMain, lineHeight:1.1}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
+                  <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, opacity:0.8}}>{t.focusedLabel}</div>
                 </div>
               );
             })()}
 
             <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:20}}>
-              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"11px 10px", display:"flex", flexDirection:"column", gap:8}}>
-                <div style={{width:26,height:26, borderRadius:8, background:`rgba(110,139,94,0.15)`, display:"flex", alignItems:"center", justifyContent:"center"}}><Check size={13} color="#6E8B5E"/></div>
-                <div>
-                  <div style={{fontSize:15, fontWeight:800, letterSpacing:-0.2, color:textMain}}><Num>{nf(studyOverview.doneCount)}</Num></div>
-                  <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65, marginTop:1}}>{t.topicsCompletedLabel}</div>
-                </div>
+              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"16px 8px 14px", display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:8}}>
+                <div style={{width:30,height:30, borderRadius:9, background:`rgba(110,139,94,0.15)`, display:"flex", alignItems:"center", justifyContent:"center"}}><Check size={14} color="#6E8B5E"/></div>
+                <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.2, color:textMain, lineHeight:1.1}}><Num>{nf(studyOverview.doneCount)}</Num></div>
+                <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65}}>{t.topicsCompletedLabel}</div>
               </div>
-              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"11px 10px", display:"flex", flexDirection:"column", gap:8}}>
-                <div style={{width:26,height:26, borderRadius:8, background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center"}}><TrendingUp size={13} color={accent}/></div>
-                <div>
-                  <div style={{fontSize:15, fontWeight:800, letterSpacing:-0.2, color:textMain}}><Num>{nf(studyOverview.pct)}</Num>%</div>
-                  <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65, marginTop:1}}>{t.completionLabel}</div>
-                </div>
+              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"16px 8px 14px", display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:8}}>
+                <div style={{width:30,height:30, borderRadius:9, background: dark?"#26231D":"#F3EEE3", display:"flex", alignItems:"center", justifyContent:"center"}}><TrendingUp size={14} color={dark ? "#C9C0AC" : "#6B6353"}/></div>
+                <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.2, color:textMain, lineHeight:1.1}}><Num>{nf(studyOverview.pct)}</Num>%</div>
+                <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65}}>{t.completionLabel}</div>
               </div>
-              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"11px 10px", display:"flex", flexDirection:"column", gap:8}}>
-                <div style={{width:26,height:26, borderRadius:8, background: dark?"#2C2820":"#EFE9DC", display:"flex", alignItems:"center", justifyContent:"center"}}><Flame size={13} color={textMain}/></div>
-                <div>
-                  <div style={{fontSize:15, fontWeight:800, letterSpacing:-0.2, color:textMain}}><Num>{nf(studyOverview.streak)}</Num></div>
-                  <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65, marginTop:1}}>{t.streakLabel}</div>
-                </div>
+              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"16px 8px 14px", display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:8}}>
+                <div style={{width:30,height:30, borderRadius:9, background: dark?"#2C2820":"#EFE9DC", display:"flex", alignItems:"center", justifyContent:"center"}}><Flame size={14} color={textMain}/></div>
+                <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.2, color:textMain, lineHeight:1.1}}><Num>{nf(studyOverview.streak)}</Num></div>
+                <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65}}>{t.streakLabel}</div>
               </div>
             </div>
 
@@ -3112,8 +3113,8 @@ export default function FocusGo() {
               t={t} nf={nf} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
 
             <div style={{display:"flex", alignItems:"center", gap:10, marginTop:26, marginBottom:16}}>
-              <div style={{width:36,height:36, borderRadius:11, background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                <GraduationCap size={18} color={accent}/>
+              <div style={{width:36,height:36, borderRadius:11, background: dark?"#26231D":"#F3EEE3", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                <GraduationCap size={18} color={dark ? "#C9C0AC" : "#6B6353"}/>
               </div>
               <div style={{minWidth:0}}>
                 <div style={{fontSize:16.5, fontWeight:800, letterSpacing:-0.2, color:textMain}}>{t.syllabusProgress}</div>
@@ -3206,8 +3207,8 @@ export default function FocusGo() {
               if (examSetupEmpty) {
                 return (
                   <div style={{textAlign:"center", padding:"40px 24px", background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:20}}>
-                    <div style={{width:56,height:56, borderRadius:16, background:`${accent}14`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px"}}>
-                      <GraduationCap size={26} color={accent}/>
+                    <div style={{width:56,height:56, borderRadius:16, background: dark?"#26231D":"#F3EEE3", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px"}}>
+                      <GraduationCap size={26} color={dark ? "#C9C0AC" : "#6B6353"}/>
                     </div>
                     <div style={{fontSize:15.5, fontWeight:800, color:textMain}}>{t.noExamYetTitle}</div>
                     <div style={{fontSize:12.5, color:textMuted2, fontWeight:500, opacity:0.85, marginTop:6, maxWidth:260, marginLeft:"auto", marginRight:"auto", lineHeight:1.5}}>{t.noExamYetSubtitle}</div>
@@ -3922,7 +3923,7 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
         <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
           <GraduationCap size={14} style={{color:textMuted2, flexShrink:0}}/>
           <span style={{fontWeight:700, fontSize:13.5, wordBreak:"break-word"}}>{name}</span>
-          <span style={{fontSize:9.5, fontWeight:700, letterSpacing:ls(0.5), color:accent, background: dark?"rgba(217,119,87,0.15)":"rgba(217,119,87,0.1)", padding:"2px 7px", borderRadius:20, flexShrink:0, textTransform:"uppercase"}}>{typeLabel}</span>
+          <span style={{fontSize:9.5, fontWeight:700, letterSpacing:ls(0.5), color:textMuted2, background: dark?"#26231D":"#F3EEE3", padding:"2px 7px", borderRadius:20, flexShrink:0, textTransform:"uppercase"}}>{typeLabel}</span>
         </div>
         <ChevronDown size={15} style={{color:textMuted2, transform: expanded ? "rotate(180deg)" : "none", transition:"transform .15s", flexShrink:0}}/>
       </button>
@@ -4355,7 +4356,7 @@ function SubjectGroupedList({ entries, nf, t, remainingLabel, doneLabel, remaini
   return (
     <div style={{display:"flex", flexDirection:"column", gap:18}}>
       <div>
-        <div style={{fontSize:12, fontWeight:700, color:accent, marginBottom:8}}>✕ {remainingLabel} (<Num>{nf(remainingCount)}</Num>)</div>
+        <div style={{fontSize:12, fontWeight:700, color:"#211D18", marginBottom:8}}>✕ {remainingLabel} (<Num>{nf(remainingCount)}</Num>)</div>
         {remainingSubjects.length === 0 ?
           <div style={{textAlign:"center", padding:"18px 10px", color:textMuted2, fontSize:12, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", gap:6}}>
             <Check size={16} style={{opacity:0.45, color:"#6E8B5E"}}/>
@@ -4389,7 +4390,7 @@ function SubjectGroupedList({ entries, nf, t, remainingLabel, doneLabel, remaini
                   {done[subj].map(e => (
                     <div key={e.id+(e._dk||"")} className="fg-card" style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 12px", fontSize:13, display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
                       <span>{e.topic}</span>
-                      {e._caughtUp && <span style={{fontSize:10, fontWeight:700, color:accent, flexShrink:0}}>{t?.caughtUpNote}</span>}
+                      {e._caughtUp && <span style={{fontSize:10, fontWeight:700, color:textMuted2, flexShrink:0}}>{t?.caughtUpNote}</span>}
                     </div>
                   ))}
                 </div>
@@ -4456,7 +4457,12 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
       {items.map(item => {
         const c = colorForSubject(item.subject, allSubjects);
         return (
-          <div key={item.id} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px", display:"flex", alignItems:"center", gap:12, position:"relative"}}>
+          <div key={item.id} style={{
+            background: item.done ? "rgba(110,139,94,0.07)" : cardBg,
+            border: `1px solid ${item.done ? "rgba(110,139,94,0.35)" : cardBorder}`,
+            borderRadius:16, padding:"12px 14px", display:"flex", alignItems:"center", gap:12, position:"relative",
+            transition:"background .15s ease, border-color .15s ease",
+          }}>
             <button onClick={onToggle ? ()=>onToggle(item.id) : undefined} disabled={!onToggle}
               style={{width:34,height:34, borderRadius:"50%", border:"none", flexShrink:0, cursor: onToggle?"pointer":"default", background: item.done ? "#6E8B5E" : c.bgSoft, display:"flex",alignItems:"center",justifyContent:"center"}}>
               {item.done ? <Check size={16} color="#fff" strokeWidth={3}/> : <span style={{width:9,height:9,borderRadius:"50%", background:c.bg}}/>}
@@ -4894,15 +4900,20 @@ function WeekDayStrip({ days, entries, selectedKey, onSelectDay, todayKey, weekd
         const dotColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : "#4C8FA6");
         return (
           <button key={i} onClick={()=>onSelectDay(d)} style={{
-            flex:"0 0 auto", width:56, display:"flex", flexDirection:"column", alignItems:"center", gap:7,
+            flex:"0 0 auto", width:56, display:"flex", flexDirection:"column", alignItems:"center", gap:6,
             padding:"10px 0 11px", borderRadius:16, scrollSnapAlign:"start",
-            border: isSelected ? `1.5px solid ${accent}` : (isToday ? `1px solid ${accent}` : `1px solid ${cardBorder}`),
-            background: isSelected ? (dark ? "rgba(217,119,87,0.18)" : "rgba(217,119,87,0.12)") : cardBg,
+            border: isSelected ? "1px solid transparent" : (isToday ? `1px solid ${accent}` : `1px solid ${cardBorder}`),
+            background: cardBg,
             cursor:"pointer", transition:"background .15s ease, border-color .15s ease",
           }}>
             <span style={{fontSize:10.5, fontWeight:700, color: isSelected ? accent : (isToday ? accent : textMuted2)}}>{weekdayShort(d)}</span>
-            <span style={{fontSize:16, fontWeight:800, color: isSelected ? accent : (isToday ? accent : textMain)}}><Num>{nf(d.getDate())}</Num></span>
-            <span style={{width:6, height:6, borderRadius:"50%", background:dotColor, opacity: hasAny ? 1 : 0.35, flexShrink:0}}/>
+            <span style={{
+              width:34, height:34, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
+              background: isSelected ? (dark ? "rgba(217,119,87,0.22)" : "rgba(217,119,87,0.14)") : "transparent",
+              boxShadow: isSelected ? `0 0 0 1.5px ${accent}` : "none",
+              fontSize:16, fontWeight:800, color: isSelected ? accent : textMain, transition:"background .15s ease",
+            }}><Num>{nf(d.getDate())}</Num></span>
+            <span style={{width:6, height:6, borderRadius:"50%", background: dotColor, opacity: hasAny ? 1 : 0.35, flexShrink:0}}/>
           </button>
         );
       })}
@@ -5067,23 +5078,10 @@ function DayDetailModal({ t, lang, nf, weekdayName, monthName, day, entries, all
             <span style={{fontSize:12.5, fontWeight:700, color:textMain}}>{holidayName(dateKey(day), lang)}</span>
           </div>
         )}
-        <div style={{marginTop:16, display:"flex", flexDirection:"column", gap:8}}>
-          {entries.length === 0 && <div style={{fontSize:13, color:textMuted2, textAlign:"center", padding:"20px 0"}}>{t.noData}</div>}
-          {entries.map(e => {
-            const c = colorForSubject(e.subject, allSubjects);
-            return (
-              <div key={e.id} style={{border:`1px solid ${cardBorder}`, borderRadius:14, padding:"11px 14px", display:"flex", alignItems:"center", gap:10}}>
-                <div style={{width:8,height:8,borderRadius:"50%", background:c.bg, flexShrink:0}}/>
-                <div style={{flex:1}}>
-                  <div style={{fontSize:11, fontWeight:700, color:c.bg}}>{e.subject}</div>
-                  <div style={{fontSize:14, fontWeight:600}}>{e.topic}</div>
-                </div>
-                <div style={{fontSize:11, fontWeight:700, color: e.done ? "#6E8B5E" : textMuted2, background: e.done ? "rgba(110,139,94,0.15)" : (dark?"#2C2820":"#EFE9DC"), padding:"4px 9px", borderRadius:20}}>
-                  {e.done ? t.done : t.notDone}
-                </div>
-              </div>
-            );
-          })}
+        <div style={{marginTop:16}}>
+          <TopicsList items={entries} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
+            cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} textMain={textMain} accent={accent}
+            emptyText={t.noData}/>
         </div>
       </div>
     </div>
