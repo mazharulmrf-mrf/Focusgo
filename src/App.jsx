@@ -5623,6 +5623,7 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
           fontStyle: note.format?.italic ? "italic" : "normal",
           textDecoration: note.format?.underline ? "underline" : "none",
           lineHeight: 1.55,
+          direction: "ltr", textAlign: "left", unicodeBidi: "plaintext",
           maxHeight: 86,
           overflow: "hidden"
         }}
@@ -5781,7 +5782,7 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="Title"
-              style={{ width: "100%", boxSizing: "border-box", border: "none", outline: "none", background: "transparent", color: textMain, fontSize: 25, fontWeight: 800, fontFamily: "inherit", marginBottom: 8 }}
+              style={{ width: "100%", boxSizing: "border-box", border: "none", outline: "none", background: "transparent", color: textMain, fontSize: 25, fontWeight: 800, fontFamily: "inherit", marginBottom: 8, direction: "ltr", textAlign: "left", unicodeBidi: "plaintext" }}
             />
 
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 15, overflowX: "auto" }}>
@@ -5817,7 +5818,7 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
               dangerouslySetInnerHTML={{ __html: body }}
               data-placeholder="Start writing your note..."
               style={{
-                minHeight: 280, outline: "none", whiteSpace: "pre-wrap",
+                minHeight: 280, outline: "none", whiteSpace: "pre-wrap", direction: "ltr", textAlign: "left", unicodeBidi: "plaintext",
                 color: textMain, fontSize: format.size, lineHeight: 1.6,
                 fontFamily: format.font === "serif" ? "Georgia, serif" : format.font === "mono" ? "monospace" : "inherit",
                 fontWeight: format.bold ? 700 : 400,
