@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Flame, Target, TrendingUp, Bell } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
 import {
   onAuthStateChanged,
@@ -403,8 +403,8 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
   const items = [
     { k: "today", Icon: Home },
     { k: "plan", Icon: CalendarDays },
+    { k: "task", Icon: ListChecks },
     { k: "stats", Icon: BarChart3 },
-    { k: "exam", Icon: GraduationCap },
   ];
   return (
     <div style={{
@@ -1078,7 +1078,19 @@ const MONTHS_BN = ["জানুয়ারি","ফেব্রুয়ার
 const T = {
   en: {
     tagline: "Study Smarter",
-    tabs: { today: "Today", plan: "Plan", stats: "Stats", exam: "Exam" },
+    tabs: { today: "Today", plan: "Plan", task: "Tasks", stats: "Stats", exam: "Exam" },
+    planViewStudy: "Study Plan", planViewExam: "Exam",
+    taskTitle: "Tasks", taskSubtitle: "Today's to-do list", taskAdd: "New task", taskEmpty: "No tasks in this list",
+    taskStudy: "Study", taskPersonal: "Personal", taskAll: "All",
+    taskPrHigh: "High", taskPrMed: "Medium", taskPrLow: "Low",
+    taskTitlePlaceholder: "What needs to be done?", taskCategory: "Category", taskPriority: "Priority", taskAddBtn: "Add task",
+    taskDone: "done", taskLinkHint: "You can start a \"Study\" task directly with the Focus Timer — it'll auto-complete when the session ends.",
+    taskLeftLabel: "left", taskAllDoneLabel: "All done",
+    taskFilterToday: "Today", taskFilterUpcoming: "Upcoming", taskFilterDone: "Done",
+    taskDueDate: "Due Date", taskDueDateOptional: "Due Date (optional)", taskNoDueDate: "No due date",
+    taskDueToday: "Today", taskDueTomorrow: "Tomorrow", taskOverdue: "Overdue", taskCompleted: "Completed",
+    taskSectionToday: "Today", taskSectionUpcoming: "Upcoming", taskSectionNoDate: "No Due Date",
+    taskEmptyToday: "Nothing due today", taskEmptyUpcoming: "Nothing upcoming", taskEmptyDone: "No completed tasks yet",
     focusTimer: "Focus Timer", start: "Start Focus", pause: "Pause", reset: "Reset",
     pickTopicForTimer: "Pick a topic to focus on", freeSession: "Free Session",
     timerMode: "Timer", stopwatchMode: "Stopwatch",
@@ -1199,7 +1211,19 @@ const T = {
   },
   bn: {
     tagline: "নিজের গতিতে পড়ো",
-    tabs: { today: "আজ", plan: "প্ল্যান", stats: "স্ট্যাটস", exam: "এক্সাম" },
+    tabs: { today: "আজ", plan: "প্ল্যান", task: "টাস্ক", stats: "স্ট্যাটস", exam: "এক্সাম" },
+    planViewStudy: "স্টাডি প্ল্যান", planViewExam: "এক্সাম",
+    taskTitle: "টাস্ক", taskSubtitle: "আজকের করণীয় তালিকা", taskAdd: "নতুন টাস্ক", taskEmpty: "এই তালিকায় কোনো টাস্ক নেই",
+    taskStudy: "স্টাডি", taskPersonal: "পার্সোনাল", taskAll: "সব",
+    taskPrHigh: "জরুরি", taskPrMed: "মিডিয়াম", taskPrLow: "কম",
+    taskTitlePlaceholder: "কী করতে হবে?", taskCategory: "ক্যাটাগরি", taskPriority: "প্রায়োরিটি", taskAddBtn: "যোগ করো",
+    taskDone: "সম্পন্ন", taskLinkHint: "\"স্টাডি\" ক্যাটাগরির টাস্ক চাইলে সরাসরি Focus Timer দিয়ে শুরু করা যাবে — সেশন শেষ হলে টাস্ক অটো-সম্পন্ন হবে।",
+    taskLeftLabel: "বাকি", taskAllDoneLabel: "সব সম্পন্ন",
+    taskFilterToday: "আজ", taskFilterUpcoming: "আসন্ন", taskFilterDone: "সম্পন্ন",
+    taskDueDate: "ডিউ ডেট", taskDueDateOptional: "ডিউ ডেট (ঐচ্ছিক)", taskNoDueDate: "কোনো ডিউ ডেট নেই",
+    taskDueToday: "আজ", taskDueTomorrow: "আগামীকাল", taskOverdue: "মেয়াদ শেষ", taskCompleted: "সম্পন্ন হয়েছে",
+    taskSectionToday: "আজ", taskSectionUpcoming: "আসন্ন", taskSectionNoDate: "ডিউ ডেট নেই",
+    taskEmptyToday: "আজ কিছু বাকি নেই", taskEmptyUpcoming: "আসন্ন কিছু নেই", taskEmptyDone: "এখনো কোনো টাস্ক সম্পন্ন হয়নি",
     focusTimer: "ফোকাস টাইমার", start: "ফোকাস শুরু", pause: "থামাও", reset: "রিসেট",
     pickTopicForTimer: "ফোকাস করার জন্য একটা টপিক বাছাই করো", freeSession: "ফ্রি সেশন",
     timerMode: "টাইমার", stopwatchMode: "স্টপওয়াচ",
@@ -1488,6 +1512,18 @@ export default function FocusGo() {
   const [now, setNow] = useState(new Date());
   const [entries, setEntries] = useState({}); // dateKey -> [{id, subject, topic, time, endTime, duration, done}]
   const [subjects, setSubjects] = useState([]); // manually managed syllabus subjects
+  const [tasks, setTasks] = useState(() => {
+    try { return JSON.parse(window.localStorage.getItem("focusgo_tasks_v1") || "[]"); } catch (e) { return []; }
+  }); // {id, title, category:"study"|"personal", priority:"high"|"med"|"low", done}[]
+  useEffect(() => {
+    try { window.localStorage.setItem("focusgo_tasks_v1", JSON.stringify(tasks)); } catch (e) {}
+  }, [tasks]);
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [taskFilter, setTaskFilter] = useState("all"); // all | study | personal
+  const [planView, setPlanView] = useState("study"); // "study" | "exam" — segmented toggle inside Plan tab
+  const toggleTask = (id) => setTasks(ts => ts.map(x => x.id === id ? { ...x, done: !x.done } : x));
+  const deleteTask = (id) => setTasks(ts => ts.filter(x => x.id !== id));
+  const addTask = (newTask) => setTasks(ts => [newTask, ...ts]);
   const [topicBank, setTopicBank] = useState({}); // subject -> [topicName, ...] — pre-added topics for Today's Study/Plan, subject-scoped (mirrors examSubjects' subject->topics shape but as a flat list, no attempts)
   const [showManageTopicsFor, setShowManageTopicsFor] = useState(null); // subject name | null — which subject's topic-bank editor is open
   const [examSubjects, setExamSubjects] = useState({}); // subject -> { topics: { [topicName]: { attempts: [{id, date, obtained, total}] } } }
@@ -3046,12 +3082,38 @@ export default function FocusGo() {
         </div>
         )}
 
+        {/* Today's task summary - compact, links to Task tab - Today tab only */}
+        {tab === "today" && tasks.length > 0 && (() => {
+          const undone = tasks.filter(x => !x.done);
+          const preview = undone.slice(0, 2);
+          const prColor = { high: "#C0392B", med: accent, low: "#6E8B5E" };
+          return (
+            <button onClick={()=>{vibrate(); setTab("task");}} className="fg-tab-panel" style={{marginTop:12, width:"100%", boxSizing:"border-box", textAlign:"left", background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px", cursor:"pointer"}}>
+              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: preview.length ? 10 : 0}}>
+                <div style={{display:"flex", alignItems:"center", gap:7}}>
+                  <ListChecks size={15} color={textMuted2}/>
+                  <span style={{fontSize:13, fontWeight:800, color:textMain}}>{t.taskTitle}</span>
+                </div>
+                <span style={{fontSize:11.5, fontWeight:700, color:textMuted2}}>
+                  {undone.length > 0 ? <><Num>{nf(undone.length)}</Num> {t.taskLeftLabel}</> : t.taskAllDoneLabel}
+                </span>
+              </div>
+              {preview.map(x => (
+                <div key={x.id} style={{display:"flex", alignItems:"center", gap:8, padding:"5px 0"}}>
+                  <span style={{width:5, height:5, borderRadius:"50%", background:prColor[x.priority], flexShrink:0}}/>
+                  <span style={{fontSize:12.5, fontWeight:600, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{x.title}</span>
+                </div>
+              ))}
+            </button>
+          );
+        })()}
+
         {/* Next exam countdown banner - Today tab only, only when a next exam date is set and not passed */}
         {tab === "today" && nextExam?.date && (() => {
           const diff = Math.round((new Date(nextExam.date + "T00:00:00") - new Date(todayKey + "T00:00:00")) / 86400000);
           if (diff < 0) return null;
           return (
-            <button onClick={()=>{vibrate(); setTab("exam");}} className="fg-tab-panel" style={{marginTop:12, width:"100%", boxSizing:"border-box", display:"flex", alignItems:"center", gap:10, background: dark?"#1F1B17":"#FBF3EC", border:`1px solid ${dark?"#332E25":"#F0DCC9"}`, borderRadius:14, padding:"10px 14px", cursor:"pointer", textAlign:"left"}}>
+            <button onClick={()=>{vibrate(); setTab("plan"); setPlanView("exam");}} className="fg-tab-panel" style={{marginTop:12, width:"100%", boxSizing:"border-box", display:"flex", alignItems:"center", gap:10, background: dark?"#1F1B17":"#FBF3EC", border:`1px solid ${dark?"#332E25":"#F0DCC9"}`, borderRadius:14, padding:"10px 14px", cursor:"pointer", textAlign:"left"}}>
               <GraduationCap size={17} color={accent} style={{flexShrink:0}}/>
               <div style={{flex:1, minWidth:0, fontSize:12, fontWeight:700, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                 {nextExam.subject}{nextExam.topic ? ` · ${nextExam.topic}` : ""}
@@ -3104,6 +3166,22 @@ export default function FocusGo() {
         {/* PLAN tab - next 7 days */}
         {tab === "plan" && (
           <div key="plan" className="fg-tab-panel" style={{marginTop:20}}>
+            {/* Plan / Exam segmented toggle */}
+            <div style={{display:"flex", gap:4, background: dark?"#1B1815":"#F0EBDD", border:`1px solid ${cardBorder}`, borderRadius:14, padding:4, marginBottom:18}}>
+              {[["study", t.planViewStudy], ["exam", t.planViewExam]].map(([key,label]) => (
+                <button key={key} onClick={()=>{vibrate(); setPlanView(key);}} style={{
+                  flex:1, border:"none", borderRadius:10, padding:"9px 0", fontSize:12.5, fontWeight:700, cursor:"pointer",
+                  background: planView===key ? cardBg : "transparent",
+                  color: planView===key ? textMain : textMuted2,
+                  boxShadow: planView===key ? (dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(0,0,0,0.08)") : "none",
+                  transition:"background .18s ease, color .18s ease",
+                }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {planView === "study" && (<>
             <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:10}}>{t.next7Days}</div>
             <div style={{display:"flex", justifyContent:"space-between", gap:2, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"16px 8px"}}>
               {planDays.map((d,i) => {
@@ -3160,8 +3238,304 @@ export default function FocusGo() {
                 </div>
               );
             })()}
+            </>)}
+
+            {planView === "exam" && (
+              <div>
+                {(!nextExam && Object.keys(combinedExams).length === 0 && Object.keys(examSubjects).length === 0) && (
+                  <div style={{background: dark?"#1F1B17":"#FBF3EC", border:`1px solid ${dark?"#332E25":"#F0DCC9"}`, borderRadius:18, padding:"20px 18px", marginBottom:20}}>
+                    <div style={{fontSize:16, fontWeight:800}}>{t.examSetupTitle}</div>
+                    <div style={{fontSize:12.5, color:textMuted2, marginTop:4}}>{t.examSetupSubtitle}</div>
+                    <div style={{display:"flex", flexDirection:"column", gap:10, marginTop:16}}>
+                      <button onClick={()=>{vibrate(); setShowExams(true);}} style={{display:"flex", alignItems:"center", gap:10, border:"none", background:cardBg, borderRadius:14, padding:"12px 14px", cursor:"pointer", textAlign:"left"}}>
+                        <span style={{width:24,height:24, borderRadius:"50%", background:textMain, color:cardBg, fontSize:12, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>1</span>
+                        <span style={{fontSize:13, fontWeight:700, color:textMain}}>{t.examSetupStep1}</span>
+                      </button>
+                      <button onClick={()=>{vibrate(); setShowNextExamEditor(true);}} style={{display:"flex", alignItems:"center", gap:10, border:"none", background:cardBg, borderRadius:14, padding:"12px 14px", cursor:"pointer", textAlign:"left"}}>
+                        <span style={{width:24,height:24, borderRadius:"50%", background:textMain, color:cardBg, fontSize:12, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>2</span>
+                        <span style={{fontSize:13, fontWeight:700, color:textMain}}>{t.examSetupStep2}</span>
+                      </button>
+                      <button onClick={()=>{vibrate(); setEditingCombinedExam(null); setShowCombinedExamEditor(true);}} style={{display:"flex", alignItems:"center", gap:10, border:"none", background:cardBg, borderRadius:14, padding:"12px 14px", cursor:"pointer", textAlign:"left"}}>
+                        <span style={{width:24,height:24, borderRadius:"50%", background:textMain, color:cardBg, fontSize:12, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>3</span>
+                        <span style={{fontSize:13, fontWeight:700, color:textMain}}>{t.examSetupStep3}</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {(() => {
+                  const examSetupEmpty = !nextExam && Object.keys(combinedExams).length === 0 && Object.keys(examSubjects).length === 0;
+                  if (examSetupEmpty) {
+                    return (
+                      <div style={{textAlign:"center", padding:"40px 24px", background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:20}}>
+                        <div style={{width:56,height:56, borderRadius:16, background: dark?"#26231D":"#F3EEE3", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px"}}>
+                          <GraduationCap size={26} color={dark ? "#C9C0AC" : "#6B6353"}/>
+                        </div>
+                        <div style={{fontSize:15.5, fontWeight:800, color:textMain}}>{t.noExamYetTitle}</div>
+                        <div style={{fontSize:12.5, color:textMuted2, fontWeight:500, opacity:0.85, marginTop:6, maxWidth:260, marginLeft:"auto", marginRight:"auto", lineHeight:1.5}}>{t.noExamYetSubtitle}</div>
+                        <button onClick={()=>{vibrate(); setShowExams(true);}} style={{display:"inline-flex", alignItems:"center", gap:6, marginTop:18, background:accent, color:"#fff", border:"none", borderRadius:12, padding:"10px 18px", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
+                          <Plus size={14}/> {t.addExamCta}
+                        </button>
+                      </div>
+                    );
+                  }
+                  return (
+                    <>
+                      {/* Next exam card (manually set) */}
+                      <div style={{position:"relative", background: dark?"#1F1B17":"#FBF3EC", border:`1px solid ${dark?"#332E25":"#F0DCC9"}`, borderRadius:18, padding:"18px 18px 20px", textAlign:"center"}}>
+                        <div style={{position:"absolute", top:10, right:10, display:"flex", gap:4}}>
+                          <button onClick={()=>setShowNextExamEditor(true)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4}}><Pencil size={14}/></button>
+                          {nextExam && <button onClick={()=>setNextExam(null)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4}}><X size={15}/></button>}
+                        </div>
+                        <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.nextExamCard}</div>
+                        {nextExam ? (() => {
+                          const diff = Math.round((new Date(nextExam.date + "T00:00:00") - new Date(dateKey(today) + "T00:00:00")) / 86400000);
+                          const prep = subjectProgress[nextExam.subject];
+                          const prepPct = prep && prep.total ? Math.round((prep.done/prep.total)*100) : null;
+                          return (
+                            <>
+                              <div style={{fontSize:16, fontWeight:800, marginTop:6}}>{nextExam.subject}{nextExam.topic ? ` · ${nextExam.topic}` : ""}</div>
+                              <div style={{fontSize:42, fontWeight:800, color:accent, marginTop:6, lineHeight:1}}>
+                                {diff === 0 ? t.examToday : (diff < 0 ? t.examPassed : <Num>{nf(diff)}</Num>)}
+                              </div>
+                              {diff > 0 && <div style={{fontSize:11, color:textMuted2, fontWeight:700, marginTop:4}}>{t.daysLeftLabel}</div>}
+                              {prepPct !== null && (
+                                <div style={{marginTop:14, display:"flex", alignItems:"center", gap:8, justifyContent:"center"}}>
+                                  <span style={{fontSize:11, color:textMuted2, fontWeight:700}}>{t.preparationLabel}</span>
+                                  <div style={{width:80, height:5, borderRadius:3, background: dark?"#332E25":"#F0DCC9", overflow:"hidden"}}>
+                                    <div style={{height:"100%", width:`${prepPct}%`, background:accent, borderRadius:3}}/>
+                                  </div>
+                                  <span style={{fontSize:11, color:accent, fontWeight:800}}><Num>{nf(prepPct)}</Num>%</span>
+                                </div>
+                              )}
+                            </>
+                          );
+                        })() : (
+                          <div style={{fontSize:13, color:textMuted2, marginTop:10}}>{t.noUpcomingExam}</div>
+                        )}
+                      </div>
+
+                      {/* Combined exams — একাধিক সাবজেক্ট একসাথে, daily/weekly/monthly recurring */}
+                      <div style={{marginTop:22}}>
+                        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                          <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3}}>{t.combinedExams}</div>
+                          <button onClick={()=>{vibrate(); setEditingCombinedExam(null); setShowCombinedExamEditor(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer", flexShrink:0}}>
+                            <Plus size={12}/> {t.addCombinedExam}
+                          </button>
+                        </div>
+                        <div style={{display:"flex", flexDirection:"column", gap:12, marginTop:14}}>
+                          {Object.keys(combinedExams).length === 0 && (
+                            <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16}}>
+                              {t.noCombinedExams}
+                            </div>
+                          )}
+                          {Object.entries(combinedExams).sort((a,b)=>a[1].name.localeCompare(b[1].name)).map(([id, ce]) => (
+                            <CombinedExamCard key={id} id={id} combinedExam={ce}
+                              t={t} nf={nf} lang={lang} allSubjects={allSubjects} cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent} dark={dark}
+                              onAddAttempt={(date,obtained,total)=>addCombinedExamAttempt(id,date,obtained,total)}
+                              onEditAttempt={(attemptId,obtained,total,date)=>editCombinedExamAttempt(id,attemptId,obtained,total,date)}
+                              onRemoveAttempt={(attemptId)=>removeCombinedExamAttempt(id,attemptId)}
+                              onEdit={()=>{ setEditingCombinedExam({ id, ...ce }); setShowCombinedExamEditor(true); }}
+                              onRemove={()=>removeCombinedExam(id)}/>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* My exams */}
+                      <div style={{marginTop:22}}>
+                        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                          <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3}}>{t.examSubjects}</div>
+                          <button onClick={()=>{vibrate(); setShowExams(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer", flexShrink:0}}>
+                            <Plus size={12}/> {t.manageExams}
+                          </button>
+                        </div>
+                        <div style={{display:"flex", flexDirection:"column", gap:18, marginTop:14}}>
+                          {Object.keys(examSubjects).length === 0 && (
+                            <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16}}>
+                              {t.noExamSubjects}
+                            </div>
+                          )}
+                          {Object.keys(examSubjects).sort((a,b)=>a.localeCompare(b)).map(subj => {
+                            const c = colorForSubject(subj, allSubjects);
+                            const topics = examSubjects[subj]?.topics || {};
+                            return (
+                              <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px"}}>
+                                <div style={{display:"flex", alignItems:"center", gap:7, marginBottom:8}}>
+                                  <span style={{width:8,height:8,borderRadius:"50%", background:c.bg, flexShrink:0}}/>
+                                  <span style={{fontWeight:700, fontSize:14}}>{subj}</span>
+                                </div>
+                                <div style={{display:"flex", flexDirection:"column", gap:8}}>
+                                  {Object.keys(topics).length === 0 && (
+                                    <div style={{fontSize:12, color:textMuted2, paddingLeft:15}}>{t.noTopicsInSubject}</div>
+                                  )}
+                                  {Object.entries(topics).map(([topicName, topicInfo]) => (
+                                    <TopicFolderCard key={topicName} subj={subj} topicName={topicName} attempts={topicInfo?.attempts || []}
+                                      t={t} nf={nf} lang={lang} cardBg={dark?"#121110":"#F8F5EE"} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent} dark={dark}
+                                      onAddAttempt={(date,obtained,total)=>addExamAttempt(subj,topicName,date,obtained,total)}
+                                      onEditAttempt={(attemptId,obtained,total,date)=>editExamAttempt(subj,topicName,attemptId,obtained,total,date)}
+                                      onRemoveAttempt={(attemptId)=>removeExamAttempt(subj,topicName,attemptId)}
+                                      onRenameTopic={(newName)=>renameExamTopic(subj,topicName,newName)}
+                                      onRemoveTopic={()=>removeExamTopic(subj,topicName)}/>
+                                  ))}
+                                  <AddTopicInline t={t} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}
+                                    onAdd={(name)=>addExamTopic(subj,name)}/>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Monthly summary */}
+                      <ExamMonthlySummary t={t} nf={nf} lang={lang} ls={ls} monthName={monthName} examSubjects={examSubjects}
+                        examMonth={examMonth} setExamMonth={setExamMonth} allSubjects={allSubjects}
+                        cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
           </div>
         )}
+
+        {/* TASK tab - simple to-do list, separate from study sessions */}
+        {tab === "task" && (() => {
+          const prColor = { high: "#C0392B", med: accent, low: "#6E8B5E" };
+          const prLabel = { high: t.taskPrHigh, med: t.taskPrMed, low: t.taskPrLow };
+          const doneCount = tasks.filter(x => x.done).length;
+          const pct = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0;
+
+          // ---- Due-date helpers: bucket a task into "today" (today/overdue/no-date) or "upcoming" ----
+          const tomorrowKey = dateKey(new Date(today.getFullYear(), today.getMonth(), today.getDate()+1));
+          const bucketOf = (x) => (!x.dueDate || x.dueDate <= todayKey) ? "today" : "upcoming";
+          const dueLabel = (dk) => {
+            if (!dk) return null;
+            if (dk === todayKey) return { text: t.taskDueToday, color: accent };
+            if (dk < todayKey) return { text: t.taskOverdue, color: "#C0392B" };
+            if (dk === tomorrowKey) return { text: t.taskDueTomorrow, color: textMuted2 };
+            const d = new Date(dk + "T00:00:00");
+            const diffDays = Math.round((d - new Date(todayKey + "T00:00:00")) / 86400000);
+            if (diffDays > 1 && diffDays < 7) return { text: (lang==="bn" ? WEEKDAYS_BN : WEEKDAYS_EN)[d.getDay()], color: textMuted2 };
+            return { text: `${nf(d.getDate())} ${monthName(d.getMonth())}`, color: textMuted2 };
+          };
+
+          const filterChips = [
+            ["all", t.taskAll, ListChecks],
+            ["today", t.taskFilterToday, Calendar],
+            ["upcoming", t.taskFilterUpcoming, CalendarDays],
+            ["done", t.taskFilterDone, Check],
+          ];
+
+          let filteredTasks;
+          if (taskFilter === "done") filteredTasks = tasks.filter(x => x.done);
+          else if (taskFilter === "today") filteredTasks = tasks.filter(x => bucketOf(x) === "today");
+          else if (taskFilter === "upcoming") filteredTasks = tasks.filter(x => bucketOf(x) === "upcoming");
+          else filteredTasks = tasks;
+
+          const renderTask = (x) => (
+            <div key={x.id} style={{display:"flex", alignItems:"flex-start", gap:12, padding:"13px 14px", borderRadius:16, background:cardBg, border:`1px solid ${cardBorder}`, opacity: x.done?0.55:1, transition:"opacity .2s ease"}}>
+              <button onClick={()=>{vibrate(); toggleTask(x.id);}} style={{marginTop:1, width:22, height:22, borderRadius:"50%", flexShrink:0, border:`2px solid ${x.done?"#6E8B5E":cardBorder}`, background: x.done?"#6E8B5E":"transparent", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", padding:0}}>
+                {x.done && <Check size={13} color="#fff" strokeWidth={3}/>}
+              </button>
+              <div style={{flex:1, minWidth:0}}>
+                <div style={{fontSize:14, fontWeight:600, color:textMain, textDecoration: x.done?"line-through":"none", marginBottom:6, lineHeight:1.3}}>{x.title}</div>
+                <div style={{display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"}}>
+                  <span style={{display:"inline-flex", alignItems:"center", gap:4, fontSize:10, fontWeight:700, padding:"3px 8px", borderRadius:20,
+                    background: x.category==="study" ? "rgba(76,143,166,0.12)" : "rgba(110,139,94,0.12)",
+                    color: x.category==="study" ? "#4C8FA6" : "#6E8B5E"}}>
+                    {x.category==="study" ? <GraduationCap size={11}/> : <User2 size={11}/>}
+                    {x.category==="study" ? t.taskStudy : t.taskPersonal}
+                  </span>
+                  <span style={{display:"inline-flex", alignItems:"center", gap:3, fontSize:10, fontWeight:700, color:prColor[x.priority]}}>
+                    <span style={{width:5,height:5,borderRadius:"50%", background:prColor[x.priority]}}/>
+                    {prLabel[x.priority]}
+                  </span>
+                  {x.done ? (
+                    <span style={{fontSize:10, fontWeight:700, color:"#6E8B5E"}}>{t.taskCompleted}</span>
+                  ) : (() => {
+                    const dl = dueLabel(x.dueDate);
+                    return dl ? <span style={{fontSize:10, fontWeight:700, color:dl.color}}>{dl.text}</span> : null;
+                  })()}
+                </div>
+              </div>
+              <button onClick={()=>{vibrate(); deleteTask(x.id);}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:4, flexShrink:0}}>
+                <Trash2 size={15}/>
+              </button>
+            </div>
+          );
+
+          const emptyMsg = taskFilter === "today" ? t.taskEmptyToday : taskFilter === "upcoming" ? t.taskEmptyUpcoming : taskFilter === "done" ? t.taskEmptyDone : t.taskEmpty;
+
+          return (
+            <div key="task" className="fg-tab-panel" style={{marginTop:20}}>
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14}}>
+                <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.taskTitle}</div>
+                <div style={{display:"flex", alignItems:"center", gap:6, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:20, padding:"6px 12px"}}>
+                  <Flame size={13} color={accent}/>
+                  <span style={{fontSize:12, fontWeight:700, color:textMain}}><Num>{nf(doneCount)}</Num>/<Num>{nf(tasks.length)}</Num> {t.taskDone}</span>
+                </div>
+              </div>
+
+              <div style={{height:8, borderRadius:20, background: dark?"#2C2820":"#EFE9DC", marginBottom:16, overflow:"hidden"}}>
+                <div style={{height:"100%", width:`${pct}%`, background:accent, borderRadius:20, transition:"width .3s ease"}}/>
+              </div>
+
+              <div style={{display:"flex", gap:8, marginBottom:14, overflowX:"auto"}}>
+                {filterChips.map(([key,label,Icon]) => (
+                  <button key={key} onClick={()=>{vibrate(); setTaskFilter(key);}} style={{
+                    display:"flex", alignItems:"center", gap:5, padding:"7px 13px", borderRadius:20, cursor:"pointer", flexShrink:0,
+                    border:`1px solid ${taskFilter===key ? accent : cardBorder}`,
+                    background: taskFilter===key ? accent : "transparent",
+                    color: taskFilter===key ? "#fff" : textMuted2, fontWeight:700, fontSize:12,
+                  }}>
+                    <Icon size={12}/> {label}
+                  </button>
+                ))}
+              </div>
+
+              {filteredTasks.length === 0 && (
+                <div style={{textAlign:"center", padding:"40px 0", color:textMuted2, fontSize:13}}>
+                  <Sparkles size={22} style={{marginBottom:8, opacity:0.5}}/>
+                  <div>{emptyMsg}</div>
+                </div>
+              )}
+
+              {filteredTasks.length > 0 && taskFilter === "all" ? (() => {
+                const todayBucket = filteredTasks.filter(x => bucketOf(x) === "today");
+                const upcomingBucket = filteredTasks.filter(x => bucketOf(x) === "upcoming");
+                return (
+                  <>
+                    {todayBucket.length > 0 && (
+                      <div style={{marginBottom: upcomingBucket.length ? 18 : 0}}>
+                        <div style={{fontSize:11, fontWeight:800, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionToday}</div>
+                        <div style={{display:"flex", flexDirection:"column", gap:9}}>{todayBucket.map(renderTask)}</div>
+                      </div>
+                    )}
+                    {upcomingBucket.length > 0 && (
+                      <div>
+                        <div style={{fontSize:11, fontWeight:800, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionUpcoming}</div>
+                        <div style={{display:"flex", flexDirection:"column", gap:9}}>{upcomingBucket.map(renderTask)}</div>
+                      </div>
+                    )}
+                  </>
+                );
+              })() : (
+                <div style={{display:"flex", flexDirection:"column", gap:9}}>
+                  {filteredTasks.map(renderTask)}
+                </div>
+              )}
+
+              <div style={{marginTop:18, display:"flex", alignItems:"center", gap:10, border:`1px dashed ${cardBorder}`, borderRadius:14, padding:"11px 13px"}}>
+                <CalendarDays size={16} color={textMuted2}/>
+                <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, lineHeight:1.4}}>{t.taskLinkHint}</div>
+              </div>
+
+              <button onClick={()=>{vibrate(); setShowAddTask(true);}} style={{display:"flex", alignItems:"center", justifyContent:"center", gap:6, width:"100%", marginTop:16, background:accent, color:"#fff", border:"none", borderRadius:14, padding:"13px 0", fontSize:14, fontWeight:800, cursor:"pointer"}}>
+                <Plus size={16}/> {t.taskAdd}
+              </button>
+            </div>
+          );
+        })()}
 
         {/* STATS tab - week + subjects + month, one shared day-detail card at the bottom */}
         {tab === "stats" && (
@@ -3354,162 +3728,6 @@ export default function FocusGo() {
           </div>
         )}
 
-        {/* EXAM tab - dedicated exam overview */}
-        {tab === "exam" && (
-          <div key="exam" className="fg-tab-panel" style={{marginTop:20}}>
-            {(!nextExam && Object.keys(combinedExams).length === 0 && Object.keys(examSubjects).length === 0) && (
-              <div style={{background: dark?"#1F1B17":"#FBF3EC", border:`1px solid ${dark?"#332E25":"#F0DCC9"}`, borderRadius:18, padding:"20px 18px", marginBottom:20}}>
-                <div style={{fontSize:16, fontWeight:800}}>{t.examSetupTitle}</div>
-                <div style={{fontSize:12.5, color:textMuted2, marginTop:4}}>{t.examSetupSubtitle}</div>
-                <div style={{display:"flex", flexDirection:"column", gap:10, marginTop:16}}>
-                  <button onClick={()=>{vibrate(); setShowExams(true);}} style={{display:"flex", alignItems:"center", gap:10, border:"none", background:cardBg, borderRadius:14, padding:"12px 14px", cursor:"pointer", textAlign:"left"}}>
-                    <span style={{width:24,height:24, borderRadius:"50%", background:textMain, color:cardBg, fontSize:12, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>1</span>
-                    <span style={{fontSize:13, fontWeight:700, color:textMain}}>{t.examSetupStep1}</span>
-                  </button>
-                  <button onClick={()=>{vibrate(); setShowNextExamEditor(true);}} style={{display:"flex", alignItems:"center", gap:10, border:"none", background:cardBg, borderRadius:14, padding:"12px 14px", cursor:"pointer", textAlign:"left"}}>
-                    <span style={{width:24,height:24, borderRadius:"50%", background:textMain, color:cardBg, fontSize:12, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>2</span>
-                    <span style={{fontSize:13, fontWeight:700, color:textMain}}>{t.examSetupStep2}</span>
-                  </button>
-                  <button onClick={()=>{vibrate(); setEditingCombinedExam(null); setShowCombinedExamEditor(true);}} style={{display:"flex", alignItems:"center", gap:10, border:"none", background:cardBg, borderRadius:14, padding:"12px 14px", cursor:"pointer", textAlign:"left"}}>
-                    <span style={{width:24,height:24, borderRadius:"50%", background:textMain, color:cardBg, fontSize:12, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>3</span>
-                    <span style={{fontSize:13, fontWeight:700, color:textMain}}>{t.examSetupStep3}</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {(() => {
-              const examSetupEmpty = !nextExam && Object.keys(combinedExams).length === 0 && Object.keys(examSubjects).length === 0;
-              if (examSetupEmpty) {
-                return (
-                  <div style={{textAlign:"center", padding:"40px 24px", background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:20}}>
-                    <div style={{width:56,height:56, borderRadius:16, background: dark?"#26231D":"#F3EEE3", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px"}}>
-                      <GraduationCap size={26} color={dark ? "#C9C0AC" : "#6B6353"}/>
-                    </div>
-                    <div style={{fontSize:15.5, fontWeight:800, color:textMain}}>{t.noExamYetTitle}</div>
-                    <div style={{fontSize:12.5, color:textMuted2, fontWeight:500, opacity:0.85, marginTop:6, maxWidth:260, marginLeft:"auto", marginRight:"auto", lineHeight:1.5}}>{t.noExamYetSubtitle}</div>
-                    <button onClick={()=>{vibrate(); setShowExams(true);}} style={{display:"inline-flex", alignItems:"center", gap:6, marginTop:18, background:accent, color:"#fff", border:"none", borderRadius:12, padding:"10px 18px", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
-                      <Plus size={14}/> {t.addExamCta}
-                    </button>
-                  </div>
-                );
-              }
-              return (
-                <>
-                  {/* Next exam card (manually set) */}
-                  <div style={{position:"relative", background: dark?"#1F1B17":"#FBF3EC", border:`1px solid ${dark?"#332E25":"#F0DCC9"}`, borderRadius:18, padding:"18px 18px 20px", textAlign:"center"}}>
-                    <div style={{position:"absolute", top:10, right:10, display:"flex", gap:4}}>
-                      <button onClick={()=>setShowNextExamEditor(true)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4}}><Pencil size={14}/></button>
-                      {nextExam && <button onClick={()=>setNextExam(null)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4}}><X size={15}/></button>}
-                    </div>
-                    <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.nextExamCard}</div>
-                    {nextExam ? (() => {
-                      const diff = Math.round((new Date(nextExam.date + "T00:00:00") - new Date(dateKey(today) + "T00:00:00")) / 86400000);
-                      const prep = subjectProgress[nextExam.subject];
-                      const prepPct = prep && prep.total ? Math.round((prep.done/prep.total)*100) : null;
-                      return (
-                        <>
-                          <div style={{fontSize:16, fontWeight:800, marginTop:6}}>{nextExam.subject}{nextExam.topic ? ` · ${nextExam.topic}` : ""}</div>
-                          <div style={{fontSize:42, fontWeight:800, color:accent, marginTop:6, lineHeight:1}}>
-                            {diff === 0 ? t.examToday : (diff < 0 ? t.examPassed : <Num>{nf(diff)}</Num>)}
-                          </div>
-                          {diff > 0 && <div style={{fontSize:11, color:textMuted2, fontWeight:700, marginTop:4}}>{t.daysLeftLabel}</div>}
-                          {prepPct !== null && (
-                            <div style={{marginTop:14, display:"flex", alignItems:"center", gap:8, justifyContent:"center"}}>
-                              <span style={{fontSize:11, color:textMuted2, fontWeight:700}}>{t.preparationLabel}</span>
-                              <div style={{width:80, height:5, borderRadius:3, background: dark?"#332E25":"#F0DCC9", overflow:"hidden"}}>
-                                <div style={{height:"100%", width:`${prepPct}%`, background:accent, borderRadius:3}}/>
-                              </div>
-                              <span style={{fontSize:11, color:accent, fontWeight:800}}><Num>{nf(prepPct)}</Num>%</span>
-                            </div>
-                          )}
-                        </>
-                      );
-                    })() : (
-                      <div style={{fontSize:13, color:textMuted2, marginTop:10}}>{t.noUpcomingExam}</div>
-                    )}
-                  </div>
-
-                  {/* Combined exams — একাধিক সাবজেক্ট একসাথে, daily/weekly/monthly recurring */}
-                  <div style={{marginTop:22}}>
-                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                      <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3}}>{t.combinedExams}</div>
-                      <button onClick={()=>{vibrate(); setEditingCombinedExam(null); setShowCombinedExamEditor(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer", flexShrink:0}}>
-                        <Plus size={12}/> {t.addCombinedExam}
-                      </button>
-                    </div>
-                    <div style={{display:"flex", flexDirection:"column", gap:12, marginTop:14}}>
-                      {Object.keys(combinedExams).length === 0 && (
-                        <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16}}>
-                          {t.noCombinedExams}
-                        </div>
-                      )}
-                      {Object.entries(combinedExams).sort((a,b)=>a[1].name.localeCompare(b[1].name)).map(([id, ce]) => (
-                        <CombinedExamCard key={id} id={id} combinedExam={ce}
-                          t={t} nf={nf} lang={lang} allSubjects={allSubjects} cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent} dark={dark}
-                          onAddAttempt={(date,obtained,total)=>addCombinedExamAttempt(id,date,obtained,total)}
-                          onEditAttempt={(attemptId,obtained,total,date)=>editCombinedExamAttempt(id,attemptId,obtained,total,date)}
-                          onRemoveAttempt={(attemptId)=>removeCombinedExamAttempt(id,attemptId)}
-                          onEdit={()=>{ setEditingCombinedExam({ id, ...ce }); setShowCombinedExamEditor(true); }}
-                          onRemove={()=>removeCombinedExam(id)}/>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* My exams */}
-                  <div style={{marginTop:22}}>
-                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                      <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3}}>{t.examSubjects}</div>
-                      <button onClick={()=>{vibrate(); setShowExams(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer", flexShrink:0}}>
-                        <Plus size={12}/> {t.manageExams}
-                      </button>
-                    </div>
-                    <div style={{display:"flex", flexDirection:"column", gap:18, marginTop:14}}>
-                      {Object.keys(examSubjects).length === 0 && (
-                        <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16}}>
-                          {t.noExamSubjects}
-                        </div>
-                      )}
-                      {Object.keys(examSubjects).sort((a,b)=>a.localeCompare(b)).map(subj => {
-                        const c = colorForSubject(subj, allSubjects);
-                        const topics = examSubjects[subj]?.topics || {};
-                        return (
-                          <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px"}}>
-                            <div style={{display:"flex", alignItems:"center", gap:7, marginBottom:8}}>
-                              <span style={{width:8,height:8,borderRadius:"50%", background:c.bg, flexShrink:0}}/>
-                              <span style={{fontWeight:700, fontSize:14}}>{subj}</span>
-                            </div>
-                            <div style={{display:"flex", flexDirection:"column", gap:8}}>
-                              {Object.keys(topics).length === 0 && (
-                                <div style={{fontSize:12, color:textMuted2, paddingLeft:15}}>{t.noTopicsInSubject}</div>
-                              )}
-                              {Object.entries(topics).map(([topicName, topicInfo]) => (
-                                <TopicFolderCard key={topicName} subj={subj} topicName={topicName} attempts={topicInfo?.attempts || []}
-                                  t={t} nf={nf} lang={lang} cardBg={dark?"#121110":"#F8F5EE"} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent} dark={dark}
-                                  onAddAttempt={(date,obtained,total)=>addExamAttempt(subj,topicName,date,obtained,total)}
-                                  onEditAttempt={(attemptId,obtained,total,date)=>editExamAttempt(subj,topicName,attemptId,obtained,total,date)}
-                                  onRemoveAttempt={(attemptId)=>removeExamAttempt(subj,topicName,attemptId)}
-                                  onRenameTopic={(newName)=>renameExamTopic(subj,topicName,newName)}
-                                  onRemoveTopic={()=>removeExamTopic(subj,topicName)}/>
-                              ))}
-                              <AddTopicInline t={t} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}
-                                onAdd={(name)=>addExamTopic(subj,name)}/>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Monthly summary */}
-                  <ExamMonthlySummary t={t} nf={nf} lang={lang} ls={ls} monthName={monthName} examSubjects={examSubjects}
-                    examMonth={examMonth} setExamMonth={setExamMonth} allSubjects={allSubjects}
-                    cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
-                </>
-              );
-            })()}
-          </div>
-        )}
       </div>
 
       {/* Bottom nav — মোবাইল/ট্যাবলেটে; ডেস্কটপে সাইডবার থাকায় এটা হাইড */}
@@ -3529,8 +3747,8 @@ export default function FocusGo() {
           {[
             {k:"today", Icon: Home},
             {k:"plan", Icon: CalendarDays},
+            {k:"task", Icon: ListChecks},
             {k:"stats", Icon: BarChart3},
-            {k:"exam", Icon: GraduationCap},
           ].map(({k, Icon}) => (
             <button key={k} onClick={()=>{vibrate(); setTab(k);}} style={{
               flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:2, border:"none", borderRadius:11, padding:"6px 4px", fontSize:9.5, fontWeight:700, cursor:"pointer",
@@ -3578,6 +3796,12 @@ export default function FocusGo() {
         <AddModal t={t} nf={nf} subjects={subjects} entries={entries} topicBank={topicBank} onAddTopicToBank={addTopicToBank} onAddSubject={addSubject} defaultStart={`${pad2(now.getHours())}:${pad2(now.getMinutes())}`}
           onClose={()=>setShowAdd(false)} onAdd={addTopic}
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
+      )}
+
+      {/* Add task modal */}
+      {showAddTask && (
+        <AddTaskModal t={t} onClose={()=>setShowAddTask(false)} onAdd={addTask}
+          cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark} bg={bg}/>
       )}
 
       {/* Edit topic modal */}
@@ -5163,6 +5387,84 @@ function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSe
             );
           })}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function AddTaskModal({ t, onClose, onAdd, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("study");
+  const [priority, setPriority] = useState("med");
+  const [dueDate, setDueDate] = useState("");
+
+  const submit = () => {
+    if (!title.trim()) return;
+    onAdd({ id: `${Date.now()}_${Math.random().toString(36).slice(2,7)}`, title: title.trim(), category, priority, dueDate: dueDate || null, done: false });
+    onClose();
+  };
+
+  const prColor = { high: "#C0392B", med: accent, low: "#6E8B5E" };
+  const prLabel = { high: t.taskPrHigh, med: t.taskPrMed, low: t.taskPrLow };
+
+  return (
+    <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, borderRadius:"22px 22px 0 0", padding:"20px 20px 26px", color:textMain}}>
+        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
+          <div style={{fontSize:15, fontWeight:800}}>{t.taskAdd}</div>
+          <button onClick={onClose} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer"}}><X size={20}/></button>
+        </div>
+
+        <input autoFocus value={title} onChange={e=>setTitle(e.target.value)} placeholder={t.taskTitlePlaceholder}
+          style={{width:"100%", boxSizing:"border-box", background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"12px 14px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit", marginBottom:14}}/>
+
+        <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.taskCategory}</div>
+        <div style={{display:"flex", gap:8, marginBottom:14}}>
+          {["study","personal"].map(c => (
+            <button key={c} onClick={()=>setCategory(c)} style={{
+              flex:1, padding:"9px 0", borderRadius:12, cursor:"pointer",
+              border:`1.5px solid ${category===c ? accent : cardBorder}`,
+              background: category===c ? "rgba(217,119,87,0.08)" : "transparent",
+              color: category===c ? accent : textMuted2, fontWeight:700, fontSize:12.5,
+              display:"flex", alignItems:"center", justifyContent:"center", gap:5,
+            }}>
+              {c==="study" ? <GraduationCap size={13}/> : <User2 size={13}/>}
+              {c==="study" ? t.taskStudy : t.taskPersonal}
+            </button>
+          ))}
+        </div>
+
+        <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.taskDueDateOptional}</div>
+        <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:14}}>
+          <div style={{flex:1, display:"flex", alignItems:"center", gap:8, background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 14px"}}>
+            <CalendarDays size={15} color={textMuted2} style={{flexShrink:0}}/>
+            <input type="date" value={dueDate} onChange={e=>setDueDate(e.target.value)}
+              style={{flex:1, minWidth:0, border:"none", background:"transparent", fontSize:13.5, color:textMain, outline:"none", fontFamily:"inherit"}}/>
+          </div>
+          {dueDate && (
+            <button onClick={()=>setDueDate("")} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, cursor:"pointer", borderRadius:10, width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+              <X size={14}/>
+            </button>
+          )}
+        </div>
+
+        <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.taskPriority}</div>
+        <div style={{display:"flex", gap:8, marginBottom:20}}>
+          {["high","med","low"].map(p => (
+            <button key={p} onClick={()=>setPriority(p)} style={{
+              flex:1, padding:"8px 0", borderRadius:12, cursor:"pointer",
+              border:`1.5px solid ${priority===p ? prColor[p] : cardBorder}`,
+              background: priority===p ? `${prColor[p]}14` : "transparent",
+              color: priority===p ? prColor[p] : textMuted2, fontWeight:700, fontSize:12.5,
+            }}>
+              {prLabel[p]}
+            </button>
+          ))}
+        </div>
+
+        <button onClick={submit} style={{width:"100%", padding:"13px 0", borderRadius:14, border:"none", background:accent, color:"#fff", fontWeight:800, fontSize:14, cursor:"pointer"}}>
+          {t.taskAddBtn}
+        </button>
       </div>
     </div>
   );
