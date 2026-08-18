@@ -5435,31 +5435,34 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
   const [category, setCategory] = useState("General");
   const [checklist, setChecklist] = useState([]);
   const [checkText, setCheckText] = useState("");
-  const [activeFolder, setActiveFolder] = useState("All Notes");
-  const [openMenu, setOpenMenu] = useState(null);
   const [categories, setCategories] = useState(() => {
     try {
-      const saved = JSON.parse(window.localStorage.getItem("focusgo_note_categories_v1") || "[]");
+      const saved = JSON.parse(localStorage.getItem("focusgo_note_categories_v2") || "[]");
       return Array.isArray(saved) && saved.length ? saved : ["General", "Study", "Personal", "Ideas"];
-    } catch (e) {
+    } catch {
       return ["General", "Study", "Personal", "Ideas"];
     }
   });
+  const [format, setFormat] = useState({ size: 16, font: "normal", bold: false, italic: false, underline: false, list: null });
+  const bodyRef = useRef(null);
 
   useEffect(() => {
-    try { window.localStorage.setItem("focusgo_note_categories_v1", JSON.stringify(categories)); } catch (e) {}
+    try { localStorage.setItem("focusgo_note_categories_v2", JSON.stringify(categories)); } catch {}
   }, [categories]);
 
-  const folders = ["All Notes", "Pinned", ...categories];
-
-  const openNew = () => {
-    setEditing({ id: null });
+  const resetEditor = () => {
+    setEditing(null);
     setTitle("");
     setBody("");
     setCategory("General");
     setChecklist([]);
     setCheckText("");
-    setOpenMenu(null);
+    setFormat({ size: 16, font: "normal", bold: false, italic: false, underline: false, list: null });
+  };
+
+  const openNew = () => {
+    resetEditor();
+    setEditing({ id: null });
   };
 
   const openEdit = (note) => {
@@ -5469,307 +5472,363 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
     setCategory(note.category || "General");
     setChecklist(Array.isArray(note.checklist) ? note.checklist : []);
     setCheckText("");
-    setOpenMenu(null);
+    setFormat({
+      size: note.format?.size || 16,
+      font: note.format?.font || "normal",
+      bold: !!note.format?.bold,
+      italic: !!note.format?.italic,
+      underline: !!note.format?.underline,
+      list: note.format?.list || null
+    });
   };
 
   const save = () => {
-    if (!title.trim() && !body.trim() && checklist.length === 0) return;
-    const now = new Date().toISOString();
+    const cleanBody = body.trim();
     const cleanChecklist = checklist
-      .map(x => ({
-        id: x.id || `${Date.now()}_${Math.random().toString(36).slice(2,6)}`,
-        text: (x.text || "").trim(),
-        done: !!x.done
-      }))
+      .map(x => ({ id: x.id, text: (x.text || "").trim(), done: !!x.done }))
       .filter(x => x.text);
 
+    if (!title.trim() && !cleanBody && cleanChecklist.length === 0) return;
+
+    const now = new Date().toISOString();
+    const data = {
+      title: title.trim() || "Untitled",
+      body: cleanBody,
+      category: category || "General",
+      checklist: cleanChecklist,
+      format,
+      updatedAt: now
+    };
+
     if (editing?.id) {
-      setNotes(prev => prev.map(n => n.id === editing.id
-        ? { ...n, title: title.trim() || "Untitled", body: body.trim(), category, checklist: cleanChecklist, updatedAt: now }
-        : n
-      ));
+      setNotes(prev => prev.map(n => n.id === editing.id ? { ...n, ...data } : n));
     } else {
       setNotes(prev => [{
-        id: `${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
-        title: title.trim() || "Untitled",
-        body: body.trim(),
-        category,
-        checklist: cleanChecklist,
+        id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        ...data,
         pinned: false,
-        createdAt: now,
-        updatedAt: now
+        createdAt: now
       }, ...prev]);
     }
-    setEditing(null);
+    resetEditor();
+  };
+
+  const addCategory = () => {
+    const value = window.prompt("Category name");
+    const name = (value || "").trim();
+    if (!name) return;
+    if (!categories.some(c => c.toLowerCase() === name.toLowerCase())) {
+      setCategories(prev => [...prev, name]);
+    }
+    setCategory(name);
+  };
+
+  const deleteCategory = (name) => {
+    if (["General", "Study", "Personal", "Ideas"].includes(name)) return;
+    if (!window.confirm(`Delete "${name}" category? Notes will move to General.`)) return;
+    setCategories(prev => prev.filter(c => c !== name));
+    setNotes(prev => prev.map(n => n.category === name ? { ...n, category: "General" } : n));
+    if (category === name) setCategory("General");
+  };
+
+  const togglePin = (id) => {
+    setNotes(prev => prev.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
   };
 
   const remove = (id) => {
     if (!window.confirm("Delete this note?")) return;
     setNotes(prev => prev.filter(n => n.id !== id));
-    setOpenMenu(null);
-  };
-
-  const togglePin = (id) => {
-    setNotes(prev => prev.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
-    setOpenMenu(null);
-  };
-
-  const addCategory = () => {
-    const name = window.prompt("Category name");
-    const clean = (name || "").trim();
-    if (!clean) return;
-    if (!categories.some(c => c.toLowerCase() === clean.toLowerCase())) {
-      setCategories(prev => [...prev, clean]);
-    }
-    setCategory(clean);
-  };
-
-  const deleteCategory = (name) => {
-    if (["General", "Study", "Personal", "Ideas"].includes(name)) return;
-    if (!window.confirm(`Delete category "${name}"? Notes will move to General.`)) return;
-    setCategories(prev => prev.filter(c => c !== name));
-    setNotes(prev => prev.map(n => n.category === name ? { ...n, category: "General" } : n));
-    if (activeFolder === name) setActiveFolder("All Notes");
   };
 
   const addChecklist = () => {
-    const clean = checkText.trim();
-    if (!clean) return;
+    const value = checkText.trim();
+    if (!value) return;
     setChecklist(prev => [...prev, {
-      id: `${Date.now()}_${Math.random().toString(36).slice(2,6)}`,
-      text: clean,
+      id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      text: value,
       done: false
     }]);
     setCheckText("");
   };
 
+  const execFormat = (command, value = null) => {
+    if (bodyRef.current) bodyRef.current.focus();
+    try { document.execCommand(command, false, value); } catch {}
+    if (bodyRef.current) setBody(bodyRef.current.innerHTML);
+  };
+
+  const setFontSize = (next) => {
+    const size = Math.max(12, Math.min(28, next));
+    setFormat(prev => ({ ...prev, size }));
+  };
+
   const filtered = notes
-    .filter(n => {
-      if (activeFolder === "Pinned") return !!n.pinned;
-      if (activeFolder !== "All Notes") return (n.category || "General") === activeFolder;
-      return true;
-    })
     .filter(n => {
       const q = search.toLowerCase().trim();
       if (!q) return true;
-      const checklistText = Array.isArray(n.checklist) ? n.checklist.map(x => x.text).join(" ") : "";
-      return `${n.title} ${n.body} ${n.category || ""} ${checklistText}`.toLowerCase().includes(q);
+      const list = Array.isArray(n.checklist) ? n.checklist.map(x => x.text).join(" ") : "";
+      return `${n.title} ${n.body} ${n.category || ""} ${list}`.toLowerCase().includes(q);
     })
     .sort((a, b) =>
       Number(!!b.pinned) - Number(!!a.pinned) ||
-      new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0)
+      new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)
     );
 
+  const renderBody = (note) => {
+    if (!note.body) return null;
+    const html = /<[a-z][\s\S]*>/i.test(note.body)
+      ? note.body
+      : note.body.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br/>");
+    return (
+      <div
+        dangerouslySetInnerHTML={{ __html: html }}
+        style={{
+          color: textMuted2,
+          fontSize: Math.min(17, note.format?.size || 13),
+          fontFamily: note.format?.font === "serif" ? "Georgia, serif" : note.format?.font === "mono" ? "monospace" : "inherit",
+          fontWeight: note.format?.bold ? 700 : 400,
+          fontStyle: note.format?.italic ? "italic" : "normal",
+          textDecoration: note.format?.underline ? "underline" : "none",
+          lineHeight: 1.55,
+          maxHeight: 86,
+          overflow: "hidden"
+        }}
+      />
+    );
+  };
+
   return (
-    <div className="fg-tab-panel" style={{ marginTop: 20, paddingBottom: 30 }} onClick={() => openMenu && setOpenMenu(null)}>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+    <div className="fg-tab-panel" style={{ marginTop: 20, paddingBottom: 100 }}>
+      {/* Notes header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
         <div>
-          <div style={{ fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain }}>{t.notesTitle}</div>
-          <div style={{ fontSize:11.5, color:textMuted2, marginTop:3 }}>{t.notesSubtitle}</div>
+          <div style={{ fontSize: 21, fontWeight: 800, color: textMain }}>{t.notesTitle}</div>
+          <div style={{ fontSize: 12.5, color: textMuted2, marginTop: 4 }}>{t.notesSubtitle}</div>
         </div>
-        <button
-          onClick={(e)=>{e.stopPropagation();openNew();}}
-          style={{ width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",background:accent,color:"#fff",border:"none",borderRadius:13,cursor:"pointer",boxShadow:"0 5px 14px rgba(0,0,0,.10)" }}
-          title="New Note"
-        >
-          <Plus size={20}/>
-        </button>
-      </div>
-
-      {/* Folder Grid */}
-      <div style={{ marginBottom:14 }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-          <div style={{ fontSize:12.5,fontWeight:800,color:textMain }}>Folders</div>
-          <div style={{ fontSize:10.5,color:textMuted2 }}>{notes.length} notes</div>
-        </div>
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:8 }}>
-          {folders.map(folder => {
-            const count = folder === "All Notes"
-              ? notes.length
-              : folder === "Pinned"
-                ? notes.filter(n=>n.pinned).length
-                : notes.filter(n=>(n.category||"General")===folder).length;
-            const active = activeFolder === folder;
-            return (
-              <button key={folder} onClick={(e)=>{e.stopPropagation();setActiveFolder(folder);}} style={{
-                textAlign:"left",padding:"11px 10px",borderRadius:14,cursor:"pointer",
-                background:active ? (dark ? "#2B281F" : "#FFF4DF") : cardBg,
-                border:`1px solid ${active ? accent : cardBorder}`, color:textMain
-              }}>
-                <div style={{display:"flex",alignItems:"center",gap:7}}>
-                  {folder === "Pinned" ? <Pin size={15} color={active ? accent : textMuted2}/> : <FolderOpen size={16} color={active ? accent : textMuted2}/>}
-                  <span style={{fontSize:11.5,fontWeight:800,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{folder}</span>
-                </div>
-                <div style={{fontSize:10.5,color:textMuted2,marginTop:5}}>{count} note{count===1?"":"s"}</div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Categories */}
-      <div style={{ display:"flex",gap:7,alignItems:"center",overflowX:"auto",paddingBottom:3,marginBottom:12 }}>
-        <Tag size={14} color={textMuted2} style={{flex:"0 0 auto"}}/>
-        {categories.map(cat => (
-          <div key={cat} style={{display:"flex",alignItems:"center",gap:3,background:dark?"#211F1B":"#F5F2EA",border:`1px solid ${cardBorder}`,borderRadius:999,padding:"5px 9px",flex:"0 0 auto"}}>
-            <button onClick={(e)=>{e.stopPropagation();setActiveFolder(cat);}} style={{border:"none",background:"transparent",color:textMain,cursor:"pointer",fontSize:10.5,fontWeight:700,padding:0}}>{cat}</button>
-            {!["General","Study","Personal","Ideas"].includes(cat) && (
-              <button onClick={(e)=>{e.stopPropagation();deleteCategory(cat)}} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:0,lineHeight:1}}>×</button>
-            )}
-          </div>
-        ))}
-        <button onClick={(e)=>{e.stopPropagation();addCategory();}} style={{flex:"0 0 auto",border:`1px dashed ${cardBorder}`,background:"transparent",color:accent,borderRadius:999,padding:"5px 10px",fontSize:10.5,fontWeight:800,cursor:"pointer"}}>+ Category</button>
       </div>
 
       {/* Search */}
-      <div style={{display:"flex",alignItems:"center",gap:8,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:"9px 12px",marginBottom:14}}>
-        <Search size={15} color={textMuted2}/>
+      <div style={{
+        display: "flex", alignItems: "center", gap: 9, background: cardBg,
+        border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "11px 13px", marginBottom: 12
+      }}>
+        <Search size={17} color={textMuted2} />
         <input
           value={search}
-          onChange={e=>setSearch(e.target.value)}
-          placeholder={t.notesSearch}
-          style={{flex:1,border:"none",outline:"none",background:"transparent",color:textMain,fontFamily:"inherit",fontSize:13}}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search notes..."
+          style={{ flex: 1, border: "none", outline: "none", background: "transparent", color: textMain, fontFamily: "inherit", fontSize: 13.5 }}
         />
-        {search && <button onClick={()=>setSearch("")} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:0}}><X size={14}/></button>}
+        {search && <button onClick={() => setSearch("")} style={{ border: "none", background: "transparent", color: textMuted2, cursor: "pointer" }}><X size={15}/></button>}
+      </div>
+
+      {/* Categories only — no folder grid */}
+      <div style={{ display: "flex", alignItems: "center", gap: 7, overflowX: "auto", padding: "2px 0 12px" }}>
+        <Tag size={15} color={textMuted2} style={{ flex: "0 0 auto" }} />
+        {categories.map(cat => (
+          <div key={cat} style={{
+            display: "flex", alignItems: "center", gap: 3, flex: "0 0 auto",
+            border: `1px solid ${cardBorder}`, borderRadius: 999,
+            background: dark ? "#24211C" : "#F5F1E8", padding: "6px 10px"
+          }}>
+            <button
+              onClick={() => setSearch(search === `#${cat}` ? "" : `#${cat}`)}
+              style={{ border: "none", background: "transparent", color: textMain, cursor: "pointer", fontSize: 10.5, fontWeight: 700, padding: 0 }}
+            >
+              {cat}
+            </button>
+            {!["General", "Study", "Personal", "Ideas"].includes(cat) && (
+              <button onClick={() => deleteCategory(cat)} style={{ border: "none", background: "transparent", color: textMuted2, cursor: "pointer", padding: 0 }}>×</button>
+            )}
+          </div>
+        ))}
+        <button
+          onClick={addCategory}
+          style={{ flex: "0 0 auto", border: `1px dashed ${accent}`, background: "transparent", color: accent, borderRadius: 999, padding: "6px 11px", fontSize: 10.5, fontWeight: 800, cursor: "pointer" }}
+        >
+          + Category
+        </button>
       </div>
 
       {filtered.length === 0 ? (
-        <div style={{textAlign:"center",padding:"40px 20px",background:cardBg,border:`1px dashed ${cardBorder}`,borderRadius:18}}>
-          <div style={{width:52,height:52,borderRadius:16,background:dark?"#26231D":"#F3EEE3",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}>
-            <FileText size={23} color={dark?"#C9C0AC":"#6B6353"}/>
+        <div style={{
+          minHeight: 350, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center",
+          background: cardBg, border: `1px dashed ${cardBorder}`, borderRadius: 20, padding: 28, textAlign: "center"
+        }}>
+          <div style={{ width: 58, height: 58, borderRadius: 18, background: dark ? "#28251F" : "#F2EEE3", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+            <FileText size={26} color={textMuted2} />
           </div>
-          <div style={{fontSize:14.5,fontWeight:800,color:textMain}}>{t.notesEmpty}</div>
-          <div style={{fontSize:12,color:textMuted2,marginTop:5}}>Create a note, add a category, or use a checklist.</div>
-          <button onClick={openNew} style={{marginTop:16,border:"none",background:accent,color:"#fff",borderRadius:12,padding:"10px 14px",fontWeight:700,fontSize:12,cursor:"pointer"}}><Plus size={13}/> {t.notesNew}</button>
+          <div style={{ fontSize: 16, fontWeight: 800, color: textMain }}>No notes yet</div>
+          <div style={{ fontSize: 12.5, color: textMuted2, marginTop: 5 }}>Create a note, add a category, or use a checklist.</div>
         </div>
       ) : (
-        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {filtered.map(note => (
             <div
               key={note.id}
-              onClick={()=>openEdit(note)}
-              className="fg-card"
-              style={{position:"relative",background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"14px 15px",cursor:"pointer"}}
+              onClick={() => openEdit(note)}
+              style={{
+                position: "relative", background: cardBg, border: `1px solid ${cardBorder}`,
+                borderRadius: 16, padding: "14px 15px", cursor: "pointer"
+              }}
             >
-              <div style={{display:"flex",justifyContent:"space-between",gap:10,alignItems:"flex-start"}}>
-                <div style={{minWidth:0,flex:1}}>
-                  <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    {note.pinned && <Pin size={13} fill={accent} color={accent}/>}
-                    <div style={{fontSize:14,fontWeight:800,color:textMain,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{note.title}</div>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    {note.pinned && <Pin size={13} color={accent} fill={accent} />}
+                    <div style={{ fontSize: 15, fontWeight: 800, color: textMain, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {note.title || "Untitled"}
+                    </div>
                   </div>
-                  <div style={{display:"flex",alignItems:"center",gap:6,marginTop:6}}>
-                    <span style={{fontSize:9.5,fontWeight:800,padding:"3px 7px",borderRadius:999,background:dark?"#29261F":"#F4F0E6",color:textMuted2}}>{note.category || "General"}</span>
-                    {Array.isArray(note.checklist) && note.checklist.length > 0 && (
-                      <span style={{fontSize:9.5,color:textMuted2}}>{note.checklist.filter(x=>x.done).length}/{note.checklist.length} checked</span>
-                    )}
-                  </div>
+                  {renderBody(note)}
                 </div>
-                <button
-                  onClick={(e)=>{e.stopPropagation();setOpenMenu(openMenu===note.id?null:note.id)}}
-                  style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:3,borderRadius:8}}
-                  title="Note options"
-                >
-                  <MoreVertical size={18}/>
-                </button>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+                  <button
+                    onClick={e => { e.stopPropagation(); togglePin(note.id); }}
+                    style={{ border: "none", background: "transparent", color: note.pinned ? accent : textMuted2, cursor: "pointer", padding: 2 }}
+                    title={note.pinned ? "Unpin" : "Pin"}
+                  >
+                    <Pin size={16} fill={note.pinned ? accent : "none"} />
+                  </button>
+                  <button
+                    onClick={e => { e.stopPropagation(); remove(note.id); }}
+                    style={{ border: "none", background: "transparent", color: textMuted2, cursor: "pointer", padding: 2 }}
+                    title="Delete"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
               </div>
 
-              <div style={{fontSize:12.5,color:textMuted2,lineHeight:1.55,marginTop:8,display:"-webkit-box",WebkitLineClamp:3,WebkitBoxOrient:"vertical",overflow:"hidden",whiteSpace:"pre-wrap"}}>{note.body || "—"}</div>
-
-              {Array.isArray(note.checklist) && note.checklist.length > 0 && (
-                <div style={{marginTop:9,display:"flex",flexDirection:"column",gap:4}}>
-                  {note.checklist.slice(0,3).map(item => (
-                    <div key={item.id} style={{display:"flex",alignItems:"center",gap:7,fontSize:11.5,color:textMuted2}}>
-                      <span style={{width:13,height:13,borderRadius:4,border:`1px solid ${item.done?accent:cardBorder}`,background:item.done?accent:"transparent",display:"inline-flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:9}}>{item.done?"✓":""}</span>
-                      <span style={{textDecoration:item.done?"line-through":"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.text}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {openMenu === note.id && (
-                <div onClick={e=>e.stopPropagation()} style={{position:"absolute",right:12,top:44,width:150,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:5,boxShadow:"0 10px 28px rgba(0,0,0,.16)",zIndex:20}}>
-                  <button onClick={()=>openEdit(note)} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:textMain,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5}}>Edit</button>
-                  <button onClick={()=>togglePin(note.id)} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:textMain,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5}}>{note.pinned ? "Unpin" : "Pin"}</button>
-                  <button onClick={()=>remove(note.id)} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:"#C54B4B",padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5}}>Delete</button>
-                </div>
-              )}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10 }}>
+                <span style={{ fontSize: 9.5, fontWeight: 800, borderRadius: 999, padding: "4px 8px", background: dark ? "#2A271F" : "#FFF2E5", color: accent }}>
+                  {note.category || "General"}
+                </span>
+                {Array.isArray(note.checklist) && note.checklist.length > 0 && (
+                  <span style={{ fontSize: 10, color: textMuted2 }}>
+                    {note.checklist.filter(x => x.done).length}/{note.checklist.length} ✓
+                  </span>
+                )}
+              </div>
             </div>
           ))}
         </div>
       )}
 
+      {/* Single floating + button */}
+      <button
+        onClick={openNew}
+        aria-label="New Note"
+        title="New Note"
+        style={{
+          position: "fixed", right: 22, bottom: 88, width: 56, height: 56, borderRadius: 18,
+          border: "none", background: accent, color: "#fff", display: "flex",
+          alignItems: "center", justifyContent: "center", cursor: "pointer",
+          boxShadow: "0 8px 22px rgba(0,0,0,.18)", zIndex: 35
+        }}
+      >
+        <Plus size={27} />
+      </button>
+
+      {/* Keep-style editor */}
       {editing && (
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",display:"flex",alignItems:"flex-end",justifyContent:"center",zIndex:60}} onClick={()=>setEditing(null)}>
-          <div onClick={e=>e.stopPropagation()} style={{background:cardBg,width:"100%",maxWidth:480,maxHeight:"92vh",overflowY:"auto",borderRadius:"22px 22px 0 0",padding:"20px 20px 28px",color:textMain}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-              <div style={{fontSize:17,fontWeight:800}}>{editing.id ? t.notesEdit : t.notesNew}</div>
-              <button onClick={()=>setEditing(null)} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer"}}><X size={20}/></button>
+        <div style={{ position: "fixed", inset: 0, zIndex: 80, background: cardBg, color: textMain, display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 15px", borderBottom: `1px solid ${cardBorder}` }}>
+            <button onClick={resetEditor} style={{ border: "none", background: "transparent", color: textMain, cursor: "pointer", padding: 5 }}><ChevronLeft size={23}/></button>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button onClick={() => setEditing(prev => prev ? ({ ...prev, pinned: !prev.pinned }) : prev)} style={{ border: "none", background: "transparent", color: editing?.pinned ? accent : textMain, cursor: "pointer" }}>
+                <Pin size={19} fill={editing?.pinned ? accent : "none"}/>
+              </button>
+              <button onClick={save} style={{ border: "none", background: "transparent", color: accent, cursor: "pointer", fontWeight: 800 }}>Save</button>
             </div>
+          </div>
 
+          <div style={{ flex: 1, overflowY: "auto", padding: "18px 16px 120px" }}>
             <input
-              autoFocus
               value={title}
-              onChange={e=>setTitle(e.target.value)}
-              placeholder={t.notesTitlePlaceholder}
-              style={{width:"100%",boxSizing:"border-box",background:dark?"#121110":"#F8F5EE",border:`1px solid ${cardBorder}`,borderRadius:12,padding:"11px 13px",fontSize:14,fontWeight:700,color:textMain,outline:"none",fontFamily:"inherit",marginBottom:10}}
+              onChange={e => setTitle(e.target.value)}
+              placeholder="Title"
+              style={{ width: "100%", boxSizing: "border-box", border: "none", outline: "none", background: "transparent", color: textMain, fontSize: 25, fontWeight: 800, fontFamily: "inherit", marginBottom: 8 }}
             />
 
-            <textarea
-              value={body}
-              onChange={e=>setBody(e.target.value)}
-              placeholder={t.notesBodyPlaceholder}
-              rows={7}
-              style={{width:"100%",boxSizing:"border-box",resize:"vertical",background:dark?"#121110":"#F8F5EE",border:`1px solid ${cardBorder}`,borderRadius:12,padding:"11px 13px",fontSize:13.5,lineHeight:1.55,color:textMain,outline:"none",fontFamily:"inherit",marginBottom:12}}
-            />
-
-            {/* Custom category */}
-            <div style={{marginBottom:14}}>
-              <div style={{fontSize:11.5,fontWeight:800,color:textMain,marginBottom:7}}>Category</div>
-              <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
-                {categories.map(cat => (
-                  <button key={cat} onClick={()=>setCategory(cat)} style={{border:`1px solid ${category===cat?accent:cardBorder}`,background:category===cat?(dark?"#2B281F":"#FFF4DF"):"transparent",color:textMain,borderRadius:999,padding:"6px 10px",fontSize:10.5,fontWeight:700,cursor:"pointer"}}>{cat}</button>
-                ))}
-                <button onClick={addCategory} style={{border:`1px dashed ${cardBorder}`,background:"transparent",color:accent,borderRadius:999,padding:"6px 10px",fontSize:10.5,fontWeight:800,cursor:"pointer"}}>+ New Category</button>
-              </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 15, overflowX: "auto" }}>
+              <select
+                value={category}
+                onChange={e => setCategory(e.target.value)}
+                style={{ border: `1px solid ${cardBorder}`, borderRadius: 999, background: dark ? "#24211C" : "#FFF7EF", color: accent, padding: "6px 10px", fontSize: 10.5, fontWeight: 700, outline: "none" }}
+              >
+                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <button onClick={addCategory} style={{ border: `1px dashed ${accent}`, background: "transparent", color: accent, borderRadius: 999, padding: "6px 10px", fontSize: 10.5, fontWeight: 700 }}>+ Category</button>
             </div>
 
-            {/* Checklist */}
-            <div style={{border:`1px solid ${cardBorder}`,borderRadius:14,padding:12,marginBottom:12}}>
-              <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:9}}>
+            <div
+              ref={bodyRef}
+              contentEditable
+              suppressContentEditableWarning
+              onInput={e => setBody(e.currentTarget.innerHTML)}
+              dangerouslySetInnerHTML={{ __html: body }}
+              data-placeholder="Start writing your note..."
+              style={{
+                minHeight: 280, outline: "none", whiteSpace: "pre-wrap",
+                color: textMain, fontSize: format.size, lineHeight: 1.6,
+                fontFamily: format.font === "serif" ? "Georgia, serif" : format.font === "mono" ? "monospace" : "inherit",
+                fontWeight: format.bold ? 700 : 400,
+                fontStyle: format.italic ? "italic" : "normal",
+                textDecoration: format.underline ? "underline" : "none"
+              }}
+            />
+
+            <div style={{ marginTop: 18, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 8 }}>
                 <ListChecks size={16} color={accent}/>
-                <span style={{fontSize:12,fontWeight:800}}>Checklist</span>
+                <span style={{ fontSize: 11.5, fontWeight: 800 }}>Checklist</span>
               </div>
-
-              {checklist.length > 0 && (
-                <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:9}}>
-                  {checklist.map((item, index) => (
-                    <div key={item.id} style={{display:"flex",alignItems:"center",gap:7}}>
-                      <button
-                        onClick={()=>setChecklist(prev=>prev.map((x,i)=>i===index?{...x,done:!x.done}:x))}
-                        style={{width:19,height:19,borderRadius:5,border:`1.5px solid ${item.done?accent:cardBorder}`,background:item.done?accent:"transparent",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",padding:0,cursor:"pointer",fontSize:12,flex:"0 0 auto"}}
-                      >
-                        {item.done?"✓":""}
-                      </button>
-                      <span style={{flex:1,fontSize:12,color:textMain,textDecoration:item.done?"line-through":"none"}}>{item.text}</span>
-                      <button onClick={()=>setChecklist(prev=>prev.filter((_,i)=>i!==index))} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:2}}><X size={14}/></button>
-                    </div>
-                  ))}
+              {checklist.map((item, index) => (
+                <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
+                  <button
+                    onClick={() => setChecklist(prev => prev.map((x, i) => i === index ? { ...x, done: !x.done } : x))}
+                    style={{ width: 19, height: 19, borderRadius: 5, border: `1px solid ${item.done ? accent : cardBorder}`, background: item.done ? accent : "transparent", color: "#fff", cursor: "pointer" }}
+                  >{item.done ? "✓" : ""}</button>
+                  <span style={{ flex: 1, fontSize: 12, textDecoration: item.done ? "line-through" : "none" }}>{item.text}</span>
+                  <button onClick={() => setChecklist(prev => prev.filter((_, i) => i !== index))} style={{ border: "none", background: "transparent", color: textMuted2 }}><X size={13}/></button>
                 </div>
-              )}
-
-              <div style={{display:"flex",gap:7}}>
+              ))}
+              <div style={{ display: "flex", gap: 7 }}>
                 <input
                   value={checkText}
-                  onChange={e=>setCheckText(e.target.value)}
-                  onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();addChecklist();}}}
+                  onChange={e => setCheckText(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addChecklist(); } }}
                   placeholder="Add checklist item"
-                  style={{flex:1,minWidth:0,background:dark?"#121110":"#F8F5EE",border:`1px solid ${cardBorder}`,borderRadius:10,padding:"9px 10px",fontSize:11.5,color:textMain,outline:"none",fontFamily:"inherit"}}
+                  style={{ flex: 1, border: `1px solid ${cardBorder}`, borderRadius: 9, padding: "8px 9px", background: dark ? "#171614" : "#FAF8F2", color: textMain, outline: "none", fontFamily: "inherit", fontSize: 11.5 }}
                 />
-                <button onClick={addChecklist} style={{border:"none",background:accent,color:"#fff",borderRadius:10,padding:"0 12px",fontWeight:800,cursor:"pointer"}}><Plus size={15}/></button>
+                <button onClick={addChecklist} style={{ border: "none", background: accent, color: "#fff", borderRadius: 9, padding: "0 11px" }}><Plus size={15}/></button>
               </div>
             </div>
+          </div>
 
-            <button onClick={save} style={{width:"100%",padding:"13px 0",border:"none",borderRadius:14,background:accent,color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer"}}>{t.notesSave}</button>
+          {/* Formatting toolbar */}
+          <div style={{ position: "absolute", left: 10, right: 10, bottom: 14, background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 15, padding: 7, boxShadow: "0 8px 28px rgba(0,0,0,.13)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 3, overflowX: "auto" }}>
+              <button onClick={() => { setFormat(p => ({...p, bold: !p.bold})); execFormat("bold"); }} style={{ border: "none", background: format.bold ? (dark ? "#332A20" : "#FFF0E5") : "transparent", color: textMain, borderRadius: 8, padding: "8px 9px", fontWeight: 900, cursor: "pointer" }}>B</button>
+              <button onClick={() => { setFormat(p => ({...p, italic: !p.italic})); execFormat("italic"); }} style={{ border: "none", background: format.italic ? (dark ? "#332A20" : "#FFF0E5") : "transparent", color: textMain, borderRadius: 8, padding: "8px 9px", fontStyle: "italic", cursor: "pointer" }}>I</button>
+              <button onClick={() => { setFormat(p => ({...p, underline: !p.underline})); execFormat("underline"); }} style={{ border: "none", background: format.underline ? (dark ? "#332A20" : "#FFF0E5") : "transparent", color: textMain, borderRadius: 8, padding: "8px 9px", textDecoration: "underline", cursor: "pointer" }}>U</button>
+              <button onClick={() => setFontSize(format.size - 1)} style={{ border: "none", background: "transparent", color: textMain, padding: "8px 6px", fontSize: 10, cursor: "pointer" }}>A−</button>
+              <span style={{ fontSize: 10, color: textMuted2, minWidth: 22, textAlign: "center" }}>{format.size}</span>
+              <button onClick={() => setFontSize(format.size + 1)} style={{ border: "none", background: "transparent", color: textMain, padding: "8px 6px", fontSize: 13, cursor: "pointer" }}>A+</button>
+              <select
+                value={format.font}
+                onChange={e => setFormat(p => ({...p, font: e.target.value}))}
+                style={{ border: "none", background: "transparent", color: textMain, outline: "none", fontSize: 10.5, fontFamily: "inherit" }}
+              >
+                <option value="normal">Normal</option>
+                <option value="serif">Serif</option>
+                <option value="mono">Mono</option>
+              </select>
+              <button onClick={() => execFormat("insertUnorderedList")} style={{ border: "none", background: "transparent", color: textMain, padding: 7, cursor: "pointer" }}>•☰</button>
+              <button onClick={() => execFormat("insertOrderedList")} style={{ border: "none", background: "transparent", color: textMain, padding: 7, cursor: "pointer" }}>1☰</button>
+              <button onClick={() => execFormat("removeFormat")} style={{ border: "none", background: "transparent", color: textMuted2, padding: 7, cursor: "pointer" }}>Tx</button>
+            </div>
           </div>
         </div>
       )}
