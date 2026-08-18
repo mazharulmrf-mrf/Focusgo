@@ -3196,7 +3196,12 @@ export default function FocusGo() {
         {/* STUDY planning section - This Week + Exams */}
         {tab === "study" && (
           <div key="plan" className="fg-tab-panel" style={{marginTop:20}}>
-            {/* Plan / Exam segmented toggle */}
+            {/* Today's Study heading */}
+            <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:12}}>
+              {t.todaysStudy}
+            </div>
+
+            {/* Study / Exam segmented toggle */}
             <div style={{display:"flex", gap:4, background: dark?"#1B1815":"#F0EBDD", border:`1px solid ${cardBorder}`, borderRadius:14, padding:4, marginBottom:18}}>
               {[["study", t.planViewStudy], ["exam", t.planViewExam]].map(([key,label]) => (
                 <button key={key} onClick={()=>{vibrate(); setPlanView(key);}} style={{
