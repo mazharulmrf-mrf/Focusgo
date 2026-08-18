@@ -3185,12 +3185,12 @@ export default function FocusGo() {
         </div>
         )}
 
-        {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) */}
+        {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — orange-tinted highlight card */}
         {(tab === "today" || tab === "study") && (
-        <div className="fg-tab-panel" style={{marginTop:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px"}}>
+        <div className="fg-tab-panel" style={{marginTop:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, background: dark?"rgba(217,119,87,0.12)":"rgba(217,119,87,0.08)", border:`1px solid ${dark?"rgba(217,119,87,0.32)":"rgba(217,119,87,0.28)"}`, borderRadius:16, padding:"14px 16px"}}>
           <div style={{display:"flex", alignItems:"center", gap:14, minWidth:0}}>
             <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
-              size={62} stroke={6} accent={accent} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain} nf={nf}/>
+              size={62} stroke={6} accent={accent} trackColor={dark?"#3A2A22":"#F5DDD0"} textMain={textMain} nf={nf}/>
             <div>
               <div style={{fontSize:13.5, fontWeight:800, color:textMain, marginBottom:5}}>{t.todaysProgress}</div>
               <div style={{display:"flex", alignItems:"center", gap:8, fontSize:12.5, fontWeight:700}}>
@@ -3200,13 +3200,11 @@ export default function FocusGo() {
               </div>
             </div>
           </div>
-          {studyOverview.streak > 0 && (
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:2, paddingLeft:12, borderLeft:`1px solid ${cardBorder}`}}>
-              <Flame size={16} color="#D97757" fill="#D9775733"/>
-              <div style={{fontSize:15, fontWeight:800, color:textMain, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
-              <div style={{fontSize:8.5, color:textMuted2, fontWeight:600, opacity:0.75, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
-            </div>
-          )}
+          <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:2, paddingLeft:12, borderLeft:`1px solid ${dark?"rgba(217,119,87,0.32)":"rgba(217,119,87,0.28)"}`}}>
+            <Flame size={16} color={accent} fill={`${accent}33`}/>
+            <div style={{fontSize:15, fontWeight:800, color:textMain, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
+            <div style={{fontSize:8.5, color:textMuted2, fontWeight:600, opacity:0.75, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
+          </div>
         </div>
         )}
 
@@ -3256,6 +3254,18 @@ export default function FocusGo() {
                 })()}
               </span>
             </div>
+            {tasks.length > 0 && (() => {
+              const doneCount = tasks.filter(x => x.done).length;
+              const pct = Math.round((doneCount / tasks.length) * 100);
+              return (
+                <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:12}}>
+                  <div style={{flex:1, height:6, borderRadius:6, background: dark?"#2C2820":"#EFE9DC", overflow:"hidden"}}>
+                    <div style={{width:`${pct}%`, height:"100%", borderRadius:6, background:"#6E8B5E", transition:"width .25s ease"}}/>
+                  </div>
+                  <div style={{fontSize:10.5, fontWeight:700, color:textMuted2, flexShrink:0}}><Num>{nf(pct)}</Num>%</div>
+                </div>
+              );
+            })()}
             {tasks.length === 0 ? (
               <div style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"17px 14px",textAlign:"center",color:textMuted2,fontSize:12}}>
                 No tasks for today
