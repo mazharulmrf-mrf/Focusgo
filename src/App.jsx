@@ -1082,7 +1082,7 @@ const T = {
     focusTimer: "Focus Timer", start: "Start Focus", pause: "Pause", reset: "Reset",
     pickTopicForTimer: "Pick a topic to focus on", freeSession: "Free Session",
     timerMode: "Timer", stopwatchMode: "Stopwatch",
-    sessionTypeLabel: "Session Type", focusOption: "Focus", breakOption: "Break", customOption: "Custom",
+    sessionTypeLabel: "Session Type", focusOption: "Focus", breakOption: "Break",
     sessionLabel: "Session", focusCompleteTitle: "Focus complete", takeBreakQuestion: "Take a", breakQSuffix: "min break?",
     startBreakBtn: "Start Break", skipBreakBtn: "Skip",
     editTopicTitle: "Edit Topic", save: "Save", edit: "Edit",
@@ -1203,7 +1203,7 @@ const T = {
     focusTimer: "ফোকাস টাইমার", start: "ফোকাস শুরু", pause: "থামাও", reset: "রিসেট",
     pickTopicForTimer: "ফোকাস করার জন্য একটা টপিক বাছাই করো", freeSession: "ফ্রি সেশন",
     timerMode: "টাইমার", stopwatchMode: "স্টপওয়াচ",
-    sessionTypeLabel: "সেশন টাইপ", focusOption: "ফোকাস", breakOption: "ব্রেক", customOption: "কাস্টম",
+    sessionTypeLabel: "সেশন টাইপ", focusOption: "ফোকাস", breakOption: "ব্রেক",
     sessionLabel: "সেশন", focusCompleteTitle: "ফোকাস সম্পন্ন হয়েছে", takeBreakQuestion: "", breakQSuffix: "মিনিট ব্রেক নেবে?",
     startBreakBtn: "ব্রেক শুরু করো", skipBreakBtn: "স্কিপ",
     editTopicTitle: "টপিক এডিট করুন", save: "সেভ করো", edit: "এডিট",
@@ -1555,6 +1555,7 @@ export default function FocusGo() {
   const [summaryMonthAnchor, setSummaryMonthAnchor] = useState(() => { const d = new Date(); d.setMonth(d.getMonth()-1); return d; });
   const [timerTopicId, setTimerTopicId] = useState(null);
   const [showTopicPicker, setShowTopicPicker] = useState(false);
+  const [freeSessionTouched, setFreeSessionTouched] = useState(false); // Free Session pill explicitly click না করা পর্যন্ত duration presets দেখানো হয় না
   const [timerSeconds, setTimerSeconds] = useState(30*60);
   const [timerTotal, setTimerTotal] = useState(30*60);
   const [timerRunning, setTimerRunning] = useState(false);
@@ -1567,7 +1568,6 @@ export default function FocusGo() {
   const [editTopic, setEditTopic] = useState(null);
   // ---- Pomodoro: session type (focus/break), remembered durations, and cycle progress ----
   const [sessionType, setSessionType] = useState("focus"); // "focus" | "break"
-  const [showCustomDurationPicker, setShowCustomDurationPicker] = useState(false);
   const [focusMinutes, setFocusMinutes] = useState(30); // last-selected Focus duration (minutes)
   const [breakMinutes, setBreakMinutes] = useState(5); // last-selected Break duration (minutes)
   const [pomodoroSession, setPomodoroSession] = useState(1); // current Focus session number, 1..4
@@ -2390,7 +2390,6 @@ export default function FocusGo() {
   const changeSessionType = (type) => {
     if (timerRunning) return;
     setSessionType(type);
-    setShowCustomDurationPicker(false);
     const mins = type === "focus" ? focusMinutes : breakMinutes;
     setTimerTotal(mins*60);
     setTimerSeconds(mins*60);
@@ -2400,7 +2399,6 @@ export default function FocusGo() {
     if (timerRunning) return;
     setTimerTotal(mins*60);
     setTimerSeconds(mins*60);
-    setShowCustomDurationPicker(false);
     if (sessionType === "focus") setFocusMinutes(mins); else setBreakMinutes(mins);
   };
 
@@ -2915,7 +2913,7 @@ export default function FocusGo() {
                 )}
                 {timerTopic && (
                   !timerRunning ? (
-                    <button onClick={()=>setShowTopicPicker(v=>!v)} style={{display:"inline-flex", alignItems:"center", gap:3, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, marginTop:2, padding:0}}>
+                    <button onClick={()=>{ const next=!showTopicPicker; setShowTopicPicker(next); if (next) setFreeSessionTouched(false); }} style={{display:"inline-flex", alignItems:"center", gap:3, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, marginTop:2, padding:0}}>
                       {`${timerTopic.subject} — ${timerTopic.topic}`}
                       <ChevronDown size={12} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
                     </button>
@@ -2926,13 +2924,13 @@ export default function FocusGo() {
                   )
                 )}
                 {!timerTopic && !timerRunning && (
-                  <button onClick={()=>setShowTopicPicker(v=>!v)} style={{display:"inline-flex", alignItems:"center", border:"none", background:"transparent", cursor:"pointer", color:textMuted2, marginTop:4, padding:2}}>
+                  <button onClick={()=>{ const next=!showTopicPicker; setShowTopicPicker(next); if (next) setFreeSessionTouched(false); }} style={{display:"inline-flex", alignItems:"center", border:"none", background:"transparent", cursor:"pointer", color:textMuted2, marginTop:4, padding:2}}>
                     <ChevronDown size={13} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
                   </button>
                 )}
                 {!timerRunning && showTopicPicker && (
                   <div style={{display:"flex", flexWrap:"wrap", justifyContent:"center", gap:6, marginTop:8}}>
-                    <button onClick={()=>selectTimerTopic(null)} style={{border:`1px solid ${!timerTopic ? "#4C8FA6" : cardBorder}`, background: !timerTopic ? "#4C8FA61A" : "transparent", color: !timerTopic ? "#4C8FA6" : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+                    <button onClick={()=>{ vibrate(); setTimerTopicId(null); setFreeSessionTouched(true); }} style={{border:`1px solid ${!timerTopic ? "#4C8FA6" : cardBorder}`, background: !timerTopic ? "#4C8FA61A" : "transparent", color: !timerTopic ? "#4C8FA6" : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
                       {t.freeSessionOption}
                     </button>
                     {todayTopics.filter(x=>!x.done).map(x => (
@@ -2942,21 +2940,16 @@ export default function FocusGo() {
                     ))}
                   </div>
                 )}
-                {!timerRunning && showTopicPicker && (
+                {!timerRunning && showTopicPicker && freeSessionTouched && (
                   <div style={{display:"flex", justifyContent:"center", gap:6, marginTop:6, flexWrap:"wrap"}}>
                     {(sessionType === "focus" ? [25,30,45,50,60] : [5,10,15]).map(mins => {
-                      const active = !showCustomDurationPicker && Math.round(timerTotal/60) === mins;
+                      const active = Math.round(timerTotal/60) === mins;
                       return (
                         <button key={mins} onClick={()=>setPresetDuration(mins)} style={{border:`1px solid ${active ? "#4C8FA6" : cardBorder}`, background: active ? "#4C8FA61A" : "transparent", color: active ? "#4C8FA6" : textMuted2, borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
                           <Num>{nf(mins)}</Num> {t.minutes}
                         </button>
                       );
                     })}
-                    {sessionType === "focus" && (
-                      <button onClick={()=>{ setShowCustomDurationPicker(true); startEditDuration(); }} style={{border:`1px solid ${showCustomDurationPicker ? "#4C8FA6" : cardBorder}`, background: showCustomDurationPicker ? "#4C8FA61A" : "transparent", color: showCustomDurationPicker ? "#4C8FA6" : textMuted2, borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
-                        {t.customOption}
-                      </button>
-                    )}
                   </div>
                 )}
               </div>
