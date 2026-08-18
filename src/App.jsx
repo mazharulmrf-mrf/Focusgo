@@ -2158,7 +2158,12 @@ export default function FocusGo() {
   const timerTopic = todayTopics.find(x => x.id === timerTopicId);
 
   // ---- plan tab: next 7 days, starting tomorrow ----
-  const planDays = Array.from({ length: 7 }, (_, i) => { const d = new Date(today); d.setDate(d.getDate() + i + 1); return d; });
+  // Next 7 Days always starts tomorrow — never include today.
+  const planDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i + 1);
+    return d;
+  });
   const planKey = dateKey(planDate);
   const isPlanToday = planKey === todayKey;
   const planTopics = entries[planKey] || [];
@@ -2908,16 +2913,22 @@ export default function FocusGo() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:18}}>
+        <div style={{marginTop:14}}>
           <div style={{marginBottom:10}}>
-            <div style={{fontSize:21,fontWeight:800,letterSpacing:-0.4,color:textMain}}>
+            <div style={{fontSize:16,fontWeight:800,letterSpacing:-0.2,color:textMain}}>
               {(() => {
                 const fullName = (user?.displayName || "").trim();
                 const parts = fullName.split(/\s+/).filter(Boolean);
                 return parts.length ? parts[parts.length - 1] : "Maruf";
               })()}
             </div>
-            <div style={{fontSize:12,color:textMuted2,marginTop:3}}>
+            <div style={{
+              marginTop:7,padding:"8px 11px",borderRadius:12,
+              background:dark ? "#25211B" : "#FFF7EF",
+              border:`1px solid ${cardBorder}`,
+              color:textMain,fontSize:11,fontWeight:650,
+              lineHeight:1.3,textAlign:"center"
+            }}>
               ✨ {FOCUSGO_DAILY_MOTIVATIONS[
                 Math.floor(new Date(today.getFullYear(),today.getMonth(),today.getDate()).getTime()/86400000)
                 % FOCUSGO_DAILY_MOTIVATIONS.length
@@ -3196,76 +3207,42 @@ export default function FocusGo() {
         {/* STUDY planning section - This Week + Exams */}
         {tab === "study" && (
           <div key="plan" className="fg-tab-panel" style={{marginTop:20}}>
-            {/* Today's Study heading */}
-            <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:12}}>
-              {t.todaysStudy}
-            </div>
-
-            {/* Study / Exam segmented toggle */}
-            <div style={{display:"flex", gap:4, background: dark?"#1B1815":"#F0EBDD", border:`1px solid ${cardBorder}`, borderRadius:14, padding:4, marginBottom:18}}>
-              {[["study", t.planViewStudy], ["exam", t.planViewExam]].map(([key,label]) => (
-                <button key={key} onClick={()=>{vibrate(); setPlanView(key);}} style={{
-                  flex:1, border:"none", borderRadius:10, padding:"9px 0", fontSize:12.5, fontWeight:700, cursor:"pointer",
-                  background: planView===key ? cardBg : "transparent",
-                  color: planView===key ? textMain : textMuted2,
-                  boxShadow: planView===key ? (dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(0,0,0,0.08)") : "none",
-                  transition:"background .18s ease, color .18s ease",
-                }}>
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {planView === "study" && (<>
-            <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:10}}>{t.next7Days}</div>
-            <div style={{display:"flex", justifyContent:"space-between", gap:2, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"16px 8px"}}>
-              {planDays.map((d,i) => {
-                const dk = dateKey(d);
-                const isSel = dk === planKey;
-                const dayList = entries[dk] || [];
-                const hasAny = dayList.length > 0;
-                const doneAll = hasAny && dayList.every(x=>x.done);
-                const statusColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : "#4C8FA6");
-                return (
-                  <div key={i} onClick={()=>setPlanDate(d)} style={{textAlign:"center", cursor:"pointer", flex:1, padding:"0 2px"}}>
-                    <div style={{fontSize:9, fontWeight:700, color: isSel ? accent : textMuted2, opacity: isSel ? 1 : 0.85, marginBottom:8, letterSpacing:0.3}}>{weekdayShort(d)}</div>
-                    <div style={{width:34,height:34, borderRadius:"50%", display:"flex",alignItems:"center",justifyContent:"center", margin:"0 auto", fontSize:13, fontWeight:800,
-                      transition:"background .18s ease, color .18s ease, box-shadow .18s ease", boxShadow: isSel ? `0 0 0 1.5px ${accent}` : "none",
-                      background: isSel ? (dark ? "rgba(217,119,87,0.22)" : "rgba(217,119,87,0.14)") : "transparent", color: isSel ? accent : textMain}}>
-                      <Num>{nf(d.getDate())}</Num>
-                    </div>
-                    {/* status dot — same legend colors as Calendar (green completed / blue planned) */}
-                    <div style={{marginTop:8, display:"flex", justifyContent:"center"}}>
-                      <span style={{width:6, height:6, borderRadius:"50%", background: statusColor, opacity: hasAny ? 1 : 0.3}}/>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:20, marginBottom:12}}>
-              <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3}}>
-                {isPlanToday ? t.todaysStudy : <>{weekdayName(planDate)}, <Num>{nf(planDate.getDate())}</Num> {monthName(planDate.getMonth())}</>}
-              </div>
-              <button onClick={()=>{setAddTargetKey(planKey); setShowAdd(true);}} style={{display:"flex",alignItems:"center",gap:5, background: accent, color: "#FFFFFF", border:"none", borderRadius:12, padding:"9px 13px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+            {/* Today's Study — always shown first */}
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12}}>
+              <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
+              <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} style={{
+                display:"flex",alignItems:"center",gap:5, background:accent, color:"#FFFFFF",
+                border:"none", borderRadius:12, padding:"9px 13px", fontSize:12, fontWeight:700, cursor:"pointer"
+              }}>
                 <Plus size={14}/> {t.addTopic}
               </button>
             </div>
 
-            <TopicsList items={planTopics} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
-              cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} textMain={textMain} accent={accent}
-              onToggle={isPlanToday ? (id)=>toggleDoneFor(planKey, id) : null}
-              onStartTimer={isPlanToday ? startTimerFor : null}
-              onEdit={(item)=>setEditTopic({...item, _dk: planKey})}
-              onDelete={(id)=>deleteTopicFor(planKey, id)}
-              onRename={(item, newTopic)=>saveEditFor(planKey, {...item, topic:newTopic})}
-              emptyText={t.noTopicsPlanned} emptySubtext={t.noTopicsPlannedSub}/>
+            <TopicsList
+              items={entries[todayKey] || []}
+              allSubjects={allSubjects}
+              t={t}
+              nf={nf}
+              lang={lang}
+              cardBg={cardBg}
+              cardBorder={cardBorder}
+              textMuted2={textMuted2}
+              textMain={textMain}
+              accent={accent}
+              onToggle={(id)=>toggleDoneFor(todayKey, id)}
+              onStartTimer={startTimerFor}
+              onEdit={(item)=>setEditTopic({...item, _dk: todayKey})}
+              onDelete={(id)=>deleteTopicFor(todayKey, id)}
+              onRename={(item, newTopic)=>saveEditFor(todayKey, {...item, topic:newTopic})}
+              emptyText={t.noTopicsPlanned}
+              emptySubtext={t.noTopicsPlannedSub}
+            />
 
-            {planTopics.length > 0 && (() => {
-              const totalMin = planTopics.reduce((sum,x)=>sum+(x.duration||0), 0);
+            {(entries[todayKey] || []).length > 0 && (() => {
+              const totalMin = (entries[todayKey] || []).reduce((sum,x)=>sum+(x.duration||0), 0);
               const h = Math.floor(totalMin/60), m = totalMin%60;
               return (
-                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:12, padding:"10px 14px", background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14}}>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:12, marginBottom:18, padding:"10px 14px", background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14}}>
                   <span style={{fontSize:12, fontWeight:700, color:textMuted2}}>{t.totalPlannedLabel}</span>
                   <span style={{fontSize:13, fontWeight:800, color:textMain}}>
                     {h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m
@@ -3273,6 +3250,138 @@ export default function FocusGo() {
                 </div>
               );
             })()}
+
+            {/* Study Plan / Exam — visually distinct action cards */}
+            <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginTop:4, marginBottom:22}}>
+              <button
+                onClick={()=>{vibrate(); setPlanView("study");}}
+                style={{
+                  display:"flex", alignItems:"center", gap:10, textAlign:"left", minWidth:0,
+                  padding:"13px 12px", borderRadius:15, cursor:"pointer",
+                  border:`1.5px solid ${planView==="study" ? accent : cardBorder}`,
+                  background: planView==="study"
+                    ? (dark ? "rgba(217,119,87,0.12)" : "rgba(217,119,87,0.08)")
+                    : cardBg,
+                  color:textMain
+                }}
+              >
+                <span style={{
+                  width:34,height:34,borderRadius:11,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",
+                  background:dark?"rgba(217,119,87,0.14)":"rgba(217,119,87,0.10)", color:accent
+                }}>
+                  <Calendar size={18}/>
+                </span>
+                <span style={{minWidth:0}}>
+                  <span style={{display:"block",fontSize:13.5,fontWeight:800}}>Study Plan</span>
+                  <span style={{display:"block",fontSize:10.5,color:textMuted2,marginTop:2}}>Plan your daily study</span>
+                </span>
+              </button>
+
+              <button
+                onClick={()=>{vibrate(); setPlanView("exam");}}
+                style={{
+                  display:"flex", alignItems:"center", gap:10, textAlign:"left", minWidth:0,
+                  padding:"13px 12px", borderRadius:15, cursor:"pointer",
+                  border:`1.5px solid ${planView==="exam" ? "#6D9EDB" : cardBorder}`,
+                  background: planView==="exam"
+                    ? (dark ? "rgba(109,158,219,0.12)" : "rgba(109,158,219,0.08)")
+                    : cardBg,
+                  color:textMain
+                }}
+              >
+                <span style={{
+                  width:34,height:34,borderRadius:11,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",
+                  background:dark?"rgba(109,158,219,0.14)":"rgba(109,158,219,0.10)", color:"#6D9EDB"
+                }}>
+                  <GraduationCap size={18}/>
+                </span>
+                <span style={{minWidth:0}}>
+                  <span style={{display:"block",fontSize:13.5,fontWeight:800}}>Exam</span>
+                  <span style={{display:"block",fontSize:10.5,color:textMuted2,marginTop:2}}>Prepare for your exams</span>
+                </span>
+              </button>
+            </div>
+
+            {planView === "study" && (<>
+              <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:10}}>
+                {t.next7Days}
+              </div>
+
+              <div style={{display:"flex", justifyContent:"space-between", gap:2, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"16px 8px"}}>
+                {planDays.map((d,i) => {
+                  const dk = dateKey(d);
+                  const isSel = dk === planKey;
+                  const dayList = entries[dk] || [];
+                  const hasAny = dayList.length > 0;
+                  const doneAll = hasAny && dayList.every(x=>x.done);
+                  const statusColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : "#4C8FA6");
+                  return (
+                    <div key={i} onClick={()=>setPlanDate(d)} style={{textAlign:"center", cursor:"pointer", flex:1, padding:"0 2px"}}>
+                      <div style={{fontSize:9, fontWeight:700, color: isSel ? accent : textMuted2, opacity: isSel ? 1 : 0.85, marginBottom:8, letterSpacing:0.3}}>
+                        {weekdayShort(d)}
+                      </div>
+                      <div style={{
+                        width:34,height:34,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",
+                        margin:"0 auto",fontSize:13,fontWeight:800,
+                        transition:"background .18s ease, color .18s ease, box-shadow .18s ease",
+                        boxShadow:isSel ? `0 0 0 1.5px ${accent}` : "none",
+                        background:isSel ? (dark ? "rgba(217,119,87,0.22)" : "rgba(217,119,87,0.14)") : "transparent",
+                        color:isSel ? accent : textMain
+                      }}>
+                        <Num>{nf(d.getDate())}</Num>
+                      </div>
+                      <div style={{marginTop:8, display:"flex", justifyContent:"center"}}>
+                        <span style={{width:6,height:6,borderRadius:"50%",background:statusColor,opacity:hasAny?1:0.3}}/>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:20, marginBottom:12}}>
+                <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3}}>
+                  {isPlanToday ? t.todaysStudy : <>{weekdayName(planDate)}, <Num>{nf(planDate.getDate())}</Num> {monthName(planDate.getMonth())}</>}
+                </div>
+                <button onClick={()=>{setAddTargetKey(planKey); setShowAdd(true);}} style={{
+                  display:"flex",alignItems:"center",gap:5,background:accent,color:"#FFFFFF",
+                  border:"none",borderRadius:12,padding:"9px 13px",fontSize:12,fontWeight:700,cursor:"pointer"
+                }}>
+                  <Plus size={14}/> {t.addTopic}
+                </button>
+              </div>
+
+              <TopicsList
+                items={planTopics}
+                allSubjects={allSubjects}
+                t={t}
+                nf={nf}
+                lang={lang}
+                cardBg={cardBg}
+                cardBorder={cardBorder}
+                textMuted2={textMuted2}
+                textMain={textMain}
+                accent={accent}
+                onToggle={isPlanToday ? (id)=>toggleDoneFor(planKey, id) : null}
+                onStartTimer={isPlanToday ? startTimerFor : null}
+                onEdit={(item)=>setEditTopic({...item, _dk: planKey})}
+                onDelete={(id)=>deleteTopicFor(planKey, id)}
+                onRename={(item, newTopic)=>saveEditFor(planKey, {...item, topic:newTopic})}
+                emptyText={t.noTopicsPlanned}
+                emptySubtext={t.noTopicsPlannedSub}
+              />
+
+              {planTopics.length > 0 && (() => {
+                const totalMin = planTopics.reduce((sum,x)=>sum+(x.duration||0), 0);
+                const h = Math.floor(totalMin/60), m = totalMin%60;
+                return (
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:12, padding:"10px 14px", background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14}}>
+                    <span style={{fontSize:12, fontWeight:700, color:textMuted2}}>{t.totalPlannedLabel}</span>
+                    <span style={{fontSize:13, fontWeight:800, color:textMain}}>
+                      {h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m
+                    </span>
+                  </div>
+                );
+              })()}
             </>)}
 
             {planView === "exam" && (
