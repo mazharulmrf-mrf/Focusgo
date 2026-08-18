@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
 import {
   onAuthStateChanged,
@@ -3190,8 +3190,8 @@ export default function FocusGo() {
         </div>
         )}
 
-        {/* Today's study overview card - Today tab only */}
-        {tab === "today" && (
+        {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) */}
+        {(tab === "today" || tab === "study") && (
         <div className="fg-tab-panel" style={{marginTop:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px"}}>
           <div style={{display:"flex", alignItems:"center", gap:14, minWidth:0}}>
             <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
@@ -3215,8 +3215,8 @@ export default function FocusGo() {
         </div>
         )}
 
-        {/* Today's study list - Today tab only */}
-        {tab === "today" && (
+        {/* Today's study list - Today tab + Study tab (shown above Study Plan/Exam) */}
+        {(tab === "today" || tab === "study") && (
         <div className="fg-tab-panel" style={{marginTop:18}}>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
             <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
@@ -3231,6 +3231,18 @@ export default function FocusGo() {
             onEdit={(item)=>setEditTopic({...item, _dk: todayKey})} onDelete={(id)=>deleteTopicFor(todayKey, id)}
             onRename={(item, newTopic)=>saveEditFor(todayKey, {...item, topic:newTopic})}
             emptyText={t.noTopicsToday}/>
+        </div>
+        )}
+
+        {/* Section divider — visually separates "Today's Study" from "Study Plan / Exam" below, only in Study tab */}
+        {tab === "study" && (
+        <div className="fg-tab-panel" style={{marginTop:26, marginBottom:4, display:"flex", alignItems:"center", gap:10}}>
+          <div style={{flex:1, height:1, background:cardBorder}}/>
+          <div style={{display:"flex", alignItems:"center", gap:6, fontSize:11, fontWeight:800, letterSpacing:ls(1), color:textMuted2, whiteSpace:"nowrap"}}>
+            <CalendarClock size={13} color={textMuted2}/>
+            {lang === "bn" ? "স্টাডি প্ল্যান ও এক্সাম" : "STUDY PLAN & EXAM"}
+          </div>
+          <div style={{flex:1, height:1, background:cardBorder}}/>
         </div>
         )}
 
