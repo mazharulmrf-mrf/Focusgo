@@ -3142,11 +3142,11 @@ export default function FocusGo() {
           <div className="fg-tab-panel" style={{marginTop:18, marginBottom:-2}}>
             <div style={{fontSize:21, fontWeight:800, letterSpacing:-0.4, color:textMain}}>Study</div>
             <div style={{fontSize:12, color:textMuted2, marginTop:3}}>Plan, focus, and track your study.</div>
-            <div style={{display:"flex", background: dark?"#121110":"#fff", border:`1px solid ${cardBorder}`, borderRadius:12, padding:3, gap:3, marginTop:14}}>
-              <button onClick={()=>{vibrate(); setStudySection("plan");}} style={{flex:1, border:"none", borderRadius:9, padding:"9px 0", fontSize:12.5, fontWeight:800, cursor:"pointer", background: studySection==="plan" ? accent : "transparent", color: studySection==="plan" ? "#fff" : textMuted2, transition:"background .18s ease, color .18s ease"}}>
+            <div style={{display:"flex", gap:22, marginTop:16, borderBottom:`1px solid ${cardBorder}`}}>
+              <button onClick={()=>{vibrate(); setStudySection("plan");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 10px", fontSize:13.5, fontWeight:800, color: studySection==="plan" ? textMain : textMuted2, borderBottom: studySection==="plan" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
                 {t.planViewStudy}
               </button>
-              <button onClick={()=>{vibrate(); setStudySection("stats");}} style={{flex:1, border:"none", borderRadius:9, padding:"9px 0", fontSize:12.5, fontWeight:800, cursor:"pointer", background: studySection==="stats" ? accent : "transparent", color: studySection==="stats" ? "#fff" : textMuted2, transition:"background .18s ease, color .18s ease"}}>
+              <button onClick={()=>{vibrate(); setStudySection("stats");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 10px", fontSize:13.5, fontWeight:800, color: studySection==="stats" ? textMain : textMuted2, borderBottom: studySection==="stats" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
                 {lang==="bn" ? "স্ট্যাটস" : "Stats"}
               </button>
             </div>
@@ -3314,22 +3314,22 @@ export default function FocusGo() {
         </div>
         )}
 
-        {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — bold orange highlight card */}
+        {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — calm card, color reserved for the ring/badges only */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (
-        <div className="fg-tab-panel" style={{marginTop:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, background: dark?"rgba(217,119,87,0.20)":"rgba(217,119,87,0.14)", border:`1.5px solid ${dark?"rgba(217,119,87,0.45)":"rgba(217,119,87,0.38)"}`, borderRadius:16, padding:"14px 16px", position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px", position:"relative", overflow:"hidden"}}>
           <div style={{display:"flex", alignItems:"center", gap:14, minWidth:0, position:"relative"}}>
             <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
-              size={62} stroke={6} accent={accent} trackColor={dark?"#3A2A22":"#F5DDD0"} textMain={textMain} nf={nf}/>
+              size={62} stroke={6} accent={accent} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain} nf={nf}/>
             <div>
-              <div style={{fontSize:13.5, fontWeight:800, color:accent, marginBottom:5}}>{t.todaysProgress}</div>
+              <div style={{fontSize:13.5, fontWeight:800, color:textMain, marginBottom:5}}>{t.todaysProgress}</div>
               <div style={{display:"flex", alignItems:"center", gap:8, fontSize:12.5, fontWeight:700}}>
-                <span style={{color:accent, background:dark?"rgba(217,119,87,0.22)":"rgba(217,119,87,0.16)", padding:"2px 8px", borderRadius:20}}><Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.doneCount}</span>
+                <span style={{color:"#6E8B5E", background: dark?"rgba(110,139,94,0.18)":"rgba(110,139,94,0.14)", padding:"2px 8px", borderRadius:20}}><Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.doneCount}</span>
                 <span style={{color:textMuted2, fontWeight:500, opacity:0.9}}><Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}</span>
               </div>
             </div>
           </div>
-          <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:3, paddingLeft:12, borderLeft:`1px solid ${dark?"rgba(217,119,87,0.4)":"rgba(217,119,87,0.35)"}`, position:"relative"}}>
-            <div style={{width:28, height:28, borderRadius:"50%", background:dark?"rgba(217,119,87,0.25)":"rgba(217,119,87,0.18)", display:"flex", alignItems:"center", justifyContent:"center"}}>
+          <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:3, paddingLeft:12, borderLeft:`1px solid ${cardBorder}`, position:"relative"}}>
+            <div style={{width:28, height:28, borderRadius:"50%", background: dark?"rgba(217,119,87,0.18)":"rgba(217,119,87,0.12)", display:"flex", alignItems:"center", justifyContent:"center"}}>
               <Flame size={15} color={accent} fill={`${accent}55`}/>
             </div>
             <div style={{fontSize:15, fontWeight:800, color:accent, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
@@ -3357,16 +3357,9 @@ export default function FocusGo() {
         </div>
         )}
 
-        {/* Section divider — visually separates "Today's Study" from "Study Plan / Exam" below, only in Study tab */}
+        {/* Section spacer — separates "Today's Study" from the Next 7 Days plan below, only in Study tab */}
         {tab === "study" && studySection === "plan" && (
-        <div className="fg-tab-panel" style={{marginTop:26, marginBottom:4, display:"flex", alignItems:"center", gap:10}}>
-          <div style={{flex:1, height:1, background:cardBorder}}/>
-          <div style={{display:"flex", alignItems:"center", gap:6, fontSize:11, fontWeight:800, letterSpacing:ls(1), color:textMuted2, whiteSpace:"nowrap"}}>
-            <CalendarClock size={13} color={textMuted2}/>
-            {lang === "bn" ? "স্টাডি প্ল্যান ও এক্সাম" : "STUDY PLAN & EXAM"}
-          </div>
-          <div style={{flex:1, height:1, background:cardBorder}}/>
-        </div>
+        <div className="fg-tab-panel" style={{marginTop:30}}/>
         )}
 
         {/* Today's Tasks — after Today's Study */}
@@ -3437,7 +3430,7 @@ export default function FocusGo() {
                     <div style={{fontSize:9, fontWeight:700, color: isSel ? accent : textMuted2, opacity: isSel ? 1 : 0.85, marginBottom:8, letterSpacing:0.3}}>{weekdayShort(d)}</div>
                     <div style={{width:34,height:34, borderRadius:"50%", display:"flex",alignItems:"center",justifyContent:"center", margin:"0 auto", fontSize:13, fontWeight:800,
                       transition:"background .18s ease, color .18s ease, box-shadow .18s ease", boxShadow: isSel ? `0 0 0 1.5px ${accent}` : "none",
-                      background: isSel ? (dark ? "rgba(217,119,87,0.22)" : "rgba(217,119,87,0.14)") : "transparent", color: isSel ? accent : textMain}}>
+                      background:"transparent", color: isSel ? accent : textMain}}>
                       <Num>{nf(d.getDate())}</Num>
                     </div>
                     {/* status dot — same legend colors as Calendar (green completed / blue planned) */}
@@ -3831,7 +3824,7 @@ export default function FocusGo() {
 
         {/* STATS sub-section (inside Study tab) - week + subjects + month, one shared day-detail card at the bottom */}
         {tab === "study" && studySection === "stats" && (
-          <div key="stats" className="fg-tab-panel">
+          <div key="stats" className="fg-tab-panel" style={{marginTop:22}}>
             {/* Study Overview — headline numbers, justifies the "Stats" name */}
             <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:12}}>{t.studyOverview}</div>
 
@@ -3921,7 +3914,7 @@ export default function FocusGo() {
                           {hh > 0 ? <><Num>{nf(hh)}</Num>h<Num>{nf(mm)}</Num></> : <Num>{nf(mm)}</Num>}
                         </span>
                       ) : <span style={{fontSize:8.5, height:11}}/>}
-                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:6, background: w.min>0 ? (isToday ? accent : `${accent}55`) : (dark?"#2C2820":"#EFE9DC"), transition:"height .3s"}}/>
+                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:6, background: w.min>0 ? (isToday ? accent : "#4C8FA655") : (dark?"#2C2820":"#EFE9DC"), transition:"height .3s"}}/>
                       <span style={{fontSize:9, fontWeight:700, color: isToday?accent:textMuted2}}>{weekdayShort(w.day)}</span>
                     </div>
                   );
@@ -5938,14 +5931,14 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       )}
 
       {/* Categories — কম্প্যাক্ট, ফোল্ডার গ্রিডের বদলে এখন এটাই একমাত্র ফিল্টার */}
-      <div style={{ display:"flex",gap:5,alignItems:"center",overflowX:"auto",paddingBottom:2,marginBottom:14 }}>
-        <Tag size={12} color={textMuted2} style={{flex:"0 0 auto"}}/>
-        <button onClick={(e)=>{e.stopPropagation();setActiveFolder("All Notes");}} style={{border:`1px solid ${activeFolder==="All Notes"?accent:cardBorder}`,background:activeFolder==="All Notes"?(dark?"#2B281F":"#FFF4DF"):(dark?"#211F1B":"#F5F2EA"),color:activeFolder==="All Notes"?accent:textMain,cursor:"pointer",fontSize:9.5,fontWeight:700,padding:"3px 8px",borderRadius:999,flex:"0 0 auto"}}>{lang==="bn"?"সব":"All"}</button>
-        <button onClick={(e)=>{e.stopPropagation();setActiveFolder("Pinned");}} style={{border:`1px solid ${activeFolder==="Pinned"?accent:cardBorder}`,background:activeFolder==="Pinned"?(dark?"#2B281F":"#FFF4DF"):(dark?"#211F1B":"#F5F2EA"),color:activeFolder==="Pinned"?accent:textMain,cursor:"pointer",fontSize:9.5,fontWeight:700,padding:"3px 8px",borderRadius:999,flex:"0 0 auto",display:"flex",alignItems:"center",gap:3}}><Pin size={9}/>{lang==="bn"?"পিন":"Pinned"}</button>
+      <div style={{ display:"flex",gap:6,alignItems:"center",overflowX:"auto",paddingBottom:2,marginBottom:14 }}>
+        <Tag size={13} color={textMuted2} style={{flex:"0 0 auto"}}/>
+        <button onClick={(e)=>{e.stopPropagation();setActiveFolder("All Notes");}} style={{border:`1px solid ${activeFolder==="All Notes"?accent:cardBorder}`,background:activeFolder==="All Notes"?(dark?"#2B281F":"#FFF4DF"):(dark?"#211F1B":"#F5F2EA"),color:activeFolder==="All Notes"?accent:textMain,cursor:"pointer",fontSize:12,fontWeight:700,padding:"5px 11px",borderRadius:999,flex:"0 0 auto"}}>{lang==="bn"?"সব":"All"}</button>
+        <button onClick={(e)=>{e.stopPropagation();setActiveFolder("Pinned");}} style={{border:`1px solid ${activeFolder==="Pinned"?accent:cardBorder}`,background:activeFolder==="Pinned"?(dark?"#2B281F":"#FFF4DF"):(dark?"#211F1B":"#F5F2EA"),color:activeFolder==="Pinned"?accent:textMain,cursor:"pointer",fontSize:12,fontWeight:700,padding:"5px 11px",borderRadius:999,flex:"0 0 auto",display:"flex",alignItems:"center",gap:4}}><Pin size={11}/>{lang==="bn"?"পিন":"Pinned"}</button>
         {categories.map(cat => (
-          <button key={cat} onClick={(e)=>{e.stopPropagation();setActiveFolder(cat);}} style={{border:`1px solid ${activeFolder===cat?accent:cardBorder}`,background:activeFolder===cat?(dark?"#2B281F":"#FFF4DF"):(dark?"#211F1B":"#F5F2EA"),color:activeFolder===cat?accent:textMain,cursor:"pointer",fontSize:9.5,fontWeight:700,padding:"3px 8px",borderRadius:999,flex:"0 0 auto"}}>{cat}</button>
+          <button key={cat} onClick={(e)=>{e.stopPropagation();setActiveFolder(cat);}} style={{border:`1px solid ${activeFolder===cat?accent:cardBorder}`,background:activeFolder===cat?(dark?"#2B281F":"#FFF4DF"):(dark?"#211F1B":"#F5F2EA"),color:activeFolder===cat?accent:textMain,cursor:"pointer",fontSize:12,fontWeight:700,padding:"5px 11px",borderRadius:999,flex:"0 0 auto"}}>{cat}</button>
         ))}
-        <button onClick={(e)=>{e.stopPropagation();addCategory();}} style={{flex:"0 0 auto",border:`1px dashed ${cardBorder}`,background:"transparent",color:accent,borderRadius:999,padding:"3px 8px",fontSize:9.5,fontWeight:800,cursor:"pointer"}}>+</button>
+        <button onClick={(e)=>{e.stopPropagation();addCategory();}} style={{flex:"0 0 auto",border:`1px dashed ${cardBorder}`,background:"transparent",color:accent,borderRadius:999,padding:"5px 11px",fontSize:12,fontWeight:800,cursor:"pointer"}}>+</button>
       </div>
 
       {filtered.length === 0 ? (
