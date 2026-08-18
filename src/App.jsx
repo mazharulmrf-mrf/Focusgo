@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, Camera, Image as ImageIcon, Mic, PenTool } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, Camera, Image as ImageIcon, Mic, PenTool, FolderPlus, PanelRight} from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
 import {
   onAuthStateChanged,
@@ -5442,6 +5442,16 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
   const [showFolderMenu, setShowFolderMenu] = useState(false);
   const [selectionActive, setSelectionActive] = useState(false);
   const [folder, setFolder] = useState("Notes");
+  const [folders, setFolders] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("focusgo_note_folders_v1") || "[]");
+      return Array.isArray(saved) && saved.length ? saved : ["Notes", "Study", "Personal", "Work"];
+    } catch {
+      return ["Notes", "Study", "Personal", "Work"];
+    }
+  });
+  const [selectedFolder, setSelectedFolder] = useState(null);
+  const [showCategoryPanel, setShowCategoryPanel] = useState(false);
   const [categories, setCategories] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem("focusgo_note_categories_v2") || "[]");
@@ -5456,6 +5466,9 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
   useEffect(() => {
     try { localStorage.setItem("focusgo_note_categories_v2", JSON.stringify(categories)); } catch {}
   }, [categories]);
+  useEffect(() => {
+    try { localStorage.setItem("focusgo_note_folders_v1", JSON.stringify(folders)); } catch {}
+  }, [folders]);
 
   useEffect(() => {
     if (!editing || !bodyRef.current) return;
@@ -5476,6 +5489,7 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
     setEditingCategory(null);
     setCategoryDraft("");
     setShowFolderMenu(false);
+    setShowCategoryPanel(false);
   };
 
   const openNew = () => {
@@ -5532,6 +5546,38 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
       }, ...prev]);
     }
     resetEditor();
+  };
+
+
+  const addFolder = () => {
+    const value = window.prompt("Folder name");
+    const name = (value || "").trim();
+    if (!name) return;
+    if (folders.some(f => f.toLowerCase() === name.toLowerCase())) return;
+    setFolders(prev => [...prev, name]);
+  };
+
+  const renameFolder = (name) => {
+    const value = window.prompt("Rename folder", name);
+    const next = (value || "").trim();
+    if (!next || next === name) return;
+    if (folders.some(f => f !== name && f.toLowerCase() === next.toLowerCase())) return;
+    setFolders(prev => prev.map(f => f === name ? next : f));
+    setNotes(prev => prev.map(n => n.folder === name ? { ...n, folder: next } : n));
+    if (folder === name) setFolder(next);
+    if (selectedFolder === name) setSelectedFolder(next);
+  };
+
+  const deleteFolder = (name) => {
+    if (name === "Notes") {
+      window.alert("The default Notes folder cannot be deleted.");
+      return;
+    }
+    if (!window.confirm(`Delete "${name}" folder? Notes will move to Notes.`)) return;
+    setFolders(prev => prev.filter(f => f !== name));
+    setNotes(prev => prev.map(n => n.folder === name ? { ...n, folder: "Notes" } : n));
+    if (folder === name) setFolder("Notes");
+    if (selectedFolder === name) setSelectedFolder(null);
   };
 
   const addCategory = () => {
@@ -5658,6 +5704,7 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
 
   const filtered = notes
     .filter(n => {
+      if (selectedFolder && (n.folder || "Notes") !== selectedFolder) return false;
       const q = search.toLowerCase().trim();
       if (!q) return true;
       if (q.startsWith("category:")) return (n.category || "General").toLowerCase() === q.slice(9).trim().toLowerCase();
@@ -5693,6 +5740,18 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
     );
   };
 
+  const folderCount = (name) => notes.filter(n => (n.folder || "Notes") === name).length;
+
+  const formatNoteDate = (iso, includeTime = false) => {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "—";
+    return d.toLocaleString(undefined, {
+      day: "2-digit", month: "short", year: "numeric",
+      ...(includeTime ? { hour: "numeric", minute: "2-digit" } : {})
+    });
+  };
+
   return (
     <div className="fg-tab-panel" style={{ marginTop: 20, paddingBottom: 100 }}>
       {/* Notes header */}
@@ -5718,33 +5777,182 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
         {search && <button onClick={() => setSearch("")} style={{ border: "none", background: "transparent", color: textMuted2, cursor: "pointer" }}><X size={15}/></button>}
       </div>
 
-      {/* Categories only — no folder grid */}
-      <div style={{ display: "flex", alignItems: "center", gap: 7, overflowX: "auto", padding: "2px 0 12px" }}>
-        <Tag size={15} color={textMuted2} style={{ flex: "0 0 auto" }} />
-        {categories.map(cat => (
-          <div key={cat} style={{
-            display: "flex", alignItems: "center", gap: 3, flex: "0 0 auto",
-            border: `1px solid ${cardBorder}`, borderRadius: 999,
-            background: dark ? "#24211C" : "#F5F1E8", padding: "6px 10px"
-          }}>
-            <button
-              onClick={() => setSearch(search === `category:${cat}` ? "" : `category:${cat}`)}
-              style={{ border: "none", background: "transparent", color: textMain, cursor: "pointer", fontSize: 10.5, fontWeight: 700, padding: 0 }}
+      {/* Folder grid */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 9 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: textMain }}>Folders</div>
+          <button
+            onClick={addFolder}
+            title="Create folder"
+            style={{
+              display: "flex", alignItems: "center", gap: 5, border: `1px solid ${cardBorder}`,
+              background: cardBg, color: accent, borderRadius: 10, padding: "7px 9px",
+              fontSize: 10.5, fontWeight: 800, cursor: "pointer"
+            }}
+          >
+            <FolderPlus size={15}/> New folder
+          </button>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 9 }}>
+          <button
+            onClick={() => setSelectedFolder(null)}
+            style={{
+              textAlign: "left", border: `1px solid ${selectedFolder === null ? accent : cardBorder}`,
+              background: selectedFolder === null ? (dark ? "#332A20" : "#FFF3E8") : cardBg,
+              borderRadius: 14, padding: "11px 12px", cursor: "pointer", color: textMain
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Folder size={20} color={accent}/>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontWeight: 800 }}>All Notes</div>
+                <div style={{ fontSize: 9.5, color: textMuted2, marginTop: 2 }}>{notes.length} notes</div>
+              </div>
+            </div>
+          </button>
+
+          {folders.map(f => (
+            <div
+              key={f}
+              style={{
+                position: "relative", border: `1px solid ${selectedFolder === f ? accent : cardBorder}`,
+                background: selectedFolder === f ? (dark ? "#332A20" : "#FFF3E8") : cardBg,
+                borderRadius: 14, padding: "11px 12px"
+              }}
             >
-              {cat}
-            </button>
-            {!["General", "Study", "Personal", "Ideas"].includes(cat) && (
-              <button onClick={() => deleteCategory(cat)} style={{ border: "none", background: "transparent", color: textMuted2, cursor: "pointer", padding: 0 }}>×</button>
-            )}
-          </div>
-        ))}
+              <button
+                onClick={() => setSelectedFolder(f)}
+                style={{ width: "100%", border: "none", background: "transparent", color: textMain, textAlign: "left", padding: 0, cursor: "pointer" }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8, paddingRight: 32 }}>
+                  <Folder size={20} color={accent}/>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f}</div>
+                    <div style={{ fontSize: 9.5, color: textMuted2, marginTop: 2 }}>{folderCount(f)} notes</div>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => renameFolder(f)}
+                title="Rename folder"
+                style={{ position: "absolute", top: 7, right: 28, border: "none", background: "transparent", color: textMuted2, padding: 3, cursor: "pointer" }}
+              ><Pencil size={12}/></button>
+              {f !== "Notes" && (
+                <button
+                  onClick={() => deleteFolder(f)}
+                  title="Delete folder"
+                  style={{ position: "absolute", top: 7, right: 7, border: "none", background: "transparent", color: textMuted2, padding: 3, cursor: "pointer" }}
+                ><X size={12}/></button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Categories: open in a side panel */}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
         <button
-          onClick={addCategory}
-          style={{ flex: "0 0 auto", border: `1px dashed ${accent}`, background: "transparent", color: accent, borderRadius: 999, padding: "6px 11px", fontSize: 10.5, fontWeight: 800, cursor: "pointer" }}
+          onClick={() => setShowCategoryPanel(true)}
+          style={{
+            display: "flex", alignItems: "center", gap: 6, border: `1px solid ${cardBorder}`,
+            background: cardBg, color: textMain, borderRadius: 11, padding: "8px 11px",
+            cursor: "pointer", fontSize: 11, fontWeight: 800
+          }}
         >
-          + Category
+          <Tag size={15} color={accent}/> Categories
         </button>
       </div>
+
+      {showCategoryPanel && (
+        <div
+          onClick={() => setShowCategoryPanel(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.25)", zIndex: 120 }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              position: "absolute", top: 0, right: 0, bottom: 0, width: "min(320px, 88vw)",
+              background: cardBg, borderLeft: `1px solid ${cardBorder}`,
+              padding: "18px 15px", boxShadow: "-10px 0 30px rgba(0,0,0,.14)",
+              overflowY: "auto"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: textMain }}>Categories</div>
+                <div style={{ fontSize: 10.5, color: textMuted2, marginTop: 3 }}>Filter and manage your categories</div>
+              </div>
+              <button onClick={() => setShowCategoryPanel(false)} style={{ border: "none", background: "transparent", color: textMain, cursor: "pointer" }}><X size={19}/></button>
+            </div>
+
+            <button
+              onClick={addCategory}
+              style={{ width: "100%", border: `1px dashed ${accent}`, background: "transparent", color: accent, borderRadius: 11, padding: "10px", fontWeight: 800, cursor: "pointer", marginBottom: 10 }}
+            >+ Add category</button>
+
+            <button
+              onClick={() => setSearch("")}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                border: `1px solid ${!search.startsWith("category:") ? accent : cardBorder}`,
+                background: !search.startsWith("category:") ? (dark ? "#332A20" : "#FFF3E8") : cardBg,
+                color: textMain, borderRadius: 10, padding: "10px", cursor: "pointer", marginBottom: 5
+              }}
+            >
+              <span style={{ fontSize: 12, fontWeight: 700 }}>All categories</span>
+              <span style={{ fontSize: 10, color: textMuted2 }}>{notes.length}</span>
+            </button>
+
+            {categories.map(cat => {
+              const count = notes.filter(n => (n.category || "General") === cat).length;
+              const active = search === `category:${cat}`;
+              return (
+                <div key={cat} style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
+                  <button
+                    onClick={() => { setSearch(active ? "" : `category:${cat}`); setShowCategoryPanel(false); }}
+                    style={{
+                      flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between",
+                      border: `1px solid ${active ? accent : cardBorder}`,
+                      background: active ? (dark ? "#332A20" : "#FFF3E8") : cardBg,
+                      color: textMain, borderRadius: 10, padding: "10px", cursor: "pointer"
+                    }}
+                  >
+                    <span style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, fontWeight: 700 }}><Tag size={14} color={accent}/>{cat}</span>
+                    <span style={{ fontSize: 10, color: textMuted2 }}>{count}</span>
+                  </button>
+                  <button
+                    onClick={() => startEditCategory(cat)}
+                    title="Rename category"
+                    style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMuted2, borderRadius: 9, padding: 8, cursor: "pointer" }}
+                  ><Pencil size={14}/></button>
+                  {!["General", "Study", "Personal", "Ideas"].includes(cat) && (
+                    <button onClick={() => deleteCategory(cat)} title="Delete category" style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: "#C54B4B", borderRadius: 9, padding: 8, cursor: "pointer" }}><Trash2 size={14}/></button>
+                  )}
+                </div>
+              );
+            })}
+
+            {editingCategory && (
+              <div style={{ marginTop: 14, padding: 12, border: `1px solid ${cardBorder}`, borderRadius: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: textMain, marginBottom: 7 }}>Rename category</div>
+                <input
+                  value={categoryDraft}
+                  onChange={e => setCategoryDraft(e.target.value)}
+                  autoFocus
+                  style={{ width: "100%", boxSizing: "border-box", border: `1px solid ${accent}`, borderRadius: 9, padding: "9px", background: cardBg, color: textMain, outline: "none", fontFamily: "inherit" }}
+                />
+                <div style={{ display: "flex", gap: 7, marginTop: 8 }}>
+                  <button onClick={saveCategoryEdit} style={{ flex: 1, border: "none", background: accent, color: "#fff", borderRadius: 9, padding: "9px", fontWeight: 800 }}>Save</button>
+                  <button onClick={() => { setEditingCategory(null); setCategoryDraft(""); }} style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMain, borderRadius: 9, padding: "9px 12px" }}>Cancel</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
 
       {filtered.length === 0 ? (
         <div style={{
@@ -5796,10 +6004,15 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
                 </div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10 }}>
-                <span style={{ fontSize: 9.5, fontWeight: 800, borderRadius: 999, padding: "4px 8px", background: dark ? "#2A271F" : "#FFF2E5", color: accent }}>
-                  {note.category || "General"}
-                </span>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10, gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <span style={{ fontSize: 9.5, fontWeight: 800, borderRadius: 999, padding: "4px 8px", background: dark ? "#2A271F" : "#FFF2E5", color: accent }}>
+                    {note.category || "General"}
+                  </span>
+                  <span style={{ fontSize: 9.5, fontWeight: 700, borderRadius: 999, padding: "4px 8px", background: dark ? "#22201B" : "#F4F0E7", color: textMuted2 }}>
+                    📁 {note.folder || "Notes"}
+                  </span>
+                </div>
                 {Array.isArray(note.checklist) && note.checklist.length > 0 && (
                   <span style={{ fontSize: 10, color: textMuted2 }}>
                     {note.checklist.filter(x => x.done).length}/{note.checklist.length} ✓
@@ -5848,21 +6061,18 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
             />
 
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 15, overflowX: "auto" }}>
-              <select
-                value={category}
-                onChange={e => setCategory(e.target.value)}
-                style={{ border: `1px solid ${cardBorder}`, borderRadius: 999, background: dark ? "#24211C" : "#FFF7EF", color: accent, padding: "6px 10px", fontSize: 10.5, fontWeight: 700, outline: "none" }}
+              <button
+                onClick={() => setShowCategoryPanel(true)}
+                style={{ border: `1px solid ${cardBorder}`, borderRadius: 999, background: dark ? "#24211C" : "#FFF7EF", color: accent, padding: "6px 10px", fontSize: 10.5, fontWeight: 700, cursor: "pointer" }}
               >
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <button onClick={addCategory} style={{ border: `1px dashed ${accent}`, background: "transparent", color: accent, borderRadius: 999, padding: "6px 10px", fontSize: 10.5, fontWeight: 700 }}>+ Category</button>
-              <button onClick={() => setShowCategoryManager(true)} title="Edit categories" style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMuted2, borderRadius: 999, padding: "6px 9px", cursor: "pointer" }}><Pencil size={13}/></button>
+                🏷️ {category}
+              </button>
               <button onClick={() => setShowFolderMenu(v => !v)} title="Folder" style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMuted2, borderRadius: 999, padding: "6px 10px", cursor: "pointer", fontSize: 10.5 }}>📁 {folder}</button>
             </div>
 
             {showFolderMenu && (
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
-                {["Notes", "Study", "Personal", "Work"].map(f => (
+                {folders.map(f => (
                   <button key={f} onClick={() => { setFolder(f); setShowFolderMenu(false); }} style={{
                     border: `1px solid ${folder === f ? accent : cardBorder}`,
                     background: folder === f ? (dark ? "#332A20" : "#FFF0E5") : cardBg,
@@ -5892,6 +6102,16 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
                 textDecoration: format.underline ? "underline" : "none"
               }}
             />
+
+            <div style={{
+              display: "flex", justifyContent: "space-between", gap: 10,
+              marginTop: 10, paddingTop: 8,
+              borderTop: `1px solid ${cardBorder}`,
+              color: textMuted2, fontSize: 9.5, lineHeight: 1.4
+            }}>
+              <span>Created: {formatNoteDate(editing?.createdAt || new Date().toISOString())}</span>
+              <span style={{ textAlign: "right" }}>Last updated: {formatNoteDate(editing?.updatedAt || editing?.createdAt || new Date().toISOString(), true)}</span>
+            </div>
 
           </div>
 
