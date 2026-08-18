@@ -2891,17 +2891,6 @@ export default function FocusGo() {
                 </select>
               </div>
               <div style={{textAlign:"center", margin: timerRunning ? "10px 0 6px" : "6px 0 2px", transition:"margin .25s ease"}}>
-                <div style={{position:"relative", width: timerRunning?216:190, height: timerRunning?216:190, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"center", transition:"width .25s ease, height .25s ease"}}>
-                  {timerTotal > 0 && (
-                    <svg width="100%" height="100%" viewBox="0 0 100 100" style={{position:"absolute", inset:0, transform:"rotate(-90deg)"}}>
-                      <circle cx="50" cy="50" r="46" fill="none" stroke={dark?"#2C2820":"#EFE9DC"} strokeWidth="3.5"/>
-                      <circle cx="50" cy="50" r="46" fill="none" stroke={accent} strokeWidth="3.5" strokeLinecap="round"
-                        strokeDasharray={2*Math.PI*46}
-                        strokeDashoffset={2*Math.PI*46 * (1 - Math.min(1, Math.max(0, timerSeconds/timerTotal)))}
-                        style={{transition:"stroke-dashoffset 1s linear"}}/>
-                    </svg>
-                  )}
-                  <div style={{position:"relative", zIndex:1}}>
                 {editingDuration ? (
                   <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4}}>
                     <input
@@ -2918,12 +2907,10 @@ export default function FocusGo() {
                     <span style={{fontSize:14, fontWeight:700, color:textMuted2}}>{t.minutes}</span>
                   </div>
                 ) : (
-                  <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} style={{fontSize: timerRunning ? 44 : 36, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
+                  <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} style={{fontSize: timerRunning ? 60 : 46, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
                     <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
                   </div>
                 )}
-                  </div>
-                </div>
                 {timerTopic && (
                   !timerRunning ? (
                     <button onClick={()=>{ const next=!showTopicPicker; setShowTopicPicker(next); if (next) setFreeSessionTouched(false); }} style={{display:"inline-flex", alignItems:"center", gap:3, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, marginTop:2, padding:0}}>
