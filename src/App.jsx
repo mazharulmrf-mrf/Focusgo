@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
 import {
   onAuthStateChanged,
@@ -402,8 +402,9 @@ function NotificationBell({ t, lang, notifications, onMarkAllRead, onClear, card
 function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, textMuted2, accent, collapsed, onToggleCollapse, onHideAll }) {
   const items = [
     { k: "today", Icon: Home },
-    { k: "plan", Icon: CalendarDays },
+    { k: "study", Icon: GraduationCap },
     { k: "task", Icon: ListChecks },
+    { k: "notes", Icon: FileText },
     { k: "stats", Icon: BarChart3 },
   ];
   return (
@@ -1088,7 +1089,7 @@ const MONTHS_BN = ["জানুয়ারি","ফেব্রুয়ার
 const T = {
   en: {
     tagline: "Study Smarter",
-    tabs: { today: "Today", plan: "Plan", task: "Tasks", stats: "Stats", exam: "Exam" },
+    tabs: { today: "Today", study: "Study", task: "Tasks", notes: "Notes", stats: "Stats", plan: "Plan", exam: "Exam" },
     planViewStudy: "Study Plan", planViewExam: "Exam",
     taskTitle: "Tasks", taskSubtitle: "Today's to-do list", taskAdd: "New task", taskEmpty: "No tasks in this list",
     taskStudy: "Study", taskPersonal: "Personal", taskAll: "All",
@@ -1097,6 +1098,7 @@ const T = {
     taskDone: "done", taskLinkHint: "You can start a \"Study\" task directly with the Focus Timer — it'll auto-complete when the session ends.",
     taskLeftLabel: "left", taskAllDoneLabel: "All done",
     taskFilterToday: "Today", taskFilterUpcoming: "Upcoming", taskFilterDone: "Done",
+    notesTitle: "Notes", notesSubtitle: "Capture ideas, lessons, and things to remember", notesSearch: "Search notes...", notesNew: "New Note", notesEmpty: "No notes yet", notesEmptySub: "Save an idea, lesson, or reminder here.", notesTitlePlaceholder: "Note title", notesBodyPlaceholder: "Write your note...", notesSave: "Save Note", notesEdit: "Edit Note", notesDelete: "Delete",
     taskDueDate: "Due Date", taskDueDateOptional: "Due Date (optional)", taskNoDueDate: "No due date",
     taskDueToday: "Today", taskDueTomorrow: "Tomorrow", taskOverdue: "Overdue", taskCompleted: "Completed",
     taskSectionToday: "Today", taskSectionUpcoming: "Upcoming", taskSectionNoDate: "No Due Date",
@@ -1221,7 +1223,7 @@ const T = {
   },
   bn: {
     tagline: "নিজের গতিতে পড়ো",
-    tabs: { today: "আজ", plan: "প্ল্যান", task: "টাস্ক", stats: "স্ট্যাটস", exam: "এক্সাম" },
+    tabs: { today: "আজ", study: "স্টাডি", task: "টাস্ক", notes: "নোট", stats: "স্ট্যাটস", plan: "প্ল্যান", exam: "এক্সাম" },
     planViewStudy: "স্টাডি প্ল্যান", planViewExam: "এক্সাম",
     taskTitle: "টাস্ক", taskSubtitle: "আজকের করণীয় তালিকা", taskAdd: "নতুন টাস্ক", taskEmpty: "এই তালিকায় কোনো টাস্ক নেই",
     taskStudy: "স্টাডি", taskPersonal: "পার্সোনাল", taskAll: "সব",
@@ -1230,6 +1232,7 @@ const T = {
     taskDone: "সম্পন্ন", taskLinkHint: "\"স্টাডি\" ক্যাটাগরির টাস্ক চাইলে সরাসরি Focus Timer দিয়ে শুরু করা যাবে — সেশন শেষ হলে টাস্ক অটো-সম্পন্ন হবে।",
     taskLeftLabel: "বাকি", taskAllDoneLabel: "সব সম্পন্ন",
     taskFilterToday: "আজ", taskFilterUpcoming: "আসন্ন", taskFilterDone: "সম্পন্ন",
+    notesTitle: "নোট", notesSubtitle: "আইডিয়া, পড়ার বিষয় ও দরকারি তথ্য সংরক্ষণ করো", notesSearch: "নোট খুঁজুন...", notesNew: "নতুন নোট", notesEmpty: "এখনো কোনো নোট নেই", notesEmptySub: "আইডিয়া, পড়ার বিষয় বা দরকারি কিছু এখানে রাখো।", notesTitlePlaceholder: "নোটের শিরোনাম", notesBodyPlaceholder: "নোট লিখুন...", notesSave: "নোট সেভ", notesEdit: "নোট এডিট", notesDelete: "মুছুন",
     taskDueDate: "ডিউ ডেট", taskDueDateOptional: "ডিউ ডেট (ঐচ্ছিক)", taskNoDueDate: "কোনো ডিউ ডেট নেই",
     taskDueToday: "আজ", taskDueTomorrow: "আগামীকাল", taskOverdue: "মেয়াদ শেষ", taskCompleted: "সম্পন্ন হয়েছে",
     taskSectionToday: "আজ", taskSectionUpcoming: "আসন্ন", taskSectionNoDate: "ডিউ ডেট নেই",
@@ -1529,6 +1532,13 @@ export default function FocusGo() {
     try { window.localStorage.setItem("focusgo_tasks_v1", JSON.stringify(tasks)); } catch (e) {}
   }, [tasks]);
   const [showAddTask, setShowAddTask] = useState(false);
+  const [notes, setNotes] = useState(() => {
+    try { return JSON.parse(window.localStorage.getItem("focusgo_notes_v1") || "[]"); } catch (e) { return []; }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("focusgo_notes_v1", JSON.stringify(notes)); } catch (e) {}
+  }, [notes]);
+  const [noteSearch, setNoteSearch] = useState("");
   const [taskFilter, setTaskFilter] = useState("all"); // all | study | personal
   const [planView, setPlanView] = useState("study"); // "study" | "exam" — segmented toggle inside Plan tab
   const toggleTask = (id) => setTasks(ts => ts.map(x => x.id === id ? { ...x, done: !x.done } : x));
@@ -2876,6 +2886,19 @@ export default function FocusGo() {
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
         <div style={{marginTop:14}}>
+          <div style={{marginBottom:12}}>
+            <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.4, color:textMain}}>
+              {(() => {
+                const h = now.getHours();
+                const greeting = h < 12 ? (lang === "bn" ? "শুভ সকাল" : "Good morning") : h < 18 ? (lang === "bn" ? "শুভ অপরাহ্ন" : "Good afternoon") : (lang === "bn" ? "শুভ সন্ধ্যা" : "Good evening");
+                const name = user?.displayName?.trim() || (lang === "bn" ? "আপনি" : "there");
+                return <>{greeting}, {name} 👋</>;
+              })()}
+            </div>
+            <div style={{fontSize:12, color:textMuted2, marginTop:3, fontWeight:600}}>
+              {lang === "bn" ? "আজকের দিনটাকে কাজে লাগাও।" : "Make today count."}
+            </div>
+          </div>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
             <div style={{display:"flex", alignItems:"baseline", gap:7}}>
               <span style={{fontSize:11, letterSpacing:ls(1.2), color:textMuted2, fontWeight:700, opacity:0.85}}>{weekdayName(today)}</span>
@@ -2888,25 +2911,20 @@ export default function FocusGo() {
               }}>
                 <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> <span style={{fontSize:9.5}}>{now.getHours()>=12 ? t.pmLabel : t.amLabel}</span>
               </div>
-              <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
-                border:`1px solid ${cardBorder}`,
-                background: cardBg,
-                borderRadius:12,
-                width:32,
-                height:32,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                cursor:"pointer",
-                flexShrink:0,
-              }}>
-                <CalendarDays size={15} color={textMuted2} strokeWidth={2.2}/>
-              </button>
+
             </div>
           </div>
         </div>
         )}
 
-        {/* Focus timer - only on Today tab */}
-        {tab === "today" && (
+        {tab === "study" && (
+          <div className="fg-tab-panel" style={{marginTop:18, marginBottom:-2}}>
+            <div style={{fontSize:21, fontWeight:800, letterSpacing:-0.4, color:textMain}}>Study</div>
+            <div style={{fontSize:12, color:textMuted2, marginTop:3}}>Plan, focus, and track your study.</div>
+          </div>
+        )}
+        {/* Focus timer - main home of Study tab */}
+        {tab === "study" && (
         <div className="fg-tab-panel" style={{marginTop:14, background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:24, padding:"18px 20px 20px", color:textMain, boxShadow: dark ? "0 10px 28px rgba(0,0,0,0.35)" : `0 10px 28px ${accent}1F`, position:"relative", overflow:"hidden"}}>
           <div style={{position:"absolute", top:-60, right:-60, width:160, height:160, borderRadius:"50%", background:`${accent}14`, pointerEvents:"none"}}/>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", position:"relative"}}>
@@ -3118,23 +3136,6 @@ export default function FocusGo() {
           );
         })()}
 
-        {/* Next exam countdown banner - Today tab only, only when a next exam date is set and not passed */}
-        {tab === "today" && nextExam?.date && (() => {
-          const diff = Math.round((new Date(nextExam.date + "T00:00:00") - new Date(todayKey + "T00:00:00")) / 86400000);
-          if (diff < 0) return null;
-          return (
-            <button onClick={()=>{vibrate(); setTab("plan"); setPlanView("exam");}} className="fg-tab-panel" style={{marginTop:12, width:"100%", boxSizing:"border-box", display:"flex", alignItems:"center", gap:10, background: dark?"#1F1B17":"#FBF3EC", border:`1px solid ${dark?"#332E25":"#F0DCC9"}`, borderRadius:14, padding:"10px 14px", cursor:"pointer", textAlign:"left"}}>
-              <GraduationCap size={17} color={accent} style={{flexShrink:0}}/>
-              <div style={{flex:1, minWidth:0, fontSize:12, fontWeight:700, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-                {nextExam.subject}{nextExam.topic ? ` · ${nextExam.topic}` : ""}
-              </div>
-              <div style={{flexShrink:0, fontSize:12, fontWeight:800, color:accent}}>
-                {diff === 0 ? t.examToday : <><Num>{nf(diff)}</Num> {t.daysLeftLabel}</>}
-              </div>
-            </button>
-          );
-        })()}
-
         {/* Today's study list - Today tab only */}
         {tab === "today" && (
         <div className="fg-tab-panel" style={{marginTop:18}}>
@@ -3154,27 +3155,8 @@ export default function FocusGo() {
         </div>
         )}
 
-        {/* TODAY tab */}
-        {tab === "today" && (
-          <div className="fg-tab-panel" style={{marginTop:20}}>
-            {/* week strip — swipe sideways to see the rest of the week, no page indicator needed */}
-            <div>
-              <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:10}}>{t.thisWeek}</div>
-              <WeekDayStrip days={weekDays} entries={entries} selectedKey={dateKey(weekStripDay)} onSelectDay={setWeekStripDay}
-                todayKey={todayKey} weekdayShort={weekdayShort} nf={nf} accent={accent} dark={dark}
-                textMuted2={textMuted2} textMain={textMain} cardBg={cardBg} cardBorder={cardBorder}/>
-              {dateKey(weekStripDay) !== todayKey && (
-                <DaySelectedCard day={weekStripDay} entries={entries[dateKey(weekStripDay)] || []} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
-                  weekdayName={weekdayName} monthName={monthName} cardBg={cardBg} innerBg={cardBg} cardBorder={cardBorder}
-                  textMain={textMain} textMuted2={textMuted2} accent={accent}
-                  onToggle={(id)=>toggleDoneFor(dateKey(weekStripDay), id)}/>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* PLAN tab - next 7 days */}
-        {tab === "plan" && (
+        {/* STUDY planning section - This Week + Exams */}
+        {tab === "study" && (
           <div key="plan" className="fg-tab-panel" style={{marginTop:20}}>
             {/* Plan / Exam segmented toggle */}
             <div style={{display:"flex", gap:4, background: dark?"#1B1815":"#F0EBDD", border:`1px solid ${cardBorder}`, borderRadius:14, padding:4, marginBottom:18}}>
@@ -3547,6 +3529,13 @@ export default function FocusGo() {
           );
         })()}
 
+        {/* NOTES tab */}
+        {tab === "notes" && (
+          <NotesView t={t} notes={notes} setNotes={setNotes} search={noteSearch} setSearch={setNoteSearch}
+            cardBg={cardBg} cardBorder={cardBorder} textMain={textMain}
+            textMuted2={textMuted2} accent={accent} dark={dark}/>
+        )}
+
         {/* STATS tab - week + subjects + month, one shared day-detail card at the bottom */}
         {tab === "stats" && (
           <div key="stats" className="fg-tab-panel">
@@ -3584,6 +3573,35 @@ export default function FocusGo() {
                 <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65}}>{t.streakLabel}</div>
               </div>
             </div>
+
+            {/* Task Overview */}
+            {(() => {
+              const taskTotal = tasks.length;
+              const taskDone = tasks.filter(x => x.done).length;
+              const taskRemaining = taskTotal - taskDone;
+              const taskPct = taskTotal ? Math.round((taskDone / taskTotal) * 100) : 0;
+              return (
+                <div style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"13px 15px",marginBottom:20}}>
+                  <div style={{fontSize:11,letterSpacing:ls(1.4),color:textMuted2,fontWeight:700,opacity:0.85,marginBottom:10}}>
+                    {lang === "bn" ? "টাস্ক ওভারভিউ" : "Task Overview"}
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:17,fontWeight:800,color:textMain}}><Num>{nf(taskDone)}</Num></div>
+                      <div style={{fontSize:9.5,color:textMuted2}}>{lang === "bn" ? "সম্পন্ন" : "Completed"}</div>
+                    </div>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:17,fontWeight:800,color:textMain}}><Num>{nf(taskRemaining)}</Num></div>
+                      <div style={{fontSize:9.5,color:textMuted2}}>{lang === "bn" ? "বাকি" : "Remaining"}</div>
+                    </div>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:17,fontWeight:800,color:textMain}}><Num>{nf(taskPct)}</Num>%</div>
+                      <div style={{fontSize:9.5,color:textMuted2}}>{lang === "bn" ? "সম্পন্নের হার" : "Completion"}</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Weekly Activity — bar chart with value labels and accent-weighted bars */}
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:10}}>
@@ -3756,8 +3774,9 @@ export default function FocusGo() {
         }}>
           {[
             {k:"today", Icon: Home},
-            {k:"plan", Icon: CalendarDays},
+            {k:"study", Icon: GraduationCap},
             {k:"task", Icon: ListChecks},
+            {k:"notes", Icon: FileText},
             {k:"stats", Icon: BarChart3},
           ].map(({k, Icon}) => (
             <button key={k} onClick={()=>{vibrate(); setTab(k);}} style={{
@@ -5404,6 +5423,96 @@ function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSe
           })}
         </div>
       </div>
+    </div>
+  );
+}
+
+
+function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
+  const [editing, setEditing] = useState(null);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+
+  const openNew = () => {
+    setEditing({ id: null });
+    setTitle("");
+    setBody("");
+  };
+  const openEdit = (note) => {
+    setEditing(note);
+    setTitle(note.title || "");
+    setBody(note.body || "");
+  };
+  const save = () => {
+    if (!title.trim() && !body.trim()) return;
+    const now = new Date().toISOString();
+    if (editing?.id) {
+      setNotes(prev => prev.map(n => n.id === editing.id ? {...n, title:title.trim() || "Untitled", body:body.trim(), updatedAt:now} : n));
+    } else {
+      setNotes(prev => [{id:`${Date.now()}_${Math.random().toString(36).slice(2,7)}`, title:title.trim() || "Untitled", body:body.trim(), createdAt:now, updatedAt:now}, ...prev]);
+    }
+    setEditing(null);
+  };
+  const remove = (id) => setNotes(prev => prev.filter(n => n.id !== id));
+  const filtered = notes.filter(n => `${n.title} ${n.body}`.toLowerCase().includes(search.toLowerCase().trim()));
+
+  return (
+    <div className="fg-tab-panel" style={{marginTop:20}}>
+      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12}}>
+        <div>
+          <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.notesTitle}</div>
+          <div style={{fontSize:11.5, color:textMuted2, marginTop:3}}>{t.notesSubtitle}</div>
+        </div>
+        <button onClick={openNew} style={{display:"flex",alignItems:"center",gap:5,background:accent,color:"#fff",border:"none",borderRadius:12,padding:"9px 12px",fontSize:11.5,fontWeight:700,cursor:"pointer"}}>
+          <Plus size={13}/> {t.notesNew}
+        </button>
+      </div>
+
+      <div style={{display:"flex",alignItems:"center",gap:8,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:"9px 12px",marginBottom:14}}>
+        <Search size={15} color={textMuted2}/>
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t.notesSearch}
+          style={{flex:1,border:"none",outline:"none",background:"transparent",color:textMain,fontFamily:"inherit",fontSize:13}}/>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div style={{textAlign:"center",padding:"40px 20px",background:cardBg,border:`1px dashed ${cardBorder}`,borderRadius:18}}>
+          <div style={{width:52,height:52,borderRadius:16,background:dark?"#26231D":"#F3EEE3",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}>
+            <FileText size={23} color={dark?"#C9C0AC":"#6B6353"}/>
+          </div>
+          <div style={{fontSize:14.5,fontWeight:800,color:textMain}}>{t.notesEmpty}</div>
+          <div style={{fontSize:12,color:textMuted2,marginTop:5}}>{t.notesEmptySub}</div>
+          <button onClick={openNew} style={{marginTop:16,border:"none",background:accent,color:"#fff",borderRadius:12,padding:"10px 14px",fontWeight:700,fontSize:12,cursor:"pointer"}}><Plus size={13}/> {t.notesNew}</button>
+        </div>
+      ) : (
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {filtered.map(note => (
+            <div key={note.id} onClick={()=>openEdit(note)} className="fg-card"
+              style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"14px 15px",cursor:"pointer"}}>
+              <div style={{display:"flex",justifyContent:"space-between",gap:10}}>
+                <div style={{fontSize:14,fontWeight:800,color:textMain,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{note.title}</div>
+                <button onClick={e=>{e.stopPropagation();remove(note.id)}} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:0}} title={t.notesDelete}><Trash2 size={14}/></button>
+              </div>
+              <div style={{fontSize:12.5,color:textMuted2,lineHeight:1.55,marginTop:6,display:"-webkit-box",WebkitLineClamp:3,WebkitBoxOrient:"vertical",overflow:"hidden",whiteSpace:"pre-wrap"}}>{note.body || "—"}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {editing && (
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",display:"flex",alignItems:"flex-end",justifyContent:"center",zIndex:60}} onClick={()=>setEditing(null)}>
+          <div onClick={e=>e.stopPropagation()} style={{background:cardBg,width:"100%",maxWidth:480,borderRadius:"22px 22px 0 0",padding:"20px 20px 28px",color:textMain}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+              <div style={{fontSize:17,fontWeight:800}}>{editing.id ? t.notesEdit : t.notesNew}</div>
+              <button onClick={()=>setEditing(null)} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer"}}><X size={20}/></button>
+            </div>
+            <input autoFocus value={title} onChange={e=>setTitle(e.target.value)} placeholder={t.notesTitlePlaceholder}
+              style={{width:"100%",boxSizing:"border-box",background:dark?"#121110":"#F8F5EE",border:`1px solid ${cardBorder}`,borderRadius:12,padding:"11px 13px",fontSize:14,fontWeight:700,color:textMain,outline:"none",fontFamily:"inherit",marginBottom:10}}/>
+            <textarea value={body} onChange={e=>setBody(e.target.value)} placeholder={t.notesBodyPlaceholder}
+              rows={8} style={{width:"100%",boxSizing:"border-box",resize:"vertical",background:dark?"#121110":"#F8F5EE",border:`1px solid ${cardBorder}`,borderRadius:12,padding:"11px 13px",fontSize:13.5,lineHeight:1.55,color:textMain,outline:"none",fontFamily:"inherit"}}/>
+            <button onClick={save} style={{width:"100%",marginTop:12,padding:"13px 0",border:"none",borderRadius:14,background:accent,color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer"}}>{t.notesSave}</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
