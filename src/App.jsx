@@ -405,7 +405,6 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
     { k: "study", Icon: GraduationCap },
     { k: "task", Icon: ListChecks },
     { k: "notes", Icon: FileText },
-    { k: "stats", Icon: BarChart3 },
   ];
   return (
     <div style={{
@@ -1709,6 +1708,7 @@ export default function FocusGo() {
   const [taskCalMonth, setTaskCalMonth] = useState(new Date()); // Task calendar view-এ কোন মাস দেখাচ্ছে
   const [taskCalSelectedDay, setTaskCalSelectedDay] = useState(null); // Task calendar-এ সিলেক্টেড দিনের dateKey | null
   const [planView, setPlanView] = useState("study"); // "study" | "exam" — segmented toggle inside Plan tab
+  const [studySection, setStudySection] = useState("plan"); // "plan" | "stats" — sub-tab inside the Study tab (Study Plan / Stats)
   const toggleTask = (id) => setTasks(ts => {
     const target = ts.find(x => x.id === id);
     // রিপিটিং টাস্ক "done" করলে সেটাকে সম্পন্ন হিসেবে রেখে পরের occurrence অটো-তৈরি হবে
@@ -3134,10 +3134,18 @@ export default function FocusGo() {
           <div className="fg-tab-panel" style={{marginTop:18, marginBottom:-2}}>
             <div style={{fontSize:21, fontWeight:800, letterSpacing:-0.4, color:textMain}}>Study</div>
             <div style={{fontSize:12, color:textMuted2, marginTop:3}}>Plan, focus, and track your study.</div>
+            <div style={{display:"flex", background: dark?"#121110":"#fff", border:`1px solid ${cardBorder}`, borderRadius:12, padding:3, gap:3, marginTop:14}}>
+              <button onClick={()=>{vibrate(); setStudySection("plan");}} style={{flex:1, border:"none", borderRadius:9, padding:"9px 0", fontSize:12.5, fontWeight:800, cursor:"pointer", background: studySection==="plan" ? accent : "transparent", color: studySection==="plan" ? "#fff" : textMuted2, transition:"background .18s ease, color .18s ease"}}>
+                {t.planViewStudy}
+              </button>
+              <button onClick={()=>{vibrate(); setStudySection("stats");}} style={{flex:1, border:"none", borderRadius:9, padding:"9px 0", fontSize:12.5, fontWeight:800, cursor:"pointer", background: studySection==="stats" ? accent : "transparent", color: studySection==="stats" ? "#fff" : textMuted2, transition:"background .18s ease, color .18s ease"}}>
+                {lang==="bn" ? "স্ট্যাটস" : "Stats"}
+              </button>
+            </div>
           </div>
         )}
-        {/* Focus timer - main home of Study tab */}
-        {tab === "study" && (
+        {/* Focus timer - main home of Study tab (Study Plan sub-section) */}
+        {tab === "study" && studySection === "plan" && (
         <div className="fg-tab-panel" style={{marginTop:14, background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:24, padding:"18px 20px 20px", color:textMain, boxShadow: dark ? "0 10px 28px rgba(0,0,0,0.35)" : `0 10px 28px ${accent}1F`, position:"relative", overflow:"hidden"}}>
           <div style={{position:"absolute", top:-60, right:-60, width:160, height:160, borderRadius:"50%", background:`${accent}14`, pointerEvents:"none"}}/>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", position:"relative"}}>
@@ -3299,7 +3307,7 @@ export default function FocusGo() {
         )}
 
         {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — bold orange highlight card */}
-        {(tab === "today" || tab === "study") && (
+        {(tab === "today" || (tab === "study" && studySection === "plan")) && (
         <div className="fg-tab-panel" style={{marginTop:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, background: dark?"rgba(217,119,87,0.20)":"rgba(217,119,87,0.14)", border:`1.5px solid ${dark?"rgba(217,119,87,0.45)":"rgba(217,119,87,0.38)"}`, borderRadius:16, padding:"14px 16px", position:"relative", overflow:"hidden"}}>
           <div style={{display:"flex", alignItems:"center", gap:14, minWidth:0, position:"relative"}}>
             <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
@@ -3323,7 +3331,7 @@ export default function FocusGo() {
         )}
 
         {/* Today's study list - Today tab + Study tab (shown above Study Plan/Exam) */}
-        {(tab === "today" || tab === "study") && (
+        {(tab === "today" || (tab === "study" && studySection === "plan")) && (
         <div className="fg-tab-panel" style={{marginTop:18}}>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
             <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
@@ -3342,7 +3350,7 @@ export default function FocusGo() {
         )}
 
         {/* Section divider — visually separates "Today's Study" from "Study Plan / Exam" below, only in Study tab */}
-        {tab === "study" && (
+        {tab === "study" && studySection === "plan" && (
         <div className="fg-tab-panel" style={{marginTop:26, marginBottom:4, display:"flex", alignItems:"center", gap:10}}>
           <div style={{flex:1, height:1, background:cardBorder}}/>
           <div style={{display:"flex", alignItems:"center", gap:6, fontSize:11, fontWeight:800, letterSpacing:ls(1), color:textMuted2, whiteSpace:"nowrap"}}>
@@ -3405,7 +3413,7 @@ export default function FocusGo() {
         )}
 
         {/* STUDY planning section - This Week + Exams */}
-        {tab === "study" && (
+        {tab === "study" && studySection === "plan" && (
           <div key="plan" className="fg-tab-panel" style={{marginTop:20}}>
             {/* Study Plan / Exam — separate feature cards */}
 
@@ -3643,6 +3651,70 @@ export default function FocusGo() {
                 })()}
               </div>
             )}
+
+            {/* Subject Progress — lives under Study Plan */}
+            <div style={{display:"flex", alignItems:"center", gap:10, marginTop:26, marginBottom:16}}>
+              <div style={{width:36,height:36, borderRadius:11, background: dark?"#26231D":"#F3EEE3", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                <GraduationCap size={18} color={dark ? "#C9C0AC" : "#6B6353"}/>
+              </div>
+              <div style={{minWidth:0}}>
+                <div style={{fontSize:16.5, fontWeight:800, letterSpacing:-0.2, color:textMain}}>{t.syllabusProgress}</div>
+                <div style={{fontSize:11, color:textMuted2, fontWeight:500, opacity:0.75}}>{t.subjectProgressSubtitle}</div>
+              </div>
+            </div>
+
+            <div>
+              <div style={{display:"flex", justifyContent:"flex-end", marginBottom:12}}>
+                <button onClick={()=>{vibrate(); setShowSubjects(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+                  <Plus size={12}/> {t.manageSubjects}
+                </button>
+              </div>
+              {(() => {
+                const sorted = [...allSubjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"}));
+                const COLLAPSE_AT = 6;
+                const isLong = sorted.length > COLLAPSE_AT;
+                const visible = (isLong && !showAllSubjectsProgress) ? sorted.slice(0, COLLAPSE_AT) : sorted;
+                return (
+                  <>
+                    <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8}}>
+                      {sorted.length === 0 && (
+                        <div style={{fontSize:13, color:textMuted2, padding:"14px 0", gridColumn:"1 / -1"}}>—</div>
+                      )}
+                      {visible.map(subj => {
+                        const v = subjectProgress[subj] || { done:0, total:0 };
+                        const c = colorForSubject(subj, allSubjects);
+                        const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
+                        if (v.total === 0) {
+                          return (
+                            <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 12px", minWidth:0}}>
+                              <div style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginBottom:6, color:textMain}}>{subj}</div>
+                              <div style={{fontSize:10.5, color:textMuted2, fontWeight:500, opacity:0.75, marginBottom:6}}>{t.noTopicsSubjectShort}</div>
+                              <button onClick={()=>{vibrate(); setShowManageTopicsFor(subj); setShowSubjects(true);}} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:c.bg, fontSize:10.5, fontWeight:700, cursor:"pointer", padding:0}}>
+                                <Plus size={11}/> {t.addTopicsShort}
+                              </button>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px", display:"flex", alignItems:"center", gap:10, minWidth:0}}>
+                            <PercentRing pct={pct} size={46} stroke={4.5} accent={c.bg} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain} nf={nf}/>
+                            <div style={{minWidth:0, flex:1}}>
+                              <div style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", color:textMain}}>{subj}</div>
+                              <div style={{fontSize:10.5, color:textMuted2, fontWeight:500, opacity:0.75, marginTop:2}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num> {t.complete}</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {isLong && (
+                      <button onClick={()=>{vibrate(); setShowAllSubjectsProgress(v=>!v);}} style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:10, padding:"10px 0 2px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+                        {showAllSubjectsProgress ? t.showLess : t.seeAll} <ChevronDown size={14} style={{transform: showAllSubjectsProgress ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
           </div>
         )}
 
@@ -3929,8 +4001,8 @@ export default function FocusGo() {
             textMuted2={textMuted2} accent={accent} dark={dark} isDesktop={isDesktop}/>
         )}
 
-        {/* STATS tab - week + subjects + month, one shared day-detail card at the bottom */}
-        {tab === "stats" && (
+        {/* STATS sub-section (inside Study tab) - week + subjects + month, one shared day-detail card at the bottom */}
+        {tab === "study" && studySection === "stats" && (
           <div key="stats" className="fg-tab-panel">
             {/* Study Overview — headline numbers, justifies the "Stats" name */}
             <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:12}}>{t.studyOverview}</div>
@@ -4084,70 +4156,6 @@ export default function FocusGo() {
               onNext={()=>setSummaryMonthAnchor(d=>new Date(d.getFullYear(), d.getMonth()+1, 1))}
               sourceLabel={t.planViewStudy} sourceColor="#4C8FA6"
               t={t} nf={nf} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
-
-            <div style={{display:"flex", alignItems:"center", gap:10, marginTop:26, marginBottom:16}}>
-              <div style={{width:36,height:36, borderRadius:11, background: dark?"#26231D":"#F3EEE3", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                <GraduationCap size={18} color={dark ? "#C9C0AC" : "#6B6353"}/>
-              </div>
-              <div style={{minWidth:0}}>
-                <div style={{fontSize:16.5, fontWeight:800, letterSpacing:-0.2, color:textMain}}>{t.syllabusProgress}</div>
-                <div style={{fontSize:11, color:textMuted2, fontWeight:500, opacity:0.75}}>{t.subjectProgressSubtitle}</div>
-              </div>
-            </div>
-
-            {/* syllabus / subject progress — moved here from the Today tab */}
-            <div>
-              <div style={{display:"flex", justifyContent:"flex-end", marginBottom:12}}>
-                <button onClick={()=>{vibrate(); setShowSubjects(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
-                  <Plus size={12}/> {t.manageSubjects}
-                </button>
-              </div>
-              {(() => {
-                const sorted = [...allSubjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"}));
-                const COLLAPSE_AT = 6;
-                const isLong = sorted.length > COLLAPSE_AT;
-                const visible = (isLong && !showAllSubjectsProgress) ? sorted.slice(0, COLLAPSE_AT) : sorted;
-                return (
-                  <>
-                    <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8}}>
-                      {sorted.length === 0 && (
-                        <div style={{fontSize:13, color:textMuted2, padding:"14px 0", gridColumn:"1 / -1"}}>—</div>
-                      )}
-                      {visible.map(subj => {
-                        const v = subjectProgress[subj] || { done:0, total:0 };
-                        const c = colorForSubject(subj, allSubjects);
-                        const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
-                        if (v.total === 0) {
-                          return (
-                            <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 12px", minWidth:0}}>
-                              <div style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginBottom:6, color:textMain}}>{subj}</div>
-                              <div style={{fontSize:10.5, color:textMuted2, fontWeight:500, opacity:0.75, marginBottom:6}}>{t.noTopicsSubjectShort}</div>
-                              <button onClick={()=>{vibrate(); setShowManageTopicsFor(subj); setShowSubjects(true);}} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:c.bg, fontSize:10.5, fontWeight:700, cursor:"pointer", padding:0}}>
-                                <Plus size={11}/> {t.addTopicsShort}
-                              </button>
-                            </div>
-                          );
-                        }
-                        return (
-                          <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px", display:"flex", alignItems:"center", gap:10, minWidth:0}}>
-                            <PercentRing pct={pct} size={46} stroke={4.5} accent={c.bg} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain} nf={nf}/>
-                            <div style={{minWidth:0, flex:1}}>
-                              <div style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", color:textMain}}>{subj}</div>
-                              <div style={{fontSize:10.5, color:textMuted2, fontWeight:500, opacity:0.75, marginTop:2}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num> {t.complete}</div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {isLong && (
-                      <button onClick={()=>{vibrate(); setShowAllSubjectsProgress(v=>!v);}} style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:10, padding:"10px 0 2px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
-                        {showAllSubjectsProgress ? t.showLess : t.seeAll} <ChevronDown size={14} style={{transform: showAllSubjectsProgress ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
-                      </button>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
           </div>
         )}
 
@@ -4172,7 +4180,6 @@ export default function FocusGo() {
             {k:"study", Icon: GraduationCap},
             {k:"task", Icon: ListChecks},
             {k:"notes", Icon: FileText},
-            {k:"stats", Icon: BarChart3},
           ].map(({k, Icon}) => (
             <button key={k} onClick={()=>{vibrate(); setTab(k);}} style={{
               flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:2, border:"none", borderRadius:11, padding:"6px 4px", fontSize:9.5, fontWeight:700, cursor:"pointer",
