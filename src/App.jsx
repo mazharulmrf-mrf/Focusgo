@@ -5852,6 +5852,11 @@ function fullDateTimeLabel(iso, lang) {
   return d.toLocaleString(lang === "bn" ? "bn-BD" : "en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
+// নোট নিজেই সবসময় অফ-হোয়াইট (পেপার-এর মতো) থাকবে — অ্যাপের ডার্ক মোড থিম আলাদা, এটা শুধু নোটের জন্য
+const NOTE_PAPER_BG = "#F7F1E3";
+const NOTE_PAPER_TEXT = "#2C2820";
+const NOTE_PAPER_MUTED = "#7C7361";
+
 function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const [editing, setEditing] = useState(null);
   const [title, setTitle] = useState("");
@@ -5861,6 +5866,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   const [checkText, setCheckText] = useState("");
   const [activeFolder, setActiveFolder] = useState("All Notes");
   const [openMenu, setOpenMenu] = useState(null);
+  const [openFolderMenu, setOpenFolderMenu] = useState(null); // ফোল্ডার কার্ডের "..." মেনু কোনটা খোলা আছে
   const [quickOpen, setQuickOpen] = useState(false); // Keep-স্টাইল "Take a note..." ইনপুট বার এক্সপ্যান্ড হয়েছে কিনা
   const [pinnedDraft, setPinnedDraft] = useState(false); // এডিটরের ভেতরের pin টগল (এখনো সেভ না হওয়া নোটের জন্যও কাজ করে)
   const [showChecklist, setShowChecklist] = useState(false); // বটম টুলবারের checklist আইকন দিয়ে টগল হয়
@@ -5868,6 +5874,30 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   const [showMoreMenu, setShowMoreMenu] = useState(false); // এডিটর হেডারের ⋮ মেনু
   const bodyRef = useRef(null); // Bold/Italic টুলবারের জন্য textarea-র সিলেকশন ধরতে
   const vh = useVisualViewportHeight(); // কীবোর্ড খোলা অবস্থায় দৃশ্যমান উচ্চতা — মোডাল সবসময় এর মধ্যেই থাকবে, কীবোর্ডের নিচে চাপা পড়বে না
+  const pushedHistoryRef = useRef(false); // নোট এডিটর খোলার সময় history-তে state push করেছি কিনা (ব্যাক বাটন হ্যান্ডল করতে)
+  const editingActiveRef = useRef(false); // popstate হ্যান্ডলারের ভেতর থেকে সবসময় সবশেষ editing অবস্থা জানার জন্য
+  const longPressTimer = useRef(null); // ফোল্ডার কার্ডে tap-and-hold ধরার জন্য
+
+  useEffect(() => { editingActiveRef.current = !!editing; }, [editing]);
+
+  // হার্ডওয়্যার/ব্রাউজার ব্যাক বাটন চাপলে নোট এডিটর বন্ধ হয়ে নোটস ট্যাবে ফিরে আসবে, পুরো সাইট থেকে বের হয়ে যাবে না
+  useEffect(() => {
+    const onPop = () => {
+      if (editingActiveRef.current) setEditing(null);
+      pushedHistoryRef.current = false;
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  const closeEditor = () => {
+    if (pushedHistoryRef.current) {
+      pushedHistoryRef.current = false;
+      window.history.back();
+    } else {
+      setEditing(null);
+    }
+  };
   const [categories, setCategories] = useState(() => {
     try {
       const saved = JSON.parse(window.localStorage.getItem("focusgo_note_categories_v1") || "[]");
@@ -5896,6 +5926,8 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     setShowChecklist(false);
     setShowColorPicker(false);
     setShowMoreMenu(false);
+    window.history.pushState({ fgNoteEditor: true }, "");
+    pushedHistoryRef.current = true;
   };
 
   // সিলেক্ট করা টেক্সটের চারপাশে **bold** / *italic* মার্কার বসায় বা সরায় (Keep-স্টাইল ফরম্যাটিং টুলবার)
@@ -5938,6 +5970,8 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     setShowChecklist(Array.isArray(note.checklist) && note.checklist.length > 0);
     setShowColorPicker(false);
     setShowMoreMenu(false);
+    window.history.pushState({ fgNoteEditor: true }, "");
+    pushedHistoryRef.current = true;
   };
 
   const save = () => {
@@ -5968,14 +6002,14 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         updatedAt: now
       }, ...prev]);
     }
-    setEditing(null);
+    closeEditor();
   };
 
   const remove = (id) => {
     if (!window.confirm("Delete this note?")) return;
     setNotes(prev => prev.filter(n => n.id !== id));
     setOpenMenu(null);
-    setEditing(null);
+    if (editing) closeEditor(); else setEditing(null);
   };
 
   const togglePin = (id) => {
@@ -5994,11 +6028,26 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   };
 
   const deleteCategory = (name) => {
-    if (["General", "Study", "Personal", "Ideas"].includes(name)) return;
+    if (name === "General") return; // "General" সবসময় থাকবে, কারণ ডিলিট হওয়া ক্যাটাগরির নোট এখানেই আসে
     if (!window.confirm(`Delete category "${name}"? Notes will move to General.`)) return;
     setCategories(prev => prev.filter(c => c !== name));
     setNotes(prev => prev.map(n => n.category === name ? { ...n, category: "General" } : n));
     if (activeFolder === name) setActiveFolder("All Notes");
+  };
+
+  // যেকোনো ফোল্ডার/ক্যাটাগরির নাম পরিবর্তন — tap-and-hold বা "..." মেনু থেকে কল হয়
+  const renameCategory = (name) => {
+    const next = window.prompt(lang === "bn" ? "নতুন নাম" : "New name", name);
+    const clean = (next || "").trim();
+    if (!clean || clean === name) return;
+    if (categories.some(c => c.toLowerCase() === clean.toLowerCase())) {
+      window.alert(lang === "bn" ? "এই নামে আগে থেকেই একটা ক্যাটাগরি আছে।" : "A category with this name already exists.");
+      return;
+    }
+    setCategories(prev => prev.map(c => c === name ? clean : c));
+    setNotes(prev => prev.map(n => (n.category || "General") === name ? { ...n, category: clean } : n));
+    if (activeFolder === name) setActiveFolder(clean);
+    if (category === name) setCategory(clean);
   };
 
   const addChecklist = () => {
@@ -6030,7 +6079,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     );
 
   return (
-    <div className="fg-tab-panel" style={{ marginTop: 20, paddingBottom: 30 }} onClick={() => openMenu && setOpenMenu(null)}>
+    <div className="fg-tab-panel" style={{ marginTop: 20, paddingBottom: 30 }} onClick={() => { openMenu && setOpenMenu(null); openFolderMenu && setOpenFolderMenu(null); }}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
         <div>
           <div style={{ fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain }}>{t.notesTitle}</div>
@@ -6059,9 +6108,22 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                 ? notes.filter(n=>n.pinned).length
                 : notes.filter(n=>(n.category||"General")===folder).length;
             const active = activeFolder === folder;
+            const isSystemFolder = folder === "All Notes" || folder === "Pinned";
+            const menuOpen = openFolderMenu === folder;
+            const startLongPress = () => {
+              if (isSystemFolder) return;
+              clearTimeout(longPressTimer.current);
+              longPressTimer.current = setTimeout(() => setOpenFolderMenu(folder), 480);
+            };
+            const cancelLongPress = () => clearTimeout(longPressTimer.current);
             return (
-              <button key={folder} onClick={(e)=>{e.stopPropagation();setActiveFolder(folder);}} style={{
-                textAlign:"left",padding:"11px 10px",borderRadius:14,cursor:"pointer",
+              <div key={folder}
+                onClick={(e)=>{e.stopPropagation();setActiveFolder(folder);}}
+                onTouchStart={startLongPress} onTouchEnd={cancelLongPress} onTouchMove={cancelLongPress}
+                onMouseDown={startLongPress} onMouseUp={cancelLongPress} onMouseLeave={cancelLongPress}
+                onContextMenu={(e)=>{e.preventDefault(); if(!isSystemFolder) setOpenFolderMenu(folder);}}
+                style={{
+                position:"relative",textAlign:"left",padding:"11px 10px",borderRadius:14,cursor:"pointer",
                 background:active ? (dark ? "#2B281F" : "#FFF4DF") : cardBg,
                 border:`1px solid ${active ? accent : cardBorder}`, color:textMain
               }}>
@@ -6070,24 +6132,36 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                   <span style={{fontSize:11.5,fontWeight:800,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{folder}</span>
                 </div>
                 <div style={{fontSize:10.5,color:textMuted2,marginTop:5}}>{count} note{count===1?"":"s"}</div>
-              </button>
+                {!isSystemFolder && (
+                  <div style={{textAlign:"center",marginTop:3}}>
+                    <button onClick={(e)=>{e.stopPropagation();setOpenFolderMenu(menuOpen?null:folder);}}
+                      style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:"1px 6px",fontSize:13,fontWeight:900,letterSpacing:1,lineHeight:1}}
+                      title={lang==="bn"?"অপশন":"Options"}>
+                      •••
+                    </button>
+                  </div>
+                )}
+                {menuOpen && (
+                  <div onClick={e=>e.stopPropagation()} style={{position:"absolute",left:"50%",transform:"translateX(-50%)",top:"100%",marginTop:4,width:118,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:10,padding:4,boxShadow:"0 10px 24px rgba(0,0,0,.18)",zIndex:25}}>
+                    <button onClick={()=>{renameCategory(folder);setOpenFolderMenu(null);}} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:textMain,padding:"7px 9px",borderRadius:8,cursor:"pointer",fontSize:11}}>{lang==="bn"?"নাম পরিবর্তন":"Rename"}</button>
+                    {folder !== "General" && (
+                      <button onClick={()=>{deleteCategory(folder);setOpenFolderMenu(null);}} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:"#C54B4B",padding:"7px 9px",borderRadius:8,cursor:"pointer",fontSize:11}}>{lang==="bn"?"ডিলিট":"Delete"}</button>
+                    )}
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
       </div>
 
-      {/* Categories */}
-      <div style={{ display:"flex",gap:7,alignItems:"center",overflowX:"auto",paddingBottom:3,marginBottom:12 }}>
-        <Tag size={14} color={textMuted2} style={{flex:"0 0 auto"}}/>
+      {/* Categories — কম্প্যাক্ট */}
+      <div style={{ display:"flex",gap:5,alignItems:"center",overflowX:"auto",paddingBottom:2,marginBottom:8 }}>
+        <Tag size={12} color={textMuted2} style={{flex:"0 0 auto"}}/>
         {categories.map(cat => (
-          <div key={cat} style={{display:"flex",alignItems:"center",gap:3,background:dark?"#211F1B":"#F5F2EA",border:`1px solid ${cardBorder}`,borderRadius:999,padding:"5px 9px",flex:"0 0 auto"}}>
-            <button onClick={(e)=>{e.stopPropagation();setActiveFolder(cat);}} style={{border:"none",background:"transparent",color:textMain,cursor:"pointer",fontSize:10.5,fontWeight:700,padding:0}}>{cat}</button>
-            {!["General","Study","Personal","Ideas"].includes(cat) && (
-              <button onClick={(e)=>{e.stopPropagation();deleteCategory(cat)}} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:0,lineHeight:1}}>×</button>
-            )}
-          </div>
+          <button key={cat} onClick={(e)=>{e.stopPropagation();setActiveFolder(cat);}} style={{border:`1px solid ${cardBorder}`,background:dark?"#211F1B":"#F5F2EA",color:textMain,cursor:"pointer",fontSize:9.5,fontWeight:700,padding:"3px 8px",borderRadius:999,flex:"0 0 auto"}}>{cat}</button>
         ))}
-        <button onClick={(e)=>{e.stopPropagation();addCategory();}} style={{flex:"0 0 auto",border:`1px dashed ${cardBorder}`,background:"transparent",color:accent,borderRadius:999,padding:"5px 10px",fontSize:10.5,fontWeight:800,cursor:"pointer"}}>+ Category</button>
+        <button onClick={(e)=>{e.stopPropagation();addCategory();}} style={{flex:"0 0 auto",border:`1px dashed ${cardBorder}`,background:"transparent",color:accent,borderRadius:999,padding:"3px 8px",fontSize:9.5,fontWeight:800,cursor:"pointer"}}>+</button>
       </div>
 
       {/* Search */}
@@ -6125,19 +6199,19 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:10}}>
           {filtered.map(note => {
             const col = noteColorFor(note.category || "General", categories);
-            const cardColor = dark ? col.bgDark : col.bg;
+            const cardColor = NOTE_PAPER_BG; // নোটের কার্ড সবসময় অফ-হোয়াইট — ডার্ক মোডেও একই থাকবে
             return (
             <div
               key={note.id}
               onClick={()=>openEdit(note)}
               className="fg-card"
-              style={{position:"relative",background:cardColor,border:"none",borderRadius:14,padding:"13px 13px",cursor:"pointer",display:"flex",flexDirection:"column",boxShadow: dark ? "none" : "0 1px 3px rgba(0,0,0,.06)"}}
+              style={{position:"relative",background:cardColor,border:"none",borderRadius:14,padding:"13px 13px",cursor:"pointer",display:"flex",flexDirection:"column",boxShadow:"0 1px 3px rgba(0,0,0,.10)"}}
             >
               <div style={{display:"flex",justifyContent:"space-between",gap:6,alignItems:"flex-start"}}>
                 <div style={{minWidth:0,flex:1}}>
                   <div style={{display:"flex",alignItems:"center",gap:5}}>
                     {note.pinned && <Pin size={12} fill={col.text} color={col.text}/>}
-                    <div style={{fontSize:13.5,fontWeight:800,color:textMain,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{note.title}</div>
+                    <div style={{fontSize:13.5,fontWeight:800,color:NOTE_PAPER_TEXT,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{note.title}</div>
                   </div>
                 </div>
                 <button
@@ -6149,12 +6223,12 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                 </button>
               </div>
 
-              <div style={{fontSize:12,color:textMain,opacity:0.85,lineHeight:1.5,marginTop:6,display:"-webkit-box",WebkitLineClamp:5,WebkitBoxOrient:"vertical",overflow:"hidden",whiteSpace:"pre-wrap"}}>{renderFormattedText(note.body) || "—"}</div>
+              <div style={{fontSize:12,color:NOTE_PAPER_TEXT,opacity:0.85,lineHeight:1.5,marginTop:6,display:"-webkit-box",WebkitLineClamp:5,WebkitBoxOrient:"vertical",overflow:"hidden",whiteSpace:"pre-wrap"}}>{renderFormattedText(note.body) || "—"}</div>
 
               {Array.isArray(note.checklist) && note.checklist.length > 0 && (
                 <div style={{marginTop:8,display:"flex",flexDirection:"column",gap:4}}>
                   {note.checklist.slice(0,3).map(item => (
-                    <div key={item.id} style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:textMain,opacity:0.85}}>
+                    <div key={item.id} style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:NOTE_PAPER_TEXT,opacity:0.85}}>
                       <span style={{width:12,height:12,borderRadius:4,border:`1px solid ${col.text}`,background:item.done?col.text:"transparent",display:"inline-flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:8,flexShrink:0}}>{item.done?"✓":""}</span>
                       <span style={{textDecoration:item.done?"line-through":"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.text}</span>
                     </div>
@@ -6182,8 +6256,8 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
       {editing && (() => {
         const noteCol = noteColorFor(category, categories);
-        const editorBg = dark ? noteCol.bgDark : noteCol.bg;
-        const iconColor = dark ? "#EDEAE1" : "#3A362C";
+        const editorBg = NOTE_PAPER_BG; // নোট সবসময় অফ-হোয়াইট — অ্যাপ ডার্ক মোডে থাকলেও নোটের কাগজরঙ বদলাবে না
+        const iconColor = NOTE_PAPER_TEXT;
         return (
         <div style={{position:"fixed",left:0,top:0,width:"100%",height:vh,background:editorBg,display:"flex",flexDirection:"column",zIndex:60}} onClick={()=>{setShowMoreMenu(false);setShowColorPicker(false);}}>
 
@@ -6205,7 +6279,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                   {editing.id && (
                     <button onClick={()=>remove(editing.id)} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:"#C54B4B",padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5}}>{lang==="bn"?"ডিলিট":"Delete"}</button>
                   )}
-                  <button onClick={()=>setEditing(null)} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:textMain,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5}}>{lang==="bn"?"বাতিল (সেভ ছাড়া)":"Discard"}</button>
+                  <button onClick={closeEditor} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:textMain,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5}}>{lang==="bn"?"বাতিল (সেভ ছাড়া)":"Discard"}</button>
                 </div>
               )}
             </div>
@@ -6218,7 +6292,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
             </div>
           )}
 
-          {/* Scrollable content: title + body + checklist */}
+          {/* Scrollable content: title + checklist + body */}
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"4px 20px 16px"}} onClick={e=>e.stopPropagation()}>
             <input
               autoFocus
@@ -6226,22 +6300,12 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               onChange={e=>setTitle(e.target.value)}
               onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
               placeholder={t.notesTitlePlaceholder}
-              style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",padding:"8px 0",fontSize:20,fontWeight:800,color:textMain,outline:"none",fontFamily:"inherit",marginBottom:2}}
+              style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",padding:"8px 0",fontSize:20,fontWeight:800,color:NOTE_PAPER_TEXT,outline:"none",fontFamily:"inherit",marginBottom:2}}
             />
 
-            <textarea
-              ref={bodyRef}
-              value={body}
-              onChange={e=>setBody(e.target.value)}
-              onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
-              placeholder={t.notesBodyPlaceholder}
-              rows={10}
-              style={{width:"100%",boxSizing:"border-box",resize:"none",background:"transparent",border:"none",padding:"6px 0",fontSize:14.5,lineHeight:1.65,color:textMain,outline:"none",fontFamily:"inherit",marginBottom:8}}
-            />
-
-            {/* Checklist — বটম টুলবারের চেকলিস্ট আইকন দিয়ে দেখানো/লুকানো যায় */}
+            {/* Checklist — টাইটেলের ঠিক পরেই আসে, বটম টুলবারের checklist আইকন দিয়ে দেখানো/লুকানো যায় */}
             {showChecklist && (
-              <div style={{marginTop:4,marginBottom:10}}>
+              <div style={{marginTop:2,marginBottom:6}}>
                 {checklist.length > 0 && (
                   <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:9}}>
                     {checklist.map((item, index) => (
@@ -6252,7 +6316,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                         >
                           {item.done?"✓":""}
                         </button>
-                        <span style={{flex:1,fontSize:13,color:textMain,textDecoration:item.done?"line-through":"none",opacity:item.done?0.6:1}}>{item.text}</span>
+                        <span style={{flex:1,fontSize:13,color:NOTE_PAPER_TEXT,textDecoration:item.done?"line-through":"none",opacity:item.done?0.6:1}}>{item.text}</span>
                         <button onClick={()=>setChecklist(prev=>prev.filter((_,i)=>i!==index))} style={{border:"none",background:"transparent",color:iconColor,opacity:0.6,cursor:"pointer",padding:2}}><X size={14}/></button>
                       </div>
                     ))}
@@ -6266,30 +6330,44 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                     onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();addChecklist();}}}
                     onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
                     placeholder={lang==="bn"?"লিস্টে যোগ করুন":"List item"}
-                    style={{flex:1,minWidth:0,background:"transparent",border:"none",padding:"3px 0",fontSize:13,color:textMain,outline:"none",fontFamily:"inherit"}}
+                    style={{flex:1,minWidth:0,background:"transparent",border:"none",padding:"3px 0",fontSize:13,color:NOTE_PAPER_TEXT,outline:"none",fontFamily:"inherit"}}
                   />
                   {checkText && <button onClick={addChecklist} style={{border:"none",background:"transparent",color:iconColor,cursor:"pointer",padding:2}}><Check size={16}/></button>}
                 </div>
               </div>
             )}
 
-            {/* Category / রঙ পিকার — বটম টুলবারের Tag আইকন দিয়ে টগল হয় */}
+            <textarea
+              ref={bodyRef}
+              value={body}
+              onChange={e=>setBody(e.target.value)}
+              onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
+              placeholder={t.notesBodyPlaceholder}
+              rows={showChecklist ? 3 : 10}
+              style={{width:"100%",boxSizing:"border-box",resize:"none",background:"transparent",border:"none",padding:"6px 0",fontSize:14.5,lineHeight:1.65,color:NOTE_PAPER_TEXT,outline:"none",fontFamily:"inherit",marginBottom:8}}
+            />
+
+            {/* Category পিকার — বটম টুলবারের Tag আইকন দিয়ে টগল হয়, নাম-সহ চিপ যাতে বোঝা যায় কোনটা সিলেক্ট করা আছে */}
             {showColorPicker && (
-              <div onClick={e=>e.stopPropagation()} style={{display:"flex",gap:9,alignItems:"center",overflowX:"auto",paddingTop:6,paddingBottom:2}}>
+              <div onClick={e=>e.stopPropagation()} style={{display:"flex",flexWrap:"wrap",gap:7,paddingTop:6,paddingBottom:2}}>
                 {categories.map(cat => {
                   const c = noteColorFor(cat, categories);
-                  const sw = dark ? c.bgDark : c.bg;
+                  const selected = category === cat;
                   return (
-                    <button key={cat} onClick={()=>setCategory(cat)} title={cat} style={{
-                      flex:"0 0 auto",width:30,height:30,borderRadius:"50%",background:sw,
-                      border: category===cat ? `2.5px solid ${iconColor}` : `1px solid ${cardBorder}`,
-                      cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"
+                    <button key={cat} onClick={()=>setCategory(cat)} style={{
+                      display:"flex",alignItems:"center",gap:5,
+                      background:c.bg, color:c.text,
+                      border: selected ? `1.5px solid ${iconColor}` : "1px solid transparent",
+                      borderRadius:999,padding:"6px 12px",fontSize:11.5,fontWeight:800,cursor:"pointer"
                     }}>
-                      {category===cat && <Check size={14} color={c.text}/>}
+                      {selected && <Check size={12}/>}
+                      {cat}
                     </button>
                   );
                 })}
-                <button onClick={addCategory} title="New category" style={{flex:"0 0 auto",width:30,height:30,borderRadius:"50%",border:`1.5px dashed ${iconColor}`,background:"transparent",color:iconColor,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Plus size={14}/></button>
+                <button onClick={addCategory} style={{flex:"0 0 auto",border:`1.5px dashed ${iconColor}`,background:"transparent",color:iconColor,borderRadius:999,padding:"6px 12px",fontSize:11.5,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>
+                  <Plus size={12}/> {lang==="bn"?"নতুন":"New"}
+                </button>
               </div>
             )}
           </div>
@@ -6304,9 +6382,9 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               style={{border:"none",background:showColorPicker?"rgba(0,0,0,0.08)":"transparent",color:iconColor,cursor:"pointer",padding:9,borderRadius:"50%",display:"flex"}}>
               <Tag size={19}/>
             </button>
-            <button type="button" onClick={()=>wrapSelection("**")} title={lang==="bn"?"বোল্ড":"Bold"}
+            <button type="button" onClick={()=>wrapSelection("**")} onMouseDown={e=>e.preventDefault()} onTouchStart={e=>e.preventDefault()} title={lang==="bn"?"বোল্ড":"Bold"}
               style={{border:"none",background:"transparent",color:iconColor,fontWeight:900,fontSize:14,cursor:"pointer",width:37,height:37,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"inherit"}}>B</button>
-            <button type="button" onClick={()=>wrapSelection("*")} title={lang==="bn"?"ইটালিক":"Italic"}
+            <button type="button" onClick={()=>wrapSelection("*")} onMouseDown={e=>e.preventDefault()} onTouchStart={e=>e.preventDefault()} title={lang==="bn"?"ইটালিক":"Italic"}
               style={{border:"none",background:"transparent",color:iconColor,fontStyle:"italic",fontWeight:700,fontSize:14,cursor:"pointer",width:37,height:37,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"inherit"}}>I</button>
             <div style={{flex:1}}/>
             <span style={{fontSize:9.5,color:iconColor,opacity:0.6,fontWeight:700,marginRight:6}}>{category}</span>
