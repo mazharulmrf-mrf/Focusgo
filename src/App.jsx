@@ -6403,6 +6403,11 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, categories, onA
   const [repeat, setRepeat] = useState(initialTask?.repeat || "none"); // "none" | "daily" | "weekly" | "monthly"
   const [addingCategory, setAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
+  // ডিফল্টে শুধু Title + Date দেখানো হয় (দ্রুত টাস্ক যোগ করার জন্য) — Category/Priority/Repeat "More options"-এর নিচে লুকানো,
+  // এডিট করার সময় বা কেউ আগে থেকে এগুলো সেট করে থাকলে খোলাই দেখানো হয়
+  const [showMore, setShowMore] = useState(
+    !!initialTask && (initialTask.priority !== "med" || !!initialTask.repeat || (categories && categories[0] && initialTask.category !== categories[0].key))
+  );
   const sheetRef = useRef(null);
   const vh = useVisualViewportHeight(); // কিবোর্ড খোলা অবস্থায় দৃশ্যমান উচ্চতা — sheet-কে এর মধ্যেই ধরে রাখা হয়
   const isEditing = !!initialTask;
@@ -6438,48 +6443,8 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, categories, onA
           onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
           style={{width:"100%", boxSizing:"border-box", background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"12px 14px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit", marginBottom:14}}/>
 
-        <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.taskCategory}</div>
-        <div style={{display:"flex", gap:8, marginBottom:14, overflowX:"auto", paddingBottom:2}}>
-          {(categories || []).map(c => {
-            const Icon = taskCategoryIcon(c.icon);
-            const label = lang === "bn" ? (c.labelBn || c.label) : c.label;
-            const active = category === c.key;
-            return (
-              <button key={c.key} onClick={()=>setCategory(c.key)} style={{
-                flexShrink:0, padding:"9px 14px", borderRadius:12, cursor:"pointer", whiteSpace:"nowrap",
-                border:`1.5px solid ${active ? c.color : cardBorder}`,
-                background: active ? `${c.color}1F` : "transparent",
-                color: active ? c.color : textMuted2, fontWeight:700, fontSize:12.5,
-                display:"flex", alignItems:"center", justifyContent:"center", gap:5,
-              }}>
-                <Icon size={13}/>
-                {label}
-              </button>
-            );
-          })}
-          <button onClick={()=>setAddingCategory(v=>!v)} title={t.taskAddCategory} style={{
-            flexShrink:0, width:36, height:36, borderRadius:12, cursor:"pointer",
-            border:`1.5px dashed ${cardBorder}`, background:"transparent", color:textMuted2,
-            display:"flex", alignItems:"center", justifyContent:"center",
-          }}>
-            <Plus size={15}/>
-          </button>
-        </div>
-
-        {addingCategory && (
-          <div style={{display:"flex", gap:8, marginBottom:14}}>
-            <input autoFocus value={newCategoryName} onChange={e=>setNewCategoryName(e.target.value)}
-              placeholder={t.taskNewCategoryPlaceholder}
-              onKeyDown={e=>{ if (e.key === "Enter") { e.preventDefault(); confirmNewCategory(); } }}
-              style={{flex:1, minWidth:0, boxSizing:"border-box", background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 12px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit"}}/>
-            <button onClick={confirmNewCategory} style={{border:"none", borderRadius:12, padding:"0 16px", background:accent, color:"#fff", fontWeight:800, fontSize:13, cursor:"pointer"}}>
-              {t.add}
-            </button>
-          </div>
-        )}
-
         <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.taskDueDateOptional}</div>
-        <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:14}}>
+        <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:16}}>
           <div style={{flex:1, display:"flex", alignItems:"center", gap:8, background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 14px"}}>
             <CalendarDays size={15} color={textMuted2} style={{flexShrink:0}}/>
             <input type="date" value={dueDate} onChange={e=>setDueDate(e.target.value)}
@@ -6492,36 +6457,85 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, categories, onA
           )}
         </div>
 
-        <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.taskPriority}</div>
-        <div style={{display:"flex", gap:8, marginBottom:20}}>
-          {["high","med","low"].map(p => (
-            <button key={p} onClick={()=>setPriority(p)} style={{
-              flex:1, padding:"8px 0", borderRadius:12, cursor:"pointer",
-              border:`1.5px solid ${priority===p ? prColor[p] : cardBorder}`,
-              background: priority===p ? `${prColor[p]}14` : "transparent",
-              color: priority===p ? prColor[p] : textMuted2, fontWeight:700, fontSize:12.5,
-            }}>
-              {prLabel[p]}
-            </button>
-          ))}
-        </div>
+        <button onClick={()=>setShowMore(v=>!v)} style={{display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", color:accent, cursor:"pointer", padding:"2px 0", fontSize:12, fontWeight:800, marginBottom: showMore ? 14 : 20}}>
+          <ChevronDown size={14} style={{transform: showMore ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+          {showMore ? (lang==="bn" ? "কম দেখাও" : "Fewer options") : (lang==="bn" ? "আরও অপশন (ক্যাটাগরি, প্রায়োরিটি, রিপিট)" : "More options (category, priority, repeat)")}
+        </button>
 
-        <div style={{display:"flex", alignItems:"center", gap:6, marginBottom:8}}>
-          <Repeat size={12} color={textMuted2}/>
-          <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>{t.taskRepeat}</div>
-        </div>
-        <div style={{display:"flex", gap:8, marginBottom:20, overflowX:"auto"}}>
-          {[["none", t.taskRepeatNone], ["daily", t.taskRepeatDaily], ["weekly", t.taskRepeatWeekly], ["monthly", t.taskRepeatMonthly]].map(([r,label]) => (
-            <button key={r} onClick={()=>setRepeat(r)} style={{
-              flex:1, padding:"8px 4px", borderRadius:12, cursor:"pointer", flexShrink:0, whiteSpace:"nowrap",
-              border:`1.5px solid ${repeat===r ? accent : cardBorder}`,
-              background: repeat===r ? "rgba(217,119,87,0.08)" : "transparent",
-              color: repeat===r ? accent : textMuted2, fontWeight:700, fontSize:12,
-            }}>
-              {label}
-            </button>
-          ))}
-        </div>
+        {showMore && (
+          <>
+            <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.taskCategory}</div>
+            <div style={{display:"flex", gap:8, marginBottom:14, overflowX:"auto", paddingBottom:2}}>
+              {(categories || []).map(c => {
+                const Icon = taskCategoryIcon(c.icon);
+                const label = lang === "bn" ? (c.labelBn || c.label) : c.label;
+                const active = category === c.key;
+                return (
+                  <button key={c.key} onClick={()=>setCategory(c.key)} style={{
+                    flexShrink:0, padding:"9px 14px", borderRadius:12, cursor:"pointer", whiteSpace:"nowrap",
+                    border:`1.5px solid ${active ? c.color : cardBorder}`,
+                    background: active ? `${c.color}1F` : "transparent",
+                    color: active ? c.color : textMuted2, fontWeight:700, fontSize:12.5,
+                    display:"flex", alignItems:"center", justifyContent:"center", gap:5,
+                  }}>
+                    <Icon size={13}/>
+                    {label}
+                  </button>
+                );
+              })}
+              <button onClick={()=>setAddingCategory(v=>!v)} title={t.taskAddCategory} style={{
+                flexShrink:0, width:36, height:36, borderRadius:12, cursor:"pointer",
+                border:`1.5px dashed ${cardBorder}`, background:"transparent", color:textMuted2,
+                display:"flex", alignItems:"center", justifyContent:"center",
+              }}>
+                <Plus size={15}/>
+              </button>
+            </div>
+
+            {addingCategory && (
+              <div style={{display:"flex", gap:8, marginBottom:14}}>
+                <input autoFocus value={newCategoryName} onChange={e=>setNewCategoryName(e.target.value)}
+                  placeholder={t.taskNewCategoryPlaceholder}
+                  onKeyDown={e=>{ if (e.key === "Enter") { e.preventDefault(); confirmNewCategory(); } }}
+                  style={{flex:1, minWidth:0, boxSizing:"border-box", background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 12px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit"}}/>
+                <button onClick={confirmNewCategory} style={{border:"none", borderRadius:12, padding:"0 16px", background:accent, color:"#fff", fontWeight:800, fontSize:13, cursor:"pointer"}}>
+                  {t.add}
+                </button>
+              </div>
+            )}
+
+            <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.taskPriority}</div>
+            <div style={{display:"flex", gap:8, marginBottom:20}}>
+              {["high","med","low"].map(p => (
+                <button key={p} onClick={()=>setPriority(p)} style={{
+                  flex:1, padding:"8px 0", borderRadius:12, cursor:"pointer",
+                  border:`1.5px solid ${priority===p ? prColor[p] : cardBorder}`,
+                  background: priority===p ? `${prColor[p]}14` : "transparent",
+                  color: priority===p ? prColor[p] : textMuted2, fontWeight:700, fontSize:12.5,
+                }}>
+                  {prLabel[p]}
+                </button>
+              ))}
+            </div>
+
+            <div style={{display:"flex", alignItems:"center", gap:6, marginBottom:8}}>
+              <Repeat size={12} color={textMuted2}/>
+              <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>{t.taskRepeat}</div>
+            </div>
+            <div style={{display:"flex", gap:8, marginBottom:20, overflowX:"auto"}}>
+              {[["none", t.taskRepeatNone], ["daily", t.taskRepeatDaily], ["weekly", t.taskRepeatWeekly], ["monthly", t.taskRepeatMonthly]].map(([r,label]) => (
+                <button key={r} onClick={()=>setRepeat(r)} style={{
+                  flex:1, padding:"8px 4px", borderRadius:12, cursor:"pointer", flexShrink:0, whiteSpace:"nowrap",
+                  border:`1.5px solid ${repeat===r ? accent : cardBorder}`,
+                  background: repeat===r ? "rgba(217,119,87,0.08)" : "transparent",
+                  color: repeat===r ? accent : textMuted2, fontWeight:700, fontSize:12,
+                }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
 
         <button onClick={submit} style={{width:"100%", padding:"13px 0", borderRadius:14, border:"none", background:accent, color:"#fff", fontWeight:800, fontSize:14, cursor:"pointer"}}>
           {isEditing ? (lang==="bn" ? "সেভ করুন" : "Save Changes") : t.taskAddBtn}
