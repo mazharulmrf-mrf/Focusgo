@@ -3276,19 +3276,26 @@ export default function FocusGo() {
         {/* STUDY planning section - This Week + Exams */}
         {tab === "study" && (
           <div key="plan" className="fg-tab-panel" style={{marginTop:20}}>
-            {/* Plan / Exam segmented toggle */}
-            <div style={{display:"flex", gap:4, background: dark?"#1B1815":"#F0EBDD", border:`1px solid ${cardBorder}`, borderRadius:14, padding:4, marginBottom:18}}>
-              {[["study", t.planViewStudy], ["exam", t.planViewExam]].map(([key,label]) => (
-                <button key={key} onClick={()=>{vibrate(); setPlanView(key);}} style={{
-                  flex:1, border:"none", borderRadius:10, padding:"9px 0", fontSize:12.5, fontWeight:700, cursor:"pointer",
-                  background: planView===key ? cardBg : "transparent",
-                  color: planView===key ? textMain : textMuted2,
-                  boxShadow: planView===key ? (dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(0,0,0,0.08)") : "none",
-                  transition:"background .18s ease, color .18s ease",
-                }}>
-                  {label}
-                </button>
-              ))}
+            {/* Study Plan / Exam — separate feature cards */}
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:18}}>
+
+              <button onClick={()=>{vibrate();setPlanView("study");}} style={{display:"flex",alignItems:"center",gap:9,textAlign:"left",minWidth:0,padding:"12px 11px",borderRadius:15,cursor:"pointer",border:`1.5px solid ${planView==="study"?accent:cardBorder}`,background:planView==="study"?(dark?"rgba(217,119,87,0.12)":"rgba(217,119,87,0.08)"):cardBg,color:textMain}}>
+
+                <span style={{width:34,height:34,borderRadius:10,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",background:dark?"rgba(217,119,87,0.14)":"rgba(217,119,87,0.10)",color:accent}}><Calendar size={18}/></span>
+
+                <span style={{minWidth:0}}><span style={{display:"block",fontSize:13,fontWeight:800}}>Study Plan</span><span style={{display:"block",fontSize:9.5,color:textMuted2,marginTop:2}}>Plan your daily study</span></span>
+
+              </button>
+
+              <button onClick={()=>{vibrate();setPlanView("exam");}} style={{display:"flex",alignItems:"center",gap:9,textAlign:"left",minWidth:0,padding:"12px 11px",borderRadius:15,cursor:"pointer",border:`1.5px solid ${planView==="exam"?"#6D9EDB":cardBorder}`,background:planView==="exam"?(dark?"rgba(109,158,219,0.12)":"rgba(109,158,219,0.08)"):cardBg,color:textMain}}>
+
+                <span style={{width:34,height:34,borderRadius:10,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",background:dark?"rgba(109,158,219,0.14)":"rgba(109,158,219,0.10)",color:"#6D9EDB"}}><GraduationCap size={18}/></span>
+
+                <span style={{minWidth:0}}><span style={{display:"block",fontSize:13,fontWeight:800}}>Exam</span><span style={{display:"block",fontSize:9.5,color:textMuted2,marginTop:2}}>Prepare for your exams</span></span>
+
+              </button>
+
             </div>
 
             {planView === "study" && (<>
