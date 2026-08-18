@@ -2891,6 +2891,17 @@ export default function FocusGo() {
                 </select>
               </div>
               <div style={{textAlign:"center", margin: timerRunning ? "10px 0 6px" : "6px 0 2px", transition:"margin .25s ease"}}>
+                <div style={{position:"relative", width: timerRunning?216:190, height: timerRunning?216:190, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"center", transition:"width .25s ease, height .25s ease"}}>
+                  {timerTotal > 0 && (
+                    <svg width="100%" height="100%" viewBox="0 0 100 100" style={{position:"absolute", inset:0, transform:"rotate(-90deg)"}}>
+                      <circle cx="50" cy="50" r="46" fill="none" stroke={dark?"#2C2820":"#EFE9DC"} strokeWidth="3.5"/>
+                      <circle cx="50" cy="50" r="46" fill="none" stroke={accent} strokeWidth="3.5" strokeLinecap="round"
+                        strokeDasharray={2*Math.PI*46}
+                        strokeDashoffset={2*Math.PI*46 * (1 - Math.min(1, Math.max(0, timerSeconds/timerTotal)))}
+                        style={{transition:"stroke-dashoffset 1s linear"}}/>
+                    </svg>
+                  )}
+                  <div style={{position:"relative", zIndex:1}}>
                 {editingDuration ? (
                   <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4}}>
                     <input
@@ -2907,10 +2918,12 @@ export default function FocusGo() {
                     <span style={{fontSize:14, fontWeight:700, color:textMuted2}}>{t.minutes}</span>
                   </div>
                 ) : (
-                  <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} style={{fontSize: timerRunning ? 60 : 46, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
+                  <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} style={{fontSize: timerRunning ? 44 : 36, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
                     <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
                   </div>
                 )}
+                  </div>
+                </div>
                 {timerTopic && (
                   !timerRunning ? (
                     <button onClick={()=>{ const next=!showTopicPicker; setShowTopicPicker(next); if (next) setFreeSessionTouched(false); }} style={{display:"inline-flex", alignItems:"center", gap:3, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, marginTop:2, padding:0}}>
@@ -3023,19 +3036,45 @@ export default function FocusGo() {
 
         {/* Today's study overview card - Today tab only */}
         {tab === "today" && (
-        <div className="fg-tab-panel" style={{marginTop:12, display:"flex", alignItems:"center", gap:14, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px"}}>
-          <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
-            size={62} stroke={6} accent={accent} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain} nf={nf}/>
-          <div>
-            <div style={{fontSize:13.5, fontWeight:800, color:textMain, marginBottom:5}}>{t.todaysProgress}</div>
-            <div style={{display:"flex", alignItems:"center", gap:8, fontSize:12.5, fontWeight:700}}>
-              <span style={{color:accent}}><Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.doneCount}</span>
-              <span style={{color:textMuted2, opacity:0.4}}>|</span>
-              <span style={{color:textMuted2, fontWeight:500, opacity:0.85}}><Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}</span>
+        <div className="fg-tab-panel" style={{marginTop:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px"}}>
+          <div style={{display:"flex", alignItems:"center", gap:14, minWidth:0}}>
+            <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
+              size={62} stroke={6} accent={accent} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain} nf={nf}/>
+            <div>
+              <div style={{fontSize:13.5, fontWeight:800, color:textMain, marginBottom:5}}>{t.todaysProgress}</div>
+              <div style={{display:"flex", alignItems:"center", gap:8, fontSize:12.5, fontWeight:700}}>
+                <span style={{color:accent}}><Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.doneCount}</span>
+                <span style={{color:textMuted2, opacity:0.4}}>|</span>
+                <span style={{color:textMuted2, fontWeight:500, opacity:0.85}}><Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}</span>
+              </div>
             </div>
           </div>
+          {studyOverview.streak > 0 && (
+            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:2, paddingLeft:12, borderLeft:`1px solid ${cardBorder}`}}>
+              <Flame size={16} color="#D97757" fill="#D9775733"/>
+              <div style={{fontSize:15, fontWeight:800, color:textMain, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
+              <div style={{fontSize:8.5, color:textMuted2, fontWeight:600, opacity:0.75, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
+            </div>
+          )}
         </div>
         )}
+
+        {/* Next exam countdown banner - Today tab only, only when a next exam date is set and not passed */}
+        {tab === "today" && nextExam?.date && (() => {
+          const diff = Math.round((new Date(nextExam.date + "T00:00:00") - new Date(todayKey + "T00:00:00")) / 86400000);
+          if (diff < 0) return null;
+          return (
+            <button onClick={()=>{vibrate(); setTab("exam");}} className="fg-tab-panel" style={{marginTop:12, width:"100%", boxSizing:"border-box", display:"flex", alignItems:"center", gap:10, background: dark?"#1F1B17":"#FBF3EC", border:`1px solid ${dark?"#332E25":"#F0DCC9"}`, borderRadius:14, padding:"10px 14px", cursor:"pointer", textAlign:"left"}}>
+              <GraduationCap size={17} color={accent} style={{flexShrink:0}}/>
+              <div style={{flex:1, minWidth:0, fontSize:12, fontWeight:700, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                {nextExam.subject}{nextExam.topic ? ` · ${nextExam.topic}` : ""}
+              </div>
+              <div style={{flexShrink:0, fontSize:12, fontWeight:800, color:accent}}>
+                {diff === 0 ? t.examToday : <><Num>{nf(diff)}</Num> {t.daysLeftLabel}</>}
+              </div>
+            </button>
+          );
+        })()}
 
         {/* Today's study list - Today tab only */}
         {tab === "today" && (
@@ -4618,7 +4657,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
               {item.done ? <Check size={16} color="#fff" strokeWidth={3}/> : <span style={{width:9,height:9,borderRadius:"50%", background:c.bg}}/>}
             </button>
             <div style={{flex:1, minWidth:0}} onClick={onStartTimer ? ()=>onStartTimer(item.id, item.duration) : undefined}>
-              <div style={{fontSize:10, fontWeight:700, letterSpacing:ls(0.5), color:c.bg}}>{item.subject.toUpperCase()}</div>
+              <span style={{display:"inline-block", fontSize:9.5, fontWeight:800, letterSpacing:ls(0.5), color:c.bg, background:c.bgSoft, borderRadius:6, padding:"2px 7px", marginBottom:3}}>{item.subject.toUpperCase()}</span>
               <div style={{fontSize:14, fontWeight:600, wordBreak:"break-word", textDecoration: item.done ? "line-through" : "none", opacity: item.done ? 0.6 : 1}}>{item.topic}</div>
             </div>
             <div style={{textAlign:"right", flexShrink:0}}>
@@ -5039,7 +5078,7 @@ function ExamsModal({ t, nf, subjects, examSubjects, onAdd, onRemove, onClose, c
 
 function WeekDayStrip({ days, entries, selectedKey, onSelectDay, todayKey, weekdayShort, nf, accent, dark, textMuted2, textMain, cardBg, cardBorder }) {
   return (
-    <div className="fg-week-strip" style={{display:"flex", gap:8, overflowX:"auto", paddingBottom:2, scrollSnapType:"x proximity"}}>
+    <div className="fg-week-strip" style={{display:"flex", gap:8, overflowX:"auto", paddingBottom:2, scrollSnapType:"x proximity", WebkitMaskImage:"linear-gradient(to right, transparent 0, black 14px, black calc(100% - 14px), transparent 100%)", maskImage:"linear-gradient(to right, transparent 0, black 14px, black calc(100% - 14px), transparent 100%)"}}>
       {days.map((d,i) => {
         const dk = dateKey(d);
         const isToday = dk === todayKey;
