@@ -3001,16 +3001,25 @@ export default function FocusGo() {
                 <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> <span style={{fontSize:9.5}}>{now.getHours()>=12 ? t.pmLabel : t.amLabel}</span>
               </div>
               <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
-                border:`1px solid ${cardBorder}`,
-                background: cardBg,
+                border:`1px solid ${dark?"rgba(217,119,87,0.4)":"rgba(217,119,87,0.35)"}`,
+                background: dark?"rgba(217,119,87,0.16)":"rgba(217,119,87,0.12)",
                 borderRadius:12,
                 width:32,
                 height:32,
                 display:"flex", alignItems:"center", justifyContent:"center",
                 cursor:"pointer",
                 flexShrink:0,
+                position:"relative",
               }}>
-                <CalendarDays size={15} color={textMuted2} strokeWidth={2.2}/>
+                <CalendarDays size={15} color={accent} strokeWidth={2.2}/>
+                {examDateKeys.has(todayKey) && (
+                  <span style={{
+                    position:"absolute", top:3, right:3,
+                    width:7, height:7, borderRadius:"50%",
+                    background:"#C0392B",
+                    border:`1.5px solid ${cardBg}`,
+                  }}/>
+                )}
               </button>
             </div>
           </div>
@@ -3185,25 +3194,26 @@ export default function FocusGo() {
         </div>
         )}
 
-        {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — orange-tinted highlight card */}
+        {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — bold orange highlight card */}
         {(tab === "today" || tab === "study") && (
-        <div className="fg-tab-panel" style={{marginTop:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, background: dark?"rgba(217,119,87,0.12)":"rgba(217,119,87,0.08)", border:`1px solid ${dark?"rgba(217,119,87,0.32)":"rgba(217,119,87,0.28)"}`, borderRadius:16, padding:"14px 16px"}}>
-          <div style={{display:"flex", alignItems:"center", gap:14, minWidth:0}}>
+        <div className="fg-tab-panel" style={{marginTop:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, background: dark?"rgba(217,119,87,0.20)":"rgba(217,119,87,0.14)", border:`1.5px solid ${dark?"rgba(217,119,87,0.45)":"rgba(217,119,87,0.38)"}`, borderRadius:16, padding:"14px 16px", position:"relative", overflow:"hidden"}}>
+          <div style={{display:"flex", alignItems:"center", gap:14, minWidth:0, position:"relative"}}>
             <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
               size={62} stroke={6} accent={accent} trackColor={dark?"#3A2A22":"#F5DDD0"} textMain={textMain} nf={nf}/>
             <div>
-              <div style={{fontSize:13.5, fontWeight:800, color:textMain, marginBottom:5}}>{t.todaysProgress}</div>
+              <div style={{fontSize:13.5, fontWeight:800, color:accent, marginBottom:5}}>{t.todaysProgress}</div>
               <div style={{display:"flex", alignItems:"center", gap:8, fontSize:12.5, fontWeight:700}}>
-                <span style={{color:accent}}><Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.doneCount}</span>
-                <span style={{color:textMuted2, opacity:0.4}}>|</span>
-                <span style={{color:textMuted2, fontWeight:500, opacity:0.85}}><Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}</span>
+                <span style={{color:accent, background:dark?"rgba(217,119,87,0.22)":"rgba(217,119,87,0.16)", padding:"2px 8px", borderRadius:20}}><Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.doneCount}</span>
+                <span style={{color:textMuted2, fontWeight:500, opacity:0.9}}><Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}</span>
               </div>
             </div>
           </div>
-          <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:2, paddingLeft:12, borderLeft:`1px solid ${dark?"rgba(217,119,87,0.32)":"rgba(217,119,87,0.28)"}`}}>
-            <Flame size={16} color={accent} fill={`${accent}33`}/>
-            <div style={{fontSize:15, fontWeight:800, color:textMain, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
-            <div style={{fontSize:8.5, color:textMuted2, fontWeight:600, opacity:0.75, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
+          <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:3, paddingLeft:12, borderLeft:`1px solid ${dark?"rgba(217,119,87,0.4)":"rgba(217,119,87,0.35)"}`, position:"relative"}}>
+            <div style={{width:28, height:28, borderRadius:"50%", background:dark?"rgba(217,119,87,0.25)":"rgba(217,119,87,0.18)", display:"flex", alignItems:"center", justifyContent:"center"}}>
+              <Flame size={15} color={accent} fill={`${accent}55`}/>
+            </div>
+            <div style={{fontSize:15, fontWeight:800, color:accent, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
+            <div style={{fontSize:8.5, color:textMuted2, fontWeight:600, opacity:0.85, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
           </div>
         </div>
         )}
