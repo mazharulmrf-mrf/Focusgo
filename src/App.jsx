@@ -1104,6 +1104,7 @@ const T = {
     taskStudy: "Study", taskPersonal: "Personal", taskAll: "All",
     taskPrHigh: "High", taskPrMed: "Medium", taskPrLow: "Low",
     taskTitlePlaceholder: "What needs to be done?", taskCategory: "Category", taskPriority: "Priority", taskAddBtn: "Add task",
+    taskAddCategory: "Add category", taskNewCategoryPlaceholder: "New category name",
     taskDone: "done", taskLinkHint: "You can start a \"Study\" task directly with the Focus Timer — it'll auto-complete when the session ends.",
     taskLeftLabel: "left", taskAllDoneLabel: "All done",
     taskFilterToday: "Today", taskFilterUpcoming: "Upcoming", taskFilterDone: "Done",
@@ -1113,6 +1114,7 @@ const T = {
     taskSectionToday: "Today", taskSectionUpcoming: "Upcoming", taskSectionNoDate: "No Due Date",
     taskEmptyToday: "Nothing due today", taskEmptyUpcoming: "Nothing upcoming", taskEmptyDone: "No completed tasks yet",
     taskViewList: "List", taskViewCalendar: "Calendar",
+    taskViewListHint: "All your tasks, grouped by due date", taskViewCalendarHint: "Tap a day on the calendar to see its tasks",
     taskRepeat: "Repeat", taskRepeatNone: "Never", taskRepeatDaily: "Daily", taskRepeatWeekly: "Weekly", taskRepeatMonthly: "Monthly",
     taskRepeatBadge: "Repeats", taskCalNoDate: "No due date", taskCalPickDay: "Tap a day to see its tasks",
     taskCalEmptyDay: "No tasks due this day", taskCalNoDateTasks: "Tasks without a due date",
@@ -1242,6 +1244,7 @@ const T = {
     taskStudy: "স্টাডি", taskPersonal: "পার্সোনাল", taskAll: "সব",
     taskPrHigh: "জরুরি", taskPrMed: "মিডিয়াম", taskPrLow: "কম",
     taskTitlePlaceholder: "কী করতে হবে?", taskCategory: "ক্যাটাগরি", taskPriority: "প্রায়োরিটি", taskAddBtn: "যোগ করো",
+    taskAddCategory: "ক্যাটাগরি যোগ করো", taskNewCategoryPlaceholder: "নতুন ক্যাটাগরির নাম",
     taskDone: "সম্পন্ন", taskLinkHint: "\"স্টাডি\" ক্যাটাগরির টাস্ক চাইলে সরাসরি Focus Timer দিয়ে শুরু করা যাবে — সেশন শেষ হলে টাস্ক অটো-সম্পন্ন হবে।",
     taskLeftLabel: "বাকি", taskAllDoneLabel: "সব সম্পন্ন",
     taskFilterToday: "আজ", taskFilterUpcoming: "আসন্ন", taskFilterDone: "সম্পন্ন",
@@ -1251,6 +1254,7 @@ const T = {
     taskSectionToday: "আজ", taskSectionUpcoming: "আসন্ন", taskSectionNoDate: "ডিউ ডেট নেই",
     taskEmptyToday: "আজ কিছু বাকি নেই", taskEmptyUpcoming: "আসন্ন কিছু নেই", taskEmptyDone: "এখনো কোনো টাস্ক সম্পন্ন হয়নি",
     taskViewList: "লিস্ট", taskViewCalendar: "ক্যালেন্ডার",
+    taskViewListHint: "তোমার সব টাস্ক, ডিউ ডেট অনুযায়ী সাজানো", taskViewCalendarHint: "ক্যালেন্ডারে কোনো দিনে ট্যাপ করে সেদিনের টাস্ক দেখো",
     taskRepeat: "রিপিট", taskRepeatNone: "একবারই", taskRepeatDaily: "প্রতিদিন", taskRepeatWeekly: "প্রতি সপ্তাহে", taskRepeatMonthly: "প্রতি মাসে",
     taskRepeatBadge: "রিপিট হয়", taskCalNoDate: "ডিউ ডেট নেই", taskCalPickDay: "কোনো দিনে ট্যাপ করে সেদিনের টাস্ক দেখুন",
     taskCalEmptyDay: "এই দিনে কোনো টাস্ক নেই", taskCalNoDateTasks: "ডিউ ডেট ছাড়া টাস্ক",
@@ -1386,6 +1390,30 @@ const colorForSubject = (name, subjects) => {
   const idx = subjects.indexOf(name);
   return SUBJECT_COLORS[(idx < 0 ? 0 : idx) % SUBJECT_COLORS.length];
 };
+
+// টাস্ক ক্যাটাগরির নাম -> lucide আইকন কম্পোনেন্ট (dynamic custom category-র জন্য)
+const TASK_CATEGORY_ICONS = { GraduationCap, User2, Home, Tag, Target, ListChecks, CalendarDays };
+const taskCategoryIcon = (iconName) => TASK_CATEGORY_ICONS[iconName] || Tag;
+const findTaskCategory = (categories, key) => (categories || []).find(c => c.key === key) || { key, label: key, labelBn: key, icon: "Tag", color: "#8A8377" };
+
+// মোবাইলে সফট-কিবোর্ড খুললে visual viewport ছোট হয়ে যায় (layout viewport না) — এই হুক দিয়ে
+// bottom-sheet মোডালগুলোকে আসল দৃশ্যমান উচ্চতার সাথে মিলিয়ে রাখা যায়, তাই কিবোর্ড খোলা অবস্থাতেও
+// মোডালের নিচের অংশ (ক্যাটাগরি, প্রায়োরিটি, Add বাটন) কিবোর্ডের আড়ালে হারিয়ে না গিয়ে স্ক্রল করে দেখা যায়।
+function useVisualViewportHeight() {
+  const [vh, setVh] = useState(() => {
+    try { return (window.visualViewport ? window.visualViewport.height : window.innerHeight); } catch (e) { return 800; }
+  });
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.visualViewport) return;
+    const vv = window.visualViewport;
+    const onResize = () => setVh(vv.height);
+    vv.addEventListener("resize", onResize);
+    vv.addEventListener("scroll", onResize);
+    onResize();
+    return () => { vv.removeEventListener("resize", onResize); vv.removeEventListener("scroll", onResize); };
+  }, []);
+  return vh;
+}
 
 // Looks through all past entries (every date, not just today) and returns the topic names
 // previously used for one specific subject — most recently added first, no duplicates.
@@ -1570,6 +1598,22 @@ export default function FocusGo() {
     document.title = "FocusGo - Make every day count.";
   }, []);
 
+  // মোবাইল কিবোর্ড খুললে যেন লেআউট viewport কিবোর্ডের জায়গা বাদ দিয়ে resize হয় (overlay হয়ে না থাকে) —
+  // সাপোর্টেড ব্রাউজারে (Chrome/Android) এটাই bottom-sheet মোডালের ইনপুট/বাটন কিবোর্ডের নিচে হারিয়ে যাওয়া আটকায়।
+  // অসমর্থিত ব্রাউজারে (iOS Safari ইত্যাদি) নিরাপদে ignore হয়ে যায় — visualViewport হুকই তখন মূল ভরসা।
+  useEffect(() => {
+    let meta = document.querySelector('meta[name="viewport"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "viewport";
+      document.head.appendChild(meta);
+    }
+    const base = "width=device-width, initial-scale=1, viewport-fit=cover";
+    if (!/interactive-widget/.test(meta.content || "")) {
+      meta.content = `${meta.content ? meta.content + ", " : base + ", "}interactive-widget=resizes-content`;
+    }
+  }, []);
+
   // ---------- Font loading (fixed) ----------
   // আগে ফন্টগুলো `@import` দিয়ে একটা <style> ট্যাগে লোড হতো, যেটা শুধু লগইন/লোডিং স্ক্রিন পার হয়ে
   // মূল UI রেন্ডার হওয়ার পরে DOM-এ যোগ হতো। ফলে: (১) শুরুর স্ক্রিনগুলোতে ফন্ট রিকোয়েস্টই যেত না,
@@ -1636,6 +1680,30 @@ export default function FocusGo() {
     try { window.localStorage.setItem("focusgo_tasks_v1", JSON.stringify(tasks)); } catch (e) {}
   }, [tasks]);
   const [showAddTask, setShowAddTask] = useState(false);
+  // কাস্টম টাস্ক ক্যাটাগরি — ডিফল্টে Study/Personal, ইউজার চাইলে আরো ক্যাটাগরি যোগ করতে পারবে (localStorage-এ সেভ থাকে)
+  const [taskCategories, setTaskCategories] = useState(() => {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem("focusgo_task_categories_v1"));
+      if (Array.isArray(saved) && saved.length) return saved;
+    } catch (e) {}
+    return [
+      { key: "study", label: "Study", labelBn: "স্টাডি", icon: "GraduationCap", color: "#4C8FA6" },
+      { key: "personal", label: "Personal", labelBn: "পার্সোনাল", icon: "User2", color: "#6E8B5E" },
+    ];
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("focusgo_task_categories_v1", JSON.stringify(taskCategories)); } catch (e) {}
+  }, [taskCategories]);
+  const addTaskCategory = (name) => {
+    const label = (name || "").trim();
+    if (!label) return null;
+    const key = `c_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+    const palette = ["#D97757","#6E8B5E","#7E6EC9","#C08A2E","#4C8FA6","#B25B8F"];
+    const color = palette[taskCategories.length % palette.length];
+    const cat = { key, label, labelBn: label, icon: "Tag", color };
+    setTaskCategories(prev => [...prev, cat]);
+    return cat;
+  };
   const [notes, setNotes] = useState(() => {
     try { return JSON.parse(window.localStorage.getItem("focusgo_notes_v1") || "[]"); } catch (e) { return []; }
   });
@@ -3618,12 +3686,18 @@ export default function FocusGo() {
                 <div style={{flex:1, minWidth:0}}>
                   <div style={{fontSize:14, fontWeight:600, color:textMain, textDecoration: x.done?"line-through":"none", marginBottom:6, lineHeight:1.3}}>{x.title}</div>
                   <div style={{display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"}}>
-                    <span style={{display:"inline-flex", alignItems:"center", gap:4, fontSize:10, fontWeight:700, padding:"3px 8px", borderRadius:20,
-                      background: x.category==="study" ? "rgba(76,143,166,0.12)" : "rgba(110,139,94,0.12)",
-                      color: x.category==="study" ? "#4C8FA6" : "#6E8B5E"}}>
-                      {x.category==="study" ? <GraduationCap size={11}/> : <User2 size={11}/>}
-                      {x.category==="study" ? t.taskStudy : t.taskPersonal}
-                    </span>
+                    {(() => {
+                      const cat = findTaskCategory(taskCategories, x.category);
+                      const CatIcon = taskCategoryIcon(cat.icon);
+                      const catLabel = x.category === "study" ? t.taskStudy : x.category === "personal" ? t.taskPersonal : (lang === "bn" ? (cat.labelBn || cat.label) : cat.label);
+                      return (
+                        <span style={{display:"inline-flex", alignItems:"center", gap:4, fontSize:10, fontWeight:700, padding:"3px 8px", borderRadius:20,
+                          background: `${cat.color}1F`, color: cat.color}}>
+                          <CatIcon size={11}/>
+                          {catLabel}
+                        </span>
+                      );
+                    })()}
                     <span style={{display:"inline-flex", alignItems:"center", gap:3, fontSize:10, fontWeight:700, color:prColor[x.priority]}}>
                       <span style={{width:5,height:5,borderRadius:"50%", background:prColor[x.priority]}}/>
                       {prLabel[x.priority]}
@@ -3739,18 +3813,30 @@ export default function FocusGo() {
                 <div style={{height:"100%", width:`${pct}%`, background:accent, borderRadius:20, transition:"width .3s ease"}}/>
               </div>
 
-              {/* List / Calendar ভিউ টগল */}
+              {/* List / Calendar ভিউ টগল — অ্যাক্টিভ ট্যাবে accent কালার + আইকন ব্যাজ, যাতে দুইটা ভিউ স্পষ্ট আলাদা বোঝা যায় */}
               <div style={{display:"flex", gap:6, marginBottom:14, background: dark?"#1D1B16":"#F1ECE0", borderRadius:14, padding:4}}>
-                {[["list", t.taskViewList, List], ["calendar", t.taskViewCalendar, CalendarRange]].map(([key,label,Icon]) => (
-                  <button key={key} onClick={()=>{vibrate(); setTaskViewMode(key);}} style={{
-                    flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:6, padding:"8px 0", borderRadius:11, cursor:"pointer", border:"none",
-                    background: taskViewMode===key ? cardBg : "transparent",
-                    color: taskViewMode===key ? textMain : textMuted2, fontWeight:700, fontSize:12.5,
-                    boxShadow: taskViewMode===key ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-                  }}>
-                    <Icon size={13}/> {label}
-                  </button>
-                ))}
+                {[["list", t.taskViewList, List], ["calendar", t.taskViewCalendar, CalendarRange]].map(([key,label,Icon]) => {
+                  const active = taskViewMode === key;
+                  return (
+                    <button key={key} onClick={()=>{vibrate(); setTaskViewMode(key);}} style={{
+                      flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:7, padding:"9px 0", borderRadius:11, cursor:"pointer",
+                      border: active ? `1.5px solid ${accent}` : "1.5px solid transparent",
+                      background: active ? (dark ? "rgba(217,119,87,0.16)" : "rgba(217,119,87,0.10)") : "transparent",
+                      color: active ? accent : textMuted2, fontWeight:800, fontSize:12.5,
+                      boxShadow: active ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                      transition:"all .15s ease",
+                    }}>
+                      <span style={{display:"flex", alignItems:"center", justifyContent:"center", width:20, height:20, borderRadius:7,
+                        background: active ? accent : "transparent", color: active ? "#fff" : textMuted2}}>
+                        <Icon size={12}/>
+                      </span>
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{fontSize:11, color:textMuted2, fontWeight:600, marginTop:-8, marginBottom:14, opacity:0.85}}>
+                {taskViewMode === "list" ? t.taskViewListHint : t.taskViewCalendarHint}
               </div>
 
               {taskViewMode === "list" ? (
@@ -3802,13 +3888,19 @@ export default function FocusGo() {
                 </>
               ) : renderTaskCalendarView()}
 
-              <div style={{marginTop:18, display:"flex", alignItems:"center", gap:10, border:`1px dashed ${cardBorder}`, borderRadius:14, padding:"11px 13px"}}>
+              <div style={{marginTop:18, marginBottom:8, display:"flex", alignItems:"center", gap:10, border:`1px dashed ${cardBorder}`, borderRadius:14, padding:"11px 13px"}}>
                 <CalendarDays size={16} color={textMuted2}/>
                 <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, lineHeight:1.4}}>{t.taskLinkHint}</div>
               </div>
 
-              <button onClick={()=>{vibrate(); setShowAddTask(true);}} style={{display:"flex", alignItems:"center", justifyContent:"center", gap:6, width:"100%", marginTop:16, background:accent, color:"#fff", border:"none", borderRadius:14, padding:"13px 0", fontSize:14, fontWeight:800, cursor:"pointer"}}>
-                <Plus size={16}/> {t.taskAdd}
+              {/* ফ্লোটিং + বাটন — লিস্টের নিচে ফিক্সড থাকা "New task" বাটনের বদলে, বটম-ন্যাভের ঠিক উপরে ভাসমান */}
+              <button onClick={()=>{vibrate(); setShowAddTask(true);}} title={t.taskAdd} style={{
+                position:"fixed", right:20, bottom: isDesktop ? 28 : 96, zIndex:41,
+                width:56, height:56, borderRadius:"50%", border:"none", background:accent, color:"#fff",
+                display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
+                boxShadow: dark ? "0 8px 20px rgba(0,0,0,0.45)" : "0 8px 20px rgba(217,119,87,0.45)",
+              }}>
+                <Plus size={24} strokeWidth={2.5}/>
               </button>
             </div>
           );
@@ -4114,7 +4206,8 @@ export default function FocusGo() {
 
       {/* Add task modal */}
       {showAddTask && (
-        <AddTaskModal t={t} onClose={()=>setShowAddTask(false)} onAdd={addTask}
+        <AddTaskModal t={t} lang={lang} onClose={()=>setShowAddTask(false)} onAdd={addTask}
+          categories={taskCategories} onAddCategory={addTaskCategory}
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark} bg={bg}/>
       )}
 
@@ -6062,12 +6155,16 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
   );
 }
 
-function AddTaskModal({ t, onClose, onAdd, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
+function AddTaskModal({ t, lang, onClose, onAdd, categories, onAddCategory, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("study");
+  const [category, setCategory] = useState((categories && categories[0] && categories[0].key) || "study");
   const [priority, setPriority] = useState("med");
   const [dueDate, setDueDate] = useState("");
   const [repeat, setRepeat] = useState("none"); // "none" | "daily" | "weekly" | "monthly"
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const sheetRef = useRef(null);
+  const vh = useVisualViewportHeight(); // কিবোর্ড খোলা অবস্থায় দৃশ্যমান উচ্চতা — sheet-কে এর মধ্যেই ধরে রাখা হয়
 
   const submit = () => {
     if (!title.trim()) return;
@@ -6075,35 +6172,65 @@ function AddTaskModal({ t, onClose, onAdd, cardBg, cardBorder, textMain, textMut
     onClose();
   };
 
+  const confirmNewCategory = () => {
+    const cat = onAddCategory(newCategoryName);
+    if (cat) { setCategory(cat.key); setNewCategoryName(""); setAddingCategory(false); }
+  };
+
   const prColor = { high: "#C0392B", med: accent, low: "#6E8B5E" };
   const prLabel = { high: t.taskPrHigh, med: t.taskPrMed, low: t.taskPrLow };
 
   return (
-    <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, borderRadius:"22px 22px 0 0", padding:"20px 20px 26px", color:textMain}}>
+    <div style={{position:"fixed", left:0, top:0, width:"100%", height:vh, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
+      <div ref={sheetRef} onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:Math.max(320, vh - 24), overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"22px 22px 0 0", padding:"20px 20px 26px", color:textMain}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
           <div style={{fontSize:15, fontWeight:800}}>{t.taskAdd}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer"}}><X size={20}/></button>
         </div>
 
         <input autoFocus value={title} onChange={e=>setTitle(e.target.value)} placeholder={t.taskTitlePlaceholder}
+          onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
           style={{width:"100%", boxSizing:"border-box", background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"12px 14px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit", marginBottom:14}}/>
 
         <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.taskCategory}</div>
-        <div style={{display:"flex", gap:8, marginBottom:14}}>
-          {["study","personal"].map(c => (
-            <button key={c} onClick={()=>setCategory(c)} style={{
-              flex:1, padding:"9px 0", borderRadius:12, cursor:"pointer",
-              border:`1.5px solid ${category===c ? accent : cardBorder}`,
-              background: category===c ? "rgba(217,119,87,0.08)" : "transparent",
-              color: category===c ? accent : textMuted2, fontWeight:700, fontSize:12.5,
-              display:"flex", alignItems:"center", justifyContent:"center", gap:5,
-            }}>
-              {c==="study" ? <GraduationCap size={13}/> : <User2 size={13}/>}
-              {c==="study" ? t.taskStudy : t.taskPersonal}
-            </button>
-          ))}
+        <div style={{display:"flex", gap:8, marginBottom:14, overflowX:"auto", paddingBottom:2}}>
+          {(categories || []).map(c => {
+            const Icon = taskCategoryIcon(c.icon);
+            const label = lang === "bn" ? (c.labelBn || c.label) : c.label;
+            const active = category === c.key;
+            return (
+              <button key={c.key} onClick={()=>setCategory(c.key)} style={{
+                flexShrink:0, padding:"9px 14px", borderRadius:12, cursor:"pointer", whiteSpace:"nowrap",
+                border:`1.5px solid ${active ? c.color : cardBorder}`,
+                background: active ? `${c.color}1F` : "transparent",
+                color: active ? c.color : textMuted2, fontWeight:700, fontSize:12.5,
+                display:"flex", alignItems:"center", justifyContent:"center", gap:5,
+              }}>
+                <Icon size={13}/>
+                {label}
+              </button>
+            );
+          })}
+          <button onClick={()=>setAddingCategory(v=>!v)} title={t.taskAddCategory} style={{
+            flexShrink:0, width:36, height:36, borderRadius:12, cursor:"pointer",
+            border:`1.5px dashed ${cardBorder}`, background:"transparent", color:textMuted2,
+            display:"flex", alignItems:"center", justifyContent:"center",
+          }}>
+            <Plus size={15}/>
+          </button>
         </div>
+
+        {addingCategory && (
+          <div style={{display:"flex", gap:8, marginBottom:14}}>
+            <input autoFocus value={newCategoryName} onChange={e=>setNewCategoryName(e.target.value)}
+              placeholder={t.taskNewCategoryPlaceholder}
+              onKeyDown={e=>{ if (e.key === "Enter") { e.preventDefault(); confirmNewCategory(); } }}
+              style={{flex:1, minWidth:0, boxSizing:"border-box", background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 12px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit"}}/>
+            <button onClick={confirmNewCategory} style={{border:"none", borderRadius:12, padding:"0 16px", background:accent, color:"#fff", fontWeight:800, fontSize:13, cursor:"pointer"}}>
+              {t.add}
+            </button>
+          </div>
+        )}
 
         <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.taskDueDateOptional}</div>
         <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:14}}>
