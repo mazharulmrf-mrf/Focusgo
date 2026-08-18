@@ -1112,12 +1112,15 @@ const T = {
     selectTodaysTopic: "Select Today's Topic", freeSessionOption: "Free Session",
     noTopicsPlanned: "No study topics planned", noTopicsPlannedSub: "Add your first topic to get started.",
     totalPlannedLabel: "Total planned",
-    studyOverview: "Study Overview", focusedLabel: "focused", topicsCompletedLabel: "topics completed",
-    completionLabel: "completion", streakLabel: "day streak", weeklyActivity: "Weekly Activity",
+    studyOverview: "Study Overview", focusedLabel: "total time focused", topicsCompletedLabel: "topics completed",
+    completionLabel: "completion rate", streakLabel: "day streak", weeklyActivity: "Weekly Activity",
+    subjectProgressSubtitle: "How far you've covered in each subject",
     calendarLegendCompleted: "Study completed", calendarLegendExam: "Exam", calendarLegendPlanned: "Planned",
     calendarLegendHoliday: "Govt holiday",
     noTopicsSubjectShort: "No topics yet", addTopicsShort: "Add Topics",
     examSetupTitle: "Set up your exam", examSetupSubtitle: "Get your exam prep organized in a few quick steps.",
+    noExamYetTitle: "No exam scheduled yet", noExamYetSubtitle: "Add your first exam to start tracking your preparation.",
+    addExamCta: "Add Exam",
     examSetupStep1: "Add exam subjects", examSetupStep2: "Set exam date", examSetupStep3: "Create combined exams",
     preparationLabel: "Preparation",
     quickAdd: "Quick Add", addStudyTopicQuick: "Study Topic", addSubjectQuick: "Subject",
@@ -1221,12 +1224,15 @@ const T = {
     selectTodaysTopic: "আজকের টপিক বেছে নাও", freeSessionOption: "ফ্রি সেশন",
     noTopicsPlanned: "এখনো কোনো টপিক প্ল্যান করা হয়নি", noTopicsPlannedSub: "শুরু করতে প্রথম টপিকটি যোগ করুন।",
     totalPlannedLabel: "মোট পরিকল্পিত সময়",
-    studyOverview: "পড়াশোনার সারসংক্ষেপ", focusedLabel: "ফোকাস করা হয়েছে", topicsCompletedLabel: "টি টপিক সম্পন্ন",
-    completionLabel: "সম্পন্ন হয়েছে", streakLabel: "দিনের স্ট্রিক", weeklyActivity: "সাপ্তাহিক কার্যক্রম",
+    studyOverview: "পড়াশোনার সারসংক্ষেপ", focusedLabel: "মোট ফোকাস সময়", topicsCompletedLabel: "টি টপিক সম্পন্ন",
+    completionLabel: "সম্পন্ন হার", streakLabel: "দিনের স্ট্রিক", weeklyActivity: "সাপ্তাহিক কার্যক্রম",
+    subjectProgressSubtitle: "প্রতিটি সাবজেক্টে তুমি কতদূর পড়েছ",
     calendarLegendCompleted: "পড়া সম্পন্ন", calendarLegendExam: "পরীক্ষা", calendarLegendPlanned: "পরিকল্পিত",
     calendarLegendHoliday: "সরকারি ছুটি",
     noTopicsSubjectShort: "এখনো কোনো টপিক নেই", addTopicsShort: "টপিক যোগ করো",
     examSetupTitle: "তোমার এক্সাম সেট করো", examSetupSubtitle: "কয়েকটি সহজ ধাপে এক্সাম প্রস্তুতি গুছিয়ে নাও।",
+    noExamYetTitle: "এখনো কোনো এক্সাম যোগ করা হয়নি", noExamYetSubtitle: "প্রস্তুতি ট্র্যাক করা শুরু করতে তোমার প্রথম এক্সামটি যোগ করো।",
+    addExamCta: "এক্সাম যোগ করো",
     examSetupStep1: "এক্সাম সাবজেক্ট যোগ করো", examSetupStep2: "এক্সামের তারিখ ঠিক করো", examSetupStep3: "কম্বাইন্ড এক্সাম তৈরি করো",
     preparationLabel: "প্রস্তুতি",
     quickAdd: "কুইক অ্যাড", addStudyTopicQuick: "স্টাডি টপিক", addSubjectQuick: "সাবজেক্ট",
@@ -2868,11 +2874,11 @@ export default function FocusGo() {
           <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
             size={62} stroke={6} accent={accent} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain} nf={nf}/>
           <div>
-            <div style={{fontSize:13.5, fontWeight:800, marginBottom:5}}>{t.todaysProgress}</div>
+            <div style={{fontSize:13.5, fontWeight:800, color:textMain, marginBottom:5}}>{t.todaysProgress}</div>
             <div style={{display:"flex", alignItems:"center", gap:8, fontSize:12.5, fontWeight:700}}>
               <span style={{color:accent}}><Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.doneCount}</span>
               <span style={{color:textMuted2, opacity:0.4}}>|</span>
-              <span style={{color:textMuted2}}><Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}</span>
+              <span style={{color:textMuted2, fontWeight:500, opacity:0.85}}><Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}</span>
             </div>
           </div>
         </div>
@@ -2882,7 +2888,7 @@ export default function FocusGo() {
         {tab === "today" && (
         <div className="fg-tab-panel" style={{marginTop:18}}>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
-            <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.todaysStudy}</div>
+            <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
             <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} style={{display:"flex",alignItems:"center",gap:5, background: accent, color: "#FFFFFF", border:"none", borderRadius:12, padding:"8px 12px", fontSize:11.5, fontWeight:700, cursor:"pointer"}}>
               <Plus size={13}/> {t.addTopic}
             </button>
@@ -2976,55 +2982,75 @@ export default function FocusGo() {
         {tab === "stats" && (
           <div key="stats" className="fg-tab-panel">
             {/* Study Overview — headline numbers, justifies the "Stats" name */}
-            <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3, marginBottom:12}}>{t.studyOverview}</div>
-            <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:20}}>
-              {(() => {
-                const h = Math.floor(studyOverview.totalMin/60), m = studyOverview.totalMin%60;
-                return (
-                  <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px", display:"flex", alignItems:"center", gap:10}}>
-                    <div style={{width:34,height:34, borderRadius:10, background:`#4C8FA61A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}><Clock size={16} color="#4C8FA6"/></div>
-                    <div style={{minWidth:0}}>
-                      <div style={{fontSize:15, fontWeight:800, whiteSpace:"nowrap"}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
-                      <div style={{fontSize:10.5, color:textMuted2, fontWeight:600}}>{t.focusedLabel}</div>
-                    </div>
+            <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:12}}>{t.studyOverview}</div>
+
+            {/* Hero stat — total focused time, the headline number of the whole page */}
+            {(() => {
+              const h = Math.floor(studyOverview.totalMin/60), m = studyOverview.totalMin%60;
+              return (
+                <div style={{background: dark ? "linear-gradient(135deg, rgba(76,143,166,0.16), rgba(76,143,166,0.03))" : "linear-gradient(135deg, #4C8FA614, #4C8FA603)", border:`1px solid ${cardBorder}`, borderRadius:18, padding:"16px 18px", display:"flex", alignItems:"center", gap:14, marginBottom:10}}>
+                  <div style={{width:46,height:46, borderRadius:13, background: dark?"rgba(76,143,166,0.22)":"#4C8FA61F", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                    <Clock size={22} color="#4C8FA6"/>
                   </div>
-                );
-              })()}
-              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px", display:"flex", alignItems:"center", gap:10}}>
-                <div style={{width:34,height:34, borderRadius:10, background:`rgba(110,139,94,0.15)`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}><Check size={16} color="#6E8B5E"/></div>
-                <div style={{minWidth:0}}>
-                  <div style={{fontSize:15, fontWeight:800}}><Num>{nf(studyOverview.doneCount)}</Num></div>
-                  <div style={{fontSize:10.5, color:textMuted2, fontWeight:600}}>{t.topicsCompletedLabel}</div>
+                  <div style={{minWidth:0}}>
+                    <div style={{fontSize:26, fontWeight:800, letterSpacing:-0.6, color:textMain, lineHeight:1.1}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
+                    <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, opacity:0.8, marginTop:2}}>{t.focusedLabel}</div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:20}}>
+              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"11px 10px", display:"flex", flexDirection:"column", gap:8}}>
+                <div style={{width:26,height:26, borderRadius:8, background:`rgba(110,139,94,0.15)`, display:"flex", alignItems:"center", justifyContent:"center"}}><Check size={13} color="#6E8B5E"/></div>
+                <div>
+                  <div style={{fontSize:15, fontWeight:800, letterSpacing:-0.2, color:textMain}}><Num>{nf(studyOverview.doneCount)}</Num></div>
+                  <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65, marginTop:1}}>{t.topicsCompletedLabel}</div>
                 </div>
               </div>
-              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px", display:"flex", alignItems:"center", gap:10}}>
-                <div style={{width:34,height:34, borderRadius:10, background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}><TrendingUp size={16} color={accent}/></div>
-                <div style={{minWidth:0}}>
-                  <div style={{fontSize:15, fontWeight:800}}><Num>{nf(studyOverview.pct)}</Num>%</div>
-                  <div style={{fontSize:10.5, color:textMuted2, fontWeight:600}}>{t.completionLabel}</div>
+              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"11px 10px", display:"flex", flexDirection:"column", gap:8}}>
+                <div style={{width:26,height:26, borderRadius:8, background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center"}}><TrendingUp size={13} color={accent}/></div>
+                <div>
+                  <div style={{fontSize:15, fontWeight:800, letterSpacing:-0.2, color:textMain}}><Num>{nf(studyOverview.pct)}</Num>%</div>
+                  <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65, marginTop:1}}>{t.completionLabel}</div>
                 </div>
               </div>
-              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px", display:"flex", alignItems:"center", gap:10}}>
-                <div style={{width:34,height:34, borderRadius:10, background: dark?"#2C2820":"#EFE9DC", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}><Flame size={16} color={textMain}/></div>
-                <div style={{minWidth:0}}>
-                  <div style={{fontSize:15, fontWeight:800}}><Num>{nf(studyOverview.streak)}</Num></div>
-                  <div style={{fontSize:10.5, color:textMuted2, fontWeight:600}}>{t.streakLabel}</div>
+              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"11px 10px", display:"flex", flexDirection:"column", gap:8}}>
+                <div style={{width:26,height:26, borderRadius:8, background: dark?"#2C2820":"#EFE9DC", display:"flex", alignItems:"center", justifyContent:"center"}}><Flame size={13} color={textMain}/></div>
+                <div>
+                  <div style={{fontSize:15, fontWeight:800, letterSpacing:-0.2, color:textMain}}><Num>{nf(studyOverview.streak)}</Num></div>
+                  <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65, marginTop:1}}>{t.streakLabel}</div>
                 </div>
               </div>
             </div>
 
-            {/* Weekly Activity — small bar chart, minutes studied per day this week */}
-            <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:10}}>{t.weeklyActivity}</div>
-            <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"16px 12px 10px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:96, marginBottom:20}}>
+            {/* Weekly Activity — bar chart with value labels and accent-weighted bars */}
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:10}}>
+              <span style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.weeklyActivity}</span>
+              <span style={{fontSize:11, fontWeight:700, color:textMuted2}}>
+                {(() => {
+                  const total = weeklyActivity.reduce((s,w)=>s+w.min,0);
+                  const h = Math.floor(total/60), m = total%60;
+                  return <>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m {lang==="bn" ? "মোট" : "total"}</>;
+                })()}
+              </span>
+            </div>
+            <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"18px 12px 12px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:118, marginBottom:20}}>
               {(() => {
                 const maxMin = Math.max(1, ...weeklyActivity.map(w=>w.min));
                 return weeklyActivity.map((w,i) => {
-                  const h = Math.max(3, Math.round((w.min/maxMin)*56));
+                  const h = Math.max(4, Math.round((w.min/maxMin)*62));
                   const isToday = dateKey(w.day) === todayKey;
+                  const hh = Math.floor(w.min/60), mm = w.min%60;
                   return (
-                    <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6}}>
-                      <div style={{width:"60%", maxWidth:20, height:h, borderRadius:4, background: w.min>0 ? (isToday?textMain:(dark?"rgba(243,239,231,0.35)":"rgba(33,29,24,0.35)")) : (dark?"#2C2820":"#EFE9DC"), transition:"height .3s"}}/>
-                      <span style={{fontSize:9, fontWeight:700, color: isToday?textMain:textMuted2}}>{weekdayShort(w.day)}</span>
+                    <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6, height:"100%", justifyContent:"flex-end"}}>
+                      {w.min > 0 ? (
+                        <span style={{fontSize:8.5, fontWeight:700, color: isToday ? accent : textMuted2, opacity: isToday?1:0.75, whiteSpace:"nowrap"}}>
+                          {hh > 0 ? <><Num>{nf(hh)}</Num>h<Num>{nf(mm)}</Num></> : <Num>{nf(mm)}</Num>}
+                        </span>
+                      ) : <span style={{fontSize:8.5, height:11}}/>}
+                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:6, background: w.min>0 ? (isToday ? accent : `${accent}55`) : (dark?"#2C2820":"#EFE9DC"), transition:"height .3s"}}/>
+                      <span style={{fontSize:9, fontWeight:700, color: isToday?accent:textMuted2}}>{weekdayShort(w.day)}</span>
                     </div>
                   );
                 });
@@ -3085,10 +3111,14 @@ export default function FocusGo() {
               onNext={()=>setSummaryMonthAnchor(d=>new Date(d.getFullYear(), d.getMonth()+1, 1))}
               t={t} nf={nf} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
 
-            <div style={{display:"flex", alignItems:"center", gap:10, margin:"22px 0 16px"}}>
-              <div style={{flex:1, height:1, background:cardBorder}}/>
-              <span style={{fontSize:10.5, fontWeight:700, letterSpacing:0.8, color:textMuted2, textTransform:"uppercase", opacity:0.85}}>{t.syllabusProgress}</span>
-              <div style={{flex:1, height:1, background:cardBorder}}/>
+            <div style={{display:"flex", alignItems:"center", gap:10, marginTop:26, marginBottom:16}}>
+              <div style={{width:36,height:36, borderRadius:11, background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                <GraduationCap size={18} color={accent}/>
+              </div>
+              <div style={{minWidth:0}}>
+                <div style={{fontSize:16.5, fontWeight:800, letterSpacing:-0.2, color:textMain}}>{t.syllabusProgress}</div>
+                <div style={{fontSize:11, color:textMuted2, fontWeight:500, opacity:0.75}}>{t.subjectProgressSubtitle}</div>
+              </div>
             </div>
 
             {/* syllabus / subject progress — moved here from the Today tab */}
@@ -3115,9 +3145,9 @@ export default function FocusGo() {
                         const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
                         if (v.total === 0) {
                           return (
-                            <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 12px", minWidth:0}}>
-                              <div style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginBottom:6}}>{subj}</div>
-                              <div style={{fontSize:10.5, color:textMuted2, fontWeight:600, marginBottom:6}}>{t.noTopicsSubjectShort}</div>
+                            <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 12px", minWidth:0}}>
+                              <div style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginBottom:6, color:textMain}}>{subj}</div>
+                              <div style={{fontSize:10.5, color:textMuted2, fontWeight:500, opacity:0.75, marginBottom:6}}>{t.noTopicsSubjectShort}</div>
                               <button onClick={()=>{vibrate(); setShowManageTopicsFor(subj); setShowSubjects(true);}} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:c.bg, fontSize:10.5, fontWeight:700, cursor:"pointer", padding:0}}>
                                 <Plus size={11}/> {t.addTopicsShort}
                               </button>
@@ -3125,15 +3155,12 @@ export default function FocusGo() {
                           );
                         }
                         return (
-                          <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 12px", minWidth:0}}>
-                            <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", gap:4, marginBottom:6}}>
-                              <span style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subj}</span>
-                              <span style={{fontSize:10, color:textMuted2, fontWeight:600, flexShrink:0}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num></span>
+                          <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px", display:"flex", alignItems:"center", gap:10, minWidth:0}}>
+                            <PercentRing pct={pct} size={46} stroke={4.5} accent={c.bg} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain} nf={nf}/>
+                            <div style={{minWidth:0, flex:1}}>
+                              <div style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", color:textMain}}>{subj}</div>
+                              <div style={{fontSize:10.5, color:textMuted2, fontWeight:500, opacity:0.75, marginTop:2}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num> {t.complete}</div>
                             </div>
-                            <div style={{height:5, borderRadius:3, background: dark? "#2C2820":"#EFE9DC", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
-                              <div style={{height:"100%", width:`${pct}%`, background:c.bg, borderRadius:3, transition:"width .3s"}}/>
-                            </div>
-                            <div style={{fontSize:10, fontWeight:700, color:c.bg, marginTop:5, letterSpacing:ls(0.3)}}><Num>{nf(pct)}</Num>% {t.complete}</div>
                           </div>
                         );
                       })}
@@ -3174,115 +3201,136 @@ export default function FocusGo() {
               </div>
             )}
 
-            {/* Next exam card (manually set) */}
-            <div style={{position:"relative", background: dark?"#1F1B17":"#FBF3EC", border:`1px solid ${dark?"#332E25":"#F0DCC9"}`, borderRadius:18, padding:"18px 18px 20px", textAlign:"center"}}>
-              <div style={{position:"absolute", top:10, right:10, display:"flex", gap:4}}>
-                <button onClick={()=>setShowNextExamEditor(true)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4}}><Pencil size={14}/></button>
-                {nextExam && <button onClick={()=>setNextExam(null)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4}}><X size={15}/></button>}
-              </div>
-              <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.nextExamCard}</div>
-              {nextExam ? (() => {
-                const diff = Math.round((new Date(nextExam.date + "T00:00:00") - new Date(dateKey(today) + "T00:00:00")) / 86400000);
-                const prep = subjectProgress[nextExam.subject];
-                const prepPct = prep && prep.total ? Math.round((prep.done/prep.total)*100) : null;
+            {(() => {
+              const examSetupEmpty = !nextExam && Object.keys(combinedExams).length === 0 && Object.keys(examSubjects).length === 0;
+              if (examSetupEmpty) {
                 return (
-                  <>
-                    <div style={{fontSize:16, fontWeight:800, marginTop:6}}>{nextExam.subject}{nextExam.topic ? ` · ${nextExam.topic}` : ""}</div>
-                    <div style={{fontSize:42, fontWeight:800, color:accent, marginTop:6, lineHeight:1}}>
-                      {diff === 0 ? t.examToday : (diff < 0 ? t.examPassed : <Num>{nf(diff)}</Num>)}
+                  <div style={{textAlign:"center", padding:"40px 24px", background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:20}}>
+                    <div style={{width:56,height:56, borderRadius:16, background:`${accent}14`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px"}}>
+                      <GraduationCap size={26} color={accent}/>
                     </div>
-                    {diff > 0 && <div style={{fontSize:11, color:textMuted2, fontWeight:700, marginTop:4}}>{t.daysLeftLabel}</div>}
-                    {prepPct !== null && (
-                      <div style={{marginTop:14, display:"flex", alignItems:"center", gap:8, justifyContent:"center"}}>
-                        <span style={{fontSize:11, color:textMuted2, fontWeight:700}}>{t.preparationLabel}</span>
-                        <div style={{width:80, height:5, borderRadius:3, background: dark?"#332E25":"#F0DCC9", overflow:"hidden"}}>
-                          <div style={{height:"100%", width:`${prepPct}%`, background:accent, borderRadius:3}}/>
-                        </div>
-                        <span style={{fontSize:11, color:accent, fontWeight:800}}><Num>{nf(prepPct)}</Num>%</span>
-                      </div>
-                    )}
-                  </>
+                    <div style={{fontSize:15.5, fontWeight:800, color:textMain}}>{t.noExamYetTitle}</div>
+                    <div style={{fontSize:12.5, color:textMuted2, fontWeight:500, opacity:0.85, marginTop:6, maxWidth:260, marginLeft:"auto", marginRight:"auto", lineHeight:1.5}}>{t.noExamYetSubtitle}</div>
+                    <button onClick={()=>{vibrate(); setShowExams(true);}} style={{display:"inline-flex", alignItems:"center", gap:6, marginTop:18, background:accent, color:"#fff", border:"none", borderRadius:12, padding:"10px 18px", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
+                      <Plus size={14}/> {t.addExamCta}
+                    </button>
+                  </div>
                 );
-              })() : (
-                <div style={{fontSize:13, color:textMuted2, marginTop:10}}>{t.noUpcomingExam}</div>
-              )}
-            </div>
-
-            {/* Combined exams — একাধিক সাবজেক্ট একসাথে, daily/weekly/monthly recurring */}
-            <div style={{marginTop:22}}>
-              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3}}>{t.combinedExams}</div>
-                <button onClick={()=>{vibrate(); setEditingCombinedExam(null); setShowCombinedExamEditor(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer", flexShrink:0}}>
-                  <Plus size={12}/> {t.addCombinedExam}
-                </button>
-              </div>
-              <div style={{display:"flex", flexDirection:"column", gap:12, marginTop:14}}>
-                {Object.keys(combinedExams).length === 0 && (
-                  <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16}}>
-                    {t.noCombinedExams}
-                  </div>
-                )}
-                {Object.entries(combinedExams).sort((a,b)=>a[1].name.localeCompare(b[1].name)).map(([id, ce]) => (
-                  <CombinedExamCard key={id} id={id} combinedExam={ce}
-                    t={t} nf={nf} lang={lang} allSubjects={allSubjects} cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent} dark={dark}
-                    onAddAttempt={(date,obtained,total)=>addCombinedExamAttempt(id,date,obtained,total)}
-                    onEditAttempt={(attemptId,obtained,total,date)=>editCombinedExamAttempt(id,attemptId,obtained,total,date)}
-                    onRemoveAttempt={(attemptId)=>removeCombinedExamAttempt(id,attemptId)}
-                    onEdit={()=>{ setEditingCombinedExam({ id, ...ce }); setShowCombinedExamEditor(true); }}
-                    onRemove={()=>removeCombinedExam(id)}/>
-                ))}
-              </div>
-            </div>
-
-            {/* My exams */}
-            <div style={{marginTop:22}}>
-              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3}}>{t.examSubjects}</div>
-                <button onClick={()=>{vibrate(); setShowExams(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer", flexShrink:0}}>
-                  <Plus size={12}/> {t.manageExams}
-                </button>
-              </div>
-              <div style={{display:"flex", flexDirection:"column", gap:18, marginTop:14}}>
-                {Object.keys(examSubjects).length === 0 && (
-                  <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16}}>
-                    {t.noExamSubjects}
-                  </div>
-                )}
-                {Object.keys(examSubjects).sort((a,b)=>a.localeCompare(b)).map(subj => {
-                  const c = colorForSubject(subj, allSubjects);
-                  const topics = examSubjects[subj]?.topics || {};
-                  return (
-                    <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px"}}>
-                      <div style={{display:"flex", alignItems:"center", gap:7, marginBottom:8}}>
-                        <span style={{width:8,height:8,borderRadius:"50%", background:c.bg, flexShrink:0}}/>
-                        <span style={{fontWeight:700, fontSize:14}}>{subj}</span>
-                      </div>
-                      <div style={{display:"flex", flexDirection:"column", gap:8}}>
-                        {Object.keys(topics).length === 0 && (
-                          <div style={{fontSize:12, color:textMuted2, paddingLeft:15}}>{t.noTopicsInSubject}</div>
-                        )}
-                        {Object.entries(topics).map(([topicName, topicInfo]) => (
-                          <TopicFolderCard key={topicName} subj={subj} topicName={topicName} attempts={topicInfo?.attempts || []}
-                            t={t} nf={nf} lang={lang} cardBg={dark?"#121110":"#F8F5EE"} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent} dark={dark}
-                            onAddAttempt={(date,obtained,total)=>addExamAttempt(subj,topicName,date,obtained,total)}
-                            onEditAttempt={(attemptId,obtained,total,date)=>editExamAttempt(subj,topicName,attemptId,obtained,total,date)}
-                            onRemoveAttempt={(attemptId)=>removeExamAttempt(subj,topicName,attemptId)}
-                            onRenameTopic={(newName)=>renameExamTopic(subj,topicName,newName)}
-                            onRemoveTopic={()=>removeExamTopic(subj,topicName)}/>
-                        ))}
-                        <AddTopicInline t={t} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}
-                          onAdd={(name)=>addExamTopic(subj,name)}/>
-                      </div>
+              }
+              return (
+                <>
+                  {/* Next exam card (manually set) */}
+                  <div style={{position:"relative", background: dark?"#1F1B17":"#FBF3EC", border:`1px solid ${dark?"#332E25":"#F0DCC9"}`, borderRadius:18, padding:"18px 18px 20px", textAlign:"center"}}>
+                    <div style={{position:"absolute", top:10, right:10, display:"flex", gap:4}}>
+                      <button onClick={()=>setShowNextExamEditor(true)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4}}><Pencil size={14}/></button>
+                      {nextExam && <button onClick={()=>setNextExam(null)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4}}><X size={15}/></button>}
                     </div>
-                  );
-                })}
-              </div>
-            </div>
+                    <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.nextExamCard}</div>
+                    {nextExam ? (() => {
+                      const diff = Math.round((new Date(nextExam.date + "T00:00:00") - new Date(dateKey(today) + "T00:00:00")) / 86400000);
+                      const prep = subjectProgress[nextExam.subject];
+                      const prepPct = prep && prep.total ? Math.round((prep.done/prep.total)*100) : null;
+                      return (
+                        <>
+                          <div style={{fontSize:16, fontWeight:800, marginTop:6}}>{nextExam.subject}{nextExam.topic ? ` · ${nextExam.topic}` : ""}</div>
+                          <div style={{fontSize:42, fontWeight:800, color:accent, marginTop:6, lineHeight:1}}>
+                            {diff === 0 ? t.examToday : (diff < 0 ? t.examPassed : <Num>{nf(diff)}</Num>)}
+                          </div>
+                          {diff > 0 && <div style={{fontSize:11, color:textMuted2, fontWeight:700, marginTop:4}}>{t.daysLeftLabel}</div>}
+                          {prepPct !== null && (
+                            <div style={{marginTop:14, display:"flex", alignItems:"center", gap:8, justifyContent:"center"}}>
+                              <span style={{fontSize:11, color:textMuted2, fontWeight:700}}>{t.preparationLabel}</span>
+                              <div style={{width:80, height:5, borderRadius:3, background: dark?"#332E25":"#F0DCC9", overflow:"hidden"}}>
+                                <div style={{height:"100%", width:`${prepPct}%`, background:accent, borderRadius:3}}/>
+                              </div>
+                              <span style={{fontSize:11, color:accent, fontWeight:800}}><Num>{nf(prepPct)}</Num>%</span>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })() : (
+                      <div style={{fontSize:13, color:textMuted2, marginTop:10}}>{t.noUpcomingExam}</div>
+                    )}
+                  </div>
 
-            {/* Monthly summary */}
-            <ExamMonthlySummary t={t} nf={nf} lang={lang} ls={ls} monthName={monthName} examSubjects={examSubjects}
-              examMonth={examMonth} setExamMonth={setExamMonth} allSubjects={allSubjects}
-              cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
+                  {/* Combined exams — একাধিক সাবজেক্ট একসাথে, daily/weekly/monthly recurring */}
+                  <div style={{marginTop:22}}>
+                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                      <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3}}>{t.combinedExams}</div>
+                      <button onClick={()=>{vibrate(); setEditingCombinedExam(null); setShowCombinedExamEditor(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer", flexShrink:0}}>
+                        <Plus size={12}/> {t.addCombinedExam}
+                      </button>
+                    </div>
+                    <div style={{display:"flex", flexDirection:"column", gap:12, marginTop:14}}>
+                      {Object.keys(combinedExams).length === 0 && (
+                        <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16}}>
+                          {t.noCombinedExams}
+                        </div>
+                      )}
+                      {Object.entries(combinedExams).sort((a,b)=>a[1].name.localeCompare(b[1].name)).map(([id, ce]) => (
+                        <CombinedExamCard key={id} id={id} combinedExam={ce}
+                          t={t} nf={nf} lang={lang} allSubjects={allSubjects} cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent} dark={dark}
+                          onAddAttempt={(date,obtained,total)=>addCombinedExamAttempt(id,date,obtained,total)}
+                          onEditAttempt={(attemptId,obtained,total,date)=>editCombinedExamAttempt(id,attemptId,obtained,total,date)}
+                          onRemoveAttempt={(attemptId)=>removeCombinedExamAttempt(id,attemptId)}
+                          onEdit={()=>{ setEditingCombinedExam({ id, ...ce }); setShowCombinedExamEditor(true); }}
+                          onRemove={()=>removeCombinedExam(id)}/>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* My exams */}
+                  <div style={{marginTop:22}}>
+                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                      <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3}}>{t.examSubjects}</div>
+                      <button onClick={()=>{vibrate(); setShowExams(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer", flexShrink:0}}>
+                        <Plus size={12}/> {t.manageExams}
+                      </button>
+                    </div>
+                    <div style={{display:"flex", flexDirection:"column", gap:18, marginTop:14}}>
+                      {Object.keys(examSubjects).length === 0 && (
+                        <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16}}>
+                          {t.noExamSubjects}
+                        </div>
+                      )}
+                      {Object.keys(examSubjects).sort((a,b)=>a.localeCompare(b)).map(subj => {
+                        const c = colorForSubject(subj, allSubjects);
+                        const topics = examSubjects[subj]?.topics || {};
+                        return (
+                          <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px"}}>
+                            <div style={{display:"flex", alignItems:"center", gap:7, marginBottom:8}}>
+                              <span style={{width:8,height:8,borderRadius:"50%", background:c.bg, flexShrink:0}}/>
+                              <span style={{fontWeight:700, fontSize:14}}>{subj}</span>
+                            </div>
+                            <div style={{display:"flex", flexDirection:"column", gap:8}}>
+                              {Object.keys(topics).length === 0 && (
+                                <div style={{fontSize:12, color:textMuted2, paddingLeft:15}}>{t.noTopicsInSubject}</div>
+                              )}
+                              {Object.entries(topics).map(([topicName, topicInfo]) => (
+                                <TopicFolderCard key={topicName} subj={subj} topicName={topicName} attempts={topicInfo?.attempts || []}
+                                  t={t} nf={nf} lang={lang} cardBg={dark?"#121110":"#F8F5EE"} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent} dark={dark}
+                                  onAddAttempt={(date,obtained,total)=>addExamAttempt(subj,topicName,date,obtained,total)}
+                                  onEditAttempt={(attemptId,obtained,total,date)=>editExamAttempt(subj,topicName,attemptId,obtained,total,date)}
+                                  onRemoveAttempt={(attemptId)=>removeExamAttempt(subj,topicName,attemptId)}
+                                  onRenameTopic={(newName)=>renameExamTopic(subj,topicName,newName)}
+                                  onRemoveTopic={()=>removeExamTopic(subj,topicName)}/>
+                              ))}
+                              <AddTopicInline t={t} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}
+                                onAdd={(name)=>addExamTopic(subj,name)}/>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Monthly summary */}
+                  <ExamMonthlySummary t={t} nf={nf} lang={lang} ls={ls} monthName={monthName} examSubjects={examSubjects}
+                    examMonth={examMonth} setExamMonth={setExamMonth} allSubjects={allSubjects}
+                    cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
+                </>
+              );
+            })()}
           </div>
         )}
       </div>
@@ -4418,12 +4466,12 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
               <div style={{fontSize:14, fontWeight:600, wordBreak:"break-word", textDecoration: item.done ? "line-through" : "none", opacity: item.done ? 0.6 : 1}}>{item.topic}</div>
             </div>
             <div style={{textAlign:"right", flexShrink:0}}>
-              <div style={{fontSize:12, fontWeight:600, color:textMuted2}}>
+              <div style={{fontSize:11.5, fontWeight:500, color:textMuted2, opacity:0.85}}>
                 {item.time
                   ? (item.endTime ? <><Num>{nf(item.time)}</Num>–<Num>{nf(item.endTime)}</Num></> : <Num>{nf(item.time)}</Num>)
                   : t.noTimeSet}
               </div>
-              <div style={{fontSize:11, color:textMuted2}}><Num>{nf(item.duration)}</Num> {t.minutes}</div>
+              <div style={{fontSize:10.5, fontWeight:500, color:textMuted2, opacity:0.6, marginTop:2}}><Num>{nf(item.duration)}</Num> {t.minutes}</div>
             </div>
             {(onEdit || onDelete) && (
               <div style={{position:"relative", flexShrink:0}}>
@@ -4843,22 +4891,18 @@ function WeekDayStrip({ days, entries, selectedKey, onSelectDay, todayKey, weekd
         const list = entries[dk] || [];
         const hasAny = list.length > 0;
         const doneAll = hasAny && list.every(x=>x.done);
-        const pct = hasAny ? Math.round((list.filter(x=>x.done).length/list.length)*100) : 0;
+        const dotColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : "#4C8FA6");
         return (
           <button key={i} onClick={()=>onSelectDay(d)} style={{
-            flex:"0 0 auto", width:56, display:"flex", flexDirection:"column", alignItems:"center", gap:6,
-            padding:"10px 0 12px", borderRadius:16, scrollSnapAlign:"start",
-            border: isToday ? `1px solid ${accent}` : `1px solid ${cardBorder}`,
-            background: isSelected ? (isToday ? "rgba(217,119,87,0.14)" : (dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.03)")) : cardBg,
-            cursor:"pointer", transition:"background .15s ease",
+            flex:"0 0 auto", width:56, display:"flex", flexDirection:"column", alignItems:"center", gap:7,
+            padding:"10px 0 11px", borderRadius:16, scrollSnapAlign:"start",
+            border: isSelected ? `1.5px solid ${accent}` : (isToday ? `1px solid ${accent}` : `1px solid ${cardBorder}`),
+            background: isSelected ? (dark ? "rgba(217,119,87,0.18)" : "rgba(217,119,87,0.12)") : cardBg,
+            cursor:"pointer", transition:"background .15s ease, border-color .15s ease",
           }}>
-            <span style={{fontSize:10.5, fontWeight:700, color: isToday ? accent : textMuted2}}>{weekdayShort(d)}</span>
-            <span style={{fontSize:16, fontWeight:800, color: isToday ? accent : textMain}}><Num>{nf(d.getDate())}</Num></span>
-            {hasAny ? (
-              <div style={{width:26, height:3, borderRadius:2, background: dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)", overflow:"hidden"}}>
-                <div style={{width:`${pct}%`, height:"100%", background: doneAll ? "#6E8B5E" : "#4C8FA6"}}/>
-              </div>
-            ) : <div style={{width:4, height:4, borderRadius:"50%", background:textMuted2, opacity:0.4}}/>}
+            <span style={{fontSize:10.5, fontWeight:700, color: isSelected ? accent : (isToday ? accent : textMuted2)}}>{weekdayShort(d)}</span>
+            <span style={{fontSize:16, fontWeight:800, color: isSelected ? accent : (isToday ? accent : textMain)}}><Num>{nf(d.getDate())}</Num></span>
+            <span style={{width:6, height:6, borderRadius:"50%", background:dotColor, opacity: hasAny ? 1 : 0.35, flexShrink:0}}/>
           </button>
         );
       })}
