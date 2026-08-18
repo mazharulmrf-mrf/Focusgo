@@ -5440,6 +5440,7 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
   const [editingCategory, setEditingCategory] = useState(null);
   const [categoryDraft, setCategoryDraft] = useState("");
   const [showFolderMenu, setShowFolderMenu] = useState(false);
+  const [selectionActive, setSelectionActive] = useState(false);
   const [folder, setFolder] = useState("Notes");
   const [categories, setCategories] = useState(() => {
     try {
@@ -5590,10 +5591,64 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
     setCheckText("");
   };
 
+  const updateSelectionState = () => {
+    const editor = bodyRef.current;
+    const selection = window.getSelection();
+    if (!editor || !selection || selection.rangeCount === 0 || selection.isCollapsed) {
+      setSelectionActive(false);
+      return;
+    }
+    const range = selection.getRangeAt(0);
+    setSelectionActive(editor.contains(range.commonAncestorContainer));
+  };
+
   const execFormat = (command, value = null) => {
-    if (bodyRef.current) bodyRef.current.focus();
-    try { document.execCommand(command, false, value); } catch {}
-    if (bodyRef.current) setBody(bodyRef.current.innerHTML);
+    const editor = bodyRef.current;
+    if (!editor) return;
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+      editor.focus();
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    if (!editor.contains(range.commonAncestorContainer)) return;
+
+    editor.focus();
+    try {
+      document.execCommand(command, false, value);
+    } catch {}
+    selection.removeAllRanges();
+    selection.addRange(range);
+  };
+
+  const applyFontSizeToSelection = (px) => {
+    const editor = bodyRef.current;
+    const selection = window.getSelection();
+    if (!editor || !selection || selection.rangeCount === 0 || selection.isCollapsed) {
+      if (editor) editor.focus();
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    if (!editor.contains(range.commonAncestorContainer)) return;
+
+    const span = document.createElement("span");
+    span.style.fontSize = `${px}px`;
+    try {
+      range.surroundContents(span);
+    } catch {
+      try {
+        const fragment = range.extractContents();
+        span.appendChild(fragment);
+        range.insertNode(span);
+      } catch {}
+    }
+    selection.removeAllRanges();
+    const nextRange = document.createRange();
+    nextRange.selectNodeContents(span);
+    selection.addRange(nextRange);
+    setFormat(prev => ({ ...prev, size: px }));
   };
 
   const setFontSize = (next) => {
@@ -5821,6 +5876,9 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
               ref={bodyRef}
               contentEditable
               suppressContentEditableWarning
+              onMouseUp={updateSelectionState}
+              onTouchEnd={updateSelectionState}
+              onKeyUp={updateSelectionState}
               dir="ltr"
               spellCheck="true"
               data-placeholder="Start writing your note..."
@@ -5837,82 +5895,175 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
 
           </div>
 
-          {/* Bottom formatting/navigation bar inside the note */}
+          {/* Formatting toolbar appears only after text is selected */}
+          {selectionActive && (
+            <div style={{
+              position: "absolute", left: 12, right: 12, bottom: 68,
+              background: cardBg, border: `1px solid ${cardBorder}`,
+              borderRadius: 14, padding: 6,
+              boxShadow: "0 6px 22px rgba(0,0,0,.15)",
+              zIndex: 5
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 3, justifyContent: "center" }}>
+                <button
+                  onMouseDown={e => e.preventDefault()}
+                  onClick={() => execFormat("bold")}
+                  title="Bold selected text"
+                  style={{ border: "none", background: "transparent", color: textMain, borderRadius: 8, padding: "8px 12px", fontWeight: 900, cursor: "pointer" }}
+                >B</button>
+                <button
+                  onMouseDown={e => e.preventDefault()}
+                  onClick={() => execFormat("italic")}
+                  title="Italic selected text"
+                  style={{ border: "none", background: "transparent", color: textMain, borderRadius: 8, padding: "8px 12px", fontStyle: "italic", cursor: "pointer" }}
+                >I</button>
+                <button
+                  onMouseDown={e => e.preventDefault()}
+                  onClick={() => execFormat("underline")}
+                  title="Underline selected text"
+                  style={{ border: "none", background: "transparent", color: textMain, borderRadius: 8, padding: "8px 12px", textDecoration: "underline", cursor: "pointer" }}
+                >U</button>
+                <span style={{ width: 1, height: 22, background: cardBorder, margin: "0 3px" }} />
+                <button
+                  onMouseDown={e => e.preventDefault()}
+                  onClick={() => applyFontSizeToSelection(Math.max(12, format.size - 1))}
+                  style={{ border: "none", background: "transparent", color: textMain, padding: "8px 8px", fontSize: 10, cursor: "pointer" }}
+                >A−</button>
+                <span style={{ fontSize: 10, color: textMuted2 }}>{format.size}</span>
+                <button
+                  onMouseDown={e => e.preventDefault()}
+                  onClick={() => applyFontSizeToSelection(Math.min(28, format.size + 1))}
+                  style={{ border: "none", background: "transparent", color: textMain, padding: "8px 8px", fontSize: 13, cursor: "pointer" }}
+                >A+</button>
+              </div>
+            </div>
+          )}
+
+          {/* Minimal bottom bar: checklist only */}
+
           <div style={{
             position: "absolute", left: 10, right: 10, bottom: 12,
             background: cardBg, border: `1px solid ${cardBorder}`,
-            borderRadius: 17, padding: 7, boxShadow: "0 8px 28px rgba(0,0,0,.13)"
+            borderRadius: 17, padding: 7,
+            boxShadow: "0 8px 28px rgba(0,0,0,.13)"
           }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around", gap: 2 }}>
-              <button onClick={() => setShowActionSheet(true)} title="Add" style={{ border: "none", background: "transparent", color: textMain, padding: "8px 10px", cursor: "pointer" }}><Plus size={20}/></button>
-              <button onClick={() => { setFormat(p => ({...p, bold: !p.bold})); execFormat("bold"); }} style={{ border: "none", background: format.bold ? (dark ? "#332A20" : "#FFF0E5") : "transparent", color: textMain, borderRadius: 8, padding: "8px 10px", fontWeight: 900, cursor: "pointer" }}>B</button>
-              <button onClick={() => { setFormat(p => ({...p, italic: !p.italic})); execFormat("italic"); }} style={{ border: "none", background: format.italic ? (dark ? "#332A20" : "#FFF0E5") : "transparent", color: textMain, borderRadius: 8, padding: "8px 10px", fontStyle: "italic", cursor: "pointer" }}>I</button>
-              <button onClick={() => { setFormat(p => ({...p, underline: !p.underline})); execFormat("underline"); }} style={{ border: "none", background: format.underline ? (dark ? "#332A20" : "#FFF0E5") : "transparent", color: textMain, borderRadius: 8, padding: "8px 10px", textDecoration: "underline", cursor: "pointer" }}>U</button>
-              <button onClick={() => setFontSize(format.size - 1)} style={{ border: "none", background: "transparent", color: textMain, padding: "8px 7px", fontSize: 10, cursor: "pointer" }}>A−</button>
-              <button onClick={() => setFontSize(format.size + 1)} style={{ border: "none", background: "transparent", color: textMain, padding: "8px 7px", fontSize: 13, cursor: "pointer" }}>A+</button>
-              <button onClick={() => setShowActionSheet(true)} title="More tools" style={{ border: "none", background: "transparent", color: textMain, padding: "8px 9px", cursor: "pointer" }}><MoreVertical size={18}/></button>
-            </div>
+            <button
+              onClick={() => setShowActionSheet(true)}
+              title="Checklist"
+              aria-label="Checklist"
+              style={{
+                width: 42, height: 42, border: "none", background: "transparent",
+                color: textMain, borderRadius: 10, display: "flex",
+                alignItems: "center", justifyContent: "center", cursor: "pointer"
+              }}
+            >
+              <ListChecks size={22} />
+            </button>
           </div>
 
-          {/* Keep-style bottom action sheet */}
+          {/* Keep-like checklist sheet */}
           {showActionSheet && (
-            <div onClick={() => setShowActionSheet(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.28)", zIndex: 6 }}>
-              <div onClick={e => e.stopPropagation()} style={{
-                position: "absolute", left: 0, right: 0, bottom: 0, background: cardBg,
-                borderRadius: "24px 24px 0 0", padding: "10px 12px 22px",
-                boxShadow: "0 -8px 28px rgba(0,0,0,.14)"
-              }}>
-                <div style={{ width: 38, height: 4, borderRadius: 99, background: cardBorder, margin: "0 auto 12px" }} />
-                {[
-                  [Camera, "Take photo"],
-                  [ImageIcon, "Add image"],
-                  [Mic, "Recording"],
-                  [PenTool, "Drawing"]
-                ].map(([Icon, label]) => (
-                  <button key={label} onClick={() => window.alert(`${label} is ready to connect to the media feature.`)} style={{
-                    width: "100%", display: "flex", alignItems: "center", gap: 18,
-                    border: "none", background: "transparent", color: textMain,
-                    padding: "13px 12px", textAlign: "left", cursor: "pointer", fontSize: 14
-                  }}><Icon size={22}/><span>{label}</span></button>
-                ))}
+            <div
+              onClick={() => setShowActionSheet(false)}
+              style={{
+                position: "absolute", inset: 0, background: "rgba(0,0,0,.28)", zIndex: 6
+              }}
+            >
+              <div
+                onClick={e => e.stopPropagation()}
+                style={{
+                  position: "absolute", left: 0, right: 0, bottom: 0,
+                  background: cardBg, borderRadius: "24px 24px 0 0",
+                  padding: "10px 14px 22px",
+                  boxShadow: "0 -8px 28px rgba(0,0,0,.14)"
+                }}
+              >
+                <div style={{
+                  width: 38, height: 4, borderRadius: 99,
+                  background: cardBorder, margin: "0 auto 13px"
+                }} />
 
-                {/* Checklist belongs in this bottom menu */}
-                <button onClick={() => { setShowActionSheet(false); setCheckText(""); }} style={{
-                  width: "100%", display: "flex", alignItems: "center", gap: 18,
-                  border: "none", background: "transparent", color: textMain,
-                  padding: "13px 12px", textAlign: "left", cursor: "pointer", fontSize: 14
-                }}><ListChecks size={22}/><span>Checklists</span></button>
-
-                {checklist.length > 0 && (
-                  <div style={{ borderTop: `1px solid ${cardBorder}`, marginTop: 6, paddingTop: 10 }}>
-                    {checklist.map((item, index) => (
-                      <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 4px" }}>
-                        <button onClick={() => setChecklist(prev => prev.map((x, i) => i === index ? {...x, done: !x.done} : x))} style={{
-                          width: 19, height: 19, borderRadius: 5, border: `1px solid ${item.done ? accent : cardBorder}`,
-                          background: item.done ? accent : "transparent", color: "#fff", cursor: "pointer", flex: "0 0 auto"
-                        }}>{item.done ? "✓" : ""}</button>
-                        <span style={{ flex: 1, fontSize: 12, textDecoration: item.done ? "line-through" : "none" }}>{item.text}</span>
-                        <button onClick={() => setChecklist(prev => prev.filter((_, i) => i !== index))} style={{ border: "none", background: "transparent", color: textMuted2 }}><X size={13}/></button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div style={{ display: "flex", gap: 7, marginTop: 8 }}>
-                  <input value={checkText} onChange={e => setCheckText(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addChecklist(); } }} placeholder="Add checklist item" style={{
-                    flex: 1, border: `1px solid ${cardBorder}`, borderRadius: 9, padding: "9px",
-                    background: dark ? "#171614" : "#FAF8F2", color: textMain, outline: "none", fontFamily: "inherit", fontSize: 11.5
-                  }}/>
-                  <button onClick={addChecklist} style={{ border: "none", background: accent, color: "#fff", borderRadius: 9, padding: "0 12px" }}><Plus size={15}/></button>
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 9,
+                  padding: "3px 4px 11px", fontSize: 13, fontWeight: 800, color: textMain
+                }}>
+                  <ListChecks size={20} />
+                  <span>Checklist</span>
                 </div>
 
-                <div style={{ borderTop: `1px solid ${cardBorder}`, marginTop: 10, paddingTop: 10 }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: textMuted2, marginBottom: 7 }}>Text style</div>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <button onClick={() => setFontSize(format.size - 1)} style={{ flex: 1, border: `1px solid ${cardBorder}`, background: cardBg, color: textMain, borderRadius: 9, padding: "8px", cursor: "pointer" }}>A−</button>
-                    <span style={{ width: 48, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: textMuted2 }}>{format.size}px</span>
-                    <button onClick={() => setFontSize(format.size + 1)} style={{ flex: 1, border: `1px solid ${cardBorder}`, background: cardBg, color: textMain, borderRadius: 9, padding: "8px", cursor: "pointer" }}>A+</button>
+                {checklist.map((item, index) => (
+                  <div key={item.id} style={{
+                    display: "flex", alignItems: "center", gap: 9,
+                    padding: "8px 3px"
+                  }}>
+                    <button
+                      onClick={() => setChecklist(prev => prev.map((x, i) =>
+                        i === index ? { ...x, done: !x.done } : x
+                      ))}
+                      style={{
+                        width: 21, height: 21, borderRadius: 5,
+                        border: `1.5px solid ${item.done ? accent : cardBorder}`,
+                        background: item.done ? accent : "transparent",
+                        color: "#fff", cursor: "pointer", flex: "0 0 auto",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 13, fontWeight: 800
+                      }}
+                    >
+                      {item.done ? "✓" : ""}
+                    </button>
+
+                    <span style={{
+                      flex: 1, fontSize: 13, color: textMain,
+                      textDecoration: item.done ? "line-through" : "none"
+                    }}>
+                      {item.text}
+                    </span>
+
+                    <button
+                      onClick={() => setChecklist(prev => prev.filter((_, i) => i !== index))}
+                      style={{
+                        border: "none", background: "transparent",
+                        color: textMuted2, padding: 5, cursor: "pointer"
+                      }}
+                    >
+                      <X size={14} />
+                    </button>
                   </div>
+                ))}
+
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  marginTop: 8, padding: "7px 0"
+                }}>
+                  <input
+                    value={checkText}
+                    onChange={e => setCheckText(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addChecklist();
+                      }
+                    }}
+                    autoFocus
+                    placeholder="Add checklist item"
+                    style={{
+                      flex: 1, border: `1px solid ${cardBorder}`,
+                      borderRadius: 10, padding: "10px 11px",
+                      background: dark ? "#171614" : "#FAF8F2",
+                      color: textMain, outline: "none",
+                      fontFamily: "inherit", fontSize: 12
+                    }}
+                  />
+                  <button
+                    onClick={addChecklist}
+                    style={{
+                      border: "none", background: accent, color: "#fff",
+                      borderRadius: 10, padding: "10px 12px",
+                      cursor: "pointer", fontWeight: 800
+                    }}
+                  >
+                    Add
+                  </button>
                 </div>
               </div>
             </div>
