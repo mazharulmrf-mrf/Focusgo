@@ -3908,7 +3908,7 @@ export default function FocusGo() {
 
         {/* NOTES tab */}
         {tab === "notes" && (
-          <NotesView t={t} notes={notes} setNotes={setNotes} search={noteSearch} setSearch={setNoteSearch}
+          <NotesView t={t} lang={lang} notes={notes} setNotes={setNotes} search={noteSearch} setSearch={setNoteSearch}
             cardBg={cardBg} cardBorder={cardBorder} textMain={textMain}
             textMuted2={textMuted2} accent={accent} dark={dark}/>
         )}
@@ -5806,7 +5806,46 @@ function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSe
 }
 
 
-function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
+// ---------- Notes: subject/category রঙ প্যালেট (Keep-এর মতো প্রতিটা subject-এর নিজের রঙ) ----------
+const NOTE_COLOR_PALETTE = [
+  { bg: "#FDE7C8", bgDark: "#3A3120", text: "#7A5010" },
+  { bg: "#D9EAD3", bgDark: "#22301F", text: "#3E6B2E" },
+  { bg: "#CFE2F3", bgDark: "#1E2C36", text: "#2B5F8A" },
+  { bg: "#F4CCCC", bgDark: "#3A2323", text: "#A14444" },
+  { bg: "#E6D9F5", bgDark: "#2E2536", text: "#6B4A9E" },
+  { bg: "#D0ECE7", bgDark: "#1F332F", text: "#2E7D6E" },
+  { bg: "#FCE4EC", bgDark: "#332126", text: "#B03A63" },
+  { bg: "#FFF2CC", bgDark: "#332C1B", text: "#8A7217" },
+];
+function noteColorFor(category, allCategories) {
+  const idx = Math.max(0, (allCategories || []).indexOf(category));
+  return NOTE_COLOR_PALETTE[idx % NOTE_COLOR_PALETTE.length];
+}
+
+// ---------- সহজ **bold** / *italic* মার্কডাউন রেন্ডারার (Keep-এর মতো ফরম্যাটিং দেখানোর জন্য) ----------
+function renderFormattedText(str) {
+  if (!str) return null;
+  const parts = String(str).split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).filter(s => s !== "");
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
+      return <em key={i}>{part.slice(1, -1)}</em>;
+    }
+    return <React.Fragment key={i}>{part}</React.Fragment>;
+  });
+}
+
+// ---------- ফুল date + time (Created / Last edited দেখানোর জন্য) ----------
+function fullDateTimeLabel(iso, lang) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleString(lang === "bn" ? "bn-BD" : "en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const [editing, setEditing] = useState(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -5815,6 +5854,9 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
   const [checkText, setCheckText] = useState("");
   const [activeFolder, setActiveFolder] = useState("All Notes");
   const [openMenu, setOpenMenu] = useState(null);
+  const [quickOpen, setQuickOpen] = useState(false); // Keep-স্টাইল "Take a note..." ইনপুট বার এক্সপ্যান্ড হয়েছে কিনা
+  const bodyRef = useRef(null); // Bold/Italic টুলবারের জন্য textarea-র সিলেকশন ধরতে
+  const vh = useVisualViewportHeight(); // কীবোর্ড খোলা অবস্থায় দৃশ্যমান উচ্চতা — মোডাল সবসময় এর মধ্যেই থাকবে, কীবোর্ডের নিচে চাপা পড়বে না
   const [categories, setCategories] = useState(() => {
     try {
       const saved = JSON.parse(window.localStorage.getItem("focusgo_note_categories_v1") || "[]");
@@ -5830,14 +5872,42 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
 
   const folders = ["All Notes", "Pinned", ...categories];
 
-  const openNew = () => {
+  const openNew = (prefillTitle) => {
     setEditing({ id: null });
-    setTitle("");
+    setTitle(prefillTitle || "");
     setBody("");
-    setCategory("General");
+    setCategory(activeFolder !== "All Notes" && activeFolder !== "Pinned" ? activeFolder : "General");
     setChecklist([]);
     setCheckText("");
     setOpenMenu(null);
+    setQuickOpen(false);
+  };
+
+  // সিলেক্ট করা টেক্সটের চারপাশে **bold** / *italic* মার্কার বসায় বা সরায় (Keep-স্টাইল ফরম্যাটিং টুলবার)
+  const wrapSelection = (marker) => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const start = el.selectionStart, end = el.selectionEnd;
+    const selected = body.slice(start, end);
+    const isWrapped = selected.startsWith(marker) && selected.endsWith(marker) && selected.length >= marker.length * 2;
+    let newText, newStart, newEnd;
+    if (isWrapped) {
+      const inner = selected.slice(marker.length, selected.length - marker.length);
+      newText = body.slice(0, start) + inner + body.slice(end);
+      newStart = start; newEnd = start + inner.length;
+    } else if (selected) {
+      newText = body.slice(0, start) + marker + selected + marker + body.slice(end);
+      newStart = start + marker.length; newEnd = newStart + selected.length;
+    } else {
+      const placeholder = lang === "bn" ? "টেক্সট" : "text";
+      newText = body.slice(0, start) + marker + placeholder + marker + body.slice(end);
+      newStart = start + marker.length; newEnd = newStart + placeholder.length;
+    }
+    setBody(newText);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(newStart, newEnd);
+    });
   };
 
   const openEdit = (note) => {
@@ -5848,6 +5918,7 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
     setChecklist(Array.isArray(note.checklist) ? note.checklist : []);
     setCheckText("");
     setOpenMenu(null);
+    setQuickOpen(false);
   };
 
   const save = () => {
@@ -6000,7 +6071,7 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
       </div>
 
       {/* Search */}
-      <div style={{display:"flex",alignItems:"center",gap:8,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:"9px 12px",marginBottom:14}}>
+      <div style={{display:"flex",alignItems:"center",gap:8,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:"9px 12px",marginBottom:10}}>
         <Search size={15} color={textMuted2}/>
         <input
           value={search}
@@ -6011,6 +6082,16 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
         {search && <button onClick={()=>setSearch("")} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:0}}><X size={14}/></button>}
       </div>
 
+      {/* Quick add — Keep-স্টাইল "Take a note..." বার, ট্যাপ করলে সরাসরি টাইপ শুরু করা যায় */}
+      <div
+        onClick={()=>{ if (!quickOpen) { openNew(); } }}
+        style={{display:"flex",alignItems:"center",gap:8,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:"11px 14px",marginBottom:14,cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,.04)"}}
+      >
+        <Pencil size={15} color={textMuted2}/>
+        <span style={{flex:1,fontSize:13,color:textMuted2}}>{lang==="bn" ? "একটা নোট লিখুন..." : "Take a note..."}</span>
+        <Plus size={17} color={accent}/>
+      </div>
+
       {filtered.length === 0 ? (
         <div style={{textAlign:"center",padding:"40px 20px",background:cardBg,border:`1px dashed ${cardBorder}`,borderRadius:18}}>
           <div style={{width:52,height:52,borderRadius:16,background:dark?"#26231D":"#F3EEE3",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}>
@@ -6018,87 +6099,112 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
           </div>
           <div style={{fontSize:14.5,fontWeight:800,color:textMain}}>{t.notesEmpty}</div>
           <div style={{fontSize:12,color:textMuted2,marginTop:5}}>Create a note, add a category, or use a checklist.</div>
-          <button onClick={openNew} style={{marginTop:16,border:"none",background:accent,color:"#fff",borderRadius:12,padding:"10px 14px",fontWeight:700,fontSize:12,cursor:"pointer"}}><Plus size={13}/> {t.notesNew}</button>
+          <button onClick={()=>openNew()} style={{marginTop:16,border:"none",background:accent,color:"#fff",borderRadius:12,padding:"10px 14px",fontWeight:700,fontSize:12,cursor:"pointer"}}><Plus size={13}/> {t.notesNew}</button>
         </div>
       ) : (
-        <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          {filtered.map(note => (
+        <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:10}}>
+          {filtered.map(note => {
+            const col = noteColorFor(note.category || "General", categories);
+            const cardColor = dark ? col.bgDark : col.bg;
+            return (
             <div
               key={note.id}
               onClick={()=>openEdit(note)}
               className="fg-card"
-              style={{position:"relative",background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"14px 15px",cursor:"pointer"}}
+              style={{position:"relative",background:cardColor,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"13px 13px",cursor:"pointer",display:"flex",flexDirection:"column"}}
             >
-              <div style={{display:"flex",justifyContent:"space-between",gap:10,alignItems:"flex-start"}}>
+              <div style={{display:"flex",justifyContent:"space-between",gap:6,alignItems:"flex-start"}}>
                 <div style={{minWidth:0,flex:1}}>
-                  <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    {note.pinned && <Pin size={13} fill={accent} color={accent}/>}
-                    <div style={{fontSize:14,fontWeight:800,color:textMain,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{note.title}</div>
-                  </div>
-                  <div style={{display:"flex",alignItems:"center",gap:6,marginTop:6}}>
-                    <span style={{fontSize:9.5,fontWeight:800,padding:"3px 7px",borderRadius:999,background:dark?"#29261F":"#F4F0E6",color:textMuted2}}>{note.category || "General"}</span>
-                    {Array.isArray(note.checklist) && note.checklist.length > 0 && (
-                      <span style={{fontSize:9.5,color:textMuted2}}>{note.checklist.filter(x=>x.done).length}/{note.checklist.length} checked</span>
-                    )}
+                  <div style={{display:"flex",alignItems:"center",gap:5}}>
+                    {note.pinned && <Pin size={12} fill={col.text} color={col.text}/>}
+                    <div style={{fontSize:13.5,fontWeight:800,color:textMain,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{note.title}</div>
                   </div>
                 </div>
                 <button
                   onClick={(e)=>{e.stopPropagation();setOpenMenu(openMenu===note.id?null:note.id)}}
-                  style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:3,borderRadius:8}}
+                  style={{border:"none",background:"transparent",color:col.text,cursor:"pointer",padding:2,borderRadius:8,flexShrink:0}}
                   title="Note options"
                 >
-                  <MoreVertical size={18}/>
+                  <MoreVertical size={16}/>
                 </button>
               </div>
 
-              <div style={{fontSize:12.5,color:textMuted2,lineHeight:1.55,marginTop:8,display:"-webkit-box",WebkitLineClamp:3,WebkitBoxOrient:"vertical",overflow:"hidden",whiteSpace:"pre-wrap"}}>{note.body || "—"}</div>
+              <div style={{fontSize:12,color:textMain,opacity:0.85,lineHeight:1.5,marginTop:6,display:"-webkit-box",WebkitLineClamp:5,WebkitBoxOrient:"vertical",overflow:"hidden",whiteSpace:"pre-wrap"}}>{renderFormattedText(note.body) || "—"}</div>
 
               {Array.isArray(note.checklist) && note.checklist.length > 0 && (
-                <div style={{marginTop:9,display:"flex",flexDirection:"column",gap:4}}>
+                <div style={{marginTop:8,display:"flex",flexDirection:"column",gap:4}}>
                   {note.checklist.slice(0,3).map(item => (
-                    <div key={item.id} style={{display:"flex",alignItems:"center",gap:7,fontSize:11.5,color:textMuted2}}>
-                      <span style={{width:13,height:13,borderRadius:4,border:`1px solid ${item.done?accent:cardBorder}`,background:item.done?accent:"transparent",display:"inline-flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:9}}>{item.done?"✓":""}</span>
+                    <div key={item.id} style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:textMain,opacity:0.85}}>
+                      <span style={{width:12,height:12,borderRadius:4,border:`1px solid ${col.text}`,background:item.done?col.text:"transparent",display:"inline-flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:8,flexShrink:0}}>{item.done?"✓":""}</span>
                       <span style={{textDecoration:item.done?"line-through":"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.text}</span>
                     </div>
                   ))}
+                  {note.checklist.length > 3 && <span style={{fontSize:10,color:col.text,fontWeight:700}}>+{note.checklist.length - 3} more</span>}
                 </div>
               )}
 
+              <div style={{marginTop:"auto",paddingTop:9,display:"flex",alignItems:"center",justifyContent:"space-between",gap:6}}>
+                <span style={{fontSize:9,fontWeight:800,padding:"3px 7px",borderRadius:999,background:"rgba(255,255,255,0.55)",color:col.text}}>{note.category || "General"}</span>
+                <span style={{fontSize:9.5,color:col.text,opacity:0.8,fontWeight:600}} title={fullDateTimeLabel(note.updatedAt, lang)}>{timeAgoLabel(note.updatedAt || note.createdAt, lang)}</span>
+              </div>
+
               {openMenu === note.id && (
-                <div onClick={e=>e.stopPropagation()} style={{position:"absolute",right:12,top:44,width:150,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:5,boxShadow:"0 10px 28px rgba(0,0,0,.16)",zIndex:20}}>
+                <div onClick={e=>e.stopPropagation()} style={{position:"absolute",right:10,top:38,width:150,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:5,boxShadow:"0 10px 28px rgba(0,0,0,.16)",zIndex:20}}>
                   <button onClick={()=>openEdit(note)} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:textMain,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5}}>Edit</button>
                   <button onClick={()=>togglePin(note.id)} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:textMain,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5}}>{note.pinned ? "Unpin" : "Pin"}</button>
                   <button onClick={()=>remove(note.id)} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:"#C54B4B",padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5}}>Delete</button>
                 </div>
               )}
             </div>
-          ))}
+          );})}
         </div>
       )}
 
       {editing && (
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",display:"flex",alignItems:"flex-end",justifyContent:"center",zIndex:60}} onClick={()=>setEditing(null)}>
-          <div onClick={e=>e.stopPropagation()} style={{background:cardBg,width:"100%",maxWidth:480,maxHeight:"92vh",overflowY:"auto",borderRadius:"22px 22px 0 0",padding:"20px 20px 28px",color:textMain}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+        <div style={{position:"fixed",left:0,top:0,width:"100%",height:vh,background:"rgba(0,0,0,0.45)",display:"flex",alignItems:"flex-end",justifyContent:"center",zIndex:60}} onClick={()=>setEditing(null)}>
+          <div onClick={e=>e.stopPropagation()} style={{background:cardBg,width:"100%",maxWidth:480,maxHeight:Math.max(320, vh - 24),overflowY:"auto",WebkitOverflowScrolling:"touch",borderRadius:"22px 22px 0 0",padding:"20px 20px 28px",color:textMain}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
               <div style={{fontSize:17,fontWeight:800}}>{editing.id ? t.notesEdit : t.notesNew}</div>
               <button onClick={()=>setEditing(null)} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer"}}><X size={20}/></button>
             </div>
+
+            {/* Created / Last edited date */}
+            {editing.id && (
+              <div style={{fontSize:10.5,color:textMuted2,marginBottom:12}}>
+                {lang==="bn" ? "তৈরি" : "Created"}: {fullDateTimeLabel(editing.createdAt, lang)} · {lang==="bn" ? "সম্পাদিত" : "Edited"}: {fullDateTimeLabel(editing.updatedAt, lang)}
+              </div>
+            )}
+            {!editing.id && <div style={{marginBottom:12}}/>}
 
             <input
               autoFocus
               value={title}
               onChange={e=>setTitle(e.target.value)}
+              onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
               placeholder={t.notesTitlePlaceholder}
               style={{width:"100%",boxSizing:"border-box",background:dark?"#121110":"#F8F5EE",border:`1px solid ${cardBorder}`,borderRadius:12,padding:"11px 13px",fontSize:14,fontWeight:700,color:textMain,outline:"none",fontFamily:"inherit",marginBottom:10}}
             />
 
+            {/* Bold / Italic ফরম্যাটিং টুলবার (Keep-স্টাইল) */}
+            <div style={{display:"flex",gap:6,marginBottom:7}}>
+              <button type="button" onClick={()=>wrapSelection("**")} title={lang==="bn"?"বোল্ড":"Bold"}
+                style={{width:30,height:30,borderRadius:9,border:`1px solid ${cardBorder}`,background:"transparent",color:textMain,fontWeight:900,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"inherit"}}>B</button>
+              <button type="button" onClick={()=>wrapSelection("*")} title={lang==="bn"?"ইটালিক":"Italic"}
+                style={{width:30,height:30,borderRadius:9,border:`1px solid ${cardBorder}`,background:"transparent",color:textMain,fontStyle:"italic",fontWeight:700,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"inherit"}}>I</button>
+            </div>
+
             <textarea
+              ref={bodyRef}
               value={body}
               onChange={e=>setBody(e.target.value)}
+              onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
               placeholder={t.notesBodyPlaceholder}
               rows={7}
-              style={{width:"100%",boxSizing:"border-box",resize:"vertical",background:dark?"#121110":"#F8F5EE",border:`1px solid ${cardBorder}`,borderRadius:12,padding:"11px 13px",fontSize:13.5,lineHeight:1.55,color:textMain,outline:"none",fontFamily:"inherit",marginBottom:12}}
+              style={{width:"100%",boxSizing:"border-box",resize:"vertical",background:dark?"#121110":"#F8F5EE",border:`1px solid ${cardBorder}`,borderRadius:12,padding:"11px 13px",fontSize:13.5,lineHeight:1.55,color:textMain,outline:"none",fontFamily:"inherit",marginBottom:6}}
             />
+            <div style={{fontSize:9.5,color:textMuted2,marginBottom:12}}>
+              {lang==="bn" ? "টেক্সট সিলেক্ট করে B বা I চাপুন ফরম্যাট করতে" : "Select text, then tap B or I to format"}
+            </div>
 
             {/* Custom category */}
             <div style={{marginBottom:14}}>
@@ -6140,6 +6246,7 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
                   value={checkText}
                   onChange={e=>setCheckText(e.target.value)}
                   onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();addChecklist();}}}
+                  onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
                   placeholder="Add checklist item"
                   style={{flex:1,minWidth:0,background:dark?"#121110":"#F8F5EE",border:`1px solid ${cardBorder}`,borderRadius:10,padding:"9px 10px",fontSize:11.5,color:textMain,outline:"none",fontFamily:"inherit"}}
                 />
