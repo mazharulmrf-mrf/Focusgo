@@ -892,6 +892,16 @@ const LOGO_FULL_DARK = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAr4AAADICA
 const BN_DIGITS = ["০","১","২","৩","৪","৫","৬","৭","৮","৯"];
 const toBn = (n) => String(n).split("").map(c => (c>='0'&&c<='9') ? BN_DIGITS[+c] : c).join("");
 const pad2 = (n) => String(n).padStart(2,"0");
+const to12h = (h24) => ((h24 % 12) || 12);
+const isPm = (h24) => h24 >= 12;
+// "HH:MM" (24-hour string, as stored for study-plan entries) -> { h12, m, pm }
+const parseTime12 = (hhmm) => {
+  if (!hhmm) return null;
+  const [hStr, mStr] = String(hhmm).split(":");
+  const h24 = parseInt(hStr, 10);
+  if (Number.isNaN(h24)) return null;
+  return { h12: to12h(h24), m: mStr || "00", pm: isPm(h24) };
+};
 
 // ---------- password strength check ----------
 // লগইন-এর মিনিমাম নিরাপত্তার জন্য: কমপক্ষে ৮ ক্যারেক্টার, অক্ষর+সংখ্যা মিশ্রণ, খুব সহজ/কমন পাসওয়ার্ড বাতিল
@@ -1128,7 +1138,7 @@ const T = {
     manageSubjects: "Manage Subjects", noSubjectsYet: "No subjects yet. Add your syllabus subjects here.",
     addSubjectsFirst: "Add subjects in Syllabus first.", selectSubject: "Select Subject",
     startTimeLabel: "Start Time", endTimeLabel: "End Time",
-    addTimeToggle: "Add a specific time", noTimeSet: "No time set",
+    addTimeToggle: "Add a specific time", noTimeSet: "No time set", amLabel: "AM", pmLabel: "PM",
     remainingHeader: "Remaining", doneHeader: "Done",
     next7Days: "Next 7 Days", subjectTimeBreakdown: "Time by subject", noTimeData: "No completed topics yet.",
     overview: "Overview", caughtUpNote: "Caught up later",
@@ -1261,7 +1271,7 @@ const T = {
     manageSubjects: "সাবজেক্ট ম্যানেজ করো", noSubjectsYet: "এখনো কোনো সাবজেক্ট নেই। এখানে সিলেবাসের সাবজেক্ট যোগ করো।",
     addSubjectsFirst: "আগে সিলেবাসে সাবজেক্ট যোগ করো।", selectSubject: "সাবজেক্ট বেছে নাও",
     startTimeLabel: "শুরুর সময়", endTimeLabel: "শেষের সময়",
-    addTimeToggle: "নির্দিষ্ট সময় যোগ করবো", noTimeSet: "সময় নির্ধারিত নেই",
+    addTimeToggle: "নির্দিষ্ট সময় যোগ করবো", noTimeSet: "সময় নির্ধারিত নেই", amLabel: "AM", pmLabel: "PM",
     remainingHeader: "বাকি আছে", doneHeader: "শেষ হয়েছে",
     next7Days: "পরের ৭ দিন", subjectTimeBreakdown: "সাবজেক্ট অনুযায়ী সময়ের হিসাব", noTimeData: "এখনো কোনো টপিক শেষ হয়নি।",
     overview: "সারসংক্ষেপ", caughtUpNote: "পরে শেষ হয়েছে",
@@ -2876,7 +2886,7 @@ export default function FocusGo() {
               <div style={{
                 fontSize:11, fontWeight:700, color:textMuted2, fontVariantNumeric:"tabular-nums", letterSpacing:0.3,
               }}>
-                <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num>
+                <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> <span style={{fontSize:9.5}}>{now.getHours()>=12 ? t.pmLabel : t.amLabel}</span>
               </div>
               <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
                 border:`1px solid ${cardBorder}`,
@@ -3990,7 +4000,7 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
 
   const liveClock = now && (
     <div style={{textAlign:"center", fontSize:12, fontWeight:700, color:fgMuted, fontVariantNumeric:"tabular-nums", letterSpacing:0.8, opacity:0.75, marginBottom: stacked ? 14 : 12}}>
-      <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num>
+      <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> <span style={{fontSize:10}}>{now.getHours()>=12 ? t.pmLabel : t.amLabel}</span>
     </div>
   );
 
@@ -4873,9 +4883,15 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
             </div>
             <div style={{textAlign:"right", flexShrink:0}}>
               <div style={{fontSize:11.5, fontWeight:500, color:textMuted2, opacity:0.85}}>
-                {item.time
-                  ? (item.endTime ? <><Num>{nf(item.time)}</Num>–<Num>{nf(item.endTime)}</Num></> : <Num>{nf(item.time)}</Num>)
-                  : t.noTimeSet}
+                {item.time ? (() => {
+                  const st = parseTime12(item.time);
+                  const et = item.endTime ? parseTime12(item.endTime) : null;
+                  if (!st) return t.noTimeSet;
+                  const stPart = <><Num>{nf(st.h12)}</Num>:<Num>{nf(pad2(st.m))}</Num> <span style={{fontSize:9.5}}>{st.pm ? t.pmLabel : t.amLabel}</span></>;
+                  if (!et) return stPart;
+                  const etPart = <><Num>{nf(et.h12)}</Num>:<Num>{nf(pad2(et.m))}</Num> <span style={{fontSize:9.5}}>{et.pm ? t.pmLabel : t.amLabel}</span></>;
+                  return <>{stPart}–{etPart}</>;
+                })() : t.noTimeSet}
               </div>
               <div style={{fontSize:10.5, fontWeight:500, color:textMuted2, opacity:0.6, marginTop:2}}><Num>{nf(item.duration)}</Num> {t.minutes}</div>
             </div>
