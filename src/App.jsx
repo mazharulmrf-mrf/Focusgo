@@ -5855,6 +5855,10 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   const [activeFolder, setActiveFolder] = useState("All Notes");
   const [openMenu, setOpenMenu] = useState(null);
   const [quickOpen, setQuickOpen] = useState(false); // Keep-স্টাইল "Take a note..." ইনপুট বার এক্সপ্যান্ড হয়েছে কিনা
+  const [pinnedDraft, setPinnedDraft] = useState(false); // এডিটরের ভেতরের pin টগল (এখনো সেভ না হওয়া নোটের জন্যও কাজ করে)
+  const [showChecklist, setShowChecklist] = useState(false); // বটম টুলবারের checklist আইকন দিয়ে টগল হয়
+  const [showColorPicker, setShowColorPicker] = useState(false); // বটম টুলবারের palette আইকন দিয়ে টগল হয়
+  const [showMoreMenu, setShowMoreMenu] = useState(false); // এডিটর হেডারের ⋮ মেনু
   const bodyRef = useRef(null); // Bold/Italic টুলবারের জন্য textarea-র সিলেকশন ধরতে
   const vh = useVisualViewportHeight(); // কীবোর্ড খোলা অবস্থায় দৃশ্যমান উচ্চতা — মোডাল সবসময় এর মধ্যেই থাকবে, কীবোর্ডের নিচে চাপা পড়বে না
   const [categories, setCategories] = useState(() => {
@@ -5881,6 +5885,10 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     setCheckText("");
     setOpenMenu(null);
     setQuickOpen(false);
+    setPinnedDraft(false);
+    setShowChecklist(false);
+    setShowColorPicker(false);
+    setShowMoreMenu(false);
   };
 
   // সিলেক্ট করা টেক্সটের চারপাশে **bold** / *italic* মার্কার বসায় বা সরায় (Keep-স্টাইল ফরম্যাটিং টুলবার)
@@ -5919,6 +5927,10 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     setCheckText("");
     setOpenMenu(null);
     setQuickOpen(false);
+    setPinnedDraft(!!note.pinned);
+    setShowChecklist(Array.isArray(note.checklist) && note.checklist.length > 0);
+    setShowColorPicker(false);
+    setShowMoreMenu(false);
   };
 
   const save = () => {
@@ -5934,7 +5946,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
     if (editing?.id) {
       setNotes(prev => prev.map(n => n.id === editing.id
-        ? { ...n, title: title.trim() || "Untitled", body: body.trim(), category, checklist: cleanChecklist, updatedAt: now }
+        ? { ...n, title: title.trim() || "Untitled", body: body.trim(), category, checklist: cleanChecklist, pinned: pinnedDraft, updatedAt: now }
         : n
       ));
     } else {
@@ -5944,7 +5956,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         body: body.trim(),
         category,
         checklist: cleanChecklist,
-        pinned: false,
+        pinned: pinnedDraft,
         createdAt: now,
         updatedAt: now
       }, ...prev]);
@@ -5956,6 +5968,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     if (!window.confirm("Delete this note?")) return;
     setNotes(prev => prev.filter(n => n.id !== id));
     setOpenMenu(null);
+    setEditing(null);
   };
 
   const togglePin = (id) => {
@@ -6111,7 +6124,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               key={note.id}
               onClick={()=>openEdit(note)}
               className="fg-card"
-              style={{position:"relative",background:cardColor,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"13px 13px",cursor:"pointer",display:"flex",flexDirection:"column"}}
+              style={{position:"relative",background:cardColor,border:"none",borderRadius:14,padding:"13px 13px",cursor:"pointer",display:"flex",flexDirection:"column",boxShadow: dark ? "none" : "0 1px 3px rgba(0,0,0,.06)"}}
             >
               <div style={{display:"flex",justifyContent:"space-between",gap:6,alignItems:"flex-start"}}>
                 <div style={{minWidth:0,flex:1}}>
@@ -6144,8 +6157,8 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               )}
 
               <div style={{marginTop:"auto",paddingTop:9,display:"flex",alignItems:"center",justifyContent:"space-between",gap:6}}>
-                <span style={{fontSize:9,fontWeight:800,padding:"3px 7px",borderRadius:999,background:"rgba(255,255,255,0.55)",color:col.text}}>{note.category || "General"}</span>
-                <span style={{fontSize:9.5,color:col.text,opacity:0.8,fontWeight:600}} title={fullDateTimeLabel(note.updatedAt, lang)}>{timeAgoLabel(note.updatedAt || note.createdAt, lang)}</span>
+                <span style={{fontSize:9.5,fontWeight:700,color:col.text,opacity:0.85}}>{note.category || "General"}</span>
+                <span style={{fontSize:9,color:col.text,opacity:0.65,fontWeight:600}} title={fullDateTimeLabel(note.updatedAt, lang)}>{timeAgoLabel(note.updatedAt || note.createdAt, lang)}</span>
               </div>
 
               {openMenu === note.id && (
@@ -6160,38 +6173,54 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         </div>
       )}
 
-      {editing && (
-        <div style={{position:"fixed",left:0,top:0,width:"100%",height:vh,background:"rgba(0,0,0,0.45)",display:"flex",alignItems:"flex-end",justifyContent:"center",zIndex:60}} onClick={()=>setEditing(null)}>
-          <div onClick={e=>e.stopPropagation()} style={{background:cardBg,width:"100%",maxWidth:480,maxHeight:Math.max(320, vh - 24),overflowY:"auto",WebkitOverflowScrolling:"touch",borderRadius:"22px 22px 0 0",padding:"20px 20px 28px",color:textMain}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-              <div style={{fontSize:17,fontWeight:800}}>{editing.id ? t.notesEdit : t.notesNew}</div>
-              <button onClick={()=>setEditing(null)} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer"}}><X size={20}/></button>
+      {editing && (() => {
+        const noteCol = noteColorFor(category, categories);
+        const editorBg = dark ? noteCol.bgDark : noteCol.bg;
+        const iconColor = dark ? "#EDEAE1" : "#3A362C";
+        return (
+        <div style={{position:"fixed",left:0,top:0,width:"100%",height:vh,background:editorBg,display:"flex",flexDirection:"column",zIndex:60}} onClick={()=>{setShowMoreMenu(false);setShowColorPicker(false);}}>
+
+          {/* Top bar */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 10px",flexShrink:0}}>
+            <button onClick={(e)=>{e.stopPropagation();save();}} style={{border:"none",background:"transparent",color:iconColor,cursor:"pointer",padding:8,display:"flex"}}>
+              <ChevronLeft size={22}/>
+            </button>
+            <div style={{display:"flex",alignItems:"center",gap:2,position:"relative"}}>
+              <button onClick={(e)=>{e.stopPropagation();setPinnedDraft(v=>!v);}} title={lang==="bn"?"পিন":"Pin"}
+                style={{border:"none",background:"transparent",color:pinnedDraft?accent:iconColor,cursor:"pointer",padding:8,display:"flex"}}>
+                <Pin size={18} fill={pinnedDraft?accent:"none"}/>
+              </button>
+              <button onClick={(e)=>{e.stopPropagation();setShowMoreMenu(v=>!v);setShowColorPicker(false);}} style={{border:"none",background:"transparent",color:iconColor,cursor:"pointer",padding:8,display:"flex"}}>
+                <MoreVertical size={19}/>
+              </button>
+              {showMoreMenu && (
+                <div onClick={e=>e.stopPropagation()} style={{position:"absolute",right:0,top:40,width:150,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:5,boxShadow:"0 10px 28px rgba(0,0,0,.2)",zIndex:20}}>
+                  {editing.id && (
+                    <button onClick={()=>remove(editing.id)} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:"#C54B4B",padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5}}>{lang==="bn"?"ডিলিট":"Delete"}</button>
+                  )}
+                  <button onClick={()=>setEditing(null)} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:textMain,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5}}>{lang==="bn"?"বাতিল (সেভ ছাড়া)":"Discard"}</button>
+                </div>
+              )}
             </div>
+          </div>
 
-            {/* Created / Last edited date */}
-            {editing.id && (
-              <div style={{fontSize:10.5,color:textMuted2,marginBottom:12}}>
-                {lang==="bn" ? "তৈরি" : "Created"}: {fullDateTimeLabel(editing.createdAt, lang)} · {lang==="bn" ? "সম্পাদিত" : "Edited"}: {fullDateTimeLabel(editing.updatedAt, lang)}
-              </div>
-            )}
-            {!editing.id && <div style={{marginBottom:12}}/>}
+          {/* Created / edited date */}
+          {editing.id && (
+            <div style={{fontSize:10.5,color:iconColor,opacity:0.65,padding:"0 20px",marginBottom:6,flexShrink:0}}>
+              {lang==="bn" ? "তৈরি" : "Created"}: {fullDateTimeLabel(editing.createdAt, lang)} · {lang==="bn" ? "সম্পাদিত" : "Edited"}: {fullDateTimeLabel(editing.updatedAt, lang)}
+            </div>
+          )}
 
+          {/* Scrollable content: title + body + checklist */}
+          <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"4px 20px 16px"}} onClick={e=>e.stopPropagation()}>
             <input
               autoFocus
               value={title}
               onChange={e=>setTitle(e.target.value)}
               onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
               placeholder={t.notesTitlePlaceholder}
-              style={{width:"100%",boxSizing:"border-box",background:dark?"#121110":"#F8F5EE",border:`1px solid ${cardBorder}`,borderRadius:12,padding:"11px 13px",fontSize:14,fontWeight:700,color:textMain,outline:"none",fontFamily:"inherit",marginBottom:10}}
+              style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",padding:"8px 0",fontSize:20,fontWeight:800,color:textMain,outline:"none",fontFamily:"inherit",marginBottom:2}}
             />
-
-            {/* Bold / Italic ফরম্যাটিং টুলবার (Keep-স্টাইল) */}
-            <div style={{display:"flex",gap:6,marginBottom:7}}>
-              <button type="button" onClick={()=>wrapSelection("**")} title={lang==="bn"?"বোল্ড":"Bold"}
-                style={{width:30,height:30,borderRadius:9,border:`1px solid ${cardBorder}`,background:"transparent",color:textMain,fontWeight:900,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"inherit"}}>B</button>
-              <button type="button" onClick={()=>wrapSelection("*")} title={lang==="bn"?"ইটালিক":"Italic"}
-                style={{width:30,height:30,borderRadius:9,border:`1px solid ${cardBorder}`,background:"transparent",color:textMain,fontStyle:"italic",fontWeight:700,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"inherit"}}>I</button>
-            </div>
 
             <textarea
               ref={bodyRef}
@@ -6199,65 +6228,84 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               onChange={e=>setBody(e.target.value)}
               onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
               placeholder={t.notesBodyPlaceholder}
-              rows={7}
-              style={{width:"100%",boxSizing:"border-box",resize:"vertical",background:dark?"#121110":"#F8F5EE",border:`1px solid ${cardBorder}`,borderRadius:12,padding:"11px 13px",fontSize:13.5,lineHeight:1.55,color:textMain,outline:"none",fontFamily:"inherit",marginBottom:6}}
+              rows={10}
+              style={{width:"100%",boxSizing:"border-box",resize:"none",background:"transparent",border:"none",padding:"6px 0",fontSize:14.5,lineHeight:1.65,color:textMain,outline:"none",fontFamily:"inherit",marginBottom:8}}
             />
-            <div style={{fontSize:9.5,color:textMuted2,marginBottom:12}}>
-              {lang==="bn" ? "টেক্সট সিলেক্ট করে B বা I চাপুন ফরম্যাট করতে" : "Select text, then tap B or I to format"}
-            </div>
 
-            {/* Custom category */}
-            <div style={{marginBottom:14}}>
-              <div style={{fontSize:11.5,fontWeight:800,color:textMain,marginBottom:7}}>Category</div>
-              <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
-                {categories.map(cat => (
-                  <button key={cat} onClick={()=>setCategory(cat)} style={{border:`1px solid ${category===cat?accent:cardBorder}`,background:category===cat?(dark?"#2B281F":"#FFF4DF"):"transparent",color:textMain,borderRadius:999,padding:"6px 10px",fontSize:10.5,fontWeight:700,cursor:"pointer"}}>{cat}</button>
-                ))}
-                <button onClick={addCategory} style={{border:`1px dashed ${cardBorder}`,background:"transparent",color:accent,borderRadius:999,padding:"6px 10px",fontSize:10.5,fontWeight:800,cursor:"pointer"}}>+ New Category</button>
-              </div>
-            </div>
-
-            {/* Checklist */}
-            <div style={{border:`1px solid ${cardBorder}`,borderRadius:14,padding:12,marginBottom:12}}>
-              <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:9}}>
-                <ListChecks size={16} color={accent}/>
-                <span style={{fontSize:12,fontWeight:800}}>Checklist</span>
-              </div>
-
-              {checklist.length > 0 && (
-                <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:9}}>
-                  {checklist.map((item, index) => (
-                    <div key={item.id} style={{display:"flex",alignItems:"center",gap:7}}>
-                      <button
-                        onClick={()=>setChecklist(prev=>prev.map((x,i)=>i===index?{...x,done:!x.done}:x))}
-                        style={{width:19,height:19,borderRadius:5,border:`1.5px solid ${item.done?accent:cardBorder}`,background:item.done?accent:"transparent",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",padding:0,cursor:"pointer",fontSize:12,flex:"0 0 auto"}}
-                      >
-                        {item.done?"✓":""}
-                      </button>
-                      <span style={{flex:1,fontSize:12,color:textMain,textDecoration:item.done?"line-through":"none"}}>{item.text}</span>
-                      <button onClick={()=>setChecklist(prev=>prev.filter((_,i)=>i!==index))} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:2}}><X size={14}/></button>
-                    </div>
-                  ))}
+            {/* Checklist — বটম টুলবারের চেকলিস্ট আইকন দিয়ে দেখানো/লুকানো যায় */}
+            {showChecklist && (
+              <div style={{marginTop:4,marginBottom:10}}>
+                {checklist.length > 0 && (
+                  <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:9}}>
+                    {checklist.map((item, index) => (
+                      <div key={item.id} style={{display:"flex",alignItems:"center",gap:9}}>
+                        <button
+                          onClick={()=>setChecklist(prev=>prev.map((x,i)=>i===index?{...x,done:!x.done}:x))}
+                          style={{width:19,height:19,borderRadius:5,border:`1.5px solid ${item.done?accent:iconColor}`,background:item.done?accent:"transparent",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",padding:0,cursor:"pointer",fontSize:12,flex:"0 0 auto"}}
+                        >
+                          {item.done?"✓":""}
+                        </button>
+                        <span style={{flex:1,fontSize:13,color:textMain,textDecoration:item.done?"line-through":"none",opacity:item.done?0.6:1}}>{item.text}</span>
+                        <button onClick={()=>setChecklist(prev=>prev.filter((_,i)=>i!==index))} style={{border:"none",background:"transparent",color:iconColor,opacity:0.6,cursor:"pointer",padding:2}}><X size={14}/></button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div style={{display:"flex",alignItems:"center",gap:9}}>
+                  <div style={{width:19,height:19,borderRadius:5,border:`1.5px solid ${iconColor}`,opacity:0.4,flex:"0 0 auto"}}/>
+                  <input
+                    value={checkText}
+                    onChange={e=>setCheckText(e.target.value)}
+                    onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();addChecklist();}}}
+                    onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
+                    placeholder={lang==="bn"?"লিস্টে যোগ করুন":"List item"}
+                    style={{flex:1,minWidth:0,background:"transparent",border:"none",padding:"3px 0",fontSize:13,color:textMain,outline:"none",fontFamily:"inherit"}}
+                  />
+                  {checkText && <button onClick={addChecklist} style={{border:"none",background:"transparent",color:iconColor,cursor:"pointer",padding:2}}><Check size={16}/></button>}
                 </div>
-              )}
-
-              <div style={{display:"flex",gap:7}}>
-                <input
-                  value={checkText}
-                  onChange={e=>setCheckText(e.target.value)}
-                  onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();addChecklist();}}}
-                  onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
-                  placeholder="Add checklist item"
-                  style={{flex:1,minWidth:0,background:dark?"#121110":"#F8F5EE",border:`1px solid ${cardBorder}`,borderRadius:10,padding:"9px 10px",fontSize:11.5,color:textMain,outline:"none",fontFamily:"inherit"}}
-                />
-                <button onClick={addChecklist} style={{border:"none",background:accent,color:"#fff",borderRadius:10,padding:"0 12px",fontWeight:800,cursor:"pointer"}}><Plus size={15}/></button>
               </div>
-            </div>
+            )}
 
-            <button onClick={save} style={{width:"100%",padding:"13px 0",border:"none",borderRadius:14,background:accent,color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer"}}>{t.notesSave}</button>
+            {/* Category / রঙ পিকার — বটম টুলবারের Tag আইকন দিয়ে টগল হয় */}
+            {showColorPicker && (
+              <div onClick={e=>e.stopPropagation()} style={{display:"flex",gap:9,alignItems:"center",overflowX:"auto",paddingTop:6,paddingBottom:2}}>
+                {categories.map(cat => {
+                  const c = noteColorFor(cat, categories);
+                  const sw = dark ? c.bgDark : c.bg;
+                  return (
+                    <button key={cat} onClick={()=>setCategory(cat)} title={cat} style={{
+                      flex:"0 0 auto",width:30,height:30,borderRadius:"50%",background:sw,
+                      border: category===cat ? `2.5px solid ${iconColor}` : `1px solid ${cardBorder}`,
+                      cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"
+                    }}>
+                      {category===cat && <Check size={14} color={c.text}/>}
+                    </button>
+                  );
+                })}
+                <button onClick={addCategory} title="New category" style={{flex:"0 0 auto",width:30,height:30,borderRadius:"50%",border:`1.5px dashed ${iconColor}`,background:"transparent",color:iconColor,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Plus size={14}/></button>
+              </div>
+            )}
+          </div>
+
+          {/* Bottom icon toolbar — Keep-স্টাইল */}
+          <div onClick={e=>e.stopPropagation()} style={{display:"flex",alignItems:"center",gap:2,padding:"8px 12px",borderTop:`1px solid rgba(0,0,0,0.08)`,flexShrink:0}}>
+            <button onClick={()=>{setShowChecklist(v=>!v);setShowColorPicker(false);}} title={lang==="bn"?"চেকলিস্ট":"Checklist"}
+              style={{border:"none",background:showChecklist?"rgba(0,0,0,0.08)":"transparent",color:iconColor,cursor:"pointer",padding:9,borderRadius:"50%",display:"flex"}}>
+              <ListChecks size={19}/>
+            </button>
+            <button onClick={()=>{setShowColorPicker(v=>!v);setShowChecklist(false);}} title={lang==="bn"?"রঙ / ক্যাটাগরি":"Color / Category"}
+              style={{border:"none",background:showColorPicker?"rgba(0,0,0,0.08)":"transparent",color:iconColor,cursor:"pointer",padding:9,borderRadius:"50%",display:"flex"}}>
+              <Tag size={19}/>
+            </button>
+            <button type="button" onClick={()=>wrapSelection("**")} title={lang==="bn"?"বোল্ড":"Bold"}
+              style={{border:"none",background:"transparent",color:iconColor,fontWeight:900,fontSize:14,cursor:"pointer",width:37,height:37,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"inherit"}}>B</button>
+            <button type="button" onClick={()=>wrapSelection("*")} title={lang==="bn"?"ইটালিক":"Italic"}
+              style={{border:"none",background:"transparent",color:iconColor,fontStyle:"italic",fontWeight:700,fontSize:14,cursor:"pointer",width:37,height:37,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"inherit"}}>I</button>
+            <div style={{flex:1}}/>
+            <span style={{fontSize:9.5,color:iconColor,opacity:0.6,fontWeight:700,marginRight:6}}>{category}</span>
           </div>
         </div>
-      )}
+      );})()}
     </div>
   );
 }
