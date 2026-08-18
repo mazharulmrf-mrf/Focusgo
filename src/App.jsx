@@ -1680,6 +1680,7 @@ export default function FocusGo() {
     try { window.localStorage.setItem("focusgo_tasks_v1", JSON.stringify(tasks)); } catch (e) {}
   }, [tasks]);
   const [showAddTask, setShowAddTask] = useState(false);
+  const [editingTask, setEditingTask] = useState(null); // এডিট করার জন্য সিলেক্টেড টাস্ক অবজেক্ট, নাহলে null
   // কাস্টম টাস্ক ক্যাটাগরি — ডিফল্টে Study/Personal, ইউজার চাইলে আরো ক্যাটাগরি যোগ করতে পারবে (localStorage-এ সেভ থাকে)
   const [taskCategories, setTaskCategories] = useState(() => {
     try {
@@ -1729,6 +1730,7 @@ export default function FocusGo() {
   });
   const deleteTask = (id) => setTasks(ts => ts.filter(x => x.id !== id));
   const addTask = (newTask) => setTasks(ts => [newTask, ...ts]);
+  const updateTask = (updated) => setTasks(ts => ts.map(x => x.id === updated.id ? { ...x, ...updated } : x));
   const [topicBank, setTopicBank] = useState({}); // subject -> [topicName, ...] — pre-added topics for Today's Study/Plan, subject-scoped (mirrors examSubjects' subject->topics shape but as a flat list, no attempts)
   const [showManageTopicsFor, setShowManageTopicsFor] = useState(null); // subject name | null — which subject's topic-bank editor is open
   const [examSubjects, setExamSubjects] = useState({}); // subject -> { topics: { [topicName]: { attempts: [{id, date, obtained, total}] } } }
@@ -3381,14 +3383,14 @@ export default function FocusGo() {
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {tasks.map(x => (
-                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:10,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:"10px 12px",opacity:x.done?0.55:1}}>
-                    <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:21,height:21,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
+                  <div key={x.id} onClick={()=>setEditingTask(x)} style={{display:"flex",alignItems:"center",gap:10,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:"10px 12px",opacity:x.done?0.55:1,cursor:"pointer"}}>
+                    <button onClick={(e)=>{e.stopPropagation();vibrate();toggleTask(x.id);}} style={{width:21,height:21,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
                       {x.done && <Check size={12} color="#fff" strokeWidth={3}/>}
                     </button>
                     <div style={{flex:1,minWidth:0,fontSize:12.5,fontWeight:650,color:textMain,textDecoration:x.done?"line-through":"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                       {x.title}
                     </div>
-                    <button onClick={()=>{vibrate();deleteTask(x.id);}} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:5}}>
+                    <button onClick={(e)=>{e.stopPropagation();vibrate();deleteTask(x.id);}} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:5}}>
                       <Trash2 size={14}/>
                     </button>
                   </div>
@@ -3674,13 +3676,12 @@ export default function FocusGo() {
           else if (taskFilter === "upcoming") filteredTasks = tasks.filter(x => bucketOf(x) === "upcoming");
           else filteredTasks = tasks;
 
-          // ---- টাস্ক কার্ড: overdue হলে লাল, নাহলে priority অনুযায়ী কালার্ড left-border ----
+          // ---- টাস্ক কার্ড: সিম্পল, flat, কোনো কালার্ড left-border নেই — শুধু checkbox, ট্যাপ করলে এডিট ওপেন হয় ----
           const renderTask = (x) => {
             const isOverdue = !x.done && x.dueDate && x.dueDate < todayKey;
-            const borderAccent = isOverdue ? "#C0392B" : prColor[x.priority];
             return (
-              <div key={x.id} style={{display:"flex", alignItems:"flex-start", gap:12, padding:"13px 14px 13px 12px", borderRadius:16, background:cardBg, border:`1px solid ${cardBorder}`, borderLeft:`4px solid ${borderAccent}`, opacity: x.done?0.55:1, transition:"opacity .2s ease"}}>
-                <button onClick={()=>{vibrate(); toggleTask(x.id);}} style={{marginTop:1, width:22, height:22, borderRadius:"50%", flexShrink:0, border:`2px solid ${x.done?"#6E8B5E":cardBorder}`, background: x.done?"#6E8B5E":"transparent", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", padding:0}}>
+              <div key={x.id} onClick={()=>setEditingTask(x)} style={{display:"flex", alignItems:"flex-start", gap:12, padding:"13px 14px", borderRadius:16, background:cardBg, border:`1px solid ${cardBorder}`, opacity: x.done?0.55:1, transition:"opacity .2s ease", cursor:"pointer"}}>
+                <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{marginTop:1, width:22, height:22, borderRadius:"50%", flexShrink:0, border:`2px solid ${x.done?"#6E8B5E":cardBorder}`, background: x.done?"#6E8B5E":"transparent", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", padding:0}}>
                   {x.done && <Check size={13} color="#fff" strokeWidth={3}/>}
                 </button>
                 <div style={{flex:1, minWidth:0}}>
@@ -3698,8 +3699,8 @@ export default function FocusGo() {
                         </span>
                       );
                     })()}
-                    <span style={{display:"inline-flex", alignItems:"center", gap:3, fontSize:10, fontWeight:700, color:prColor[x.priority]}}>
-                      <span style={{width:5,height:5,borderRadius:"50%", background:prColor[x.priority]}}/>
+                    <span style={{display:"inline-flex", alignItems:"center", gap:3, fontSize:10, fontWeight:700, color: isOverdue ? "#C0392B" : prColor[x.priority]}}>
+                      <span style={{width:5,height:5,borderRadius:"50%", background: isOverdue ? "#C0392B" : prColor[x.priority]}}/>
                       {prLabel[x.priority]}
                     </span>
                     {x.repeat && (
@@ -3715,9 +3716,14 @@ export default function FocusGo() {
                     })()}
                   </div>
                 </div>
-                <button onClick={()=>{vibrate(); deleteTask(x.id);}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:4, flexShrink:0}}>
-                  <Trash2 size={15}/>
-                </button>
+                <div style={{display:"flex", flexDirection:"column", gap:2, flexShrink:0}}>
+                  <button onClick={(e)=>{e.stopPropagation(); setEditingTask(x);}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:4}} title={lang==="bn"?"এডিট":"Edit"}>
+                    <Pencil size={14}/>
+                  </button>
+                  <button onClick={(e)=>{e.stopPropagation(); vibrate(); deleteTask(x.id);}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:4}} title={lang==="bn"?"ডিলিট":"Delete"}>
+                    <Trash2 size={15}/>
+                  </button>
+                </div>
               </div>
             );
           };
@@ -4204,9 +4210,10 @@ export default function FocusGo() {
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
       )}
 
-      {/* Add task modal */}
-      {showAddTask && (
-        <AddTaskModal t={t} lang={lang} onClose={()=>setShowAddTask(false)} onAdd={addTask}
+      {/* Add / Edit task modal */}
+      {(showAddTask || editingTask) && (
+        <AddTaskModal t={t} lang={lang} onClose={()=>{setShowAddTask(false);setEditingTask(null);}}
+          onSubmit={editingTask ? updateTask : addTask} initialTask={editingTask}
           categories={taskCategories} onAddCategory={addTaskCategory}
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark} bg={bg}/>
       )}
@@ -6310,20 +6317,26 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   );
 }
 
-function AddTaskModal({ t, lang, onClose, onAdd, categories, onAddCategory, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState((categories && categories[0] && categories[0].key) || "study");
-  const [priority, setPriority] = useState("med");
-  const [dueDate, setDueDate] = useState("");
-  const [repeat, setRepeat] = useState("none"); // "none" | "daily" | "weekly" | "monthly"
+function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, categories, onAddCategory, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
+  const [title, setTitle] = useState(initialTask?.title || "");
+  const [category, setCategory] = useState(initialTask?.category || (categories && categories[0] && categories[0].key) || "study");
+  const [priority, setPriority] = useState(initialTask?.priority || "med");
+  const [dueDate, setDueDate] = useState(initialTask?.dueDate || "");
+  const [repeat, setRepeat] = useState(initialTask?.repeat || "none"); // "none" | "daily" | "weekly" | "monthly"
   const [addingCategory, setAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const sheetRef = useRef(null);
   const vh = useVisualViewportHeight(); // কিবোর্ড খোলা অবস্থায় দৃশ্যমান উচ্চতা — sheet-কে এর মধ্যেই ধরে রাখা হয়
+  const isEditing = !!initialTask;
 
   const submit = () => {
     if (!title.trim()) return;
-    onAdd({ id: `${Date.now()}_${Math.random().toString(36).slice(2,7)}`, title: title.trim(), category, priority, dueDate: dueDate || null, repeat: repeat === "none" ? null : repeat, done: false });
+    onSubmit({
+      id: initialTask?.id || `${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
+      title: title.trim(), category, priority, dueDate: dueDate || null,
+      repeat: repeat === "none" ? null : repeat,
+      done: initialTask?.done || false
+    });
     onClose();
   };
 
@@ -6339,7 +6352,7 @@ function AddTaskModal({ t, lang, onClose, onAdd, categories, onAddCategory, card
     <div style={{position:"fixed", left:0, top:0, width:"100%", height:vh, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div ref={sheetRef} onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:Math.max(320, vh - 24), overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"22px 22px 0 0", padding:"20px 20px 26px", color:textMain}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
-          <div style={{fontSize:15, fontWeight:800}}>{t.taskAdd}</div>
+          <div style={{fontSize:15, fontWeight:800}}>{isEditing ? (lang==="bn" ? "টাস্ক এডিট করুন" : "Edit Task") : t.taskAdd}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer"}}><X size={20}/></button>
         </div>
 
@@ -6433,7 +6446,7 @@ function AddTaskModal({ t, lang, onClose, onAdd, categories, onAddCategory, card
         </div>
 
         <button onClick={submit} style={{width:"100%", padding:"13px 0", borderRadius:14, border:"none", background:accent, color:"#fff", fontWeight:800, fontSize:14, cursor:"pointer"}}>
-          {t.taskAddBtn}
+          {isEditing ? (lang==="bn" ? "সেভ করুন" : "Save Changes") : t.taskAddBtn}
         </button>
       </div>
     </div>
