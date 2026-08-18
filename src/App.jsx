@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Flame, Target, TrendingUp } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Flame, Target, TrendingUp, Bell } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
 import {
   onAuthStateChanged,
@@ -329,6 +329,68 @@ function UserMenu({ onOpenProfile, onOpenSettings, cardBorder, cardBg, textMain,
             <button onClick={() => { setOpen(false); onOpenSettings(); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:8, padding:"9px 10px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
               <Settings size={14} color={textMuted2}/> {settingsLabel}
             </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ---------- Notification bell (header) ----------
+// Shows recent in-app notifications: session done, exam reminders, streak, daily goal, inactivity.
+function timeAgoLabel(iso, lang) {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.max(0, Math.round(diffMs / 60000));
+  if (mins < 1) return lang === "bn" ? "এখনই" : "just now";
+  if (mins < 60) return lang === "bn" ? `${mins} মিনিট আগে` : `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return lang === "bn" ? `${hrs} ঘণ্টা আগে` : `${hrs}h ago`;
+  const days = Math.round(hrs / 24);
+  return lang === "bn" ? `${days} দিন আগে` : `${days}d ago`;
+}
+
+function NotificationBell({ t, lang, notifications, onMarkAllRead, onClear, cardBorder, cardBg, textMain, textMuted2, accent, dark }) {
+  const [open, setOpen] = useState(false);
+  const unreadCount = notifications.filter(n => !n.read).length;
+  return (
+    <div style={{ position: "relative", flexShrink: 0 }}>
+      <button
+        onClick={() => { setOpen(v => !v); if (!open) onMarkAllRead(); }}
+        style={{ position: "relative", border: `1px solid ${cardBorder}`, background: cardBg, color: textMuted2, borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
+        title={t.notifications}
+      >
+        <Bell size={16} />
+        {unreadCount > 0 && (
+          <span style={{ position: "absolute", top: -2, right: -2, minWidth: 15, height: 15, padding: "0 3px", borderRadius: "50%", background: "#C0392B", color: "#fff", fontSize: 9, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
+      </button>
+      {open && (
+        <>
+          <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 59 }} />
+          <div style={{ position: "absolute", right: 0, top: "100%", marginTop: 6, background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, boxShadow: "0 8px 22px rgba(0,0,0,0.18)", zIndex: 60, width: 300, maxWidth: "88vw", maxHeight: 360, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderBottom: `1px solid ${cardBorder}` }}>
+              <span style={{ fontSize: 12.5, fontWeight: 800, color: textMain }}>{t.notifications}</span>
+              {notifications.length > 0 && (
+                <button onClick={onClear} style={{ border: "none", background: "transparent", color: textMuted2, fontSize: 10.5, fontWeight: 700, cursor: "pointer", padding: 4 }}>{t.clearAll}</button>
+              )}
+            </div>
+            <div style={{ overflowY: "auto" }}>
+              {notifications.length === 0 && (
+                <div style={{ padding: "24px 12px", textAlign: "center", fontSize: 12, color: textMuted2 }}>{t.noNotifications}</div>
+              )}
+              {notifications.map(n => (
+                <div key={n.id} style={{ display: "flex", gap: 8, padding: "10px 12px", borderBottom: `1px solid ${cardBorder}`, background: n.read ? "transparent" : (dark ? "#2C2820" : "#F8F5EE") }}>
+                  <span style={{ width: 7, height: 7, borderRadius: "50%", background: accent, flexShrink: 0, marginTop: 5, opacity: n.read ? 0 : 1 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: textMain }}>{n.title}</div>
+                    <div style={{ fontSize: 11, color: textMuted2, marginTop: 2, lineHeight: 1.4 }}>{n.body}</div>
+                    <div style={{ fontSize: 9.5, color: textMuted2, opacity: 0.7, marginTop: 3 }}>{timeAgoLabel(n.time, lang)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </>
       )}
@@ -1125,6 +1187,15 @@ const T = {
     preparationLabel: "Preparation",
     quickAdd: "Quick Add", addStudyTopicQuick: "Study Topic", addSubjectQuick: "Subject",
     addExamQuick: "Exam", addCombinedExamQuick: "Combined Exam",
+    notifications: "Notifications", noNotifications: "No notifications yet",
+    markAllRead: "Mark all as read", clearAll: "Clear all",
+    notifSessionDoneTitle: "Focus session done!", notifSessionDoneBody: "Great job — time for a short break.",
+    notifBreakDoneTitle: "Break's over", notifBreakDoneBody: "Next focus session is starting.",
+    notifExamTodayTitle: "Exam today", notifExamTomorrowTitle: "Exam tomorrow",
+    notifExamSoonTitle: "Exam in {days} days",
+    notifStreakTitle: "Keep your streak alive", notifStreakBody: "You haven't studied today yet — don't break the streak!",
+    notifGoalTitle: "Daily goal reached!", notifGoalBody: "You've hit your study target for today. Keep it up!",
+    notifInactiveTitle: "We miss you", notifInactiveBody: "No study logged in a couple of days — come back and pick up where you left off.",
   },
   bn: {
     tagline: "নিজের গতিতে পড়ো",
@@ -1237,6 +1308,15 @@ const T = {
     preparationLabel: "প্রস্তুতি",
     quickAdd: "কুইক অ্যাড", addStudyTopicQuick: "স্টাডি টপিক", addSubjectQuick: "সাবজেক্ট",
     addExamQuick: "এক্সাম", addCombinedExamQuick: "কম্বাইন্ড এক্সাম",
+    notifications: "নোটিফিকেশন", noNotifications: "এখনো কোনো নোটিফিকেশন নেই",
+    markAllRead: "সব পড়া হয়েছে বলে মার্ক করো", clearAll: "সব মুছে ফেলো",
+    notifSessionDoneTitle: "ফোকাস সেশন শেষ!", notifSessionDoneBody: "দারুণ হয়েছে — এখন একটু ব্রেক নাও।",
+    notifBreakDoneTitle: "ব্রেক শেষ", notifBreakDoneBody: "পরবর্তী ফোকাস সেশন শুরু হচ্ছে।",
+    notifExamTodayTitle: "আজকে এক্সাম", notifExamTomorrowTitle: "আগামীকাল এক্সাম",
+    notifExamSoonTitle: "আর {days} দিন পর এক্সাম",
+    notifStreakTitle: "স্ট্রিক ধরে রাখো", notifStreakBody: "আজকে এখনো পড়াশোনা করা হয়নি — স্ট্রিক ভেঙো না!",
+    notifGoalTitle: "আজকের গোল পূরণ হয়েছে!", notifGoalBody: "আজকের স্টাডি টার্গেট পূরণ হয়ে গেছে। এভাবেই চালিয়ে যাও!",
+    notifInactiveTitle: "তোমাকে মিস করছি", notifInactiveBody: "কয়েকদিন ধরে কোনো পড়াশোনা লগ হয়নি — ফিরে এসে আবার শুরু করো।",
   }
 };
 
@@ -1413,6 +1493,28 @@ export default function FocusGo() {
   const [examSubjects, setExamSubjects] = useState({}); // subject -> { topics: { [topicName]: { attempts: [{id, date, obtained, total}] } } }
   const [combinedExams, setCombinedExams] = useState({}); // id -> { name, type: "daily"|"weekly"|"monthly", subjects: [names], attempts: [{id, date, obtained, total}] }
   const [nextExam, setNextExam] = useState(null); // { subject, topic, date } | null
+  // ---- In-app notifications: session done, exam reminders, streak, daily goal, inactivity ----
+  const [notifications, setNotifications] = useState(() => {
+    try { return JSON.parse(window.localStorage.getItem("focusgo_notifications") || "[]"); } catch (e) { return []; }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("focusgo_notifications", JSON.stringify(notifications.slice(0, 50))); } catch (e) {}
+  }, [notifications]);
+  // guards so each notification type fires at most once per relevant day/state (persisted so refresh doesn't repeat)
+  const notifiedFlagsRef = useRef((() => {
+    try { return JSON.parse(window.localStorage.getItem("focusgo_notif_flags") || "{}"); } catch (e) { return {}; }
+  })());
+  const saveNotifiedFlags = () => {
+    try { window.localStorage.setItem("focusgo_notif_flags", JSON.stringify(notifiedFlagsRef.current)); } catch (e) {}
+  };
+  const pushNotification = (title, body, flagKey) => {
+    if (flagKey) {
+      if (notifiedFlagsRef.current[flagKey]) return;
+      notifiedFlagsRef.current[flagKey] = true;
+      saveNotifiedFlags();
+    }
+    setNotifications(prev => [{ id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, title, body, time: new Date().toISOString(), read: false }, ...prev].slice(0, 50));
+  };
   const [examMonth, setExamMonth] = useState(new Date());
   const [showExams, setShowExams] = useState(false);
   const [showCombinedExamEditor, setShowCombinedExamEditor] = useState(false);
@@ -1882,9 +1984,11 @@ export default function FocusGo() {
             setTimerRunning(false);
             vibrate();
             setShowBreakPrompt(true);
+            pushNotification(t.notifSessionDoneTitle, t.notifSessionDoneBody);
           } else {
             // Break শেষ — পরের Focus session সাথে সাথে শুরু হয়ে যাবে, timer running-ই থাকবে (তাই interval restart লাগবে না)
             vibrate();
+            pushNotification(t.notifBreakDoneTitle, t.notifBreakDoneBody);
             const nextSession = pomodoroSessionRef.current >= 4 ? 1 : pomodoroSessionRef.current + 1;
             setPomodoroSession(nextSession);
             setSessionType("focus");
@@ -2375,6 +2479,53 @@ export default function FocusGo() {
     return { totalMin, doneCount, pct, streak };
   })();
 
+  // ---- notification triggers: exam reminder, streak-at-risk, daily goal, inactivity ----
+  // চেক করা হয় প্রতি মিনিটে একবার (now-কে মিনিট-এ রাউন্ড করে dependency হিসেবে ব্যবহার করা হয়েছে,
+  // যাতে ক্লক টিক (প্রতি সেকেন্ডে) এর জন্য বারবার re-run না হয়)। pushNotification নিজেই flagKey দিয়ে
+  // ডুপ্লিকেট আটকায়, তাই একবার নোটিফাই হয়ে গেলে একই দিনে আর দেখাবে না।
+  const nowMinute = Math.floor(now.getTime() / 60000);
+  useEffect(() => {
+    if (!loaded) return;
+    const DAILY_GOAL_MIN = 120; // ডিফল্ট দৈনিক টার্গেট (মিনিট) — কোনো সেটিংস UI নেই বলে একটা যুক্তিসঙ্গত ডিফল্ট ব্যবহার করা হয়েছে
+
+    // 1) Exam reminder — nextExam-এর তারিখ ৩ দিন, ১ দিন, বা আজকে হলে
+    if (nextExam?.date) {
+      const diff = Math.round((new Date(nextExam.date + "T00:00:00") - new Date(todayKey + "T00:00:00")) / 86400000);
+      const examLabel = `${nextExam.subject}${nextExam.topic ? " · " + nextExam.topic : ""}`;
+      if (diff === 0) {
+        pushNotification(t.notifExamTodayTitle, examLabel, `exam_${nextExam.date}_0`);
+      } else if (diff === 1) {
+        pushNotification(t.notifExamTomorrowTitle, examLabel, `exam_${nextExam.date}_1`);
+      } else if (diff === 3) {
+        pushNotification(t.notifExamSoonTitle.replace("{days}", String(diff)), examLabel, `exam_${nextExam.date}_3`);
+      }
+    }
+
+    // 2) Streak-at-risk — গতকাল streak সচল ছিল কিন্তু আজ সন্ধ্যা ৮টার পরও কোনো টপিক done হয়নি
+    const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayHadStudy = (entries[dateKey(yesterday)] || []).some(x => x.done);
+    const todayHasStudy = (entries[todayKey] || []).some(x => x.done);
+    if (yesterdayHadStudy && !todayHasStudy && now.getHours() >= 20) {
+      pushNotification(t.notifStreakTitle, t.notifStreakBody, `streak_${todayKey}`);
+    }
+
+    // 3) Daily goal reached — আজকের done টপিকের মোট সময় target ছুঁয়ে ফেললে
+    const todayMinutes = (entries[todayKey] || []).filter(x => x.done).reduce((s, x) => s + (x.duration || 0), 0);
+    if (todayMinutes >= DAILY_GOAL_MIN) {
+      pushNotification(t.notifGoalTitle, t.notifGoalBody, `goal_${todayKey}`);
+    }
+
+    // 4) Inactivity — শেষ যেদিন কোনো entry ছিল তার পর থেকে ৩+ দিন কিছু log হয়নি
+    const pastKeysWithEntries = Object.keys(entries).filter(k => k < todayKey && (entries[k] || []).length > 0).sort();
+    if (pastKeysWithEntries.length > 0) {
+      const lastKey = pastKeysWithEntries[pastKeysWithEntries.length - 1];
+      const gapDays = Math.round((new Date(todayKey + "T00:00:00") - new Date(lastKey + "T00:00:00")) / 86400000);
+      if (gapDays >= 3) {
+        pushNotification(t.notifInactiveTitle, t.notifInactiveBody, `inactive_${todayKey}`);
+      }
+    }
+  }, [loaded, nowMinute, nextExam, todayKey, entries]);
+
   // ---- weekly activity — minutes studied per day, this week (for the Stats mini bar chart) ----
   const weeklyActivity = weekDays.map(d => {
     const list = entries[dateKey(d)] || [];
@@ -2661,6 +2812,12 @@ export default function FocusGo() {
               style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
               {themeMode==="system" ? <Contrast size={16}/> : themeMode==="light" ? <Sun size={16}/> : <Moon size={16}/>}
             </button>
+            <NotificationBell
+              t={t} lang={lang} notifications={notifications}
+              onMarkAllRead={()=>setNotifications(prev => prev.map(n => ({...n, read:true})))}
+              onClear={()=>setNotifications([])}
+              cardBorder={cardBorder} cardBg={cardBg} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}
+            />
             <UserMenu
               onOpenProfile={()=>{vibrate(); setShowProfile(true);}}
               onOpenSettings={()=>{vibrate(); setShowSettings(true);}}
