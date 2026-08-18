@@ -5456,6 +5456,12 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
     try { localStorage.setItem("focusgo_note_categories_v2", JSON.stringify(categories)); } catch {}
   }, [categories]);
 
+  useEffect(() => {
+    if (!editing || !bodyRef.current) return;
+    bodyRef.current.innerHTML = body || "";
+    bodyRef.current.dir = "ltr";
+  }, [editing?.id]);
+
   const resetEditor = () => {
     setEditing(null);
     setTitle("");
@@ -5495,7 +5501,8 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
   };
 
   const save = () => {
-    const cleanBody = body.trim();
+    const editorBody = bodyRef.current ? bodyRef.current.innerHTML : body;
+    const cleanBody = editorBody.trim();
     const cleanChecklist = checklist
       .map(x => ({ id: x.id, text: (x.text || "").trim(), done: !!x.done }))
       .filter(x => x.text);
@@ -5623,7 +5630,7 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
           fontStyle: note.format?.italic ? "italic" : "normal",
           textDecoration: note.format?.underline ? "underline" : "none",
           lineHeight: 1.55,
-          direction: "ltr", textAlign: "left", unicodeBidi: "plaintext",
+          direction: "ltr", textAlign: "left",
           maxHeight: 86,
           overflow: "hidden"
         }}
@@ -5782,7 +5789,7 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="Title"
-              style={{ width: "100%", boxSizing: "border-box", border: "none", outline: "none", background: "transparent", color: textMain, fontSize: 25, fontWeight: 800, fontFamily: "inherit", marginBottom: 8, direction: "ltr", textAlign: "left", unicodeBidi: "plaintext" }}
+              style={{ width: "100%", boxSizing: "border-box", border: "none", outline: "none", background: "transparent", color: textMain, fontSize: 25, fontWeight: 800, fontFamily: "inherit", marginBottom: 8, direction: "ltr", textAlign: "left" }}
             />
 
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 15, overflowX: "auto" }}>
@@ -5814,14 +5821,15 @@ function NotesView({ t, notes, setNotes, search, setSearch, onNew, cardBg, cardB
               ref={bodyRef}
               contentEditable
               suppressContentEditableWarning
-              onInput={e => setBody(e.currentTarget.innerHTML)}
-              dangerouslySetInnerHTML={{ __html: body }}
+              dir="ltr"
+              spellCheck="true"
               data-placeholder="Start writing your note..."
               style={{
-                minHeight: 280, outline: "none", whiteSpace: "pre-wrap", direction: "ltr", textAlign: "left", unicodeBidi: "plaintext",
+                minHeight: 280, outline: "none", whiteSpace: "pre-wrap", direction: "ltr", textAlign: "left",
                 color: textMain, fontSize: format.size, lineHeight: 1.6,
                 fontFamily: format.font === "serif" ? "Georgia, serif" : format.font === "mono" ? "monospace" : "inherit",
                 fontWeight: format.bold ? 700 : 400,
+                caretColor: textMain,
                 fontStyle: format.italic ? "italic" : "normal",
                 textDecoration: format.underline ? "underline" : "none"
               }}
