@@ -2908,22 +2908,16 @@ export default function FocusGo() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:14}}>
+        <div style={{marginTop:18}}>
           <div style={{marginBottom:10}}>
-            <div style={{fontSize:16,fontWeight:800,letterSpacing:-0.2,color:textMain}}>
+            <div style={{fontSize:21,fontWeight:800,letterSpacing:-0.4,color:textMain}}>
               {(() => {
                 const fullName = (user?.displayName || "").trim();
                 const parts = fullName.split(/\s+/).filter(Boolean);
                 return parts.length ? parts[parts.length - 1] : "Maruf";
               })()}
             </div>
-            <div style={{
-              marginTop:7,padding:"8px 11px",borderRadius:12,
-              background:dark ? "#25211B" : "#FFF7EF",
-              border:`1px solid ${cardBorder}`,
-              color:textMain,fontSize:11,fontWeight:650,
-              lineHeight:1.3,textAlign:"center"
-            }}>
+            <div style={{fontSize:12,color:textMuted2,marginTop:3}}>
               ✨ {FOCUSGO_DAILY_MOTIVATIONS[
                 Math.floor(new Date(today.getFullYear(),today.getMonth(),today.getDate()).getTime()/86400000)
                 % FOCUSGO_DAILY_MOTIVATIONS.length
