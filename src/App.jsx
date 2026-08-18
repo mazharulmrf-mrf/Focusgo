@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
 import {
   onAuthStateChanged,
@@ -931,6 +931,15 @@ function passwordErrorCode(pw) {
   return null;
 }
 const dateKey = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+// রিপিটিং টাস্ক সম্পন্ন হলে পরবর্তী occurrence-এর due date বের করার হেল্পার
+const nextDueDateFromKey = (dk, repeat) => {
+  const d = new Date(dk + "T00:00:00");
+  if (repeat === "daily") d.setDate(d.getDate() + 1);
+  else if (repeat === "weekly") d.setDate(d.getDate() + 7);
+  else if (repeat === "monthly") d.setMonth(d.getMonth() + 1);
+  else return dk;
+  return dateKey(d);
+};
 
 // বাংলাদেশ সরকারি ছুটির তালিকা (২০২৬) — সাধারণ ছুটি + নির্বাহী আদেশে ছুটি (জনপ্রশাসন মন্ত্রণালয়ের প্রজ্ঞাপন অনুযায়ী)।
 // চাঁদ দেখার উপর নির্ভরশীল তারিখগুলো (ঈদ, শব-ই-বরাত, শব-ই-ক্বদর, আশুরা ইত্যাদি) সরকারি ঘোষণার সাথে ১ দিন এদিক-ওদিক হতে পারে।
@@ -1103,6 +1112,10 @@ const T = {
     taskDueToday: "Today", taskDueTomorrow: "Tomorrow", taskOverdue: "Overdue", taskCompleted: "Completed",
     taskSectionToday: "Today", taskSectionUpcoming: "Upcoming", taskSectionNoDate: "No Due Date",
     taskEmptyToday: "Nothing due today", taskEmptyUpcoming: "Nothing upcoming", taskEmptyDone: "No completed tasks yet",
+    taskViewList: "List", taskViewCalendar: "Calendar",
+    taskRepeat: "Repeat", taskRepeatNone: "Never", taskRepeatDaily: "Daily", taskRepeatWeekly: "Weekly", taskRepeatMonthly: "Monthly",
+    taskRepeatBadge: "Repeats", taskCalNoDate: "No due date", taskCalPickDay: "Tap a day to see its tasks",
+    taskCalEmptyDay: "No tasks due this day", taskCalNoDateTasks: "Tasks without a due date",
     focusTimer: "Focus Timer", start: "Start Focus", pause: "Pause", reset: "Reset",
     pickTopicForTimer: "Pick a topic to focus on", freeSession: "Free Session",
     timerMode: "Timer", stopwatchMode: "Stopwatch",
@@ -1237,6 +1250,10 @@ const T = {
     taskDueToday: "আজ", taskDueTomorrow: "আগামীকাল", taskOverdue: "মেয়াদ শেষ", taskCompleted: "সম্পন্ন হয়েছে",
     taskSectionToday: "আজ", taskSectionUpcoming: "আসন্ন", taskSectionNoDate: "ডিউ ডেট নেই",
     taskEmptyToday: "আজ কিছু বাকি নেই", taskEmptyUpcoming: "আসন্ন কিছু নেই", taskEmptyDone: "এখনো কোনো টাস্ক সম্পন্ন হয়নি",
+    taskViewList: "লিস্ট", taskViewCalendar: "ক্যালেন্ডার",
+    taskRepeat: "রিপিট", taskRepeatNone: "একবারই", taskRepeatDaily: "প্রতিদিন", taskRepeatWeekly: "প্রতি সপ্তাহে", taskRepeatMonthly: "প্রতি মাসে",
+    taskRepeatBadge: "রিপিট হয়", taskCalNoDate: "ডিউ ডেট নেই", taskCalPickDay: "কোনো দিনে ট্যাপ করে সেদিনের টাস্ক দেখুন",
+    taskCalEmptyDay: "এই দিনে কোনো টাস্ক নেই", taskCalNoDateTasks: "ডিউ ডেট ছাড়া টাস্ক",
     focusTimer: "ফোকাস টাইমার", start: "ফোকাস শুরু", pause: "থামাও", reset: "রিসেট",
     pickTopicForTimer: "ফোকাস করার জন্য একটা টপিক বাছাই করো", freeSession: "ফ্রি সেশন",
     timerMode: "টাইমার", stopwatchMode: "স্টপওয়াচ",
@@ -1627,8 +1644,21 @@ export default function FocusGo() {
   }, [notes]);
   const [noteSearch, setNoteSearch] = useState("");
   const [taskFilter, setTaskFilter] = useState("all"); // all | study | personal
+  const [taskViewMode, setTaskViewMode] = useState("list"); // "list" | "calendar" — Task tab-এর ভিউ টগল
+  const [taskCalMonth, setTaskCalMonth] = useState(new Date()); // Task calendar view-এ কোন মাস দেখাচ্ছে
+  const [taskCalSelectedDay, setTaskCalSelectedDay] = useState(null); // Task calendar-এ সিলেক্টেড দিনের dateKey | null
   const [planView, setPlanView] = useState("study"); // "study" | "exam" — segmented toggle inside Plan tab
-  const toggleTask = (id) => setTasks(ts => ts.map(x => x.id === id ? { ...x, done: !x.done } : x));
+  const toggleTask = (id) => setTasks(ts => {
+    const target = ts.find(x => x.id === id);
+    // রিপিটিং টাস্ক "done" করলে সেটাকে সম্পন্ন হিসেবে রেখে পরের occurrence অটো-তৈরি হবে
+    if (target && !target.done && target.repeat) {
+      const base = target.dueDate || todayKey;
+      const nextDue = nextDueDateFromKey(base, target.repeat);
+      const nextInstance = { ...target, id: `${Date.now()}_${Math.random().toString(36).slice(2,7)}`, dueDate: nextDue, done: false };
+      return [nextInstance, ...ts.map(x => x.id === id ? { ...x, done: true } : x)];
+    }
+    return ts.map(x => x.id === id ? { ...x, done: !x.done } : x);
+  });
   const deleteTask = (id) => setTasks(ts => ts.filter(x => x.id !== id));
   const addTask = (newTask) => setTasks(ts => [newTask, ...ts]);
   const [topicBank, setTopicBank] = useState({}); // subject -> [topicName, ...] — pre-added topics for Today's Study/Plan, subject-scoped (mirrors examSubjects' subject->topics shape but as a flat list, no attempts)
@@ -3576,39 +3606,124 @@ export default function FocusGo() {
           else if (taskFilter === "upcoming") filteredTasks = tasks.filter(x => bucketOf(x) === "upcoming");
           else filteredTasks = tasks;
 
-          const renderTask = (x) => (
-            <div key={x.id} style={{display:"flex", alignItems:"flex-start", gap:12, padding:"13px 14px", borderRadius:16, background:cardBg, border:`1px solid ${cardBorder}`, opacity: x.done?0.55:1, transition:"opacity .2s ease"}}>
-              <button onClick={()=>{vibrate(); toggleTask(x.id);}} style={{marginTop:1, width:22, height:22, borderRadius:"50%", flexShrink:0, border:`2px solid ${x.done?"#6E8B5E":cardBorder}`, background: x.done?"#6E8B5E":"transparent", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", padding:0}}>
-                {x.done && <Check size={13} color="#fff" strokeWidth={3}/>}
-              </button>
-              <div style={{flex:1, minWidth:0}}>
-                <div style={{fontSize:14, fontWeight:600, color:textMain, textDecoration: x.done?"line-through":"none", marginBottom:6, lineHeight:1.3}}>{x.title}</div>
-                <div style={{display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"}}>
-                  <span style={{display:"inline-flex", alignItems:"center", gap:4, fontSize:10, fontWeight:700, padding:"3px 8px", borderRadius:20,
-                    background: x.category==="study" ? "rgba(76,143,166,0.12)" : "rgba(110,139,94,0.12)",
-                    color: x.category==="study" ? "#4C8FA6" : "#6E8B5E"}}>
-                    {x.category==="study" ? <GraduationCap size={11}/> : <User2 size={11}/>}
-                    {x.category==="study" ? t.taskStudy : t.taskPersonal}
-                  </span>
-                  <span style={{display:"inline-flex", alignItems:"center", gap:3, fontSize:10, fontWeight:700, color:prColor[x.priority]}}>
-                    <span style={{width:5,height:5,borderRadius:"50%", background:prColor[x.priority]}}/>
-                    {prLabel[x.priority]}
-                  </span>
-                  {x.done ? (
-                    <span style={{fontSize:10, fontWeight:700, color:"#6E8B5E"}}>{t.taskCompleted}</span>
-                  ) : (() => {
-                    const dl = dueLabel(x.dueDate);
-                    return dl ? <span style={{fontSize:10, fontWeight:700, color:dl.color}}>{dl.text}</span> : null;
-                  })()}
+          // ---- টাস্ক কার্ড: overdue হলে লাল, নাহলে priority অনুযায়ী কালার্ড left-border ----
+          const renderTask = (x) => {
+            const isOverdue = !x.done && x.dueDate && x.dueDate < todayKey;
+            const borderAccent = isOverdue ? "#C0392B" : prColor[x.priority];
+            return (
+              <div key={x.id} style={{display:"flex", alignItems:"flex-start", gap:12, padding:"13px 14px 13px 12px", borderRadius:16, background:cardBg, border:`1px solid ${cardBorder}`, borderLeft:`4px solid ${borderAccent}`, opacity: x.done?0.55:1, transition:"opacity .2s ease"}}>
+                <button onClick={()=>{vibrate(); toggleTask(x.id);}} style={{marginTop:1, width:22, height:22, borderRadius:"50%", flexShrink:0, border:`2px solid ${x.done?"#6E8B5E":cardBorder}`, background: x.done?"#6E8B5E":"transparent", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", padding:0}}>
+                  {x.done && <Check size={13} color="#fff" strokeWidth={3}/>}
+                </button>
+                <div style={{flex:1, minWidth:0}}>
+                  <div style={{fontSize:14, fontWeight:600, color:textMain, textDecoration: x.done?"line-through":"none", marginBottom:6, lineHeight:1.3}}>{x.title}</div>
+                  <div style={{display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"}}>
+                    <span style={{display:"inline-flex", alignItems:"center", gap:4, fontSize:10, fontWeight:700, padding:"3px 8px", borderRadius:20,
+                      background: x.category==="study" ? "rgba(76,143,166,0.12)" : "rgba(110,139,94,0.12)",
+                      color: x.category==="study" ? "#4C8FA6" : "#6E8B5E"}}>
+                      {x.category==="study" ? <GraduationCap size={11}/> : <User2 size={11}/>}
+                      {x.category==="study" ? t.taskStudy : t.taskPersonal}
+                    </span>
+                    <span style={{display:"inline-flex", alignItems:"center", gap:3, fontSize:10, fontWeight:700, color:prColor[x.priority]}}>
+                      <span style={{width:5,height:5,borderRadius:"50%", background:prColor[x.priority]}}/>
+                      {prLabel[x.priority]}
+                    </span>
+                    {x.repeat && (
+                      <span title={t.taskRepeatBadge} style={{display:"inline-flex", alignItems:"center", color:textMuted2}}>
+                        <Repeat size={11}/>
+                      </span>
+                    )}
+                    {x.done ? (
+                      <span style={{fontSize:10, fontWeight:700, color:"#6E8B5E"}}>{t.taskCompleted}</span>
+                    ) : (() => {
+                      const dl = dueLabel(x.dueDate);
+                      return dl ? <span style={{fontSize:10, fontWeight:700, color:dl.color}}>{dl.text}</span> : null;
+                    })()}
+                  </div>
                 </div>
+                <button onClick={()=>{vibrate(); deleteTask(x.id);}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:4, flexShrink:0}}>
+                  <Trash2 size={15}/>
+                </button>
               </div>
-              <button onClick={()=>{vibrate(); deleteTask(x.id);}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:4, flexShrink:0}}>
-                <Trash2 size={15}/>
-              </button>
-            </div>
-          );
+            );
+          };
 
           const emptyMsg = taskFilter === "today" ? t.taskEmptyToday : taskFilter === "upcoming" ? t.taskEmptyUpcoming : taskFilter === "done" ? t.taskEmptyDone : t.taskEmpty;
+
+          // ---- Calendar view: মাস-গ্রিডে টাস্কগুলো due date অনুযায়ী ডট আকারে দেখানো, দিন সিলেক্ট করলে সেদিনের টাস্ক লিস্ট ----
+          const renderTaskCalendarView = () => {
+            const y = taskCalMonth.getFullYear(), m = taskCalMonth.getMonth();
+            const firstDay = new Date(y, m, 1);
+            const startOffset = firstDay.getDay();
+            const daysInMonth = new Date(y, m+1, 0).getDate();
+            const cells = [];
+            for (let i=0;i<startOffset;i++) cells.push(null);
+            for (let d=1; d<=daysInMonth; d++) cells.push(new Date(y,m,d));
+            const shortDays = lang==="bn" ? ["র","সো","ম","বু","বৃ","শু","শ"] : ["S","M","T","W","T","F","S"];
+
+            const tasksByDay = {};
+            tasks.forEach(x => { if (x.dueDate) (tasksByDay[x.dueDate] = tasksByDay[x.dueDate] || []).push(x); });
+            const noDateTasks = tasks.filter(x => !x.dueDate);
+            const selectedKey = taskCalSelectedDay || todayKey;
+            const dayTasks = tasksByDay[selectedKey] || [];
+
+            return (
+              <div>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", margin:"2px 0 12px"}}>
+                  <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m-1,1));}} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:textMain}}><ChevronLeft size={15}/></button>
+                  <div style={{fontWeight:800, fontSize:14, color:textMain}}>{monthName(m)} <Num>{nf(y)}</Num></div>
+                  <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m+1,1));}} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:textMain}}><ChevronRight size={15}/></button>
+                </div>
+
+                <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4, marginBottom:6}}>
+                  {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:10, fontWeight:700, color:textMuted2}}>{d}</div>))}
+                </div>
+                <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4, marginBottom:14}}>
+                  {cells.map((d,i) => {
+                    if (!d) return <div key={i}/>;
+                    const dk = dateKey(d);
+                    const list = tasksByDay[dk] || [];
+                    const isToday = dk === todayKey;
+                    const isSelected = dk === selectedKey;
+                    const hasOverdue = list.some(x => !x.done && dk < todayKey);
+                    return (
+                      <button key={i} onClick={()=>{vibrate(); setTaskCalSelectedDay(dk);}} style={{
+                        position:"relative", aspectRatio:"1", borderRadius:10, cursor:"pointer",
+                        border: isSelected ? `1.5px solid ${accent}` : (isToday ? `1.5px solid ${cardBorder}` : "1px solid transparent"),
+                        background: isSelected ? `${accent}14` : (dark?"#121110":"#F8F5EE"),
+                        display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:3,
+                      }}>
+                        <span style={{fontSize:12, fontWeight: isToday?800:600, color: hasOverdue ? "#C0392B" : textMain}}><Num>{nf(d.getDate())}</Num></span>
+                        {list.length > 0 && (
+                          <div style={{display:"flex", gap:2}}>
+                            {list.slice(0,3).map((x,idx) => (
+                              <span key={idx} style={{width:5, height:5, borderRadius:"50%", background: x.done ? "#6E8B5E" : prColor[x.priority]}}/>
+                            ))}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div style={{fontSize:11, fontWeight:800, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>
+                  {(() => { const d = new Date(selectedKey+"T00:00:00"); return `${nf(d.getDate())} ${monthName(d.getMonth())}`; })()}
+                </div>
+                {dayTasks.length === 0 ? (
+                  <div style={{textAlign:"center", padding:"20px 0", color:textMuted2, fontSize:12.5}}>{t.taskCalEmptyDay}</div>
+                ) : (
+                  <div style={{display:"flex", flexDirection:"column", gap:9, marginBottom: noDateTasks.length ? 18 : 0}}>{dayTasks.map(renderTask)}</div>
+                )}
+
+                {noDateTasks.length > 0 && (
+                  <div>
+                    <div style={{fontSize:11, fontWeight:800, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskCalNoDateTasks}</div>
+                    <div style={{display:"flex", flexDirection:"column", gap:9}}>{noDateTasks.map(renderTask)}</div>
+                  </div>
+                )}
+              </div>
+            );
+          };
 
           return (
             <div key="task" className="fg-tab-panel" style={{marginTop:20}}>
@@ -3624,50 +3739,68 @@ export default function FocusGo() {
                 <div style={{height:"100%", width:`${pct}%`, background:accent, borderRadius:20, transition:"width .3s ease"}}/>
               </div>
 
-              <div style={{display:"flex", gap:8, marginBottom:14, overflowX:"auto"}}>
-                {filterChips.map(([key,label,Icon]) => (
-                  <button key={key} onClick={()=>{vibrate(); setTaskFilter(key);}} style={{
-                    display:"flex", alignItems:"center", gap:5, padding:"7px 13px", borderRadius:20, cursor:"pointer", flexShrink:0,
-                    border:`1px solid ${taskFilter===key ? accent : cardBorder}`,
-                    background: taskFilter===key ? accent : "transparent",
-                    color: taskFilter===key ? "#fff" : textMuted2, fontWeight:700, fontSize:12,
+              {/* List / Calendar ভিউ টগল */}
+              <div style={{display:"flex", gap:6, marginBottom:14, background: dark?"#1D1B16":"#F1ECE0", borderRadius:14, padding:4}}>
+                {[["list", t.taskViewList, List], ["calendar", t.taskViewCalendar, CalendarRange]].map(([key,label,Icon]) => (
+                  <button key={key} onClick={()=>{vibrate(); setTaskViewMode(key);}} style={{
+                    flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:6, padding:"8px 0", borderRadius:11, cursor:"pointer", border:"none",
+                    background: taskViewMode===key ? cardBg : "transparent",
+                    color: taskViewMode===key ? textMain : textMuted2, fontWeight:700, fontSize:12.5,
+                    boxShadow: taskViewMode===key ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
                   }}>
-                    <Icon size={12}/> {label}
+                    <Icon size={13}/> {label}
                   </button>
                 ))}
               </div>
 
-              {filteredTasks.length === 0 && (
-                <div style={{textAlign:"center", padding:"40px 0", color:textMuted2, fontSize:13}}>
-                  <Sparkles size={22} style={{marginBottom:8, opacity:0.5}}/>
-                  <div>{emptyMsg}</div>
-                </div>
-              )}
+              {taskViewMode === "list" ? (
+                <>
+                  <div style={{display:"flex", gap:8, marginBottom:14, overflowX:"auto"}}>
+                    {filterChips.map(([key,label,Icon]) => (
+                      <button key={key} onClick={()=>{vibrate(); setTaskFilter(key);}} style={{
+                        display:"flex", alignItems:"center", gap:5, padding:"7px 13px", borderRadius:20, cursor:"pointer", flexShrink:0,
+                        border:`1px solid ${taskFilter===key ? accent : cardBorder}`,
+                        background: taskFilter===key ? accent : "transparent",
+                        color: taskFilter===key ? "#fff" : textMuted2, fontWeight:700, fontSize:12,
+                      }}>
+                        <Icon size={12}/> {label}
+                      </button>
+                    ))}
+                  </div>
 
-              {filteredTasks.length > 0 && taskFilter === "all" ? (() => {
-                const todayBucket = filteredTasks.filter(x => bucketOf(x) === "today");
-                const upcomingBucket = filteredTasks.filter(x => bucketOf(x) === "upcoming");
-                return (
-                  <>
-                    {todayBucket.length > 0 && (
-                      <div style={{marginBottom: upcomingBucket.length ? 18 : 0}}>
-                        <div style={{fontSize:11, fontWeight:800, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionToday}</div>
-                        <div style={{display:"flex", flexDirection:"column", gap:9}}>{todayBucket.map(renderTask)}</div>
-                      </div>
-                    )}
-                    {upcomingBucket.length > 0 && (
-                      <div>
-                        <div style={{fontSize:11, fontWeight:800, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionUpcoming}</div>
-                        <div style={{display:"flex", flexDirection:"column", gap:9}}>{upcomingBucket.map(renderTask)}</div>
-                      </div>
-                    )}
-                  </>
-                );
-              })() : (
-                <div style={{display:"flex", flexDirection:"column", gap:9}}>
-                  {filteredTasks.map(renderTask)}
-                </div>
-              )}
+                  {filteredTasks.length === 0 && (
+                    <div style={{textAlign:"center", padding:"40px 0", color:textMuted2, fontSize:13}}>
+                      <Sparkles size={22} style={{marginBottom:8, opacity:0.5}}/>
+                      <div>{emptyMsg}</div>
+                    </div>
+                  )}
+
+                  {filteredTasks.length > 0 && taskFilter === "all" ? (() => {
+                    const todayBucket = filteredTasks.filter(x => bucketOf(x) === "today");
+                    const upcomingBucket = filteredTasks.filter(x => bucketOf(x) === "upcoming");
+                    return (
+                      <>
+                        {todayBucket.length > 0 && (
+                          <div style={{marginBottom: upcomingBucket.length ? 18 : 0}}>
+                            <div style={{fontSize:11, fontWeight:800, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionToday}</div>
+                            <div style={{display:"flex", flexDirection:"column", gap:9}}>{todayBucket.map(renderTask)}</div>
+                          </div>
+                        )}
+                        {upcomingBucket.length > 0 && (
+                          <div>
+                            <div style={{fontSize:11, fontWeight:800, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionUpcoming}</div>
+                            <div style={{display:"flex", flexDirection:"column", gap:9}}>{upcomingBucket.map(renderTask)}</div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })() : (
+                    <div style={{display:"flex", flexDirection:"column", gap:9}}>
+                      {filteredTasks.map(renderTask)}
+                    </div>
+                  )}
+                </>
+              ) : renderTaskCalendarView()}
 
               <div style={{marginTop:18, display:"flex", alignItems:"center", gap:10, border:`1px dashed ${cardBorder}`, borderRadius:14, padding:"11px 13px"}}>
                 <CalendarDays size={16} color={textMuted2}/>
@@ -5934,10 +6067,11 @@ function AddTaskModal({ t, onClose, onAdd, cardBg, cardBorder, textMain, textMut
   const [category, setCategory] = useState("study");
   const [priority, setPriority] = useState("med");
   const [dueDate, setDueDate] = useState("");
+  const [repeat, setRepeat] = useState("none"); // "none" | "daily" | "weekly" | "monthly"
 
   const submit = () => {
     if (!title.trim()) return;
-    onAdd({ id: `${Date.now()}_${Math.random().toString(36).slice(2,7)}`, title: title.trim(), category, priority, dueDate: dueDate || null, done: false });
+    onAdd({ id: `${Date.now()}_${Math.random().toString(36).slice(2,7)}`, title: title.trim(), category, priority, dueDate: dueDate || null, repeat: repeat === "none" ? null : repeat, done: false });
     onClose();
   };
 
@@ -5995,6 +6129,23 @@ function AddTaskModal({ t, onClose, onAdd, cardBg, cardBorder, textMain, textMut
               color: priority===p ? prColor[p] : textMuted2, fontWeight:700, fontSize:12.5,
             }}>
               {prLabel[p]}
+            </button>
+          ))}
+        </div>
+
+        <div style={{display:"flex", alignItems:"center", gap:6, marginBottom:8}}>
+          <Repeat size={12} color={textMuted2}/>
+          <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>{t.taskRepeat}</div>
+        </div>
+        <div style={{display:"flex", gap:8, marginBottom:20, overflowX:"auto"}}>
+          {[["none", t.taskRepeatNone], ["daily", t.taskRepeatDaily], ["weekly", t.taskRepeatWeekly], ["monthly", t.taskRepeatMonthly]].map(([r,label]) => (
+            <button key={r} onClick={()=>setRepeat(r)} style={{
+              flex:1, padding:"8px 4px", borderRadius:12, cursor:"pointer", flexShrink:0, whiteSpace:"nowrap",
+              border:`1.5px solid ${repeat===r ? accent : cardBorder}`,
+              background: repeat===r ? "rgba(217,119,87,0.08)" : "transparent",
+              color: repeat===r ? accent : textMuted2, fontWeight:700, fontSize:12,
+            }}>
+              {label}
             </button>
           ))}
         </div>
