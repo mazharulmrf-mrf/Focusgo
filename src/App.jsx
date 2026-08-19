@@ -1214,6 +1214,7 @@ const T = {
     totalPlannedLabel: "Total planned",
     studyOverview: "Study Overview", focusedLabel: "total time focused", topicsCompletedLabel: "topics completed",
     completionLabel: "completion rate", streakLabel: "day streak", weeklyActivity: "Weekly Activity",
+    monthlyActivity: "Monthly Activity", weekLabelShort: "W",
     subjectProgressSubtitle: "How far you've covered in each subject",
     calendarLegendCompleted: "Study completed", calendarLegendExam: "Exam", calendarLegendPlanned: "Planned",
     calendarLegendHoliday: "Govt holiday",
@@ -1354,6 +1355,7 @@ const T = {
     totalPlannedLabel: "মোট পরিকল্পিত সময়",
     studyOverview: "পড়াশোনার সারসংক্ষেপ", focusedLabel: "মোট ফোকাস সময়", topicsCompletedLabel: "টি টপিক সম্পন্ন",
     completionLabel: "সম্পন্ন হার", streakLabel: "দিনের স্ট্রিক", weeklyActivity: "সাপ্তাহিক কার্যক্রম",
+    monthlyActivity: "মাসিক কার্যক্রম", weekLabelShort: "সপ্তাহ ",
     subjectProgressSubtitle: "প্রতিটি সাবজেক্টে তুমি কতদূর পড়েছ",
     calendarLegendCompleted: "পড়া সম্পন্ন", calendarLegendExam: "পরীক্ষা", calendarLegendPlanned: "পরিকল্পিত",
     calendarLegendHoliday: "সরকারি ছুটি",
@@ -2765,6 +2767,26 @@ export default function FocusGo() {
     return { day: d, min };
   });
 
+  // ---- monthly activity — minutes studied per week, this month (for the Stats mini bar chart) ----
+  const monthlyActivity = (() => {
+    const y = today.getFullYear(), m = today.getMonth();
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    const weeks = [];
+    let cur = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+      cur.push(d);
+      const isWeekEnd = new Date(y, m, d).getDay() === 6; // Saturday closes a week (weeks start Sunday)
+      if (isWeekEnd || d === daysInMonth) { weeks.push(cur); cur = []; }
+    }
+    return weeks.map((wDays, i) => {
+      const min = wDays.reduce((s, d) => {
+        const list = entries[dateKey(new Date(y, m, d))] || [];
+        return s + list.filter(x=>x.done).reduce((ss,x)=>ss+(x.duration||0), 0);
+      }, 0);
+      return { weekNum: i+1, min }; // label formatted at render time (t/nf not ready yet here)
+    });
+  })();
+
   // ---- weekly topic summary (Subject+Topic matched, covered vs missed) — শুধু সপ্তাহ সম্পূর্ণ শেষ হলেই দেখানো হয় ----
   const summaryWeekStart = startOfWeek(summaryWeekAnchor);
   const summaryWeekEnd = (() => { const d = new Date(summaryWeekStart); d.setDate(d.getDate()+6); return d; })();
@@ -3141,7 +3163,30 @@ export default function FocusGo() {
         {tab === "study" && (
           <div className="fg-tab-panel" style={{marginTop:18, marginBottom:-2}}>
             <div style={{fontSize:21, fontWeight:800, letterSpacing:-0.4, color:textMain}}>Study</div>
-            <div style={{fontSize:12, color:textMuted2, marginTop:3}}>Plan, focus, and track your study.</div>
+            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginTop:3}}>
+              <div style={{fontSize:12, color:textMuted2}}>Plan, focus, and track your study.</div>
+              <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
+                border:`1px solid ${dark?"rgba(217,119,87,0.4)":"rgba(217,119,87,0.35)"}`,
+                background: dark?"rgba(217,119,87,0.16)":"rgba(217,119,87,0.12)",
+                borderRadius:12,
+                width:32,
+                height:32,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                cursor:"pointer",
+                flexShrink:0,
+                position:"relative",
+              }}>
+                <CalendarDays size={15} color={accent} strokeWidth={2.2}/>
+                {examDateKeys.has(todayKey) && (
+                  <span style={{
+                    position:"absolute", top:3, right:3,
+                    width:7, height:7, borderRadius:"50%",
+                    background:"#C0392B",
+                    border:`1.5px solid ${cardBg}`,
+                  }}/>
+                )}
+              </button>
+            </div>
             <div style={{display:"flex", gap:22, marginTop:16, borderBottom:`1px solid ${cardBorder}`}}>
               <button onClick={()=>{vibrate(); setStudySection("plan");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 10px", fontSize:13.5, fontWeight:800, color: studySection==="plan" ? textMain : textMuted2, borderBottom: studySection==="plan" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
                 {t.planViewStudy}
@@ -3472,70 +3517,6 @@ export default function FocusGo() {
                 </div>
               );
             })()}
-
-            {/* Subject Progress — lives under Study Plan */}
-            <div style={{display:"flex", alignItems:"center", gap:10, marginTop:26, marginBottom:16}}>
-              <div style={{width:36,height:36, borderRadius:11, background: dark?"#26231D":"#F3EEE3", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                <GraduationCap size={18} color={dark ? "#C9C0AC" : "#6B6353"}/>
-              </div>
-              <div style={{minWidth:0}}>
-                <div style={{fontSize:16.5, fontWeight:800, letterSpacing:-0.2, color:textMain}}>{t.syllabusProgress}</div>
-                <div style={{fontSize:11, color:textMuted2, fontWeight:500, opacity:0.75}}>{t.subjectProgressSubtitle}</div>
-              </div>
-            </div>
-
-            <div>
-              <div style={{display:"flex", justifyContent:"flex-end", marginBottom:12}}>
-                <button onClick={()=>{vibrate(); setShowSubjects(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
-                  <Plus size={12}/> {t.manageSubjects}
-                </button>
-              </div>
-              {(() => {
-                const sorted = [...allSubjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"}));
-                const COLLAPSE_AT = 6;
-                const isLong = sorted.length > COLLAPSE_AT;
-                const visible = (isLong && !showAllSubjectsProgress) ? sorted.slice(0, COLLAPSE_AT) : sorted;
-                return (
-                  <>
-                    <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8}}>
-                      {sorted.length === 0 && (
-                        <div style={{fontSize:13, color:textMuted2, padding:"14px 0", gridColumn:"1 / -1"}}>—</div>
-                      )}
-                      {visible.map(subj => {
-                        const v = subjectProgress[subj] || { done:0, total:0 };
-                        const c = colorForSubject(subj, allSubjects);
-                        const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
-                        if (v.total === 0) {
-                          return (
-                            <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 12px", minWidth:0}}>
-                              <div style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginBottom:6, color:textMain}}>{subj}</div>
-                              <div style={{fontSize:10.5, color:textMuted2, fontWeight:500, opacity:0.75, marginBottom:6}}>{t.noTopicsSubjectShort}</div>
-                              <button onClick={()=>{vibrate(); setShowManageTopicsFor(subj); setShowSubjects(true);}} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:c.bg, fontSize:10.5, fontWeight:700, cursor:"pointer", padding:0}}>
-                                <Plus size={11}/> {t.addTopicsShort}
-                              </button>
-                            </div>
-                          );
-                        }
-                        return (
-                          <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px", display:"flex", alignItems:"center", gap:10, minWidth:0}}>
-                            <PercentRing pct={pct} size={46} stroke={4.5} accent={c.bg} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain} nf={nf}/>
-                            <div style={{minWidth:0, flex:1}}>
-                              <div style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", color:textMain}}>{subj}</div>
-                              <div style={{fontSize:10.5, color:textMuted2, fontWeight:500, opacity:0.75, marginTop:2}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num> {t.complete}</div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {isLong && (
-                      <button onClick={()=>{vibrate(); setShowAllSubjectsProgress(v=>!v);}} style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:10, padding:"10px 0 2px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
-                        {showAllSubjectsProgress ? t.showLess : t.seeAll} <ChevronDown size={14} style={{transform: showAllSubjectsProgress ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
-                      </button>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
           </div>
         )}
 
@@ -3573,16 +3554,27 @@ export default function FocusGo() {
           else if (taskFilter === "upcoming") filteredTasks = tasks.filter(x => bucketOf(x) === "upcoming");
           else filteredTasks = tasks;
 
-          // ---- টাস্ক কার্ড: সিম্পল, flat, কোনো কালার্ড left-border নেই — শুধু checkbox, ট্যাপ করলে এডিট ওপেন হয় ----
+          // ---- টাস্ক কার্ড: Study Plan-এর TopicsList কার্ডের মতোই — বড় গোল toggle বাটন, উপরে ক্যাটাগরি ব্যাজ (subject ট্যাগের মতো) ----
           const renderTask = (x) => {
             const isOverdue = !x.done && x.dueDate && x.dueDate < todayKey;
+            const cat = findTaskCategory(taskCategories, x.category);
+            const CatIcon = taskCategoryIcon(cat.icon);
+            const catLabel = x.category === "study" ? t.taskStudy : x.category === "personal" ? t.taskPersonal : (lang === "bn" ? (cat.labelBn || cat.label) : cat.label);
             return (
-              <div key={x.id} onClick={()=>setEditingTask(x)} style={{display:"flex", alignItems:"flex-start", gap:12, padding:"13px 14px", borderRadius:16, background:cardBg, border:`1px solid ${cardBorder}`, opacity: x.done?0.55:1, transition:"opacity .2s ease", cursor:"pointer"}}>
-                <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{marginTop:1, width:22, height:22, borderRadius:"50%", flexShrink:0, border:`2px solid ${x.done?"#6E8B5E":cardBorder}`, background: x.done?"#6E8B5E":"transparent", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", padding:0}}>
-                  {x.done && <Check size={13} color="#fff" strokeWidth={3}/>}
+              <div key={x.id} onClick={()=>setEditingTask(x)} style={{
+                background: x.done ? "rgba(110,139,94,0.07)" : cardBg,
+                border: `1px solid ${x.done ? "rgba(110,139,94,0.35)" : cardBorder}`,
+                borderRadius:16, padding:"12px 14px", display:"flex", alignItems:"center", gap:12, position:"relative",
+                transition:"background .15s ease, border-color .15s ease", cursor:"pointer",
+              }}>
+                <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{width:34, height:34, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: x.done ? "#6E8B5E" : `${cat.color}1F`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                  {x.done ? <Check size={16} color="#fff" strokeWidth={3}/> : <span style={{width:9,height:9,borderRadius:"50%", background:cat.color}}/>}
                 </button>
                 <div style={{flex:1, minWidth:0}}>
-                  <div style={{fontSize:14, fontWeight:600, color:textMain, textDecoration: x.done?"line-through":"none", marginBottom:6, lineHeight:1.3}}>{x.title}</div>
+                  <span style={{display:"inline-flex", alignItems:"center", gap:4, fontSize:9.5, fontWeight:800, letterSpacing:0.5, color:cat.color, background:`${cat.color}1F`, borderRadius:6, padding:"2px 7px", marginBottom:5}}>
+                    <CatIcon size={10}/> {catLabel}
+                  </span>
+                  <div style={{fontSize:14, fontWeight:600, color:textMain, wordBreak:"break-word", textDecoration: x.done?"line-through":"none", opacity: x.done?0.6:1, marginBottom:6, lineHeight:1.3}}>{x.title}</div>
                   <div style={{display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"}}>
                     {/* আজকের বাইরের যেকোনো টাস্কে ছোট করে শুধু তারিখের নাম্বার (যেমন ০১, ২৮) — done/pending সব ক্ষেত্রেই */}
                     {x.dueDate && x.dueDate !== todayKey && (
@@ -3590,18 +3582,6 @@ export default function FocusGo() {
                         <Num>{nf(pad2(new Date(x.dueDate+"T00:00:00").getDate()))}</Num>
                       </span>
                     )}
-                    {(() => {
-                      const cat = findTaskCategory(taskCategories, x.category);
-                      const CatIcon = taskCategoryIcon(cat.icon);
-                      const catLabel = x.category === "study" ? t.taskStudy : x.category === "personal" ? t.taskPersonal : (lang === "bn" ? (cat.labelBn || cat.label) : cat.label);
-                      return (
-                        <span style={{display:"inline-flex", alignItems:"center", gap:4, fontSize:10, fontWeight:700, padding:"3px 8px", borderRadius:20,
-                          background: `${cat.color}1F`, color: cat.color}}>
-                          <CatIcon size={11}/>
-                          {catLabel}
-                        </span>
-                      );
-                    })()}
                     <span style={{display:"inline-flex", alignItems:"center", gap:3, fontSize:10, fontWeight:700, color: isOverdue ? "#C0392B" : prColor[x.priority]}}>
                       <span style={{width:5,height:5,borderRadius:"50%", background: isOverdue ? "#C0392B" : prColor[x.priority]}}/>
                       {prLabel[x.priority]}
@@ -3631,9 +3611,10 @@ export default function FocusGo() {
             );
           };
 
+
           const emptyMsg = taskFilter === "today" ? t.taskEmptyToday : taskFilter === "upcoming" ? t.taskEmptyUpcoming : taskFilter === "done" ? t.taskEmptyDone : t.taskEmpty;
 
-          // ---- Calendar view: মাস-গ্রিডে টাস্কগুলো due date অনুযায়ী ডট আকারে দেখানো, দিন সিলেক্ট করলে সেদিনের টাস্ক লিস্ট ----
+          // ---- Calendar view: Stats ট্যাবের InlineMonthCalendar-এর মতোই একই ভিজ্যুয়াল স্টাইল (গ্রিড + legend), শুধু ডট রঙ টাস্ক অনুযায়ী (completed/pending/overdue) ----
           const renderTaskCalendarView = () => {
             const y = taskCalMonth.getFullYear(), m = taskCalMonth.getMonth();
             const firstDay = new Date(y, m, 1);
@@ -3649,51 +3630,64 @@ export default function FocusGo() {
             const noDateTasks = tasks.filter(x => !x.dueDate);
             const selectedKey = taskCalSelectedDay || todayKey;
             const dayTasks = tasksByDay[selectedKey] || [];
+            const selectedDateObj = new Date(selectedKey + "T00:00:00");
 
             return (
               <div>
-                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", margin:"2px 0 12px"}}>
-                  <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m-1,1));}} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:textMain}}><ChevronLeft size={15}/></button>
-                  <div style={{fontWeight:800, fontSize:14, color:textMain}}>{monthName(m)} <Num>{nf(y)}</Num></div>
-                  <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m+1,1));}} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:textMain}}><ChevronRight size={15}/></button>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12}}>
+                  <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m-1,1));}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", display:"flex", padding:4}}><ChevronLeft size={18}/></button>
+                  <span style={{fontSize:14.5, fontWeight:800, color:textMain}}>{monthName(m)} <Num>{nf(y)}</Num></span>
+                  <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m+1,1));}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", display:"flex", padding:4}}><ChevronRight size={18}/></button>
                 </div>
-
-                <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4, marginBottom:6}}>
-                  {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:10, fontWeight:700, color:textMuted2}}>{d}</div>))}
-                </div>
-                <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4, marginBottom:14}}>
-                  {cells.map((d,i) => {
-                    if (!d) return <div key={i}/>;
-                    const dk = dateKey(d);
-                    const list = tasksByDay[dk] || [];
-                    const isToday = dk === todayKey;
-                    const isSelected = dk === selectedKey;
-                    const hasOverdue = list.some(x => !x.done && dk < todayKey);
-                    return (
-                      <button key={i} onClick={()=>{vibrate(); setTaskCalSelectedDay(dk);}} style={{
-                        position:"relative", aspectRatio:"1", borderRadius:10, cursor:"pointer",
-                        border: isSelected ? `1.5px solid ${accent}` : (isToday ? `1.5px solid ${cardBorder}` : "1px solid transparent"),
-                        background: isSelected ? `${accent}14` : (dark?"#121110":"#F8F5EE"),
-                        display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:3,
-                      }}>
-                        <span style={{fontSize:12, fontWeight: isToday?800:600, color: hasOverdue ? "#C0392B" : textMain}}><Num>{nf(d.getDate())}</Num></span>
-                        {list.length > 0 && (
-                          <div style={{display:"flex", gap:2}}>
-                            {list.slice(0,3).map((x,idx) => (
-                              <span key={idx} style={{width:5, height:5, borderRadius:"50%", background: x.done ? "#6E8B5E" : prColor[x.priority]}}/>
-                            ))}
+                <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 12px", marginBottom:14}}>
+                  <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:8}}>
+                    {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:10.5, fontWeight:700, color:textMuted2}}>{d}</div>))}
+                  </div>
+                  <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", rowGap:6}}>
+                    {cells.map((d,i) => {
+                      if (!d) return <div key={i}/>;
+                      const dk = dateKey(d);
+                      const list = tasksByDay[dk] || [];
+                      const hasAny = list.length > 0;
+                      const doneAll = hasAny && list.every(x=>x.done);
+                      const hasOverdue = list.some(x => !x.done && dk < todayKey);
+                      const isToday = dk === todayKey;
+                      const isSelected = dk === selectedKey;
+                      return (
+                        <button key={i} onClick={()=>{vibrate(); setTaskCalSelectedDay(dk);}} style={{
+                          display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"4px 0", border:"none", background:"transparent", cursor:"pointer",
+                        }}>
+                          <div style={{position:"relative", width:26, height:26, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700,
+                            background: isSelected ? accent : "transparent",
+                            border: isToday && !isSelected ? `1px solid ${accent}` : "none",
+                            color: isSelected ? "#fff" : (hasOverdue ? "#C0392B" : textMain)}}>
+                            <Num>{nf(d.getDate())}</Num>
                           </div>
-                        )}
-                      </button>
-                    );
-                  })}
+                          <span style={{width:4, height:4, borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : (hasOverdue ? "#C0392B" : "#4C8FA6"))}}/>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                <div style={{fontSize:11, fontWeight:800, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>
-                  {(() => { const d = new Date(selectedKey+"T00:00:00"); return `${nf(d.getDate())} ${monthName(d.getMonth())}`; })()}
+                {/* Calendar legend — Stats-এর ক্যালেন্ডার legend-এর মতোই একই স্টাইল */}
+                <div style={{display:"flex", justifyContent:"center", alignItems:"center", gap:14, marginBottom:18, flexWrap:"wrap"}}>
+                  <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10.5, color:textMuted2, fontWeight:600}}>
+                    <span style={{width:7,height:7,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
+                  </span>
+                  <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10.5, color:textMuted2, fontWeight:600}}>
+                    <span style={{width:7,height:7,borderRadius:"50%", background:"#4C8FA6"}}/>{t.calendarLegendPlanned}
+                  </span>
+                  <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10.5, color:textMuted2, fontWeight:600}}>
+                    <span style={{width:7,height:7,borderRadius:"50%", background:"#C0392B"}}/>{t.taskOverdue}
+                  </span>
+                </div>
+
+                <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:12}}>
+                  {selectedKey === todayKey ? (lang==="bn" ? "আজ" : "Today") : <>{weekdayName(selectedDateObj)}, <Num>{nf(selectedDateObj.getDate())}</Num> {monthName(selectedDateObj.getMonth())}</>}
                 </div>
                 {dayTasks.length === 0 ? (
-                  <div style={{textAlign:"center", padding:"20px 0", color:textMuted2, fontSize:12.5}}>{t.taskCalEmptyDay}</div>
+                  <div style={{textAlign:"center", padding:"20px 0", color:textMuted2, fontSize:12.5, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16, marginBottom: noDateTasks.length ? 18 : 0}}>{t.taskCalEmptyDay}</div>
                 ) : (
                   <div style={{display:"flex", flexDirection:"column", gap:9, marginBottom: noDateTasks.length ? 18 : 0}}>{dayTasks.map(renderTask)}</div>
                 )}
@@ -3722,29 +3716,25 @@ export default function FocusGo() {
                 <div style={{height:"100%", width:`${pct}%`, background:accent, borderRadius:20, transition:"width .3s ease"}}/>
               </div>
 
-              {/* List / Calendar ভিউ টগল — অ্যাক্টিভ ট্যাবে accent কালার + আইকন ব্যাজ, যাতে দুইটা ভিউ স্পষ্ট আলাদা বোঝা যায় */}
-              <div style={{display:"flex", gap:6, marginBottom:14, background: dark?"#1D1B16":"#F1ECE0", borderRadius:14, padding:4}}>
+              {/* List / Calendar ভিউ টগল — Study Plan/Stats-এর মতো একই underline-tab স্টাইল */}
+              <div style={{display:"flex", gap:22, marginBottom:12, borderBottom:`1px solid ${cardBorder}`}}>
                 {[["list", t.taskViewList, List], ["calendar", t.taskViewCalendar, CalendarRange]].map(([key,label,Icon]) => {
                   const active = taskViewMode === key;
                   return (
                     <button key={key} onClick={()=>{vibrate(); setTaskViewMode(key);}} style={{
-                      flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:7, padding:"9px 0", borderRadius:11, cursor:"pointer",
-                      border: active ? `1.5px solid ${accent}` : "1.5px solid transparent",
-                      background: active ? (dark ? "rgba(217,119,87,0.16)" : "rgba(217,119,87,0.10)") : "transparent",
-                      color: active ? accent : textMuted2, fontWeight:800, fontSize:12.5,
-                      boxShadow: active ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-                      transition:"all .15s ease",
+                      display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", cursor:"pointer",
+                      padding:"0 0 10px", fontSize:13.5, fontWeight:800,
+                      color: active ? textMain : textMuted2,
+                      borderBottom: active ? `2px solid ${accent}` : "2px solid transparent",
+                      marginBottom:-1, transition:"color .18s ease, border-color .18s ease",
                     }}>
-                      <span style={{display:"flex", alignItems:"center", justifyContent:"center", width:20, height:20, borderRadius:7,
-                        background: active ? accent : "transparent", color: active ? "#fff" : textMuted2}}>
-                        <Icon size={12}/>
-                      </span>
+                      <Icon size={14} color={active ? accent : textMuted2}/>
                       {label}
                     </button>
                   );
                 })}
               </div>
-              <div style={{fontSize:11, color:textMuted2, fontWeight:600, marginTop:-8, marginBottom:14, opacity:0.85}}>
+              <div style={{fontSize:11, color:textMuted2, fontWeight:600, marginBottom:14, opacity:0.85}}>
                 {taskViewMode === "list" ? t.taskViewListHint : t.taskViewCalendarHint}
               </div>
 
@@ -3860,6 +3850,70 @@ export default function FocusGo() {
               </div>
             </div>
 
+            {/* Subject Progress — right after Study Overview */}
+            <div style={{display:"flex", alignItems:"center", gap:10, marginTop:6, marginBottom:16}}>
+              <div style={{width:36,height:36, borderRadius:11, background: dark?"#26231D":"#F3EEE3", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                <GraduationCap size={18} color={dark ? "#C9C0AC" : "#6B6353"}/>
+              </div>
+              <div style={{minWidth:0}}>
+                <div style={{fontSize:16.5, fontWeight:800, letterSpacing:-0.2, color:textMain}}>{t.syllabusProgress}</div>
+                <div style={{fontSize:11, color:textMuted2, fontWeight:500, opacity:0.75}}>{t.subjectProgressSubtitle}</div>
+              </div>
+            </div>
+
+            <div style={{marginBottom:20}}>
+              <div style={{display:"flex", justifyContent:"flex-end", marginBottom:12}}>
+                <button onClick={()=>{vibrate(); setShowSubjects(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+                  <Plus size={12}/> {t.manageSubjects}
+                </button>
+              </div>
+              {(() => {
+                const sorted = [...allSubjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"}));
+                const COLLAPSE_AT = 4; // max 4 subjects shown in the grid — rest via "See more"
+                const isLong = sorted.length > COLLAPSE_AT;
+                const visible = (isLong && !showAllSubjectsProgress) ? sorted.slice(0, COLLAPSE_AT) : sorted;
+                return (
+                  <>
+                    <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8}}>
+                      {sorted.length === 0 && (
+                        <div style={{fontSize:13, color:textMuted2, padding:"14px 0", gridColumn:"1 / -1"}}>—</div>
+                      )}
+                      {visible.map(subj => {
+                        const v = subjectProgress[subj] || { done:0, total:0 };
+                        const c = colorForSubject(subj, allSubjects);
+                        const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
+                        if (v.total === 0) {
+                          return (
+                            <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 12px", minWidth:0}}>
+                              <div style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginBottom:6, color:textMain}}>{subj}</div>
+                              <div style={{fontSize:10.5, color:textMuted2, fontWeight:500, opacity:0.75, marginBottom:6}}>{t.noTopicsSubjectShort}</div>
+                              <button onClick={()=>{vibrate(); setShowManageTopicsFor(subj); setShowSubjects(true);}} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:c.bg, fontSize:10.5, fontWeight:700, cursor:"pointer", padding:0}}>
+                                <Plus size={11}/> {t.addTopicsShort}
+                              </button>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px", display:"flex", alignItems:"center", gap:10, minWidth:0}}>
+                            <PercentRing pct={pct} size={46} stroke={4.5} accent={c.bg} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain} nf={nf}/>
+                            <div style={{minWidth:0, flex:1}}>
+                              <div style={{fontWeight:700, fontSize:12.5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", color:textMain}}>{subj}</div>
+                              <div style={{fontSize:10.5, color:textMuted2, fontWeight:500, opacity:0.75, marginTop:2}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num> {t.complete}</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {isLong && (
+                      <button onClick={()=>{vibrate(); setShowAllSubjectsProgress(v=>!v);}} style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:10, padding:"10px 0 2px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+                        {showAllSubjectsProgress ? t.showLess : t.seeAll} <ChevronDown size={14} style={{transform: showAllSubjectsProgress ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+
             {/* Task Overview */}
             {(() => {
               const taskTotal = tasks.length;
@@ -3922,10 +3976,69 @@ export default function FocusGo() {
               })()}
             </div>
 
+            {/* Monthly Activity — same bar-chart style as Weekly Activity, grouped by week-of-month */}
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:10}}>
+              <span style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.monthlyActivity}</span>
+              <span style={{fontSize:11, fontWeight:700, color:textMuted2}}>
+                {(() => {
+                  const total = monthlyActivity.reduce((s,w)=>s+w.min,0);
+                  const h = Math.floor(total/60), m = total%60;
+                  return <>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m {lang==="bn" ? "মোট" : "total"}</>;
+                })()}
+              </span>
+            </div>
+            <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"18px 12px 12px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:118, marginBottom:20}}>
+              {(() => {
+                const maxMin = Math.max(1, ...monthlyActivity.map(w=>w.min));
+                const currentWeekNum = (() => {
+                  const d = today.getDate();
+                  let w = 1;
+                  for (let i=1;i<d;i++) { if (new Date(today.getFullYear(), today.getMonth(), i).getDay() === 6) w += 1; }
+                  return w;
+                })();
+                return monthlyActivity.map((w,i) => {
+                  const h = Math.max(4, Math.round((w.min/maxMin)*62));
+                  const isCurrent = w.weekNum === currentWeekNum;
+                  const hh = Math.floor(w.min/60), mm = w.min%60;
+                  return (
+                    <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6, height:"100%", justifyContent:"flex-end"}}>
+                      {w.min > 0 ? (
+                        <span style={{fontSize:8.5, fontWeight:700, color: isCurrent ? accent : textMuted2, opacity: isCurrent?1:0.75, whiteSpace:"nowrap"}}>
+                          {hh > 0 ? <><Num>{nf(hh)}</Num>h<Num>{nf(mm)}</Num></> : <Num>{nf(mm)}</Num>}
+                        </span>
+                      ) : <span style={{fontSize:8.5, height:11}}/>}
+                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:6, background: w.min>0 ? (isCurrent ? accent : "#4C8FA655") : (dark?"#2C2820":"#EFE9DC"), transition:"height .3s"}}/>
+                      <span style={{fontSize:9, fontWeight:700, color: isCurrent?accent:textMuted2}}>{t.weekLabelShort}<Num>{nf(w.weekNum)}</Num></span>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+
             <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:10}}>{t.thisWeek}</div>
-            <WeekDayStrip days={weekDays} entries={entries} selectedKey={dateKey(statsMonthDay)} onSelectDay={selectStatsDay}
-              todayKey={todayKey} weekdayShort={weekdayShort} nf={nf} accent={accent} dark={dark}
-              textMuted2={textMuted2} textMain={textMain} cardBg={cardBg} cardBorder={cardBorder}/>
+            <div style={{display:"flex", justifyContent:"space-between", gap:2, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"16px 8px", marginBottom:20}}>
+              {weekDays.map((d,i) => {
+                const dk = dateKey(d);
+                const isSel = dk === dateKey(statsMonthDay);
+                const dayList = entries[dk] || [];
+                const hasAny = dayList.length > 0;
+                const doneAll = hasAny && dayList.every(x=>x.done);
+                const statusColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : "#4C8FA6");
+                return (
+                  <div key={i} onClick={()=>selectStatsDay(d)} style={{textAlign:"center", cursor:"pointer", flex:1, padding:"0 2px"}}>
+                    <div style={{fontSize:9, fontWeight:700, color: isSel ? accent : textMuted2, opacity: isSel ? 1 : 0.85, marginBottom:8, letterSpacing:0.3}}>{weekdayShort(d)}</div>
+                    <div style={{width:34,height:34, borderRadius:"50%", display:"flex",alignItems:"center",justifyContent:"center", margin:"0 auto", fontSize:13, fontWeight:800,
+                      transition:"background .18s ease, color .18s ease, box-shadow .18s ease", boxShadow: isSel ? `0 0 0 1.5px ${accent}` : "none",
+                      background:"transparent", color: isSel ? accent : textMain}}>
+                      <Num>{nf(d.getDate())}</Num>
+                    </div>
+                    <div style={{marginTop:8, display:"flex", justifyContent:"center"}}>
+                      <span style={{width:6, height:6, borderRadius:"50%", background: statusColor, opacity: hasAny ? 1 : 0.3}}/>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
 
             <TopicSummaryPeriodCard
               label={t.weeklySummary}
@@ -5930,8 +6043,8 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         </div>
       )}
 
-      {/* Categories — কম্প্যাক্ট, ফোল্ডার গ্রিডের বদলে এখন এটাই একমাত্র ফিল্টার */}
-      <div style={{ display:"flex",gap:6,alignItems:"center",overflowX:"auto",paddingBottom:2,marginBottom:14 }}>
+      {/* Categories — কম্প্যাক্ট, ফোল্ডার গ্রিডের বদলে এখন এটাই একমাত্র ফিল্টার; দরকার হলে ২-৩ লাইনে wrap হবে, নিচে scrollbar আসবে না */}
+      <div style={{ display:"flex",flexWrap:"wrap",gap:6,alignItems:"center",marginBottom:14 }}>
         <Tag size={13} color={textMuted2} style={{flex:"0 0 auto"}}/>
         <button onClick={(e)=>{e.stopPropagation();setActiveFolder("All Notes");}} style={{border:`1px solid ${activeFolder==="All Notes"?accent:cardBorder}`,background:activeFolder==="All Notes"?(dark?"#2B281F":"#FFF4DF"):(dark?"#211F1B":"#F5F2EA"),color:activeFolder==="All Notes"?accent:textMain,cursor:"pointer",fontSize:12,fontWeight:700,padding:"5px 11px",borderRadius:999,flex:"0 0 auto"}}>{lang==="bn"?"সব":"All"}</button>
         <button onClick={(e)=>{e.stopPropagation();setActiveFolder("Pinned");}} style={{border:`1px solid ${activeFolder==="Pinned"?accent:cardBorder}`,background:activeFolder==="Pinned"?(dark?"#2B281F":"#FFF4DF"):(dark?"#211F1B":"#F5F2EA"),color:activeFolder==="Pinned"?accent:textMain,cursor:"pointer",fontSize:12,fontWeight:700,padding:"5px 11px",borderRadius:999,flex:"0 0 auto",display:"flex",alignItems:"center",gap:4}}><Pin size={11}/>{lang==="bn"?"পিন":"Pinned"}</button>
