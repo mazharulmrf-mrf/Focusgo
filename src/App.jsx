@@ -3400,26 +3400,6 @@ export default function FocusGo() {
               <div style={{fontSize:9, color:textMuted2, fontWeight:600, opacity:0.85, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
             </div>
           </div>
-
-          {/* Horizontal progress bar */}
-          <div style={{display:"flex", alignItems:"center", gap:10, marginTop:14}}>
-            <div style={{flex:1, height:6, borderRadius:10, background: dark?"#2C2820":"#EFE9DC", overflow:"hidden"}}>
-              <div style={{width:`${todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}%`, height:"100%", borderRadius:10, background:accent, transition:"width .3s ease"}}/>
-            </div>
-            <div style={{fontSize:11.5, fontWeight:700, color:textMuted2, flexShrink:0}}>
-              <Num>{nf(todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0)}</Num>%
-            </div>
-          </div>
-        </div>
-        )}
-
-        {/* Tip strip - explains how progress is calculated */}
-        {(tab === "today" || (tab === "study" && studySection === "plan")) && (
-        <div className="fg-tab-panel" style={{marginTop:10, display:"flex", alignItems:"center", gap:10, background: dark ? "#1E1A16" : cardBg, border: dark ? `1px solid ${accent}30` : `1px solid ${cardBorder}`, borderRadius:14, padding:"10px 14px"}}>
-          <Lightbulb size={15} color={accent} style={{flexShrink:0}}/>
-          <div style={{fontSize:11.5, color:textMuted2, fontWeight:500, lineHeight:1.4}}>
-            <span style={{color:textMain, fontWeight:700}}>{t.tipLabel}:</span> {t.progressTip}
-          </div>
         </div>
         )}
 
@@ -3848,7 +3828,7 @@ export default function FocusGo() {
         {/* NOTES tab */}
         {tab === "notes" && (
           <NotesView t={t} lang={lang} notes={notes} setNotes={setNotes} search={noteSearch} setSearch={setNoteSearch}
-            cardBg={cardBg} cardBorder={cardBorder} textMain={textMain}
+            cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} bg={bg}
             textMuted2={textMuted2} accent={accent} dark={dark} isDesktop={isDesktop}/>
         )}
 
@@ -5863,13 +5843,14 @@ const NOTE_PAPER_BG = "#F7F1E3";
 const NOTE_PAPER_TEXT = "#2C2820";
 const NOTE_PAPER_MUTED = "#7C7361";
 
-function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg, cardBorder, textMain, textMuted2, accent, dark, isDesktop }) {
+function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg, cardBorder, textMain, textMuted2, accent, dark, isDesktop, bg }) {
   const [editing, setEditing] = useState(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [category, setCategory] = useState("General");
   const [checklist, setChecklist] = useState([]);
   const [checkText, setCheckText] = useState("");
+  const [fontSize, setFontSize] = useState(14.5); // নোটের লেখার ফন্ট সাইজ — বটম টুলবারের A-/A+ দিয়ে ছোট-বড় করা যায়, প্রতি নোটে আলাদাভাবে সেভ থাকে
   const [activeFolder, setActiveFolder] = useState("All Notes");
   const [openMenu, setOpenMenu] = useState(null);
   const [showSearch, setShowSearch] = useState(false); // উপরের সার্চ আইকনে ট্যাপ করলে সার্চ বার দেখা যায়
@@ -5923,6 +5904,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     setCategory(activeFolder !== "All Notes" && activeFolder !== "Pinned" ? activeFolder : "General");
     setChecklist([]);
     setCheckText("");
+    setFontSize(14.5);
     setOpenMenu(null);
     setFabOpen(false);
     setPinnedDraft(false);
@@ -5940,6 +5922,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     setCategory(note.category || "General");
     setChecklist(Array.isArray(note.checklist) ? note.checklist : []);
     setCheckText("");
+    setFontSize(note.fontSize || 14.5);
     setOpenMenu(null);
     setPinnedDraft(!!note.pinned);
     setShowChecklist(Array.isArray(note.checklist) && note.checklist.length > 0);
@@ -5962,7 +5945,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
     if (editing?.id) {
       setNotes(prev => prev.map(n => n.id === editing.id
-        ? { ...n, title: title.trim() || "Untitled", body: body.trim(), category, checklist: cleanChecklist, pinned: pinnedDraft, updatedAt: now }
+        ? { ...n, title: title.trim() || "Untitled", body: body.trim(), category, checklist: cleanChecklist, pinned: pinnedDraft, fontSize, updatedAt: now }
         : n
       ));
     } else {
@@ -5973,6 +5956,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         category,
         checklist: cleanChecklist,
         pinned: pinnedDraft,
+        fontSize,
         createdAt: now,
         updatedAt: now
       }, ...prev]);
@@ -6188,22 +6172,26 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
       {editing && (() => {
         const noteCol = noteColorFor(category, categories);
-        const editorBg = dark ? "#1B1815" : NOTE_PAPER_BG; // এডিটরও এখন থিম অনুযায়ী বদলায়
-        const iconColor = dark ? "#F3EFE7" : NOTE_PAPER_TEXT;
+        const editorBg = bg; // পুরো স্ক্রিনের নিরপেক্ষ পেজ ব্যাকগ্রাউন্ড — থিম অনুযায়ী বদলায়
+        const paperBg = dark ? "#211D18" : NOTE_PAPER_BG; // লেখার জায়গাটা এখন আলাদা "কাগজ" কার্ড হিসেবে ভাসবে
+        const paperBorder = dark ? "#3A342B" : "#E9DCC5";
+        const paperText = dark ? "#F3EFE7" : NOTE_PAPER_TEXT;
+        const iconColor = textMain; // হেডার ও বটম টুলবারের আইকন/টেক্সট — পেজ ব্যাকগ্রাউন্ডের সাথে ঠিকমতো কনট্রাস্ট থাকার জন্য
+        const toolbarActiveBg = dark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.07)";
         return (
         <div style={{position:"fixed",left:0,top:0,width:"100%",height:vh,background:editorBg,display:"flex",flexDirection:"column",zIndex:60}} onClick={()=>{setShowMoreMenu(false);setShowColorPicker(false);}}>
 
           {/* Top bar */}
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 10px",flexShrink:0}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 14px",flexShrink:0}}>
             <button onClick={(e)=>{e.stopPropagation();save();}} style={{border:"none",background:"transparent",color:iconColor,cursor:"pointer",padding:8,display:"flex"}}>
               <ChevronLeft size={22}/>
             </button>
             <div style={{display:"flex",alignItems:"center",gap:2,position:"relative"}}>
               <button onClick={(e)=>{e.stopPropagation();setPinnedDraft(v=>!v);}} title={lang==="bn"?"পিন":"Pin"}
-                style={{border:"none",background:"transparent",color:pinnedDraft?accent:iconColor,cursor:"pointer",padding:8,display:"flex"}}>
+                style={{border:"none",background:pinnedDraft?toolbarActiveBg:"transparent",color:pinnedDraft?accent:iconColor,cursor:"pointer",padding:8,borderRadius:"50%",display:"flex"}}>
                 <Pin size={18} fill={pinnedDraft?accent:"none"}/>
               </button>
-              <button onClick={(e)=>{e.stopPropagation();setShowMoreMenu(v=>!v);setShowColorPicker(false);}} style={{border:"none",background:"transparent",color:iconColor,cursor:"pointer",padding:8,display:"flex"}}>
+              <button onClick={(e)=>{e.stopPropagation();setShowMoreMenu(v=>!v);setShowColorPicker(false);}} style={{border:"none",background:showMoreMenu?toolbarActiveBg:"transparent",color:iconColor,cursor:"pointer",padding:8,borderRadius:"50%",display:"flex"}}>
                 <MoreVertical size={19}/>
               </button>
               {showMoreMenu && (
@@ -6219,20 +6207,22 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
           {/* Created / edited date */}
           {editing.id && (
-            <div style={{fontSize:10.5,color:iconColor,opacity:0.65,padding:"0 20px",marginBottom:6,flexShrink:0}}>
+            <div style={{fontSize:10.5,color:textMuted2,padding:"0 20px",marginBottom:8,flexShrink:0}}>
               {lang==="bn" ? "তৈরি" : "Created"}: {fullDateTimeLabel(editing.createdAt, lang)} · {lang==="bn" ? "সম্পাদিত" : "Edited"}: {fullDateTimeLabel(editing.updatedAt, lang)}
             </div>
           )}
 
+          {/* Paper card — লেখার আসল জায়গা, পেজ ব্যাকগ্রাউন্ড থেকে স্পষ্ট আলাদা করে দেখানোর জন্য বর্ডার + shadow সহ কার্ড */}
+          <div style={{flex:1,minHeight:0,margin:"2px 14px 14px",background:paperBg,border:`1px solid ${paperBorder}`,borderRadius:18,boxShadow: dark ? "0 8px 24px rgba(0,0,0,0.35)" : "0 6px 18px rgba(60,40,20,0.09)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
           {/* Scrollable content: title + checklist + body */}
-          <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"4px 20px 16px"}} onClick={e=>e.stopPropagation()}>
+          <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"14px 18px 16px"}} onClick={e=>e.stopPropagation()}>
             <input
               autoFocus
               value={title}
               onChange={e=>setTitle(e.target.value)}
               onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
               placeholder={t.notesTitlePlaceholder}
-              style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",padding:"8px 0",fontSize:20,fontWeight:800,color:iconColor,outline:"none",fontFamily:"inherit",marginBottom:2}}
+              style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",padding:"8px 0",fontSize:20,fontWeight:800,color:paperText,outline:"none",fontFamily:"inherit",marginBottom:2}}
             />
 
             {/* Checklist — টাইটেলের ঠিক পরেই আসে, বটম টুলবারের checklist আইকন দিয়ে দেখানো/লুকানো যায় */}
@@ -6244,27 +6234,27 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                       <div key={item.id} style={{display:"flex",alignItems:"center",gap:9}}>
                         <button
                           onClick={()=>setChecklist(prev=>prev.map((x,i)=>i===index?{...x,done:!x.done}:x))}
-                          style={{width:19,height:19,borderRadius:5,border:`1.5px solid ${item.done?accent:iconColor}`,background:item.done?accent:"transparent",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",padding:0,cursor:"pointer",fontSize:12,flex:"0 0 auto"}}
+                          style={{width:19,height:19,borderRadius:5,border:`1.5px solid ${item.done?accent:paperText}`,background:item.done?accent:"transparent",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",padding:0,cursor:"pointer",fontSize:12,flex:"0 0 auto"}}
                         >
                           {item.done?"✓":""}
                         </button>
-                        <span style={{flex:1,fontSize:13,color:iconColor,textDecoration:item.done?"line-through":"none",opacity:item.done?0.6:1}}>{item.text}</span>
-                        <button onClick={()=>setChecklist(prev=>prev.filter((_,i)=>i!==index))} style={{border:"none",background:"transparent",color:iconColor,opacity:0.6,cursor:"pointer",padding:2}}><X size={14}/></button>
+                        <span style={{flex:1,fontSize:13,color:paperText,textDecoration:item.done?"line-through":"none",opacity:item.done?0.6:1}}>{item.text}</span>
+                        <button onClick={()=>setChecklist(prev=>prev.filter((_,i)=>i!==index))} style={{border:"none",background:"transparent",color:paperText,opacity:0.6,cursor:"pointer",padding:2}}><X size={14}/></button>
                       </div>
                     ))}
                   </div>
                 )}
                 <div style={{display:"flex",alignItems:"center",gap:9}}>
-                  <div style={{width:19,height:19,borderRadius:5,border:`1.5px solid ${iconColor}`,opacity:0.4,flex:"0 0 auto"}}/>
+                  <div style={{width:19,height:19,borderRadius:5,border:`1.5px solid ${paperText}`,opacity:0.4,flex:"0 0 auto"}}/>
                   <input
                     value={checkText}
                     onChange={e=>setCheckText(e.target.value)}
                     onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();addChecklist();}}}
                     onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
                     placeholder={lang==="bn"?"লিস্টে যোগ করুন":"List item"}
-                    style={{flex:1,minWidth:0,background:"transparent",border:"none",padding:"3px 0",fontSize:13,color:iconColor,outline:"none",fontFamily:"inherit"}}
+                    style={{flex:1,minWidth:0,background:"transparent",border:"none",padding:"3px 0",fontSize:13,color:paperText,outline:"none",fontFamily:"inherit"}}
                   />
-                  {checkText && <button onClick={addChecklist} style={{border:"none",background:"transparent",color:iconColor,cursor:"pointer",padding:2}}><Check size={16}/></button>}
+                  {checkText && <button onClick={addChecklist} style={{border:"none",background:"transparent",color:paperText,cursor:"pointer",padding:2}}><Check size={16}/></button>}
                 </div>
               </div>
             )}
@@ -6275,7 +6265,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
               placeholder={t.notesBodyPlaceholder}
               rows={showChecklist ? 3 : 10}
-              style={{width:"100%",boxSizing:"border-box",resize:"none",background:"transparent",border:"none",padding:"6px 0",fontSize:14.5,lineHeight:1.65,color:iconColor,outline:"none",fontFamily:"inherit",marginBottom:8}}
+              style={{width:"100%",boxSizing:"border-box",resize:"none",background:"transparent",border:"none",padding:"6px 0",fontSize:fontSize,lineHeight:1.65,color:paperText,outline:"none",fontFamily:"inherit",marginBottom:8,transition:"font-size .15s ease"}}
             />
 
             {/* Category পিকার — বটম টুলবারের Tag আইকন দিয়ে টগল হয়, নাম-সহ চিপ যাতে বোঝা যায় কোনটা সিলেক্ট করা আছে */}
@@ -6288,7 +6278,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                     <button key={cat} onClick={()=>setCategory(cat)} style={{
                       display:"flex",alignItems:"center",gap:5,
                       background:c.bg, color:c.text,
-                      border: selected ? `1.5px solid ${iconColor}` : "1px solid transparent",
+                      border: selected ? `1.5px solid ${paperText}` : "1px solid transparent",
                       borderRadius:999,padding:"6px 12px",fontSize:11.5,fontWeight:800,cursor:"pointer"
                     }}>
                       {selected && <Check size={12}/>}
@@ -6296,25 +6286,38 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                     </button>
                   );
                 })}
-                <button onClick={addCategory} style={{flex:"0 0 auto",border:`1.5px dashed ${iconColor}`,background:"transparent",color:iconColor,borderRadius:999,padding:"6px 12px",fontSize:11.5,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>
+                <button onClick={addCategory} style={{flex:"0 0 auto",border:`1.5px dashed ${paperText}`,background:"transparent",color:paperText,borderRadius:999,padding:"6px 12px",fontSize:11.5,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>
                   <Plus size={12}/> {lang==="bn"?"নতুন":"New"}
                 </button>
               </div>
             )}
           </div>
+          </div>
 
-          {/* Bottom icon toolbar — Keep-স্টাইল */}
-          <div onClick={e=>e.stopPropagation()} style={{display:"flex",alignItems:"center",gap:2,padding:"8px 12px",borderTop:`1px solid rgba(0,0,0,0.08)`,flexShrink:0}}>
+          {/* Bottom icon toolbar — পেজ ব্যাকগ্রাউন্ডের উপর, উপরের বর্ডার দিয়ে paper card থেকে আলাদা করা */}
+          <div onClick={e=>e.stopPropagation()} style={{display:"flex",alignItems:"center",gap:2,padding:"10px 14px",borderTop:`1px solid ${cardBorder}`,flexShrink:0}}>
             <button onClick={()=>{setShowChecklist(v=>!v);setShowColorPicker(false);}} title={lang==="bn"?"চেকলিস্ট":"Checklist"}
-              style={{border:"none",background:showChecklist?"rgba(0,0,0,0.08)":"transparent",color:iconColor,cursor:"pointer",padding:9,borderRadius:"50%",display:"flex"}}>
+              style={{border:"none",background:showChecklist?toolbarActiveBg:"transparent",color:iconColor,cursor:"pointer",padding:9,borderRadius:"50%",display:"flex"}}>
               <ListChecks size={19}/>
             </button>
             <button onClick={()=>{setShowColorPicker(v=>!v);setShowChecklist(false);}} title={lang==="bn"?"রঙ / ক্যাটাগরি":"Color / Category"}
-              style={{border:"none",background:showColorPicker?"rgba(0,0,0,0.08)":"transparent",color:iconColor,cursor:"pointer",padding:9,borderRadius:"50%",display:"flex"}}>
+              style={{border:"none",background:showColorPicker?toolbarActiveBg:"transparent",color:iconColor,cursor:"pointer",padding:9,borderRadius:"50%",display:"flex"}}>
               <Tag size={19}/>
             </button>
+            <div style={{display:"flex",alignItems:"center",gap:1,marginLeft:2}}>
+              <button onClick={()=>setFontSize(f=>Math.max(12, Math.round((f-1.5)*10)/10))} disabled={fontSize<=12}
+                title={lang==="bn"?"ছোট ফন্ট":"Smaller text"}
+                style={{border:"none",background:"transparent",color:iconColor,opacity:fontSize<=12?0.35:1,cursor:fontSize<=12?"default":"pointer",padding:"9px 7px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:12,lineHeight:1}}>
+                A
+              </button>
+              <button onClick={()=>setFontSize(f=>Math.min(22, Math.round((f+1.5)*10)/10))} disabled={fontSize>=22}
+                title={lang==="bn"?"বড় ফন্ট":"Larger text"}
+                style={{border:"none",background:"transparent",color:iconColor,opacity:fontSize>=22?0.35:1,cursor:fontSize>=22?"default":"pointer",padding:"9px 7px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:18,lineHeight:1}}>
+                A
+              </button>
+            </div>
             <div style={{flex:1}}/>
-            <span style={{fontSize:9.5,color:iconColor,opacity:0.6,fontWeight:700,marginRight:6}}>{category}</span>
+            <span style={{fontSize:10.5,fontWeight:800,color:noteCol.text,background:noteCol.bg,padding:"4px 11px",borderRadius:20}}>{category}</span>
           </div>
         </div>
       );})()}
