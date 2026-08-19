@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
 import {
   onAuthStateChanged,
@@ -1682,6 +1682,7 @@ export default function FocusGo() {
   }, [tasks]);
   const [showAddTask, setShowAddTask] = useState(false);
   const [editingTask, setEditingTask] = useState(null); // এডিট করার জন্য সিলেক্টেড টাস্ক অবজেক্ট, নাহলে null
+  const [taskAddDefaultDate, setTaskAddDefaultDate] = useState(null); // Calendar view-এ কোনো দিন সিলেক্ট করা অবস্থায় + চাপলে সেই দিনটাই নতুন টাস্কের due date হিসেবে prefill হয়
   // কাস্টম টাস্ক ক্যাটাগরি — ডিফল্টে Study/Personal, ইউজার চাইলে আরো ক্যাটাগরি যোগ করতে পারবে (localStorage-এ সেভ থাকে)
   const [taskCategories, setTaskCategories] = useState(() => {
     try {
@@ -3857,6 +3858,7 @@ export default function FocusGo() {
           };
 
           return (
+            <>
             <div key="task" className="fg-tab-panel" style={{marginTop:20}}>
               <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14}}>
                 <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.taskTitle}</div>
@@ -3940,22 +3942,20 @@ export default function FocusGo() {
                   )}
                 </>
               ) : renderTaskCalendarView()}
-
-              <div style={{marginTop:18, marginBottom:8, display:"flex", alignItems:"center", gap:10, border:`1px dashed ${cardBorder}`, borderRadius:14, padding:"11px 13px"}}>
-                <CalendarDays size={16} color={textMuted2}/>
-                <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, lineHeight:1.4}}>{t.taskLinkHint}</div>
-              </div>
-
-              {/* ফ্লোটিং + বাটন — লিস্টের নিচে ফিক্সড থাকা "New task" বাটনের বদলে, বটম-ন্যাভের ঠিক উপরে ভাসমান */}
-              <button onClick={()=>{vibrate(); setShowAddTask(true);}} title={t.taskAdd} style={{
-                position:"fixed", right:20, bottom: isDesktop ? 28 : 96, zIndex:41,
-                width:56, height:56, borderRadius:"50%", border:"none", background:accent, color:"#fff",
-                display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
-                boxShadow: dark ? "0 8px 20px rgba(0,0,0,0.45)" : "0 8px 20px rgba(217,119,87,0.45)",
-              }}>
-                <Plus size={24} strokeWidth={2.5}/>
-              </button>
             </div>
+
+            {/* ফ্লোটিং + বাটন — ".fg-tab-panel"-এর বাইরে (sibling হিসেবে) রাখা হয়েছে যাতে পেজ-লোড অ্যানিমেশনের transform এটাকে
+                উপর থেকে নিচে স্লাইড করিয়ে না আনে — সবসময় বটম-ন্যাভের ঠিক উপরে স্থির থাকবে;
+                Calendar view-এ থাকলে ও কোনো দিন সিলেক্ট করা থাকলে সেই দিনটাই নতুন টাস্কের due date হিসেবে prefill হয়ে যাবে */}
+            <button onClick={()=>{vibrate(); setTaskAddDefaultDate(taskViewMode === "calendar" ? (taskCalSelectedDay || todayKey) : null); setShowAddTask(true);}} title={t.taskAdd} style={{
+              position:"fixed", right:20, bottom: isDesktop ? 28 : 96, zIndex:41,
+              width:56, height:56, borderRadius:"50%", border:"none", background:accent, color:"#fff",
+              display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
+              boxShadow: dark ? "0 8px 20px rgba(0,0,0,0.45)" : "0 8px 20px rgba(217,119,87,0.45)",
+            }}>
+              <Plus size={24} strokeWidth={2.5}/>
+            </button>
+          </>
           );
         })()}
 
@@ -4320,8 +4320,8 @@ export default function FocusGo() {
 
       {/* Add / Edit task modal */}
       {(showAddTask || editingTask) && (
-        <AddTaskModal t={t} lang={lang} onClose={()=>{setShowAddTask(false);setEditingTask(null);}}
-          onSubmit={editingTask ? updateTask : addTask} initialTask={editingTask}
+        <AddTaskModal t={t} lang={lang} onClose={()=>{setShowAddTask(false);setEditingTask(null);setTaskAddDefaultDate(null);}}
+          onSubmit={editingTask ? updateTask : addTask} initialTask={editingTask} defaultDueDate={taskAddDefaultDate}
           categories={taskCategories} onAddCategory={addTaskCategory}
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark} bg={bg}/>
       )}
@@ -5975,6 +5975,17 @@ function renderFormattedText(str) {
   });
 }
 
+// ---------- রিচ টেক্সট এডিটর (Bold/Italic/Underline/H1/H2) — নোটের body এখন HTML হতে পারে ----------
+// পুরনো নোটগুলো plain text/markdown, নতুনগুলো contentEditable থেকে HTML — দুটোই আলাদাভাবে চেনার জন্য এই হেল্পার
+function looksLikeHtml(str) {
+  return !!str && /<\/?[a-z][\s\S]*>/i.test(String(str));
+}
+// প্রিভিউ কার্ডে "খালি কিনা" চেক করা বা সার্চের জন্য HTML থেকে প্লেইন টেক্সট বের করা
+function stripHtmlToText(str) {
+  if (!str) return "";
+  return String(str).replace(/<br\s*\/?>/gi, "\n").replace(/<\/(p|div|h1|h2|li)>/gi, "\n").replace(/<[^>]+>/g, "").replace(/\u00a0/g, " ").trim();
+}
+
 // ---------- ফুল date + time (Created / Last edited দেখানোর জন্য) ----------
 function fullDateTimeLabel(iso, lang) {
   if (!iso) return "";
@@ -6004,6 +6015,8 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   const [showChecklist, setShowChecklist] = useState(false); // বটম টুলবারের checklist আইকন দিয়ে টগল হয়
   const [showColorPicker, setShowColorPicker] = useState(false); // বটম টুলবারের palette আইকন দিয়ে টগল হয়
   const [showMoreMenu, setShowMoreMenu] = useState(false); // এডিটর হেডারের ⋮ মেনু
+  const [showFormatBar, setShowFormatBar] = useState(false); // বটম টুলবারের "Aa" আইকন দিয়ে টগল হয় — Bold/Italic/Underline/H1/H2 রো
+  const bodyRef = useRef(null); // contentEditable বডি — রিচ টেক্সট ফরম্যাটিং প্রয়োগ করতে ব্যবহার হয়
   const searchRef = useRef(null); // সার্চ আইকনে ট্যাপ করলে ইনপুটে অটো-ফোকাস করতে
   const vh = useVisualViewportHeight(); // কীবোর্ড খোলা অবস্থায় দৃশ্যমান উচ্চতা — মোডাল সবসময় এর মধ্যেই থাকবে, কীবোর্ডের নিচে চাপা পড়বে না
   const pushedHistoryRef = useRef(false); // নোট এডিটর খোলার সময় history-তে state push করেছি কিনা (ব্যাক বাটন হ্যান্ডল করতে)
@@ -6056,6 +6069,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     setShowChecklist(!!startWithChecklist);
     setShowColorPicker(false);
     setShowMoreMenu(false);
+    setShowFormatBar(false);
     window.history.pushState({ fgNoteEditor: true }, "");
     pushedHistoryRef.current = true;
   };
@@ -6073,12 +6087,14 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     setShowChecklist(Array.isArray(note.checklist) && note.checklist.length > 0);
     setShowColorPicker(false);
     setShowMoreMenu(false);
+    setShowFormatBar(false);
     window.history.pushState({ fgNoteEditor: true }, "");
     pushedHistoryRef.current = true;
   };
 
   const save = () => {
-    if (!title.trim() && !body.trim() && checklist.length === 0) return;
+    const bodyIsEmpty = !stripHtmlToText(body);
+    if (!title.trim() && bodyIsEmpty && checklist.length === 0) return;
     const now = new Date().toISOString();
     const cleanChecklist = checklist
       .map(x => ({
@@ -6088,16 +6104,17 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       }))
       .filter(x => x.text);
 
+    const cleanBody = bodyIsEmpty ? "" : body;
     if (editing?.id) {
       setNotes(prev => prev.map(n => n.id === editing.id
-        ? { ...n, title: title.trim() || "Untitled", body: body.trim(), category, checklist: cleanChecklist, pinned: pinnedDraft, fontSize, updatedAt: now }
+        ? { ...n, title: title.trim() || "Untitled", body: cleanBody, category, checklist: cleanChecklist, pinned: pinnedDraft, fontSize, updatedAt: now }
         : n
       ));
     } else {
       setNotes(prev => [{
         id: `${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
         title: title.trim() || "Untitled",
-        body: body.trim(),
+        body: cleanBody,
         category,
         checklist: cleanChecklist,
         pinned: pinnedDraft,
@@ -6183,7 +6200,16 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     );
 
   return (
+    <>
     <div className="fg-tab-panel" style={{ marginTop: 20, paddingBottom: 30 }} onClick={() => { openMenu && setOpenMenu(null); fabOpen && setFabOpen(false); }}>
+      {/* Bold/Italic/Underline/H1/H2 রিচ টেক্সট স্টাইল — নোট এডিটর ও নোট কার্ড প্রিভিউ, দুই জায়গাতেই কাজ করার জন্য একবারই বসানো */}
+      <style>{`
+        .fg-note-body h1{font-size:1.5em;font-weight:800;margin:0.5em 0 0.25em;line-height:1.25;}
+        .fg-note-body h2{font-size:1.22em;font-weight:800;margin:0.5em 0 0.25em;line-height:1.3;}
+        .fg-note-body b, .fg-note-body strong{font-weight:800;}
+        .fg-note-body u{text-decoration:underline;}
+        .fg-note-body:focus{outline:none;}
+      `}</style>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
         <div>
           <div style={{ fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain }}>{t.notesTitle}</div>
@@ -6262,7 +6288,11 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                 </button>
               </div>
 
-              <div style={{fontSize:12,color:coverText,opacity:0.85,lineHeight:1.5,marginTop:6,display:"-webkit-box",WebkitLineClamp:5,WebkitBoxOrient:"vertical",overflow:"hidden",whiteSpace:"pre-wrap"}}>{renderFormattedText(note.body) || "—"}</div>
+              {looksLikeHtml(note.body) ? (
+                <div className="fg-note-body" style={{fontSize:12,color:coverText,opacity:0.85,lineHeight:1.5,marginTop:6,display:"-webkit-box",WebkitLineClamp:5,WebkitBoxOrient:"vertical",overflow:"hidden"}} dangerouslySetInnerHTML={{__html: note.body || "—"}}/>
+              ) : (
+                <div style={{fontSize:12,color:coverText,opacity:0.85,lineHeight:1.5,marginTop:6,display:"-webkit-box",WebkitLineClamp:5,WebkitBoxOrient:"vertical",overflow:"hidden",whiteSpace:"pre-wrap"}}>{renderFormattedText(note.body) || "—"}</div>
+              )}
 
               {Array.isArray(note.checklist) && note.checklist.length > 0 && (
                 <div style={{marginTop:8,display:"flex",flexDirection:"column",gap:4}}>
@@ -6292,8 +6322,10 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           );})}
         </div>
       )}
+      </div>
 
-      {/* ফ্লোটিং + বাটন — ট্যাপ করলে Note/Checklist অপশন দেখায়, যেটা সিলেক্ট করবে সেটাই সরাসরি খুলবে */}
+      {/* ফ্লোটিং + বাটন — ".fg-tab-panel"-এর বাইরে (sibling হিসেবে) রাখা হয়েছে যাতে পেজ-লোড অ্যানিমেশনের transform এটাকে
+          উপর থেকে নিচে স্লাইড করিয়ে না আনে — সবসময় বটম-ন্যাভের ঠিক উপরে স্থির থাকবে; ট্যাপ করলে Note/Checklist অপশন দেখায় */}
       <div style={{position:"fixed", right:20, bottom: isDesktop ? 28 : 96, zIndex:41, display:"flex", flexDirection:"column", alignItems:"flex-end", gap:10}}>
         {fabOpen && (
           <div onClick={e=>e.stopPropagation()} style={{display:"flex", flexDirection:"column", gap:8, alignItems:"flex-end"}}>
@@ -6404,14 +6436,46 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               </div>
             )}
 
-            <textarea
-              value={body}
-              onChange={e=>setBody(e.target.value)}
-              onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
-              placeholder={t.notesBodyPlaceholder}
-              rows={showChecklist ? 3 : 10}
-              style={{width:"100%",boxSizing:"border-box",resize:"none",background:"transparent",border:"none",padding:"6px 0",fontSize:fontSize,lineHeight:1.65,color:paperText,outline:"none",fontFamily:"inherit",marginBottom:8,transition:"font-size .15s ease"}}
-            />
+            {/* রিচ টেক্সট বডি — contentEditable, তাই Bold/Italic/Underline/H1/H2 সরাসরি এখানে দেখা যায় (Keep-এর মতো) */}
+            <div style={{position:"relative"}}>
+              {!stripHtmlToText(body) && (
+                <div style={{position:"absolute",top:6,left:0,right:0,fontSize:fontSize,lineHeight:1.65,color:paperText,opacity:0.4,pointerEvents:"none"}}>{t.notesBodyPlaceholder}</div>
+              )}
+              <div
+                ref={(el)=>{
+                  bodyRef.current = el;
+                  if (el && el.dataset.init !== "1") {
+                    el.innerHTML = body || "";
+                    el.dataset.init = "1";
+                  }
+                }}
+                contentEditable
+                suppressContentEditableWarning
+                className="fg-note-body"
+                onInput={()=>{ if (bodyRef.current) setBody(bodyRef.current.innerHTML); }}
+                onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
+                style={{width:"100%",boxSizing:"border-box",minHeight: showChecklist ? 60 : 180,background:"transparent",border:"none",padding:"6px 0",fontSize:fontSize,lineHeight:1.65,color:paperText,outline:"none",fontFamily:"inherit",marginBottom:8,transition:"font-size .15s ease",wordBreak:"break-word"}}
+              />
+            </div>
+
+            {/* ফরম্যাটিং রো — বটম টুলবারের "Aa" আইকনে টগল হয়: H1, H2, Bold, Italic, Underline, Clear */}
+            {showFormatBar && (
+              <div onMouseDown={e=>e.preventDefault()} style={{display:"flex",alignItems:"center",gap:2,paddingTop:6,paddingBottom:2,flexWrap:"wrap"}}>
+                {[
+                  { icon: Heading1, title: lang==="bn"?"হেডিং ১":"Heading 1", action: ()=>{ if(bodyRef.current){bodyRef.current.focus(); document.execCommand("formatBlock", false, "H1"); setBody(bodyRef.current.innerHTML);} } },
+                  { icon: Heading2, title: lang==="bn"?"হেডিং ২":"Heading 2", action: ()=>{ if(bodyRef.current){bodyRef.current.focus(); document.execCommand("formatBlock", false, "H2"); setBody(bodyRef.current.innerHTML);} } },
+                  { icon: Bold, title: lang==="bn"?"বোল্ড":"Bold", action: ()=>{ if(bodyRef.current){bodyRef.current.focus(); document.execCommand("bold"); setBody(bodyRef.current.innerHTML);} } },
+                  { icon: Italic, title: lang==="bn"?"ইটালিক":"Italic", action: ()=>{ if(bodyRef.current){bodyRef.current.focus(); document.execCommand("italic"); setBody(bodyRef.current.innerHTML);} } },
+                  { icon: Underline, title: lang==="bn"?"আন্ডারলাইন":"Underline", action: ()=>{ if(bodyRef.current){bodyRef.current.focus(); document.execCommand("underline"); setBody(bodyRef.current.innerHTML);} } },
+                  { icon: RemoveFormatting, title: lang==="bn"?"ফরম্যাট মুছুন":"Clear formatting", action: ()=>{ if(bodyRef.current){bodyRef.current.focus(); document.execCommand("removeFormat"); document.execCommand("formatBlock", false, "P"); setBody(bodyRef.current.innerHTML);} } },
+                ].map(({icon:Icon, title, action}, i) => (
+                  <button key={i} onMouseDown={e=>e.preventDefault()} onClick={action} title={title}
+                    style={{border:"none",background:"transparent",color:paperText,cursor:"pointer",padding:9,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                    <Icon size={17}/>
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Category পিকার — বটম টুলবারের Tag আইকন দিয়ে টগল হয়, নাম-সহ চিপ যাতে বোঝা যায় কোনটা সিলেক্ট করা আছে */}
             {showColorPicker && (
@@ -6445,6 +6509,10 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               style={{border:"none",background:showChecklist?toolbarActiveBg:"transparent",color:iconColor,cursor:"pointer",padding:9,borderRadius:"50%",display:"flex"}}>
               <ListChecks size={19}/>
             </button>
+            <button onClick={()=>setShowFormatBar(v=>!v)} title={lang==="bn"?"টেক্সট ফরম্যাটিং":"Text formatting"}
+              style={{border:"none",background:showFormatBar?toolbarActiveBg:"transparent",color:showFormatBar?accent:iconColor,cursor:"pointer",padding:"9px 10px",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:13,fontFamily:"inherit"}}>
+              Aa
+            </button>
             <button onClick={()=>{setShowColorPicker(v=>!v);setShowChecklist(false);}} title={lang==="bn"?"রঙ / ক্যাটাগরি":"Color / Category"}
               style={{border:"none",background:showColorPicker?toolbarActiveBg:"transparent",color:iconColor,cursor:"pointer",padding:9,borderRadius:"50%",display:"flex"}}>
               <Tag size={19}/>
@@ -6466,15 +6534,15 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           </div>
         </div>
       );})()}
-    </div>
+    </>
   );
 }
 
-function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, categories, onAddCategory, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
+function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate, categories, onAddCategory, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
   const [title, setTitle] = useState(initialTask?.title || "");
   const [category, setCategory] = useState(initialTask?.category || (categories && categories[0] && categories[0].key) || "study");
   const [priority, setPriority] = useState(initialTask?.priority || "med");
-  const [dueDate, setDueDate] = useState(initialTask?.dueDate || "");
+  const [dueDate, setDueDate] = useState(initialTask?.dueDate || defaultDueDate || "");
   const [repeat, setRepeat] = useState(initialTask?.repeat || "none"); // "none" | "daily" | "weekly" | "monthly"
   const [addingCategory, setAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
