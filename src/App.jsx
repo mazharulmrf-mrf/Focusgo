@@ -6089,6 +6089,10 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   const vh = useVisualViewportHeight(); // কীবোর্ড খোলা অবস্থায় দৃশ্যমান উচ্চতা — মোডাল সবসময় এর মধ্যেই থাকবে, কীবোর্ডের নিচে চাপা পড়বে না
   const pushedHistoryRef = useRef(false); // নোট এডিটর খোলার সময় history-তে state push করেছি কিনা (ব্যাক বাটন হ্যান্ডল করতে)
   const editingActiveRef = useRef(false); // popstate হ্যান্ডলারের ভেতর থেকে সবসময় সবশেষ editing অবস্থা জানার জন্য
+  // উপরের ব্যাক অ্যারোতে ট্যাপ করলে save() নিজেই history.back() ডাকে, যেটা popstate ইভেন্ট ট্রিগার করে —
+  // আর popstate হ্যান্ডলারও save() ডাকে (হার্ডওয়্যার ব্যাক হ্যান্ডল করতে)। savedRef ছাড়া এই দুটো মিলে একই নোট
+  // দুইবার সেভ হয়ে ডুপ্লিকেট নোট তৈরি করছিল — এই ফ্ল্যাগ নিশ্চিত করে একটা এডিটর সেশনে নোট একবারই সেভ হয়
+  const savedRef = useRef(false);
 
   useEffect(() => { editingActiveRef.current = !!editing; }, [editing]);
 
@@ -6236,6 +6240,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   }, [categories]);
 
   const openNew = (startWithChecklist) => {
+    savedRef.current = false;
     setEditing({ id: null });
     setTitle("");
     setBody("");
@@ -6264,12 +6269,12 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   };
 
   const openEdit = (note) => {
+    savedRef.current = false;
     setEditing(note);
     setTitle(note.title || "");
     setBody(note.body || "");
     setCategory(note.category || "General");
     setChecklist(Array.isArray(note.checklist) ? note.checklist : []);
-    setCheckText("");
     setFontSize(note.fontSize || 14.5);
     setActiveFontSize(note.fontSize || 14.5);
     setNoteColor(note.color || null);
@@ -6285,8 +6290,11 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   };
 
   const save = () => {
+    // এই এডিটর সেশনে ইতিমধ্যে সেভ হয়ে গেছে — ব্যাক অ্যারো ক্লিকের পর history.back() যে popstate ট্রিগার করে,
+    // সেটা আবার save() ডাকলেও যেন দ্বিতীয় একটা ডুপ্লিকেট নোট তৈরি না হয়
+    if (savedRef.current) { closeEditor(); return; }
     const bodyIsEmpty = !stripHtmlToText(body);
-    if (!title.trim() && bodyIsEmpty && checklist.length === 0) return;
+    if (!title.trim() && bodyIsEmpty && checklist.length === 0) { closeEditor(); return; }
     const now = new Date().toISOString();
     const cleanChecklist = checklist
       .map(x => ({
@@ -6317,6 +6325,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         order: Date.now()
       }, ...prev]);
     }
+    savedRef.current = true;
     closeEditor();
   };
   useEffect(() => { saveRef.current = save; });
