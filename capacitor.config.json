@@ -10,6 +10,11 @@
     },
     "StatusBar": {
       "overlaysWebView": false
+    },
+    "GoogleAuth": {
+      "scopes": ["profile", "email"],
+      "serverClientId": "448849450957-hgopm56u06j2uhougldvm52rdbnntvrg.apps.googleusercontent.com",
+      "forceCodeForRefreshToken": true
     }
   },
   "android": {
