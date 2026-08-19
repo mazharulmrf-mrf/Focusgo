@@ -6060,7 +6060,9 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   const [body, setBody] = useState("");
   const [category, setCategory] = useState("General");
   const [checklist, setChecklist] = useState([]);
-  const [checkText, setCheckText] = useState("");
+  const checklistInputRefs = useRef({}); // চেকলিস্টের প্রতিটা আইটেমের input DOM এলিমেন্ট — Enter/Backspace চাপার পর ঠিক জায়গায় ফোকাস আনতে ব্যবহার হয়
+  const [focusChecklistId, setFocusChecklistId] = useState(null); // নতুন/মার্জ হওয়া আইটেমে অটো-ফোকাস করতে
+  const focusCaretPosRef = useRef(null); // ফোকাস করার সময় কার্সার ঠিক কোন জায়গায় বসবে (null মানে টেক্সটের শেষে)
   const [fontSize, setFontSize] = useState(14.5); // নোটের ডিফল্ট/বেস ফন্ট সাইজ — নতুন লেখা (যেখানে আলাদা সাইজ সেট করা হয়নি) এই সাইজেই দেখা যায়
   const [activeFontSize, setActiveFontSize] = useState(14.5); // কার্সার/সিলেকশনে এখন যে ফন্ট সাইজ আছে — A-/A+ বাটনের disable অবস্থা ও পরের সাইজ হিসাব করতে ব্যবহার হয়
   const [noteColor, setNoteColor] = useState(null); // নোট কার্ডের ব্যাকগ্রাউন্ড রঙ — null মানে ডিফল্ট বেইজ রঙ, প্রতি নোটে আলাদাভাবে সেভ থাকে
@@ -6238,8 +6240,14 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     setTitle("");
     setBody("");
     setCategory(activeFolder !== "All Notes" && activeFolder !== "Pinned" ? activeFolder : "General");
-    setChecklist([]);
-    setCheckText("");
+    if (startWithChecklist) {
+      const firstId = `${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+      setChecklist([{ id: firstId, text: "", done: false }]);
+      focusCaretPosRef.current = 0;
+      setFocusChecklistId(firstId);
+    } else {
+      setChecklist([]);
+    }
     setFontSize(14.5);
     setActiveFontSize(14.5);
     setNoteColor(null);
@@ -6358,16 +6366,58 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     if (category === name) setCategory(clean);
   };
 
-  const addChecklist = () => {
-    const clean = checkText.trim();
-    if (!clean) return;
-    setChecklist(prev => [...prev, {
-      id: `${Date.now()}_${Math.random().toString(36).slice(2,6)}`,
-      text: clean,
-      done: false
-    }]);
-    setCheckText("");
+  // চেকলিস্ট আইটেম এখন নিজেই এডিটেবল — Google Keep-এর মতো Enter চাপলে কার্সারের জায়গা থেকে টেক্সট ভেঙে
+  // একটা নতুন আইটেম তৈরি হয় (নিচের অংশটা নতুন আইটেমে যায়), আর খালি আইটেমের শুরুতে Backspace চাপলে
+  // আগের আইটেমের সাথে জুড়ে যায় — ঠিক যেভাবে Keep-এ কাজ করে
+  const updateChecklistText = (id, text) => {
+    setChecklist(prev => prev.map(x => x.id === id ? { ...x, text } : x));
   };
+
+  const splitChecklistItem = (index, before, after) => {
+    const newId = `${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+    setChecklist(prev => {
+      const next = prev.map((x, i) => i === index ? { ...x, text: before } : x);
+      next.splice(index + 1, 0, { id: newId, text: after, done: false });
+      return next;
+    });
+    focusCaretPosRef.current = 0;
+    setFocusChecklistId(newId);
+  };
+
+  const mergeChecklistItemWithPrev = (index) => {
+    if (index <= 0) return;
+    const prevItem = checklist[index - 1];
+    const curItem = checklist[index];
+    if (!prevItem || !curItem) return;
+    const boundary = (prevItem.text || "").length;
+    setChecklist(prev => {
+      const next = prev.filter((_, i) => i !== index);
+      next[index - 1] = { ...next[index - 1], text: (prevItem.text || "") + (curItem.text || "") };
+      return next;
+    });
+    focusCaretPosRef.current = boundary;
+    setFocusChecklistId(prevItem.id);
+  };
+
+  const appendChecklistItem = () => {
+    const newId = `${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+    setChecklist(prev => [...prev, { id: newId, text: "", done: false }]);
+    focusCaretPosRef.current = null;
+    setFocusChecklistId(newId);
+  };
+
+  // নতুন/মার্জ হওয়া আইটেম রেন্ডার হওয়ার পর ঠিক জায়গায় (কার্সার-সহ) ফোকাস বসানো
+  useEffect(() => {
+    if (!focusChecklistId) return;
+    const el = checklistInputRefs.current[focusChecklistId];
+    if (el) {
+      el.focus();
+      const pos = focusCaretPosRef.current != null ? focusCaretPosRef.current : el.value.length;
+      try { el.setSelectionRange(pos, pos); } catch (err) {}
+    }
+    focusCaretPosRef.current = null;
+    setFocusChecklistId(null);
+  }, [focusChecklistId, checklist]);
 
   const filtered = notes
     .filter(n => {
@@ -6729,7 +6779,8 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",padding:"8px 0",fontSize:20,fontWeight:800,color:paperText,outline:"none",fontFamily:"inherit",marginBottom:2}}
             />
 
-            {/* Checklist — টাইটেলের ঠিক পরেই আসে, বটম টুলবারের checklist আইকন দিয়ে দেখানো/লুকানো যায় */}
+            {/* Checklist — টাইটেলের ঠিক পরেই আসে, বটম টুলবারের checklist আইকন দিয়ে দেখানো/লুকানো যায়; Google Keep-এর মতো
+                প্রতিটা আইটেম নিজেই এডিটেবল — Enter চাপলে নতুন আইটেম, খালি আইটেমের শুরুতে Backspace চাপলে আগেরটার সাথে জোড়া লাগে */}
             {showChecklist && (
               <div style={{marginTop:2,marginBottom:6}}>
                 {checklist.length > 0 && (
@@ -6742,24 +6793,36 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                         >
                           {item.done?"✓":""}
                         </button>
-                        <span style={{flex:1,fontSize:13,color:paperText,textDecoration:item.done?"line-through":"none",opacity:item.done?0.6:1}}>{item.text}</span>
+                        <input
+                          ref={(el)=>{ if (el) checklistInputRefs.current[item.id] = el; else delete checklistInputRefs.current[item.id]; }}
+                          value={item.text}
+                          onChange={e=>updateChecklistText(item.id, e.target.value)}
+                          onKeyDown={(e)=>{
+                            const el = e.target;
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              const caret = el.selectionStart ?? el.value.length;
+                              splitChecklistItem(index, el.value.slice(0, caret), el.value.slice(caret));
+                            } else if (e.key === "Backspace" && el.selectionStart === 0 && el.selectionEnd === 0 && index > 0) {
+                              e.preventDefault();
+                              mergeChecklistItemWithPrev(index);
+                            }
+                          }}
+                          onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
+                          placeholder={lang==="bn"?"লিস্টে যোগ করুন":"List item"}
+                          style={{flex:1,minWidth:0,background:"transparent",border:"none",padding:"3px 0",fontSize:13,color:paperText,textDecoration:item.done?"line-through":"none",opacity:item.done?0.6:1,outline:"none",fontFamily:"inherit"}}
+                        />
                         <button onClick={()=>setChecklist(prev=>prev.filter((_,i)=>i!==index))} style={{border:"none",background:"transparent",color:paperText,opacity:0.6,cursor:"pointer",padding:2}}><X size={14}/></button>
                       </div>
                     ))}
                   </div>
                 )}
-                <div style={{display:"flex",alignItems:"center",gap:9}}>
-                  <div style={{width:19,height:19,borderRadius:5,border:`1.5px solid ${paperText}`,opacity:0.4,flex:"0 0 auto"}}/>
-                  <input
-                    value={checkText}
-                    onChange={e=>setCheckText(e.target.value)}
-                    onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();addChecklist();}}}
-                    onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
-                    placeholder={lang==="bn"?"লিস্টে যোগ করুন":"List item"}
-                    style={{flex:1,minWidth:0,background:"transparent",border:"none",padding:"3px 0",fontSize:13,color:paperText,outline:"none",fontFamily:"inherit"}}
-                  />
-                  {checkText && <button onClick={addChecklist} style={{border:"none",background:"transparent",color:paperText,cursor:"pointer",padding:2}}><Check size={16}/></button>}
-                </div>
+                <button onClick={appendChecklistItem} style={{display:"flex",alignItems:"center",gap:9,border:"none",background:"transparent",padding:"3px 0",cursor:"pointer",width:"100%",textAlign:"left"}}>
+                  <div style={{width:19,height:19,borderRadius:5,border:`1.5px solid ${paperText}`,opacity:0.4,flex:"0 0 auto",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                    <Plus size={12} color={paperText} style={{opacity:0.7}}/>
+                  </div>
+                  <span style={{fontSize:13,color:paperText,opacity:0.55}}>{lang==="bn"?"লিস্টে যোগ করুন":"List item"}</span>
+                </button>
               </div>
             )}
 
