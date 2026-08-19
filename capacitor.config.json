@@ -1,0 +1,15 @@
+{
+  "appId": "com.maruf.focusgo",
+  "appName": "FocusGo",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#FF8A00"
+    }
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
