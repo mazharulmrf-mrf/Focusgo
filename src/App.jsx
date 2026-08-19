@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { StatusBar, Style } from "@capacitor/status-bar";
 import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
 import {
@@ -3024,6 +3025,12 @@ export default function FocusGo() {
       }
       lightMeta.setAttribute("content", themeColor);
       darkMeta.setAttribute("content", themeColor);
+
+      // Native Android status bar (Capacitor) — app এর dark/light theme এর সাথে মিলিয়ে
+      // status bar background আর icon color (dark/light) সেট করা হচ্ছে।
+      // ওয়েবে (browser/Vercel) চললে এই কলগুলো চুপচাপ fail করবে, তাই .catch() দিয়ে ignore করা হলো।
+      StatusBar.setBackgroundColor({ color: themeColor }).catch(()=>{});
+      StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light }).catch(()=>{});
     } catch (e) { /* ignore */ }
   }, [dark, bg, focusFullscreen]);
 
