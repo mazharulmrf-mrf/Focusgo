@@ -1674,12 +1674,12 @@ export default function FocusGo() {
   const [now, setNow] = useState(new Date());
   const [entries, setEntries] = useState({}); // dateKey -> [{id, subject, topic, time, endTime, duration, done}]
   const [subjects, setSubjects] = useState([]); // manually managed syllabus subjects
+  // এই পুরনো (ইউজার-নির্দিষ্ট নয় এমন) localStorage key শুধু প্রথমবার লোড হওয়ার জন্য fallback হিসেবে রাখা হয়েছে,
+  // যাতে আপডেটের আগে যাদের টাস্ক শুধু এই ডিভাইসে সেভ ছিল তারা সেটা হারিয়ে না ফেলে — লগইন করলে এই ডেটা
+  // একবার Firestore-এ মাইগ্রেট হয়ে যাবে (নিচের sync effect দেখুন), এরপর থেকে আর এই key ব্যবহার হবে না
   const [tasks, setTasks] = useState(() => {
     try { return JSON.parse(window.localStorage.getItem("focusgo_tasks_v1") || "[]"); } catch (e) { return []; }
   }); // {id, title, category:"study"|"personal", priority:"high"|"med"|"low", done}[]
-  useEffect(() => {
-    try { window.localStorage.setItem("focusgo_tasks_v1", JSON.stringify(tasks)); } catch (e) {}
-  }, [tasks]);
   const [showAddTask, setShowAddTask] = useState(false);
   const [editingTask, setEditingTask] = useState(null); // এডিট করার জন্য সিলেক্টেড টাস্ক অবজেক্ট, নাহলে null
   const [taskAddDefaultDate, setTaskAddDefaultDate] = useState(null); // Calendar view-এ কোনো দিন সিলেক্ট করা অবস্থায় + চাপলে সেই দিনটাই নতুন টাস্কের due date হিসেবে prefill হয়
@@ -1707,12 +1707,11 @@ export default function FocusGo() {
     setTaskCategories(prev => [...prev, cat]);
     return cat;
   };
+  // notes-এর জন্যও একই কারণে পুরনো localStorage key শুধু one-time fallback হিসেবে রাখা — লগইন করলে
+  // Firestore-এ মাইগ্রেট হয়ে যাবে, তারপর থেকে সেটাই source of truth থাকবে (নিচের sync effect দেখুন)
   const [notes, setNotes] = useState(() => {
     try { return JSON.parse(window.localStorage.getItem("focusgo_notes_v1") || "[]"); } catch (e) { return []; }
   });
-  useEffect(() => {
-    try { window.localStorage.setItem("focusgo_notes_v1", JSON.stringify(notes)); } catch (e) {}
-  }, [notes]);
   const [noteSearch, setNoteSearch] = useState("");
   const [taskFilter, setTaskFilter] = useState("all"); // all | study | personal
   const [taskViewMode, setTaskViewMode] = useState("list"); // "list" | "calendar" — Task tab-এর ভিউ টগল
@@ -2086,6 +2085,11 @@ export default function FocusGo() {
               if (cached.examSubjects) setExamSubjects(cached.examSubjects);
               if (cached.combinedExams) setCombinedExams(cached.combinedExams);
               if (cached.nextExam !== undefined) setNextExam(cached.nextExam);
+              // cached.tasks/cached.notes ইচ্ছাকৃতভাবে এখানে সেট করা হয়নি — এই ইউজারের জন্য এখনো কোনো cache
+              // তৈরি না হয়ে থাকলে (আপডেটের পর প্রথমবার), init-এ থাকা পুরনো localStorage fallback-টাই থেকে যাবে,
+              // এবং নিচের Firestore listener এসে সেটাকেই cloud-এ মাইগ্রেট করে দেবে
+              if (cached.tasks) setTasks(cached.tasks);
+              if (cached.notes) setNotes(cached.notes);
               if (cached.lang) setLang(cached.lang);
               if (cached.themeMode && !themeLoadedOnceRef.current) { setThemeMode(cached.themeMode); themeLoadedOnceRef.current = true; }
               setLoaded(true);
@@ -2095,8 +2099,10 @@ export default function FocusGo() {
           // Ignore broken/old local cache; Firestore remains the source of truth.
         }
       } else {
-        // Sign out — remove the previous user's in-memory data.
+        // Sign out — remove the previous user's in-memory data (tasks/notes-ও, নাহলে একই ডিভাইসে
+        // অন্য একাউন্টে লগইন করলে আগের ইউজারের টাস্ক/নোট দেখা যাওয়ার ঝুঁকি থাকে)
         setEntries({}); setSubjects([]); setTopicBank({}); setExamSubjects({}); setCombinedExams({}); setNextExam(null);
+        setTasks([]); setNotes([]);
         setLoaded(false);
         setServerSynced(false);
       }
@@ -2118,6 +2124,8 @@ export default function FocusGo() {
           if (saved.examSubjects) setExamSubjects(saved.examSubjects);
           if (saved.combinedExams) setCombinedExams(saved.combinedExams);
           if (saved.nextExam !== undefined) setNextExam(saved.nextExam);
+          if (saved.tasks) setTasks(saved.tasks);
+          if (saved.notes) setNotes(saved.notes);
           if (saved.lang) setLang(saved.lang);
           if (saved.themeMode && !themeLoadedOnceRef.current) { setThemeMode(saved.themeMode); themeLoadedOnceRef.current = true; }
         }
@@ -2133,10 +2141,10 @@ export default function FocusGo() {
     if (!loaded || user || !isGuest) return;
     if (!isStandaloneApp()) return;
     const timer = setTimeout(() => {
-      saveGuestData({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, lang, themeMode });
+      saveGuestData({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, tasks, notes, lang, themeMode });
     }, 600);
     return () => clearTimeout(timer);
-  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, lang, themeMode, loaded, user, isGuest]);
+  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, tasks, notes, lang, themeMode, loaded, user, isGuest]);
 
   // ইউজার লগইন করার পর Firestore-এর সাথে real-time sync (users/{uid}) —
   // getDoc দিয়ে একবার read করার বদলে onSnapshot দিয়ে live listen করা হয়, তাই অন্য কোনো
@@ -2153,11 +2161,14 @@ export default function FocusGo() {
               (data.subjects && data.subjects.length) ||
               (data.topicBank && Object.keys(data.topicBank).length) ||
               (data.examSubjects && Object.keys(data.examSubjects).length) ||
-              (data.combinedExams && Object.keys(data.combinedExams).length);
+              (data.combinedExams && Object.keys(data.combinedExams).length) ||
+              (data.tasks && data.tasks.length) ||
+              (data.notes && data.notes.length);
             if (nonEmpty) hadServerDataRef.current = true;
             const incomingKey = JSON.stringify({
               entries: data.entries, subjects: data.subjects, topicBank: data.topicBank, examSubjects: data.examSubjects,
-              combinedExams: data.combinedExams, nextExam: data.nextExam, lang: data.lang, themeMode: data.themeMode,
+              combinedExams: data.combinedExams, nextExam: data.nextExam, tasks: data.tasks, notes: data.notes,
+              lang: data.lang, themeMode: data.themeMode,
             });
             // যদি এই data আমাদেরই সবশেষ write-এর echo হয়, আবার setState করে re-render/re-save লুপ তৈরি করার দরকার নেই
             if (incomingKey !== lastSavedPayloadRef.current) {
@@ -2186,6 +2197,11 @@ export default function FocusGo() {
               }
               if (data.combinedExams) setCombinedExams(data.combinedExams);
               if (data.nextExam !== undefined) setNextExam(data.nextExam);
+              // data.tasks/data.notes না থাকলে (এই ইউজারের জন্য এখনো কোনোদিন cloud-এ সেভ হয়নি — যেমন এই
+              // ফিক্সের পর প্রথমবার) লোকাল state (পুরনো localStorage থেকে আসা) অপরিবর্তিত থাকবে, যাতে সেটা
+              // মুছে না গিয়ে বরং নিচের write effect এটাকেই প্রথমবার Firestore-এ মাইগ্রেট করে দেয়
+              if (data.tasks) setTasks(data.tasks);
+              if (data.notes) setNotes(data.notes);
               if (data.lang) setLang(data.lang);
               if (data.themeMode && !themeLoadedOnceRef.current) { setThemeMode(data.themeMode); themeLoadedOnceRef.current = true; }
             }
@@ -2221,14 +2237,16 @@ export default function FocusGo() {
       subjects.length === 0 &&
       Object.keys(topicBank).length === 0 &&
       Object.keys(examSubjects).length === 0 &&
-      Object.keys(combinedExams).length === 0;
+      Object.keys(combinedExams).length === 0 &&
+      tasks.length === 0 &&
+      notes.length === 0;
     if (isEffectivelyEmpty && hadServerDataRef.current) {
       console.warn("FocusGo: সন্দেহজনক খালি write আটকে দেওয়া হলো — Firestore-এর আসল ডেটা সুরক্ষিত থাকল।");
       return;
     }
 
     const payload = {
-      entries, subjects, topicBank, examSubjects, combinedExams, nextExam, lang, themeMode,
+      entries, subjects, topicBank, examSubjects, combinedExams, nextExam, tasks, notes, lang, themeMode,
       updatedAt: new Date().toISOString(),
     };
 
@@ -2241,7 +2259,7 @@ export default function FocusGo() {
     const t = setTimeout(() => {
       // এই মুহূর্তে যা লিখছি তার একটা "ছাপ" রেখে দেওয়া — real-time listener পরে এই একই data
       // ফেরত পেলে বুঝবে এটা নিজেরই echo, আবার setState/re-save করবে না
-      lastSavedPayloadRef.current = JSON.stringify({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, lang, themeMode });
+      lastSavedPayloadRef.current = JSON.stringify({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, tasks, notes, lang, themeMode });
       setDoc(doc(db, "users", user.uid), payload, { merge: true })
         .catch(e => console.error("Firestore save error:", e));
       // দৈনিক অটো-ব্যাকআপ — প্রতিদিন একবার (তারিখ অনুযায়ী ডকুমেন্ট আইডি, তাই বারবার ওভাররাইট হয়, জমতে থাকে না)।
@@ -2253,7 +2271,7 @@ export default function FocusGo() {
       }
     }, 600); // দ্রুত একের পর এক change হলে বারবার write না করে একবারে সেভ করা
     return () => clearTimeout(t);
-  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, lang, themeMode, serverSynced, user]);
+  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, tasks, notes, lang, themeMode, serverSynced, user]);
 
   // clock tick
   useEffect(() => {
