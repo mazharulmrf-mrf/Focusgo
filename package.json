@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/android": "latest",
     "@capacitor/core": "latest",
     "@capacitor/status-bar": "latest",
     "firebase": "^10.12.0",
@@ -17,6 +18,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "latest",
     "@vitejs/plugin-react": "^4.2.1",
     "vite": "^5.2.0"
   }
