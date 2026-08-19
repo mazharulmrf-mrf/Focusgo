@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
 import {
   onAuthStateChanged,
@@ -6389,13 +6389,23 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                     <div style={{fontSize:13.5,fontWeight:800,color:coverText,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{note.title}</div>
                   </div>
                 </div>
-                <button
-                  onClick={(e)=>{e.stopPropagation();setOpenMenu(openMenu===note.id?null:note.id)}}
-                  style={{border:"none",background:"transparent",color:col.text,cursor:"pointer",padding:2,borderRadius:8,flexShrink:0}}
-                  title="Note options"
-                >
-                  <MoreVertical size={16}/>
-                </button>
+                <div style={{display:"flex",alignItems:"center",gap:2,flexShrink:0}}>
+                  {/* কার্ডে ট্যাপ করলেই এডিট খোলে, তাই আলাদা এডিট বাটন রাখা হয়নি — শুধু Pin ও Delete, ছোট আইকন হিসেবে, ৩-ডট মেনু ছাড়াই */}
+                  <button
+                    onClick={(e)=>{e.stopPropagation();togglePin(note.id);}}
+                    style={{border:"none",background:"transparent",color:col.text,cursor:"pointer",padding:5,borderRadius:8,display:"flex"}}
+                    title={note.pinned ? (lang==="bn"?"আনপিন":"Unpin") : (lang==="bn"?"পিন":"Pin")}
+                  >
+                    {note.pinned ? <PinOff size={15}/> : <Pin size={15}/>}
+                  </button>
+                  <button
+                    onClick={(e)=>{e.stopPropagation();remove(note.id);}}
+                    style={{border:"none",background:"transparent",color:col.text,cursor:"pointer",padding:5,borderRadius:8,display:"flex"}}
+                    title={lang==="bn"?"ডিলিট":"Delete"}
+                  >
+                    <Trash2 size={15}/>
+                  </button>
+                </div>
               </div>
 
               {looksLikeHtml(note.body) ? (
@@ -6420,14 +6430,6 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                 <span style={{fontSize:9.5,fontWeight:700,color:col.text,opacity:0.85}}>{note.category || "General"}</span>
                 <span style={{fontSize:9,color:col.text,opacity:0.65,fontWeight:600}} title={fullDateTimeLabel(note.updatedAt, lang)}>{timeAgoLabel(note.updatedAt || note.createdAt, lang)}</span>
               </div>
-
-              {openMenu === note.id && (
-                <div onClick={e=>e.stopPropagation()} style={{position:"absolute",right:10,top:38,width:150,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:5,boxShadow:"0 10px 28px rgba(0,0,0,.16)",zIndex:20}}>
-                  <button onClick={()=>openEdit(note)} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:textMain,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5}}>Edit</button>
-                  <button onClick={()=>togglePin(note.id)} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:textMain,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5}}>{note.pinned ? "Unpin" : "Pin"}</button>
-                  <button onClick={()=>remove(note.id)} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:"#C54B4B",padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:11.5}}>Delete</button>
-                </div>
-              )}
             </div>
           );})}
         </div>
