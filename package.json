@@ -12,12 +12,14 @@
     "@capacitor/android": "latest",
     "@capacitor/core": "latest",
     "@capacitor/status-bar": "latest",
+    "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
     "firebase": "^10.12.0",
     "lucide-react": "^0.383.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@capacitor/assets": "latest",
     "@capacitor/cli": "latest",
     "@vitejs/plugin-react": "^4.2.1",
     "vite": "^5.2.0"
