@@ -6,8 +6,6 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
-  setPersistence,
-  browserLocalPersistence,
   signOut,
   sendPasswordResetEmail,
   updateProfile,
@@ -165,12 +163,8 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
 
   const handleGoogle = async () => {
     setError("");
-    setInfo("");
     setBusy(true);
     try {
-      // Popup avoids Firebase's redirect/sessionStorage state flow, which was
-      // producing "missing initial state" after Google account selection.
-      await setPersistence(auth, browserLocalPersistence);
       await signInWithPopup(auth, googleProvider);
     } catch (err) {
       console.error("Google sign-in error:", err);
@@ -182,8 +176,6 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
         setError(isBn ? "এই ডোমেইন Firebase-এ অনুমোদিত নয়। Firebase Authentication-এর Authorized domains-এ ডোমেইনটি যোগ করুন।" : "This domain is not authorized in Firebase. Add the domain under Firebase Authentication → Settings → Authorized domains.");
       } else if (err?.code === "auth/popup-blocked") {
         setError(isBn ? "ব্রাউজার Google login popup বন্ধ করে দিয়েছে। Popup allow করে আবার চেষ্টা করুন।" : "Your browser blocked the Google sign-in popup. Allow popups and try again.");
-      } else if (err?.code === "auth/network-request-failed") {
-        setError(isBn ? "ইন্টারনেট সংযোগের সমস্যা হয়েছে। আবার চেষ্টা করুন।" : "A network error occurred. Please try again.");
       } else {
         setError(L.errGeneric);
       }
@@ -488,7 +480,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, car
     const title = legalDoc === "privacy" ? t.privacyPolicy : t.termsOfUse;
     return (
       <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-        <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"calc(100dvh - 24px)", display:"flex", flexDirection:"column"}}>
+        <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"85vh", display:"flex", flexDirection:"column"}}>
           <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:6, flexShrink:0}}>
             <button onClick={()=>setLegalDoc(null)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
               <ChevronLeft size={20}/>
@@ -782,7 +774,7 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
 
   return (
     <div style={overlayStyle} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:sheetRadius, padding:"20px 20px 28px", color:textMain, maxHeight:"calc(100dvh - 24px)", overflowY:"auto"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:sheetRadius, padding:"20px 20px 28px", color:textMain, maxHeight:"88vh", overflowY:"auto"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18}}>
           <div style={{fontSize:17, fontWeight:800, letterSpacing:-0.2}}>{t.profile}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
@@ -1417,29 +1409,17 @@ const findTaskCategory = (categories, key) => (categories || []).find(c => c.key
 // bottom-sheet মোডালগুলোকে আসল দৃশ্যমান উচ্চতার সাথে মিলিয়ে রাখা যায়, তাই কিবোর্ড খোলা অবস্থাতেও
 // মোডালের নিচের অংশ (ক্যাটাগরি, প্রায়োরিটি, Add বাটন) কিবোর্ডের আড়ালে হারিয়ে না গিয়ে স্ক্রল করে দেখা যায়।
 function useVisualViewportHeight() {
-  const getHeight = () => {
-    try {
-      return window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    } catch (e) {
-      return 800;
-    }
-  };
-  const [vh, setVh] = useState(getHeight);
-
+  const [vh, setVh] = useState(() => {
+    try { return (window.visualViewport ? window.visualViewport.height : window.innerHeight); } catch (e) { return 800; }
+  });
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !window.visualViewport) return;
     const vv = window.visualViewport;
-    // IMPORTANT: listen only to resize. Listening to visualViewport "scroll"
-    // makes fixed sheets/editors resize while Chrome's toolbar moves, which
-    // causes the whole app to appear to jump up/down on mobile.
-    const onResize = () => setVh(getHeight());
-    if (vv) vv.addEventListener("resize", onResize);
-    window.addEventListener("resize", onResize);
+    const onResize = () => setVh(vv.height);
+    vv.addEventListener("resize", onResize);
+    vv.addEventListener("scroll", onResize);
     onResize();
-    return () => {
-      if (vv) vv.removeEventListener("resize", onResize);
-      window.removeEventListener("resize", onResize);
-    };
+    return () => { vv.removeEventListener("resize", onResize); vv.removeEventListener("scroll", onResize); };
   }, []);
   return vh;
 }
@@ -1629,9 +1609,10 @@ export default function FocusGo() {
       meta.name = "viewport";
       document.head.appendChild(meta);
     }
-    // Keep one deterministic viewport definition. Repeatedly appending to an
-    // existing meta tag can create conflicting viewport directives on mobile.
-    meta.content = "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content";
+    const base = "width=device-width, initial-scale=1, viewport-fit=cover";
+    if (!/interactive-widget/.test(meta.content || "")) {
+      meta.content = `${meta.content ? meta.content + ", " : base + ", "}interactive-widget=resizes-content`;
+    }
   }, []);
 
   // ---------- Font loading (fixed) ----------
@@ -2994,8 +2975,8 @@ export default function FocusGo() {
   const containerPadding = isDesktop ? "24px 28px 36px" : breakpoint === "tablet" ? "22px 24px 28px" : "18px 16px 24px";
 
   const styles = {
-    page: { height:"100dvh", minHeight:0, background: bg, color: textMain, fontFamily: lang === "bn" ? "'Hind Siliguri','Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column", overflow:"hidden", position:"fixed", inset:0 },
-    container: { maxWidth: containerMaxWidth, margin: "0 auto", padding: isDesktop ? containerPadding : `${containerPadding.split(" ")[0]} ${containerPadding.split(" ")[1]} 104px ${containerPadding.split(" ")[1]}`, width:"100%", boxSizing:"border-box", flex:"0 0 auto", transition: "max-width .2s ease" },
+    page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Hind Siliguri','Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column" },
+    container: { maxWidth: containerMaxWidth, margin: "0 auto", padding: containerPadding, width:"100%", boxSizing:"border-box", flex:"1 0 auto", transition: "max-width .2s ease" },
   };
 
   // Keep the browser/Android UI (status bar + Chrome toolbar area) synced
@@ -3011,12 +2992,10 @@ export default function FocusGo() {
       document.body.style.background = themeColor;
       document.documentElement.style.colorScheme = dark ? "dark" : "light";
       document.body.style.margin = "0";
-      document.body.style.overflow = "hidden";
-      document.documentElement.style.overflow = "hidden";
-      document.documentElement.style.height = "100%";
-      document.body.style.height = "100%";
-      if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
-      window.scrollTo(0, 0);
+      // আগে এখানে overscrollBehaviorY:"none" সেট করা হতো, যেটা ব্রাউজারের নিজস্ব
+      // "উপর থেকে টেনে রিফ্রেশ" (pull-to-refresh) গেসচারটাও বন্ধ করে দিচ্ছিল।
+      // এখন সেটা সরিয়ে দেওয়া হলো, যাতে ইউজার চাইলে উপর থেকে নিচে ধীরে টেনে
+      // পেজ ম্যানুয়ালি রিফ্রেশ করতে পারে (কোনো auto-refresh নেই, শুধু এই gesture)।
 
       // Update <meta name=\"theme-color\"> dynamically. Chrome/Android uses
       // this for the browser/status/navigation UI around the web app.
@@ -3155,56 +3134,15 @@ export default function FocusGo() {
   return (
     <div style={{...styles.page, flexDirection: isDesktop ? "row" : "column"}}>
       <style>{`
-        html, body {
-          margin:0;
-          padding:0;
-          width:100%;
-          height:100%;
-          min-height:100%;
-          background:${bg};
-          overflow:hidden;
-          overscroll-behavior:none;
-        }
-        html { overscroll-behavior-x:none; }
-        body { overflow:hidden; }
-        #root, #__next {
-          width:100%;
-          height:100%;
-          min-height:100%;
-          background:${bg};
-          overflow:hidden;
-        }
-        .fg-main-scroll {
-          height:100%;
-          min-height:0;
-          overflow-y:auto;
-          overflow-x:hidden;
-          overscroll-behavior-y:contain;
-          -webkit-overflow-scrolling:touch;
-          scrollbar-width:none;
-        }
-        .fg-main-scroll::-webkit-scrollbar { display:none; }
-        html {
-          height:100%;
-          -webkit-text-size-adjust:100%;
-        }
-        body {
-          min-height:100%;
-          overscroll-behavior-x:none;
-        }
-        @media (max-width: 1023px) {
-          .fg-bottom-nav-wrap {
-            padding-left:max(16px, env(safe-area-inset-left, 0px));
-            padding-right:max(16px, env(safe-area-inset-right, 0px));
-          }
-        }
+        html, body { margin:0; padding:0; background:${bg}; }
+        #root, #__next { background:${bg}; }
 
         /* ---- subtle motion: tab switches, buttons, cards ---- */
         @keyframes fg-fade-up { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:translateY(0); } }
         @keyframes fg-fade { from { opacity:0; } to { opacity:1; } }
         @keyframes fg-spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
         .fg-spin { animation: fg-spin .8s linear infinite; }
-        .fg-tab-panel { animation: fg-fade .18s ease-out; }
+        .fg-tab-panel { animation: fg-fade-up .32s cubic-bezier(0.16,1,0.3,1); }
         button { transition: transform .16s cubic-bezier(0.16,1,0.3,1), opacity .16s ease, background-color .2s ease, box-shadow .2s ease; }
         button:active:not(:disabled) { transform: scale(0.96); }
         .fg-card { transition: transform .16s cubic-bezier(0.16,1,0.3,1), box-shadow .2s ease, border-color .2s ease; }
@@ -3224,7 +3162,7 @@ export default function FocusGo() {
           </button>
         </div>
       )}
-      <div className={!isDesktop ? "fg-main-scroll" : undefined} style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, minHeight:0, overflowY:"auto", overflowX:"hidden", WebkitOverflowScrolling:"touch", overscrollBehaviorY:"contain", ...(isDesktop ? { zoom: desktopZoom } : {})}}>
+      <div style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, ...(isDesktop ? { zoom: desktopZoom } : {})}}>
       <div style={styles.container}>
         {/* Header row: logo | clock | toggles */}
         <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap: 8}}>
@@ -4333,9 +4271,9 @@ export default function FocusGo() {
 
       {/* Bottom nav — মোবাইল/ট্যাবলেটে; ডেস্কটপে সাইডবার থাকায় এটা হাইড */}
       {!isDesktop && (
-      <div className="fg-bottom-nav-wrap" style={{position:"fixed", left:0, right:0, bottom:0, width:"100%", boxSizing:"border-box", display:"flex", justifyContent:"center", padding:"10px 16px calc(12px + env(safe-area-inset-bottom, 0px))", zIndex:40, background: `linear-gradient(to top, ${bg} 68%, transparent)`, pointerEvents:"none", transform:"translateZ(0)", WebkitTransform:"translateZ(0)"}}>
+      <div style={{position:"sticky", left:0, right:0, bottom:0, display:"flex", justifyContent:"center", padding:"10px 16px 12px", zIndex:40, background: `linear-gradient(to top, ${bg} 60%, transparent)`}}>
         <div style={{
-          width:"100%", maxWidth:480, display:"flex", pointerEvents:"auto",
+          width:"100%", maxWidth:480, display:"flex",
           background: dark ? "rgba(18,17,16,0.6)" : "rgba(255,255,255,0.55)",
           border:`1px solid ${dark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.6)"}`,
           borderRadius:16, padding:"4px",
@@ -5089,7 +5027,7 @@ function CombinedExamEditorModal({ t, allSubjects, editingCombinedExam, onSave, 
 
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, display:"flex", flexDirection:"column", gap:14, maxHeight:"calc(100dvh - 24px)", overflowY:"auto"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, display:"flex", flexDirection:"column", gap:14, maxHeight:"85vh", overflowY:"auto"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
           <div style={{fontSize:16, fontWeight:800}}>{editingCombinedExam ? t.editCombinedExam : t.addCombinedExam}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
@@ -6807,7 +6745,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         <div style={{position:"fixed",left:0,top:0,width:"100%",height:vh,background:editorBg,display:"flex",flexDirection:"column",zIndex:60}} onClick={()=>{setShowMoreMenu(false);setShowColorPicker(false);}}>
 
           {/* Top bar */}
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"calc(14px + env(safe-area-inset-top, 0px)) 14px 14px",flexShrink:0}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 14px",flexShrink:0}}>
             <button onClick={(e)=>{e.stopPropagation();save();}} style={{border:"none",background:"transparent",color:iconColor,cursor:"pointer",padding:8,display:"flex"}}>
               <ChevronLeft size={22}/>
             </button>
@@ -7260,7 +7198,7 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
 function DayDetailModal({ t, lang, nf, weekdayName, monthName, day, entries, allSubjects, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"calc(100dvh - 24px)", overflowY:"auto"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"75vh", overflowY:"auto"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4}}>
           <div>
             <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>{weekdayName(day)}</div>
