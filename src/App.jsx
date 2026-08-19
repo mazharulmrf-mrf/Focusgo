@@ -6056,6 +6056,14 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   const [showBgColorPicker, setShowBgColorPicker] = useState(false); // বটম টুলবারের নতুন রঙ (Palette) আইকন দিয়ে টগল হয় — নোট কার্ডের ব্যাকগ্রাউন্ড রঙ বাছাই
   const [showMoreMenu, setShowMoreMenu] = useState(false); // এডিটর হেডারের ⋮ মেনু
   const [showFormatBar, setShowFormatBar] = useState(false); // বটম টুলবারের "Aa" আইকন দিয়ে টগল হয় — Bold/Italic/Underline/H1/H2 রো
+  const [filterDate, setFilterDate] = useState(null); // নির্দিষ্ট তারিখে ফিল্টার — ক্যালেন্ডার আইকন দিয়ে সিলেক্ট করলে সেট হয়
+  const [showDatePicker, setShowDatePicker] = useState(false); // সার্চের পাশের ক্যালেন্ডার আইকনে ট্যাপ করলে ছোট ডেট-পিকার দেখা যায়
+  const [calMonth, setCalMonth] = useState(new Date()); // ডেট-পিকারে বর্তমানে কোন মাস দেখানো হচ্ছে
+  const [draggingId, setDraggingId] = useState(null); // লং-প্রেস করে যে নোটটা এখন ড্র্যাগ হচ্ছে
+  const [overId, setOverId] = useState(null); // ড্র্যাগ করা নোটটা এখন কোন নোটের উপর আছে (drop target)
+  const dragRef = useRef({ id: null, startX: 0, startY: 0, dragging: false, timeout: null }); // ড্র্যাগের রানটাইম তথ্য (রি-রেন্ডার ছাড়াই দরকার)
+  const justDraggedRef = useRef(false); // ড্র্যাগ শেষ হওয়ার পর একই ট্যাপে যেন নোট এডিটর খুলে না যায়
+  const nf = (n) => (lang === "bn" ? toBn(n) : n); // সংখ্যা — বাংলা হলে বাংলা অংক
   const bodyRef = useRef(null); // contentEditable বডি — রিচ টেক্সট ফরম্যাটিং প্রয়োগ করতে ব্যবহার হয়
   const searchRef = useRef(null); // সার্চ আইকনে ট্যাপ করলে ইনপুটে অটো-ফোকাস করতে
   const vh = useVisualViewportHeight(); // কীবোর্ড খোলা অবস্থায় দৃশ্যমান উচ্চতা — মোডাল সবসময় এর মধ্যেই থাকবে, কীবোর্ডের নিচে চাপা পড়বে না
@@ -6230,7 +6238,8 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         fontSize,
         color: noteColor,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        order: Date.now()
       }, ...prev]);
     }
     closeEditor();
@@ -6304,10 +6313,73 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       const checklistText = Array.isArray(n.checklist) ? n.checklist.map(x => x.text).join(" ") : "";
       return `${n.title} ${n.body} ${n.category || ""} ${checklistText}`.toLowerCase().includes(q);
     })
+    .filter(n => {
+      // ক্যালেন্ডার আইকন দিয়ে কোনো তারিখ সিলেক্ট করা থাকলে শুধু সেদিনের নোটগুলোই দেখাবে
+      if (!filterDate) return true;
+      const created = n.createdAt ? new Date(n.createdAt) : null;
+      return created && dateKey(created) === dateKey(filterDate);
+    })
     .sort((a, b) =>
       Number(!!b.pinned) - Number(!!a.pinned) ||
-      new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0)
+      (b.order ?? new Date(b.updatedAt || 0).getTime()) - (a.order ?? new Date(a.updatedAt || 0).getTime())
     );
+
+  // লং-প্রেস করে ড্র্যাগ করে নোটের অবস্থান বদলানো — draggedId-কে targetId-এর জায়গায় নিয়ে বাকিদের নতুন করে সাজানো হয়
+  const reorderNotes = (draggedId, targetId) => {
+    const list = [...filtered];
+    const fromIdx = list.findIndex(n => n.id === draggedId);
+    const toIdx = list.findIndex(n => n.id === targetId);
+    if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return;
+    const [moved] = list.splice(fromIdx, 1);
+    list.splice(toIdx, 0, moved);
+    const base = Date.now();
+    const orderMap = {};
+    list.forEach((n, i) => { orderMap[n.id] = base - i; });
+    setNotes(prev => prev.map(n => (orderMap[n.id] !== undefined ? { ...n, order: orderMap[n.id] } : n)));
+  };
+
+  // পয়েন্টার (মাউস/টাচ দুটোতেই কাজ করে) দিয়ে ড্র্যাগ শুরু — কার্ডে অল্প সময় চেপে ধরে রাখলে (long-press) ড্র্যাগ মোড চালু হয়, তার আগ পর্যন্ত সাধারণ ট্যাপ/স্ক্রল হিসেবেই কাজ করে
+  const handleCardPointerDown = (e, note) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    const { clientX, clientY } = e;
+    dragRef.current.id = note.id;
+    dragRef.current.startX = clientX;
+    dragRef.current.startY = clientY;
+    dragRef.current.dragging = false;
+    clearTimeout(dragRef.current.timeout);
+    dragRef.current.timeout = setTimeout(() => {
+      if (dragRef.current.id !== note.id) return;
+      dragRef.current.dragging = true;
+      setDraggingId(note.id);
+      if (navigator.vibrate) navigator.vibrate(12);
+    }, 350);
+  };
+  const handleCardPointerMove = (e) => {
+    if (!dragRef.current.id) return;
+    const dx = Math.abs(e.clientX - dragRef.current.startX);
+    const dy = Math.abs(e.clientY - dragRef.current.startY);
+    if (!dragRef.current.dragging) {
+      if (dx > 10 || dy > 10) { clearTimeout(dragRef.current.timeout); dragRef.current.id = null; }
+      return;
+    }
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const cardEl = el && el.closest && el.closest("[data-note-id]");
+    if (cardEl) {
+      const id = cardEl.getAttribute("data-note-id");
+      if (id !== dragRef.current.id) setOverId(id); else setOverId(null);
+    }
+  };
+  const handleCardPointerUp = () => {
+    clearTimeout(dragRef.current.timeout);
+    if (dragRef.current.dragging && overId && overId !== dragRef.current.id) {
+      reorderNotes(dragRef.current.id, overId);
+      justDraggedRef.current = true;
+    }
+    dragRef.current.id = null;
+    dragRef.current.dragging = false;
+    setDraggingId(null);
+    setOverId(null);
+  };
 
   return (
     <>
@@ -6325,14 +6397,80 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           <div style={{ fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain }}>{t.notesTitle}</div>
           <div style={{ fontSize:11.5, color:textMuted2, marginTop:3 }}>{t.notesSubtitle}</div>
         </div>
-        <button
-          onClick={(e)=>{e.stopPropagation();setShowSearch(v=>{const next=!v; if(next){requestAnimationFrame(()=>searchRef.current&&searchRef.current.focus());}else{setSearch("");} return next;});}}
-          style={{ width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",background:showSearch?accent:cardBg,color:showSearch?"#fff":textMain,border:`1px solid ${showSearch?accent:cardBorder}`,borderRadius:13,cursor:"pointer" }}
-          title={lang==="bn"?"সার্চ":"Search"}
-        >
-          {showSearch ? <X size={18}/> : <Search size={18}/>}
-        </button>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <button
+            onClick={(e)=>{e.stopPropagation();setShowSearch(v=>{const next=!v; if(next){requestAnimationFrame(()=>searchRef.current&&searchRef.current.focus());}else{setSearch("");} return next;});}}
+            style={{ width:52,height:40,display:"flex",alignItems:"center",justifyContent:"center",background:showSearch?accent:cardBg,color:showSearch?"#fff":textMain,border:`1px solid ${showSearch?accent:cardBorder}`,borderRadius:13,cursor:"pointer" }}
+            title={lang==="bn"?"সার্চ":"Search"}
+          >
+            {showSearch ? <X size={19}/> : <Search size={19}/>}
+          </button>
+          <button
+            onClick={(e)=>{e.stopPropagation();setCalMonth(filterDate || new Date());setShowDatePicker(true);}}
+            style={{ width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",background:filterDate?accent:cardBg,color:filterDate?"#fff":textMain,border:`1px solid ${filterDate?accent:cardBorder}`,borderRadius:13,cursor:"pointer" }}
+            title={lang==="bn"?"তারিখ দিয়ে দেখুন":"View by date"}
+          >
+            <Calendar size={18}/>
+          </button>
+        </div>
       </div>
+
+      {/* কোনো নির্দিষ্ট তারিখ সিলেক্ট করা থাকলে তার একটা ছোট ব্যানার — সহজে ক্লিয়ার করা যায় */}
+      {filterDate && (
+        <div onClick={e=>e.stopPropagation()} style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,background:dark?"#2B281F":"#FFF4DF",border:`1px solid ${accent}`,borderRadius:12,padding:"9px 12px",marginBottom:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:7,fontSize:12.5,fontWeight:700,color:accent}}>
+            <Calendar size={14}/>
+            {lang==="bn" ? `${nf(filterDate.getDate())} ${MONTHS_BN[filterDate.getMonth()]}, ${nf(filterDate.getFullYear())}` : `${MONTHS_EN[filterDate.getMonth()]} ${filterDate.getDate()}, ${filterDate.getFullYear()}`}
+          </div>
+          <button onClick={()=>setFilterDate(null)} style={{border:"none",background:"transparent",color:accent,cursor:"pointer",padding:2,display:"flex"}}><X size={15}/></button>
+        </div>
+      )}
+
+      {/* তারিখ পিক করার ছোট ক্যালেন্ডার — দিনে ট্যাপ করলে সেদিনের নোট দেখা যাবে */}
+      {showDatePicker && (
+        <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:60, padding:16}} onClick={()=>setShowDatePicker(false)}>
+          <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:380, borderRadius:22, padding:18, color:textMain}}>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
+              <div style={{fontSize:14, fontWeight:800}}>{lang==="bn"?"তারিখ বাছাই করুন":"Pick a date"}</div>
+              <button onClick={()=>setShowDatePicker(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={18}/></button>
+            </div>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", margin:"6px 0 12px"}}>
+              <button onClick={()=>setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth()-1, 1))} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, width:30,height:30, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", color:textMain}}><ChevronLeft size={15}/></button>
+              <div style={{fontWeight:700, fontSize:14}}>{lang==="bn"?MONTHS_BN[calMonth.getMonth()]:MONTHS_EN[calMonth.getMonth()]} {nf(calMonth.getFullYear())}</div>
+              <button onClick={()=>setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 1))} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, width:30,height:30, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", color:textMain}}><ChevronRight size={15}/></button>
+            </div>
+            <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:3, marginBottom:5}}>
+              {(lang==="bn" ? ["র","সো","ম","বু","বৃ","শু","শ"] : ["S","M","T","W","T","F","S"]).map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:9.5, fontWeight:700, color:textMuted2}}>{d}</div>))}
+            </div>
+            <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:3}}>
+              {(() => {
+                const y = calMonth.getFullYear(), m = calMonth.getMonth();
+                const startOffset = new Date(y,m,1).getDay();
+                const daysInMonth = new Date(y,m+1,0).getDate();
+                const cells = [];
+                for (let i=0;i<startOffset;i++) cells.push(null);
+                for (let d=1; d<=daysInMonth; d++) cells.push(new Date(y,m,d));
+                const todayKey = dateKey(new Date());
+                const hasNoteKeys = new Set(notes.filter(n=>n.createdAt).map(n=>dateKey(new Date(n.createdAt))));
+                return cells.map((d,i) => {
+                  if (!d) return <div key={i}/>;
+                  const dk = dateKey(d);
+                  const isToday = dk === todayKey;
+                  const isSelected = filterDate && dk === dateKey(filterDate);
+                  const hasNotes = hasNoteKeys.has(dk);
+                  return (
+                    <button key={i} onClick={()=>{setFilterDate(d);setShowDatePicker(false);}}
+                      style={{position:"relative", aspectRatio:"1", border: isSelected ? `1.5px solid ${accent}` : isToday ? `1px solid ${accent}` : "1px solid transparent", borderRadius:10, background: isSelected ? (dark?"#2B281F":"#FFF4DF") : (dark?"#121110":"#F8F5EE"), cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2, color:textMain}}>
+                      <span style={{fontSize:11.5, fontWeight:600}}>{nf(d.getDate())}</span>
+                      <span style={{width:4,height:4,borderRadius:"50%", background: hasNotes ? accent : "transparent"}}/>
+                    </button>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Search — সার্চ আইকনে ট্যাপ করলেই দেখা যায় */}
       {showSearch && (
@@ -6351,7 +6489,6 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
       {/* Categories — কম্প্যাক্ট, ফোল্ডার গ্রিডের বদলে এখন এটাই একমাত্র ফিল্টার; দরকার হলে ২-৩ লাইনে wrap হবে, নিচে scrollbar আসবে না */}
       <div style={{ display:"flex",flexWrap:"wrap",gap:6,alignItems:"center",marginBottom:14 }}>
-        <Tag size={13} color={textMuted2} style={{flex:"0 0 auto"}}/>
         <button onClick={(e)=>{e.stopPropagation();setActiveFolder("All Notes");}} style={{border:`1px solid ${activeFolder==="All Notes"?accent:cardBorder}`,background:activeFolder==="All Notes"?(dark?"#2B281F":"#FFF4DF"):(dark?"#211F1B":"#F5F2EA"),color:activeFolder==="All Notes"?accent:textMain,cursor:"pointer",fontSize:12,fontWeight:700,padding:"5px 11px",borderRadius:999,flex:"0 0 auto"}}>{lang==="bn"?"সব":"All"}</button>
         <button onClick={(e)=>{e.stopPropagation();setActiveFolder("Pinned");}} style={{border:`1px solid ${activeFolder==="Pinned"?accent:cardBorder}`,background:activeFolder==="Pinned"?(dark?"#2B281F":"#FFF4DF"):(dark?"#211F1B":"#F5F2EA"),color:activeFolder==="Pinned"?accent:textMain,cursor:"pointer",fontSize:12,fontWeight:700,padding:"5px 11px",borderRadius:999,flex:"0 0 auto",display:"flex",alignItems:"center",gap:4}}><Pin size={11}/>{lang==="bn"?"পিন":"Pinned"}</button>
         {categories.map(cat => (
@@ -6375,12 +6512,19 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
             // নোটের কভার (ছোট কার্ড অবস্থায়) — ইউজার নিজে রঙ বাছাই করে থাকলে সেটাই, নাহলে ডিফল্ট বেইজ/ডার্ক
             const coverBg = noteBgFor(note.color, dark);
             const coverText = noteTextFor(note.color, dark);
+            const isDragging = draggingId === note.id;
+            const isDropTarget = overId === note.id && draggingId && draggingId !== note.id;
             return (
             <div
               key={note.id}
-              onClick={()=>openEdit(note)}
+              data-note-id={note.id}
+              onClick={()=>{ if (justDraggedRef.current) { justDraggedRef.current = false; return; } openEdit(note); }}
+              onPointerDown={(e)=>handleCardPointerDown(e, note)}
+              onPointerMove={handleCardPointerMove}
+              onPointerUp={handleCardPointerUp}
+              onPointerCancel={handleCardPointerUp}
               className="fg-card"
-              style={{position:"relative",background:coverBg,border:"none",borderRadius:14,padding:"13px 13px",cursor:"pointer",display:"flex",flexDirection:"column",boxShadow:"0 1px 3px rgba(0,0,0,.10)"}}
+              style={{position:"relative",background:coverBg,border:isDropTarget?`2px dashed ${accent}`:"none",borderRadius:14,padding:"13px 13px",cursor:"pointer",display:"flex",flexDirection:"column",boxShadow:isDragging?"0 6px 16px rgba(0,0,0,.22)":"0 1px 3px rgba(0,0,0,.10)",opacity:isDragging?0.55:1,transform:isDragging?"scale(1.03)":"scale(1)",transition:"transform .12s, box-shadow .12s",touchAction:draggingId?"none":"pan-y",zIndex:isDragging?2:1}}
             >
               <div style={{display:"flex",justifyContent:"space-between",gap:6,alignItems:"flex-start"}}>
                 <div style={{minWidth:0,flex:1}}>
