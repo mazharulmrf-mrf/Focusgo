@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
 import {
   onAuthStateChanged,
@@ -3695,9 +3695,6 @@ export default function FocusGo() {
                   {x.done ? <Check size={16} color="#fff" strokeWidth={3}/> : <span style={{width:9,height:9,borderRadius:"50%", background:cat.color}}/>}
                 </button>
                 <div style={{flex:1, minWidth:0}}>
-                  <span style={{display:"inline-flex", alignItems:"center", gap:4, fontSize:9.5, fontWeight:800, letterSpacing:0.5, color:cat.color, background:`${cat.color}1F`, borderRadius:6, padding:"2px 7px", marginBottom:5}}>
-                    <CatIcon size={10}/> {catLabel}
-                  </span>
                   <div style={{fontSize:14, fontWeight:600, color:textMain, wordBreak:"break-word", textDecoration: x.done?"line-through":"none", opacity: x.done?0.6:1, marginBottom:6, lineHeight:1.3}}>{x.title}</div>
                   <div style={{display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"}}>
                     {/* আজকের বাইরের যেকোনো টাস্কে ছোট করে শুধু তারিখের নাম্বার (যেমন ০১, ২৮) — done/pending সব ক্ষেত্রেই */}
@@ -3706,6 +3703,10 @@ export default function FocusGo() {
                         <Num>{nf(pad2(new Date(x.dueDate+"T00:00:00").getDate()))}</Num>
                       </span>
                     )}
+                    {/* ক্যাটাগরি ব্যাজ — আগে টাইটেলের উপরে আলাদা লাইনে ছিল, এখন এখানে মেটা রো-তে দিয়ে কার্ড কম্প্যাক্ট করা হয়েছে */}
+                    <span style={{display:"inline-flex", alignItems:"center", gap:4, fontSize:9.5, fontWeight:800, letterSpacing:0.5, color:cat.color, background:`${cat.color}1F`, borderRadius:6, padding:"2px 7px", flexShrink:0}}>
+                      <CatIcon size={10}/> {catLabel}
+                    </span>
                     <span style={{display:"inline-flex", alignItems:"center", gap:3, fontSize:10, fontWeight:700, color: isOverdue ? "#C0392B" : prColor[x.priority]}}>
                       <span style={{width:5,height:5,borderRadius:"50%", background: isOverdue ? "#C0392B" : prColor[x.priority]}}/>
                       {prLabel[x.priority]}
@@ -4005,22 +4006,23 @@ export default function FocusGo() {
             </div>
 
             {/* Subject Progress — right after Study Overview */}
-            <div style={{display:"flex", alignItems:"center", gap:10, marginTop:6, marginBottom:16}}>
-              <div style={{width:36,height:36, borderRadius:11, background: dark?"#26231D":"#F3EEE3", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                <GraduationCap size={18} color={dark ? "#C9C0AC" : "#6B6353"}/>
+            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginTop:6, marginBottom:16}}>
+              <div style={{display:"flex", alignItems:"center", gap:10, minWidth:0}}>
+                <div style={{width:36,height:36, borderRadius:11, background: dark?"#26231D":"#F3EEE3", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                  <GraduationCap size={18} color={dark ? "#C9C0AC" : "#6B6353"}/>
+                </div>
+                <div style={{minWidth:0}}>
+                  <div style={{fontSize:16.5, fontWeight:800, letterSpacing:-0.2, color:textMain}}>{t.syllabusProgress}</div>
+                  <div style={{fontSize:11, color:textMuted2, fontWeight:500, opacity:0.75}}>{t.subjectProgressSubtitle}</div>
+                </div>
               </div>
-              <div style={{minWidth:0}}>
-                <div style={{fontSize:16.5, fontWeight:800, letterSpacing:-0.2, color:textMain}}>{t.syllabusProgress}</div>
-                <div style={{fontSize:11, color:textMuted2, fontWeight:500, opacity:0.75}}>{t.subjectProgressSubtitle}</div>
-              </div>
+              {/* সাবজেক্ট ম্যানেজ করার শর্টকাট — আগে টেক্সট বাটন হিসেবে নিচে আলাদা লাইনে ছিল, এখন হেডিং-এর পাশেই ছোট + আইকন হিসেবে হাইলাইট করা */}
+              <button onClick={()=>{vibrate(); setShowSubjects(true);}} title={t.manageSubjects} style={{width:32, height:32, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", border:"none", borderRadius:"50%", background:accent, color:"#fff", cursor:"pointer", boxShadow: dark ? "0 4px 12px rgba(0,0,0,0.35)" : "0 4px 12px rgba(217,119,87,0.35)"}}>
+                <Plus size={16} strokeWidth={2.5}/>
+              </button>
             </div>
 
             <div style={{marginBottom:20}}>
-              <div style={{display:"flex", justifyContent:"flex-end", marginBottom:12}}>
-                <button onClick={()=>{vibrate(); setShowSubjects(true);}} style={{display:"flex",alignItems:"center",gap:4, border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"7px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
-                  <Plus size={12}/> {t.manageSubjects}
-                </button>
-              </div>
               {(() => {
                 const sorted = [...allSubjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"}));
                 const COLLAPSE_AT = 4; // max 4 subjects shown in the grid — rest via "See more"
@@ -5960,6 +5962,33 @@ function noteColorFor(category, allCategories) {
   return NOTE_COLOR_PALETTE[idx % NOTE_COLOR_PALETTE.length];
 }
 
+// ---------- Notes: নোট কার্ডের ব্যাকগ্রাউন্ড রঙ (ঐচ্ছিক) — প্রতি নোট আলাদা রঙ করে রাখা যাবে, যাতে চোখের দেখায় দ্রুত খুঁজে পাওয়া যায় ----------
+const NOTE_BG_PALETTE = [
+  { key: null,     bg: null,      bgDark: null,      labelBn: "ডিফল্ট", labelEn: "Default" },
+  { key: "yellow", bg: "#FFF3B0", bgDark: "#3A331A", labelBn: "হলুদ",   labelEn: "Yellow" },
+  { key: "orange", bg: "#FCE0C4", bgDark: "#3A2C1B", labelBn: "কমলা",   labelEn: "Orange" },
+  { key: "pink",   bg: "#FBD9E5", bgDark: "#35232B", labelBn: "গোলাপি", labelEn: "Pink" },
+  { key: "purple", bg: "#E6D9F7", bgDark: "#2C2438", labelBn: "বেগুনি", labelEn: "Purple" },
+  { key: "blue",   bg: "#CFE8F7", bgDark: "#1E2E3A", labelBn: "নীল",    labelEn: "Blue" },
+  { key: "teal",   bg: "#CFF0EA", bgDark: "#1E332F", labelBn: "টিল",    labelEn: "Teal" },
+  { key: "green",  bg: "#D7F0D0", bgDark: "#223626", labelBn: "সবুজ",   labelEn: "Green" },
+  { key: "gray",   bg: "#E4E1D9", bgDark: "#2A2822", labelBn: "ধূসর",   labelEn: "Gray" },
+];
+function noteBgFor(colorKey, dark) {
+  const found = NOTE_BG_PALETTE.find(c => c.key === (colorKey || null)) || NOTE_BG_PALETTE[0];
+  const fallback = dark ? "#221E19" : NOTE_PAPER_BG;
+  return (dark ? found.bgDark : found.bg) || fallback;
+}
+
+// ---------- Notes: লেখার রঙ (টেক্সট কালার) — সিলেক্ট করা অংশে প্রয়োগ হয়, কিছু সাধারণ রঙ যথেষ্ট ----------
+const NOTE_TEXT_COLORS = [
+  { key: "red",    hex: "#C0392B" },
+  { key: "orange", hex: "#D9770B" },
+  { key: "green",  hex: "#2F8F46" },
+  { key: "blue",   hex: "#1F6FB2" },
+  { key: "purple", hex: "#7A4FA3" },
+];
+
 // ---------- সহজ **bold** / *italic* মার্কডাউন রেন্ডারার (Keep-এর মতো ফরম্যাটিং দেখানোর জন্য) ----------
 function renderFormattedText(str) {
   if (!str) return null;
@@ -6006,7 +6035,9 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   const [category, setCategory] = useState("General");
   const [checklist, setChecklist] = useState([]);
   const [checkText, setCheckText] = useState("");
-  const [fontSize, setFontSize] = useState(14.5); // নোটের লেখার ফন্ট সাইজ — বটম টুলবারের A-/A+ দিয়ে ছোট-বড় করা যায়, প্রতি নোটে আলাদাভাবে সেভ থাকে
+  const [fontSize, setFontSize] = useState(14.5); // নোটের ডিফল্ট/বেস ফন্ট সাইজ — নতুন লেখা (যেখানে আলাদা সাইজ সেট করা হয়নি) এই সাইজেই দেখা যায়
+  const [activeFontSize, setActiveFontSize] = useState(14.5); // কার্সার/সিলেকশনে এখন যে ফন্ট সাইজ আছে — A-/A+ বাটনের disable অবস্থা ও পরের সাইজ হিসাব করতে ব্যবহার হয়
+  const [noteColor, setNoteColor] = useState(null); // নোট কার্ডের ব্যাকগ্রাউন্ড রঙ — null মানে ডিফল্ট বেইজ রঙ, প্রতি নোটে আলাদাভাবে সেভ থাকে
   const [activeFolder, setActiveFolder] = useState("All Notes");
   const [openMenu, setOpenMenu] = useState(null);
   const [showSearch, setShowSearch] = useState(false); // উপরের সার্চ আইকনে ট্যাপ করলে সার্চ বার দেখা যায়
@@ -6014,6 +6045,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   const [pinnedDraft, setPinnedDraft] = useState(false); // এডিটরের ভেতরের pin টগল (এখনো সেভ না হওয়া নোটের জন্যও কাজ করে)
   const [showChecklist, setShowChecklist] = useState(false); // বটম টুলবারের checklist আইকন দিয়ে টগল হয়
   const [showColorPicker, setShowColorPicker] = useState(false); // বটম টুলবারের palette আইকন দিয়ে টগল হয়
+  const [showBgColorPicker, setShowBgColorPicker] = useState(false); // বটম টুলবারের নতুন রঙ (Palette) আইকন দিয়ে টগল হয় — নোট কার্ডের ব্যাকগ্রাউন্ড রঙ বাছাই
   const [showMoreMenu, setShowMoreMenu] = useState(false); // এডিটর হেডারের ⋮ মেনু
   const [showFormatBar, setShowFormatBar] = useState(false); // বটম টুলবারের "Aa" আইকন দিয়ে টগল হয় — Bold/Italic/Underline/H1/H2 রো
   const bodyRef = useRef(null); // contentEditable বডি — রিচ টেক্সট ফরম্যাটিং প্রয়োগ করতে ব্যবহার হয়
@@ -6042,6 +6074,69 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       setEditing(null);
     }
   };
+
+  // ---- ফন্ট সাইজ: পুরো বক্স না, শুধু সিলেক্ট করা অংশ বা কার্সার থেকে যা টাইপ হবে তার সাইজ বদলায় ----
+  const FONT_MIN = 12, FONT_MAX = 26, FONT_STEP = 1.5;
+
+  // কার্সার/সিলেকশনের জায়গায় এখন আসলে কত পিক্সেল ফন্ট সাইজ আছে, সেটা বের করা (নাহলে fallback)
+  const getCaretFontSizePx = (el, fallback) => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !el) return fallback;
+    let node = sel.anchorNode;
+    if (!node || !el.contains(node)) return fallback;
+    if (node.nodeType === 3) node = node.parentElement;
+    if (!node) return fallback;
+    const px = parseFloat(window.getComputedStyle(node).fontSize);
+    return isNaN(px) ? fallback : px;
+  };
+
+  // সিলেকশন/কার্সার বদলালে A-/A+ বাটনের অবস্থা (disable ও পরের ধাপের হিসাব) আপডেট রাখা
+  const syncActiveFontSize = () => {
+    if (!bodyRef.current) return;
+    const px = getCaretFontSizePx(bodyRef.current, fontSize);
+    setActiveFontSize(Math.round(px * 10) / 10);
+  };
+
+  // A-/A+: কিছু সিলেক্ট করা থাকলে শুধু সিলেকশনের সাইজ বদলায়; কিছু সিলেক্ট না থাকলে কার্সার থেকে
+  // এরপর যা টাইপ হবে সেটাই নতুন সাইজে আসতে থাকে — পুরো নোটের সাইজ আর বদলায় না
+  const applyFontSizeDelta = (delta) => {
+    const el = bodyRef.current;
+    if (!el) return;
+    el.focus();
+    const sel = window.getSelection();
+    if (!sel) return;
+    // কার্সার এডিটরের বাইরে থাকলে (যেমন বাটনে ক্লিক করায় ফোকাস সরে গিয়ে থাকতে পারে), শেষে নিয়ে আসা
+    if (sel.rangeCount === 0 || !el.contains(sel.anchorNode)) {
+      const r = document.createRange();
+      r.selectNodeContents(el);
+      r.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(r);
+    }
+    const current = getCaretFontSizePx(el, activeFontSize);
+    const next = Math.max(FONT_MIN, Math.min(FONT_MAX, Math.round((current + delta) * 10) / 10));
+
+    // পুরনো ট্রিক: execCommand("fontSize") দিয়ে সিলেকশন/কার্সারে <font size="7"> বসিয়ে সেটাকে
+    // নির্দিষ্ট px সাইজের <span>-এ বদলে দেওয়া — এভাবে যেকোনো px সাইজ প্রয়োগ করা যায়
+    document.execCommand("styleWithCSS", false, false);
+    document.execCommand("fontSize", false, "7");
+    el.querySelectorAll('font[size="7"]').forEach((f) => {
+      const span = document.createElement("span");
+      span.style.fontSize = next + "px";
+      while (f.firstChild) span.appendChild(f.firstChild);
+      f.replaceWith(span);
+      if (!span.firstChild) {
+        // কিছু সিলেক্ট করা ছিল না — কার্সারকে এই span-এর ভেতরে রাখা হচ্ছে যাতে পরের টাইপিং এই সাইজেই ঢোকে
+        const r2 = document.createRange();
+        r2.setStart(span, 0);
+        r2.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(r2);
+      }
+    });
+    setBody(el.innerHTML);
+    setActiveFontSize(next);
+  };
   const [categories, setCategories] = useState(() => {
     try {
       const saved = JSON.parse(window.localStorage.getItem("focusgo_note_categories_v1") || "[]");
@@ -6063,11 +6158,14 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     setChecklist([]);
     setCheckText("");
     setFontSize(14.5);
+    setActiveFontSize(14.5);
+    setNoteColor(null);
     setOpenMenu(null);
     setFabOpen(false);
     setPinnedDraft(false);
     setShowChecklist(!!startWithChecklist);
     setShowColorPicker(false);
+    setShowBgColorPicker(false);
     setShowMoreMenu(false);
     setShowFormatBar(false);
     window.history.pushState({ fgNoteEditor: true }, "");
@@ -6082,10 +6180,13 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     setChecklist(Array.isArray(note.checklist) ? note.checklist : []);
     setCheckText("");
     setFontSize(note.fontSize || 14.5);
+    setActiveFontSize(note.fontSize || 14.5);
+    setNoteColor(note.color || null);
     setOpenMenu(null);
     setPinnedDraft(!!note.pinned);
     setShowChecklist(Array.isArray(note.checklist) && note.checklist.length > 0);
     setShowColorPicker(false);
+    setShowBgColorPicker(false);
     setShowMoreMenu(false);
     setShowFormatBar(false);
     window.history.pushState({ fgNoteEditor: true }, "");
@@ -6107,7 +6208,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     const cleanBody = bodyIsEmpty ? "" : body;
     if (editing?.id) {
       setNotes(prev => prev.map(n => n.id === editing.id
-        ? { ...n, title: title.trim() || "Untitled", body: cleanBody, category, checklist: cleanChecklist, pinned: pinnedDraft, fontSize, updatedAt: now }
+        ? { ...n, title: title.trim() || "Untitled", body: cleanBody, category, checklist: cleanChecklist, pinned: pinnedDraft, fontSize, color: noteColor, updatedAt: now }
         : n
       ));
     } else {
@@ -6119,6 +6220,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         checklist: cleanChecklist,
         pinned: pinnedDraft,
         fontSize,
+        color: noteColor,
         createdAt: now,
         updatedAt: now
       }, ...prev]);
@@ -6262,8 +6364,8 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:10}}>
           {filtered.map(note => {
             const col = noteColorFor(note.category || "General", categories);
-            // নোটের কভার (ছোট কার্ড অবস্থায়) থিম অনুযায়ী বদলাবে — ডার্ক মোডে ডার্ক, লাইট মোডে অফ-হোয়াইট
-            const coverBg = dark ? "#221E19" : NOTE_PAPER_BG;
+            // নোটের কভার (ছোট কার্ড অবস্থায়) — ইউজার নিজে রঙ বাছাই করে থাকলে সেটাই, নাহলে ডিফল্ট বেইজ/ডার্ক
+            const coverBg = noteBgFor(note.color, dark);
             const coverText = dark ? "#EFE9DC" : NOTE_PAPER_TEXT;
             return (
             <div
@@ -6350,7 +6452,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       {editing && (() => {
         const noteCol = noteColorFor(category, categories);
         const editorBg = bg; // পুরো স্ক্রিনের নিরপেক্ষ পেজ ব্যাকগ্রাউন্ড — থিম অনুযায়ী বদলায়
-        const paperBg = dark ? "#211D18" : NOTE_PAPER_BG; // লেখার জায়গাটা এখন আলাদা "কাগজ" কার্ড হিসেবে ভাসবে
+        const paperBg = noteBgFor(noteColor, dark); // লেখার জায়গাটা এখন আলাদা "কাগজ" কার্ড হিসেবে ভাসবে — ইউজারের বাছাই করা রঙ থাকলে সেটাই দেখাবে
         const paperBorder = dark ? "#3A342B" : "#E9DCC5";
         const paperText = dark ? "#F3EFE7" : NOTE_PAPER_TEXT;
         const iconColor = textMain; // হেডার ও বটম টুলবারের আইকন/টেক্সট — পেজ ব্যাকগ্রাউন্ডের সাথে ঠিকমতো কনট্রাস্ট থাকার জন্য
@@ -6453,7 +6555,10 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                 suppressContentEditableWarning
                 className="fg-note-body"
                 onInput={()=>{ if (bodyRef.current) setBody(bodyRef.current.innerHTML); }}
-                onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
+                onSelect={syncActiveFontSize}
+                onKeyUp={syncActiveFontSize}
+                onMouseUp={syncActiveFontSize}
+                onFocus={(e)=>{ syncActiveFontSize(); setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
                 style={{width:"100%",boxSizing:"border-box",minHeight: showChecklist ? 60 : 180,background:"transparent",border:"none",padding:"6px 0",fontSize:fontSize,lineHeight:1.65,color:paperText,outline:"none",fontFamily:"inherit",marginBottom:8,transition:"font-size .15s ease",wordBreak:"break-word"}}
               />
             </div>
@@ -6474,6 +6579,16 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                     <Icon size={17}/>
                   </button>
                 ))}
+                {/* টেক্সট রঙ — সিলেক্ট করা লেখার রঙ বদলাতে, কিছু সাধারণ রঙ */}
+                <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:4,paddingLeft:8,borderLeft:`1px solid ${cardBorder}`}}>
+                  {[{key:"default",hex:paperText},...NOTE_TEXT_COLORS].map(c => (
+                    <button key={c.key} onMouseDown={e=>e.preventDefault()}
+                      onClick={()=>{ if(bodyRef.current){ bodyRef.current.focus(); document.execCommand("styleWithCSS", false, false); document.execCommand("foreColor", false, c.hex); setBody(bodyRef.current.innerHTML); } }}
+                      title={c.key==="default" ? (lang==="bn"?"ডিফল্ট":"Default") : c.key}
+                      style={{width:19,height:19,borderRadius:"50%",padding:0,cursor:"pointer",background:c.hex,border: c.key==="default" ? `1.5px dashed ${paperText}` : "1.5px solid rgba(0,0,0,0.15)",flexShrink:0}}>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -6500,32 +6615,58 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                 </button>
               </div>
             )}
+
+            {/* নোট কার্ডের ব্যাকগ্রাউন্ড রঙ পিকার — বটম টুলবারের নতুন Palette আইকন দিয়ে টগল হয়; নিজের ইচ্ছামতো রঙ করে রাখলে পরে চোখের দেখায় দ্রুত খুঁজে পাওয়া যায় */}
+            {showBgColorPicker && (
+              <div onClick={e=>e.stopPropagation()} style={{display:"flex",flexWrap:"wrap",gap:10,paddingTop:6,paddingBottom:2}}>
+                {NOTE_BG_PALETTE.map((c) => {
+                  const selected = (noteColor || null) === c.key;
+                  const swatchBg = (dark ? c.bgDark : c.bg) || (dark ? "#221E19" : NOTE_PAPER_BG);
+                  return (
+                    <button key={c.key || "default"} onClick={()=>setNoteColor(c.key)}
+                      title={lang==="bn" ? c.labelBn : c.labelEn}
+                      style={{
+                        width:30, height:30, borderRadius:"50%", cursor:"pointer",
+                        background:swatchBg,
+                        border: c.key===null ? `1.5px dashed ${paperText}` : `1.5px solid ${selected ? paperText : "rgba(0,0,0,0.12)"}`,
+                        display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
+                      }}>
+                      {selected && <Check size={13} color={paperText}/>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
           </div>
 
           {/* Bottom icon toolbar — পেজ ব্যাকগ্রাউন্ডের উপর, উপরের বর্ডার দিয়ে paper card থেকে আলাদা করা */}
           <div onClick={e=>e.stopPropagation()} style={{display:"flex",alignItems:"center",gap:2,padding:"10px 14px",borderTop:`1px solid ${cardBorder}`,flexShrink:0}}>
-            <button onClick={()=>{setShowChecklist(v=>!v);setShowColorPicker(false);}} title={lang==="bn"?"চেকলিস্ট":"Checklist"}
+            <button onClick={()=>{setShowChecklist(v=>!v);setShowColorPicker(false);setShowBgColorPicker(false);}} title={lang==="bn"?"চেকলিস্ট":"Checklist"}
               style={{border:"none",background:showChecklist?toolbarActiveBg:"transparent",color:iconColor,cursor:"pointer",padding:9,borderRadius:"50%",display:"flex"}}>
               <ListChecks size={19}/>
             </button>
-            <button onClick={()=>setShowFormatBar(v=>!v)} title={lang==="bn"?"টেক্সট ফরম্যাটিং":"Text formatting"}
+            <button onClick={()=>{setShowFormatBar(v=>!v);setShowBgColorPicker(false);}} title={lang==="bn"?"টেক্সট ফরম্যাটিং":"Text formatting"}
               style={{border:"none",background:showFormatBar?toolbarActiveBg:"transparent",color:showFormatBar?accent:iconColor,cursor:"pointer",padding:"9px 10px",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:13,fontFamily:"inherit"}}>
               Aa
             </button>
-            <button onClick={()=>{setShowColorPicker(v=>!v);setShowChecklist(false);}} title={lang==="bn"?"রঙ / ক্যাটাগরি":"Color / Category"}
+            <button onClick={()=>{setShowColorPicker(v=>!v);setShowChecklist(false);setShowBgColorPicker(false);}} title={lang==="bn"?"ক্যাটাগরি":"Category"}
               style={{border:"none",background:showColorPicker?toolbarActiveBg:"transparent",color:iconColor,cursor:"pointer",padding:9,borderRadius:"50%",display:"flex"}}>
               <Tag size={19}/>
             </button>
+            <button onClick={()=>{setShowBgColorPicker(v=>!v);setShowChecklist(false);setShowColorPicker(false);}} title={lang==="bn"?"নোটের রঙ":"Note color"}
+              style={{border:"none",background:showBgColorPicker?toolbarActiveBg:"transparent",color:iconColor,cursor:"pointer",padding:9,borderRadius:"50%",display:"flex"}}>
+              <Palette size={19}/>
+            </button>
             <div style={{display:"flex",alignItems:"center",gap:1,marginLeft:2}}>
-              <button onClick={()=>setFontSize(f=>Math.max(12, Math.round((f-1.5)*10)/10))} disabled={fontSize<=12}
+              <button onMouseDown={e=>e.preventDefault()} onClick={()=>applyFontSizeDelta(-FONT_STEP)} disabled={activeFontSize<=FONT_MIN}
                 title={lang==="bn"?"ছোট ফন্ট":"Smaller text"}
-                style={{border:"none",background:"transparent",color:iconColor,opacity:fontSize<=12?0.35:1,cursor:fontSize<=12?"default":"pointer",padding:"9px 7px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:12,lineHeight:1}}>
+                style={{border:"none",background:"transparent",color:iconColor,opacity:activeFontSize<=FONT_MIN?0.35:1,cursor:activeFontSize<=FONT_MIN?"default":"pointer",padding:"9px 7px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:12,lineHeight:1}}>
                 A
               </button>
-              <button onClick={()=>setFontSize(f=>Math.min(22, Math.round((f+1.5)*10)/10))} disabled={fontSize>=22}
+              <button onMouseDown={e=>e.preventDefault()} onClick={()=>applyFontSizeDelta(FONT_STEP)} disabled={activeFontSize>=FONT_MAX}
                 title={lang==="bn"?"বড় ফন্ট":"Larger text"}
-                style={{border:"none",background:"transparent",color:iconColor,opacity:fontSize>=22?0.35:1,cursor:fontSize>=22?"default":"pointer",padding:"9px 7px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:18,lineHeight:1}}>
+                style={{border:"none",background:"transparent",color:iconColor,opacity:activeFontSize>=FONT_MAX?0.35:1,cursor:activeFontSize>=FONT_MAX?"default":"pointer",padding:"9px 7px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:18,lineHeight:1}}>
                 A
               </button>
             </div>
