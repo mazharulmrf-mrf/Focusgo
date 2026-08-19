@@ -3101,7 +3101,7 @@ export default function FocusGo() {
               const stage = totalToday === 0 ? "start" : (doneToday >= totalToday ? "done" : "progress");
 
               const pool = FOCUSGO_MOTIVATIONS[lang === "bn" ? "bn" : "en"][stage];
-              // নাম উপরের "Hi, {firstName}" হেডিং-এই দেখানো হয়, তাই motivation লাইনের ভেতর থেকে {name} বাদ দিয়ে বাক্যটা পরিষ্কার করা হয়
+              // নাম উপরের বড় হেডিং-এই দেখানো হয় (উপরে ছোট করে সময়ভিত্তিক গ্রিটিং), তাই motivation লাইনের ভেতর থেকে {name} বাদ দিয়ে বাক্যটা পরিষ্কার করা হয়
               const line = pool[dayHash % pool.length]
                 .replace("{name}", "")
                 .replace(/\s*,\s*,/g, ",")
@@ -3110,10 +3110,19 @@ export default function FocusGo() {
                 .replace(/\s{2,}/g, " ")
                 .trim();
 
+              // সময় অনুযায়ী গ্রিটিং — Good morning / afternoon / evening / night
+              const hr = now.getHours();
+              const greetKey = hr < 12 ? "morning" : hr < 17 ? "afternoon" : hr < 21 ? "evening" : "night";
+              const greetingEn = { morning: "Good morning", afternoon: "Good afternoon", evening: "Good evening", night: "Good night" }[greetKey];
+              const greetingBn = { morning: "শুভ সকাল", afternoon: "শুভ বিকেল", evening: "শুভ সন্ধ্যা", night: "শুভ রাত্রি" }[greetKey];
+
               return (
                 <>
-                  <div style={{fontSize:22,fontWeight:800,letterSpacing:-0.4,color:textMain}}>
-                    {lang === "bn" ? `হ্যালো, ${firstName}` : `Hi, ${firstName}`}
+                  <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2}}>
+                    {lang === "bn" ? greetingBn : greetingEn}
+                  </div>
+                  <div style={{fontSize:22,fontWeight:800,letterSpacing:-0.4,color:textMain, marginTop:2}}>
+                    {firstName}
                   </div>
                   <div style={{fontSize:12,color:textMuted2,marginTop:3,lineHeight:1.4}}>
                     {line}
@@ -3361,7 +3370,7 @@ export default function FocusGo() {
 
         {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — calm card, color reserved for the ring/badges only */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (
-        <div className="fg-tab-panel" style={{marginTop:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px", position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, background: dark ? `linear-gradient(135deg, ${accent}29, ${accent}08)` : `linear-gradient(135deg, ${accent}1F, ${accent}05)`, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px", position:"relative", overflow:"hidden"}}>
           <div style={{display:"flex", alignItems:"center", gap:14, minWidth:0, position:"relative"}}>
             <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
               size={62} stroke={6} accent={accent} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain} nf={nf}/>
