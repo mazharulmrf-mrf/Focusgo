@@ -6090,11 +6090,21 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
   useEffect(() => { editingActiveRef.current = !!editing; }, [editing]);
 
-  // হার্ডওয়্যার/ব্রাউজার ব্যাক বাটন চাপলে নোট এডিটর বন্ধ হয়ে নোটস ট্যাবে ফিরে আসবে, পুরো সাইট থেকে বের হয়ে যাবে না
+  // popstate লিসেনার একবারই বসে (মাউন্টে), তাই ওর ভেতরের ক্লোজার সবসময় পুরনো/স্টেল title-body-ইত্যাদি ধরে রাখতো —
+  // saveRef প্রতি রেন্ডারে সবশেষ save() ফাংশনটা ধরে রাখে, যাতে popstate সবসময় সবশেষ লেখাটাই সেভ করে
+  const saveRef = useRef(() => {});
+
+  // হার্ডওয়্যার/ব্রাউজার ব্যাক বাটন (বা ফোনের "ব্যাক" জেসচার) চাপলে নোট এডিটর বন্ধ হওয়ার আগে এখন পর্যন্ত যা লেখা হয়েছে
+  // সেটা সেভ করে তারপর নোটস ট্যাবে ফিরে আসবে — আগে এখানে সেভ ছাড়াই বন্ধ হয়ে যেত, শুধু উপরের ব্যাক অ্যারো চাপলে সেভ হতো
   useEffect(() => {
     const onPop = () => {
-      if (editingActiveRef.current) setEditing(null);
+      // history ইতিমধ্যে পপ হয়ে গেছে, তাই pushedHistoryRef আগেই false করে দিচ্ছি — নাহলে save()-এর ভেতরের
+      // closeEditor() আরেকবার history.back() ডাকতে চাইবে
       pushedHistoryRef.current = false;
+      if (editingActiveRef.current) {
+        saveRef.current();
+        setEditing(null); // খালি নোট হলে save() কিছু না করেই রিটার্ন করে, তাও এডিটর যেন বন্ধ হয় সেটা নিশ্চিত করা
+      }
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
@@ -6107,6 +6117,46 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     } else {
       setEditing(null);
     }
+  };
+
+  // মোবাইলে টুলবারের বাটনে ট্যাপ করলেই প্রায়ই সিলেকশন হারিয়ে যায় (touch/blur এর কারণে) — তাই সিলেকশন করার সাথে সাথেই
+  // সেটা এখানে সেভ করে রাখি, আর প্রতিটা ফরম্যাটিং অ্যাকশনের ঠিক আগে সেটা আবার বসিয়ে দিই। এতে Bold/Italic/Color/ফন্ট সাইজ —
+  // সবগুলো বাটনই আসলে যে টেক্সট সিলেক্ট করা হয়েছিল, ঠিক সেটার উপরেই কাজ করে, বারবার নতুন করে সিলেক্ট করা লাগে না
+  const savedRangeRef = useRef(null);
+  const saveBodySelection = () => {
+    const el = bodyRef.current;
+    const sel = window.getSelection();
+    if (el && sel && sel.rangeCount > 0 && el.contains(sel.anchorNode)) {
+      savedRangeRef.current = sel.getRangeAt(0).cloneRange();
+    }
+  };
+  const restoreBodySelection = () => {
+    const el = bodyRef.current;
+    if (!el) return;
+    el.focus();
+    const sel = window.getSelection();
+    if (!sel) return;
+    if (savedRangeRef.current) {
+      sel.removeAllRanges();
+      sel.addRange(savedRangeRef.current);
+    } else if (sel.rangeCount === 0 || !el.contains(sel.anchorNode)) {
+      const r = document.createRange();
+      r.selectNodeContents(el);
+      r.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(r);
+    }
+  };
+  // টুলবার বাটনে ট্যাপ করার পর ফরম্যাটিং প্রয়োগ করা হয়ে গেলে, নতুন সিলেকশনটাই (যা এখন এডিট হলো) আবার সেভ করে রাখা —
+  // যাতে পরপর কয়েকবার ক্লিক করলে (যেমন ফন্ট আরও বড় করা) প্রতিবারই ঠিক একই অংশের উপর কাজ করে
+  const applyBodyCommand = (fn) => {
+    const el = bodyRef.current;
+    if (!el) return;
+    restoreBodySelection();
+    fn();
+    setBody(el.innerHTML);
+    saveBodySelection();
+    syncActiveFontSize();
   };
 
   // ---- ফন্ট সাইজ: পুরো বক্স না, শুধু সিলেক্ট করা অংশ বা কার্সার থেকে যা টাইপ হবে তার সাইজ বদলায় ----
@@ -6129,6 +6179,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     if (!bodyRef.current) return;
     const px = getCaretFontSizePx(bodyRef.current, fontSize);
     setActiveFontSize(Math.round(px * 10) / 10);
+    saveBodySelection();
   };
 
   // A-/A+: কিছু সিলেক্ট করা থাকলে শুধু সিলেকশনের সাইজ বদলায়; কিছু সিলেক্ট না থাকলে কার্সার থেকে
@@ -6136,17 +6187,10 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   const applyFontSizeDelta = (delta) => {
     const el = bodyRef.current;
     if (!el) return;
-    el.focus();
+    // বাটনে ট্যাপ করার সময় সিলেকশন হারিয়ে যেতে পারে — যা সিলেক্ট করা ছিল সেটাই ফিরিয়ে আনা
+    restoreBodySelection();
     const sel = window.getSelection();
     if (!sel) return;
-    // কার্সার এডিটরের বাইরে থাকলে (যেমন বাটনে ক্লিক করায় ফোকাস সরে গিয়ে থাকতে পারে), শেষে নিয়ে আসা
-    if (sel.rangeCount === 0 || !el.contains(sel.anchorNode)) {
-      const r = document.createRange();
-      r.selectNodeContents(el);
-      r.collapse(false);
-      sel.removeAllRanges();
-      sel.addRange(r);
-    }
     const current = getCaretFontSizePx(el, activeFontSize);
     const next = Math.max(FONT_MIN, Math.min(FONT_MAX, Math.round((current + delta) * 10) / 10));
 
@@ -6159,17 +6203,22 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       span.style.fontSize = next + "px";
       while (f.firstChild) span.appendChild(f.firstChild);
       f.replaceWith(span);
-      if (!span.firstChild) {
-        // কিছু সিলেক্ট করা ছিল না — কার্সারকে এই span-এর ভেতরে রাখা হচ্ছে যাতে পরের টাইপিং এই সাইজেই ঢোকে
-        const r2 = document.createRange();
+      // span-টা বসানোর পর পুরনো নোড ডিটাচড হয়ে যায়, তাই ব্রাউজারের সিলেকশন এমনিতেই হারিয়ে যায় — টেক্সট
+      // সিলেক্ট করা ছিল বা না ছিল, দুই ক্ষেত্রেই span-এর কনটেন্টের উপর সিলেকশন আবার বসিয়ে দেওয়া হচ্ছে,
+      // যাতে বারবার A+/A- চাপলে প্রতিবার আবার সিলেক্ট করা না লাগে
+      const r2 = document.createRange();
+      if (span.firstChild) {
+        r2.selectNodeContents(span);
+      } else {
         r2.setStart(span, 0);
         r2.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(r2);
       }
+      sel.removeAllRanges();
+      sel.addRange(r2);
     });
     setBody(el.innerHTML);
     setActiveFontSize(next);
+    saveBodySelection();
   };
   const [categories, setCategories] = useState(() => {
     try {
@@ -6262,6 +6311,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     }
     closeEditor();
   };
+  useEffect(() => { saveRef.current = save; });
 
   const remove = (id) => {
     if (!window.confirm("Delete this note?")) return;
@@ -6409,6 +6459,9 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         .fg-note-body b, .fg-note-body strong{font-weight:800;}
         .fg-note-body u{text-decoration:underline;}
         .fg-note-body:focus{outline:none;}
+        /* Enter চাপলে ব্রাউজার নতুন <p>/<div> বসায়, যেগুলোর নিজস্ব ডিফল্ট মার্জিন থাকে — সেটাই দুই লাইনের মাঝে
+           বাড়তি ফাঁকা জায়গা তৈরি করছিল; এখানে সেই মার্জিন শূন্য করে দেওয়া হলো যাতে লাইন স্পেসিং শুধু line-height অনুযায়ী হয় */
+        .fg-note-body p, .fg-note-body div{margin:0;}
       `}</style>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
         <div>
@@ -6730,7 +6783,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                 onSelect={syncActiveFontSize}
                 onKeyUp={syncActiveFontSize}
                 onMouseUp={syncActiveFontSize}
-                onFocus={(e)=>{ syncActiveFontSize(); setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
+                onFocus={(e)=>{ try { document.execCommand("defaultParagraphSeparator", false, "div"); } catch(err){} syncActiveFontSize(); setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
                 style={{width:"100%",boxSizing:"border-box",minHeight: showChecklist ? 60 : 180,background:"transparent",border:"none",padding:"6px 0",fontSize:fontSize,lineHeight:1.65,color:paperText,outline:"none",fontFamily:"inherit",marginBottom:8,transition:"font-size .15s ease",wordBreak:"break-word"}}
               />
             </div>
@@ -6739,12 +6792,12 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
             {showFormatBar && (
               <div onMouseDown={e=>e.preventDefault()} style={{display:"flex",alignItems:"center",gap:2,paddingTop:6,paddingBottom:2,flexWrap:"wrap"}}>
                 {[
-                  { icon: Heading1, title: lang==="bn"?"হেডিং ১":"Heading 1", action: ()=>{ if(bodyRef.current){bodyRef.current.focus(); document.execCommand("formatBlock", false, "H1"); setBody(bodyRef.current.innerHTML);} } },
-                  { icon: Heading2, title: lang==="bn"?"হেডিং ২":"Heading 2", action: ()=>{ if(bodyRef.current){bodyRef.current.focus(); document.execCommand("formatBlock", false, "H2"); setBody(bodyRef.current.innerHTML);} } },
-                  { icon: Bold, title: lang==="bn"?"বোল্ড":"Bold", action: ()=>{ if(bodyRef.current){bodyRef.current.focus(); document.execCommand("bold"); setBody(bodyRef.current.innerHTML);} } },
-                  { icon: Italic, title: lang==="bn"?"ইটালিক":"Italic", action: ()=>{ if(bodyRef.current){bodyRef.current.focus(); document.execCommand("italic"); setBody(bodyRef.current.innerHTML);} } },
-                  { icon: Underline, title: lang==="bn"?"আন্ডারলাইন":"Underline", action: ()=>{ if(bodyRef.current){bodyRef.current.focus(); document.execCommand("underline"); setBody(bodyRef.current.innerHTML);} } },
-                  { icon: RemoveFormatting, title: lang==="bn"?"ফরম্যাট মুছুন":"Clear formatting", action: ()=>{ if(bodyRef.current){bodyRef.current.focus(); document.execCommand("removeFormat"); document.execCommand("formatBlock", false, "P"); setBody(bodyRef.current.innerHTML);} } },
+                  { icon: Heading1, title: lang==="bn"?"হেডিং ১":"Heading 1", action: ()=>applyBodyCommand(()=>document.execCommand("formatBlock", false, "H1")) },
+                  { icon: Heading2, title: lang==="bn"?"হেডিং ২":"Heading 2", action: ()=>applyBodyCommand(()=>document.execCommand("formatBlock", false, "H2")) },
+                  { icon: Bold, title: lang==="bn"?"বোল্ড":"Bold", action: ()=>applyBodyCommand(()=>document.execCommand("bold")) },
+                  { icon: Italic, title: lang==="bn"?"ইটালিক":"Italic", action: ()=>applyBodyCommand(()=>document.execCommand("italic")) },
+                  { icon: Underline, title: lang==="bn"?"আন্ডারলাইন":"Underline", action: ()=>applyBodyCommand(()=>document.execCommand("underline")) },
+                  { icon: RemoveFormatting, title: lang==="bn"?"ফরম্যাট মুছুন":"Clear formatting", action: ()=>applyBodyCommand(()=>{ document.execCommand("removeFormat"); document.execCommand("formatBlock", false, "P"); }) },
                 ].map(({icon:Icon, title, action}, i) => (
                   <button key={i} onMouseDown={e=>e.preventDefault()} onClick={action} title={title}
                     style={{border:"none",background:"transparent",color:paperText,cursor:"pointer",padding:9,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -6755,7 +6808,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                 <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:4,paddingLeft:8,borderLeft:`1px solid ${cardBorder}`}}>
                   {[{key:"default",hex:paperText},...NOTE_TEXT_COLORS].map(c => (
                     <button key={c.key} onMouseDown={e=>e.preventDefault()}
-                      onClick={()=>{ if(bodyRef.current){ bodyRef.current.focus(); document.execCommand("styleWithCSS", false, false); document.execCommand("foreColor", false, c.hex); setBody(bodyRef.current.innerHTML); } }}
+                      onClick={()=>applyBodyCommand(()=>{ document.execCommand("styleWithCSS", false, false); document.execCommand("foreColor", false, c.hex); })}
                       title={c.key==="default" ? (lang==="bn"?"ডিফল্ট":"Default") : c.key}
                       style={{width:19,height:19,borderRadius:"50%",padding:0,cursor:"pointer",background:c.hex,border: c.key==="default" ? `1.5px dashed ${paperText}` : "1.5px solid rgba(0,0,0,0.15)",flexShrink:0}}>
                     </button>
