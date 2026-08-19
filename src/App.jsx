@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
 import {
   onAuthStateChanged,
@@ -1146,6 +1146,8 @@ const T = {
     monthOverview: "Month Overview", back: "Back",
     todaysGoal: "Today's Goal", adjustGoal: "Adjust Goal", topics: "topics",
     doneCount: "Done", remaining: "Remaining", setGoal: "Set Goal",
+    progressLabel: "Progress", progressCompletedLabel: "Completed", tipLabel: "Tip",
+    progressTip: "Progress is calculated from today's tasks & study.",
     goalLabel: "Number of topics to finish today", statusDone: "done",
     seeAll: "See all", showLess: "Show less",
     offlineBadge: "Offline", offlineNote: "No internet — your changes are saved on this device and will sync once you're back online.",
@@ -1287,6 +1289,8 @@ const T = {
     monthOverview: "মাসের সংক্ষিপ্ত দৃশ্য", back: "পেছনে",
     todaysGoal: "আজকের লক্ষ্য", adjustGoal: "লক্ষ্য পরিবর্তন করুন", topics: "টপিক",
     doneCount: "সম্পন্ন", remaining: "বাকি", setGoal: "লক্ষ্য সেট করুন",
+    progressLabel: "প্রগ্রেস", progressCompletedLabel: "সম্পন্ন", tipLabel: "টিপ",
+    progressTip: "আজকের টাস্ক ও পড়া থেকে প্রগ্রেস হিসাব করা হয়েছে।",
     goalLabel: "আজ কতগুলো টপিক শেষ করবেন", statusDone: "সম্পন্ন",
     seeAll: "সব দেখুন", showLess: "কম দেখান",
     offlineBadge: "অফলাইন", offlineNote: "ইন্টারনেট নেই — তোমার পরিবর্তনগুলো এই ডিভাইসেই সেভ থাকছে, নেট ফিরলে অটো sync হয়ে যাবে।",
@@ -3368,26 +3372,53 @@ export default function FocusGo() {
         </div>
         )}
 
-        {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — calm card, color reserved for the ring/badges only */}
+        {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — Option 2: circular progress, premium look */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (
-        <div className="fg-tab-panel" style={{marginTop:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, background: dark ? `linear-gradient(135deg, ${accent}29, ${accent}08)` : `linear-gradient(135deg, ${accent}1F, ${accent}05)`, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px", position:"relative", overflow:"hidden"}}>
-          <div style={{display:"flex", alignItems:"center", gap:14, minWidth:0, position:"relative"}}>
-            <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
-              size={62} stroke={6} accent={accent} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain} nf={nf}/>
-            <div>
-              <div style={{fontSize:13.5, fontWeight:800, color:textMain, marginBottom:5}}>{t.todaysProgress}</div>
-              <div style={{display:"flex", alignItems:"center", gap:8, fontSize:12.5, fontWeight:700}}>
-                <span style={{color:"#6E8B5E", background: dark?"rgba(110,139,94,0.18)":"rgba(110,139,94,0.14)", padding:"2px 8px", borderRadius:20}}><Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.doneCount}</span>
-                <span style={{color:textMuted2, fontWeight:500, opacity:0.9}}><Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}</span>
+        <div className="fg-tab-panel" style={{marginTop:12, background: dark ? "#1E1A16" : cardBg, border: dark ? `1px solid ${accent}40` : `1px solid ${cardBorder}`, borderRadius:16, padding:"16px", position:"relative", overflow:"hidden"}}>
+          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:14}}>
+            <div style={{display:"flex", alignItems:"center", gap:14, minWidth:0}}>
+              <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
+                size={72} stroke={6.5} accent={accent} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain}
+                caption={t.progressLabel} captionColor={textMuted2} nf={nf}/>
+              <div style={{minWidth:0}}>
+                <div style={{fontSize:14.5, fontWeight:800, color:textMain, marginBottom:8}}>{t.todaysProgress}</div>
+                <div style={{display:"flex", alignItems:"center", gap:7, flexWrap:"wrap"}}>
+                  <span style={{display:"inline-flex", alignItems:"center", gap:5, color:"#6E8B5E", background: dark?"rgba(110,139,94,0.18)":"rgba(110,139,94,0.14)", padding:"4px 10px", borderRadius:20, fontSize:12, fontWeight:700}}>
+                    <Check size={12} strokeWidth={3}/> <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.progressCompletedLabel}
+                  </span>
+                  <span style={{display:"inline-flex", alignItems:"center", gap:5, color:accent, background: dark?`${accent}26`:`${accent}18`, padding:"4px 10px", borderRadius:20, fontSize:12, fontWeight:700}}>
+                    <Clock size={12}/> <Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-          <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:3, paddingLeft:12, borderLeft:`1px solid ${cardBorder}`, position:"relative"}}>
-            <div style={{width:28, height:28, borderRadius:"50%", background: dark?"rgba(217,119,87,0.18)":"rgba(217,119,87,0.12)", display:"flex", alignItems:"center", justifyContent:"center"}}>
-              <Flame size={15} color={accent} fill={`${accent}55`}/>
+            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:3, paddingLeft:14, borderLeft: dark ? `1px solid ${accent}30` : `1px solid ${cardBorder}`}}>
+              <div style={{width:30, height:30, borderRadius:"50%", background: dark?"rgba(217,119,87,0.2)":"rgba(217,119,87,0.12)", display:"flex", alignItems:"center", justifyContent:"center"}}>
+                <Flame size={16} color={accent} fill={`${accent}55`}/>
+              </div>
+              <div style={{fontSize:16, fontWeight:800, color:accent, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
+              <div style={{fontSize:9, color:textMuted2, fontWeight:600, opacity:0.85, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
             </div>
-            <div style={{fontSize:15, fontWeight:800, color:accent, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
-            <div style={{fontSize:8.5, color:textMuted2, fontWeight:600, opacity:0.85, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
+          </div>
+
+          {/* Horizontal progress bar */}
+          <div style={{display:"flex", alignItems:"center", gap:10, marginTop:14}}>
+            <div style={{flex:1, height:6, borderRadius:10, background: dark?"#2C2820":"#EFE9DC", overflow:"hidden"}}>
+              <div style={{width:`${todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}%`, height:"100%", borderRadius:10, background:accent, transition:"width .3s ease"}}/>
+            </div>
+            <div style={{fontSize:11.5, fontWeight:700, color:textMuted2, flexShrink:0}}>
+              <Num>{nf(todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0)}</Num>%
+            </div>
+          </div>
+        </div>
+        )}
+
+        {/* Tip strip - explains how progress is calculated */}
+        {(tab === "today" || (tab === "study" && studySection === "plan")) && (
+        <div className="fg-tab-panel" style={{marginTop:10, display:"flex", alignItems:"center", gap:10, background: dark ? "#1E1A16" : cardBg, border: dark ? `1px solid ${accent}30` : `1px solid ${cardBorder}`, borderRadius:14, padding:"10px 14px"}}>
+          <Lightbulb size={15} color={accent} style={{flexShrink:0}}/>
+          <div style={{fontSize:11.5, color:textMuted2, fontWeight:500, lineHeight:1.4}}>
+            <span style={{color:textMain, fontWeight:700}}>{t.tipLabel}:</span> {t.progressTip}
           </div>
         </div>
         )}
@@ -4449,7 +4480,7 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
     </div>
   );
 }
-function PercentRing({ pct, size = 56, stroke = 5, accent, trackColor, textMain, nf }) {
+function PercentRing({ pct, size = 56, stroke = 5, accent, trackColor, textMain, nf, caption, captionColor }) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const offset = c - (Math.min(100, Math.max(0, pct)) / 100) * c;
@@ -4458,9 +4489,10 @@ function PercentRing({ pct, size = 56, stroke = 5, accent, trackColor, textMain,
       <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={trackColor} strokeWidth={stroke}/>
       <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={accent} strokeWidth={stroke}
         strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round" style={{transition:"stroke-dashoffset .3s"}}/>
-      <text x="50%" y="50%" fill={textMain} fontSize={size*0.24} fontWeight={800}
+      <text x="50%" y="50%" fill={accent} fontSize={size*(caption?0.24:0.24)} fontWeight={800}
         textAnchor="middle" dominantBaseline="central" style={{transform:`rotate(90deg)`, transformOrigin:"center"}}>
-        <tspan>{nf(pct)}%</tspan>
+        <tspan x="50%" dy={caption ? -size*0.07 : 0}>{nf(pct)}%</tspan>
+        {caption && <tspan x="50%" dy={size*0.19} fontSize={size*0.13} fontWeight={600} fill={captionColor || textMain}>{caption}</tspan>}
       </text>
     </svg>
   );
