@@ -5965,6 +5965,8 @@ function noteColorFor(category, allCategories) {
 // ---------- Notes: নোট কার্ডের ব্যাকগ্রাউন্ড রঙ (ঐচ্ছিক) — প্রতি নোট আলাদা রঙ করে রাখা যাবে, যাতে চোখের দেখায় দ্রুত খুঁজে পাওয়া যায় ----------
 const NOTE_BG_PALETTE = [
   { key: null,     bg: null,      bgDark: null,      labelBn: "ডিফল্ট", labelEn: "Default" },
+  { key: "white",  bg: "#FFFFFF", bgDark: "#FFFFFF", labelBn: "সাদা",   labelEn: "White", ink: "#2C2820", inkDark: "#2C2820" },
+  { key: "black",  bg: "#1A1814", bgDark: "#1A1814", labelBn: "কালো",   labelEn: "Black", ink: "#F3EFE7", inkDark: "#F3EFE7" },
   { key: "yellow", bg: "#FFF3B0", bgDark: "#3A331A", labelBn: "হলুদ",   labelEn: "Yellow" },
   { key: "orange", bg: "#FCE0C4", bgDark: "#3A2C1B", labelBn: "কমলা",   labelEn: "Orange" },
   { key: "pink",   bg: "#FBD9E5", bgDark: "#35232B", labelBn: "গোলাপি", labelEn: "Pink" },
@@ -5979,14 +5981,20 @@ function noteBgFor(colorKey, dark) {
   const fallback = dark ? "#221E19" : NOTE_PAPER_BG;
   return (dark ? found.bgDark : found.bg) || fallback;
 }
+// সাদা/কালো ব্যাকগ্রাউন্ড বেছে নিলে লেখার রঙও (ইঙ্ক) মানানসই হতে হবে — যেমন কালো ব্যাকগ্রাউন্ডে হালকা রঙের লেখা, থিম যাই হোক না কেন
+function noteTextFor(colorKey, dark) {
+  const found = NOTE_BG_PALETTE.find(c => c.key === (colorKey || null)) || NOTE_BG_PALETTE[0];
+  if (found.ink) return dark ? (found.inkDark || found.ink) : found.ink;
+  return dark ? "#F3EFE7" : NOTE_PAPER_TEXT;
+}
 
 // ---------- Notes: লেখার রঙ (টেক্সট কালার) — সিলেক্ট করা অংশে প্রয়োগ হয়, কিছু সাধারণ রঙ যথেষ্ট ----------
 const NOTE_TEXT_COLORS = [
   { key: "red",    hex: "#C0392B" },
-  { key: "orange", hex: "#D9770B" },
   { key: "green",  hex: "#2F8F46" },
   { key: "blue",   hex: "#1F6FB2" },
-  { key: "purple", hex: "#7A4FA3" },
+  { key: "orange", hex: "#D9770B" },
+  { key: "yellow", hex: "#B8860B" },
 ];
 
 // ---------- সহজ **bold** / *italic* মার্কডাউন রেন্ডারার (Keep-এর মতো ফরম্যাটিং দেখানোর জন্য) ----------
@@ -6366,7 +6374,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
             const col = noteColorFor(note.category || "General", categories);
             // নোটের কভার (ছোট কার্ড অবস্থায়) — ইউজার নিজে রঙ বাছাই করে থাকলে সেটাই, নাহলে ডিফল্ট বেইজ/ডার্ক
             const coverBg = noteBgFor(note.color, dark);
-            const coverText = dark ? "#EFE9DC" : NOTE_PAPER_TEXT;
+            const coverText = noteTextFor(note.color, dark);
             return (
             <div
               key={note.id}
@@ -6454,7 +6462,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         const editorBg = bg; // পুরো স্ক্রিনের নিরপেক্ষ পেজ ব্যাকগ্রাউন্ড — থিম অনুযায়ী বদলায়
         const paperBg = noteBgFor(noteColor, dark); // লেখার জায়গাটা এখন আলাদা "কাগজ" কার্ড হিসেবে ভাসবে — ইউজারের বাছাই করা রঙ থাকলে সেটাই দেখাবে
         const paperBorder = dark ? "#3A342B" : "#E9DCC5";
-        const paperText = dark ? "#F3EFE7" : NOTE_PAPER_TEXT;
+        const paperText = noteTextFor(noteColor, dark);
         const iconColor = textMain; // হেডার ও বটম টুলবারের আইকন/টেক্সট — পেজ ব্যাকগ্রাউন্ডের সাথে ঠিকমতো কনট্রাস্ট থাকার জন্য
         const toolbarActiveBg = dark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.07)";
         return (
