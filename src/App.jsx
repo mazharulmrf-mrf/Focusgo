@@ -1117,6 +1117,7 @@ const T = {
     taskRepeat: "Repeat", taskRepeatNone: "Never", taskRepeatDaily: "Daily", taskRepeatWeekly: "Weekly", taskRepeatMonthly: "Monthly",
     taskRepeatBadge: "Repeats", taskCalNoDate: "No due date", taskCalPickDay: "Tap a day to see its tasks",
     taskCalEmptyDay: "No tasks due this day", taskCalNoDateTasks: "Tasks without a due date",
+    taskCalMonthOverview: "This Month", taskCalMonthTotal: "Total", taskCalMonthCompleted: "Completed", taskCalMonthOverdue: "Overdue",
     focusTimer: "Focus Timer", start: "Start Focus", pause: "Pause", reset: "Reset",
     pickTopicForTimer: "Pick a topic to focus on", freeSession: "Free Session",
     timerMode: "Timer", stopwatchMode: "Stopwatch",
@@ -1232,6 +1233,7 @@ const T = {
     markAllRead: "Mark all as read", clearAll: "Clear all",
     notifSessionDoneTitle: "Focus session done!", notifSessionDoneBody: "Great job — time for a short break.",
     notifBreakDoneTitle: "Break's over", notifBreakDoneBody: "Next focus session is starting.",
+    notifTopicDoneTitle: "Topic complete!", notifTopicDoneBody: "You've finished the full planned time for this topic.",
     notifExamTodayTitle: "Exam today", notifExamTomorrowTitle: "Exam tomorrow",
     notifExamSoonTitle: "Exam in {days} days",
     notifStreakTitle: "Keep your streak alive", notifStreakBody: "You haven't studied today yet — don't break the streak!",
@@ -1260,6 +1262,7 @@ const T = {
     taskRepeat: "রিপিট", taskRepeatNone: "একবারই", taskRepeatDaily: "প্রতিদিন", taskRepeatWeekly: "প্রতি সপ্তাহে", taskRepeatMonthly: "প্রতি মাসে",
     taskRepeatBadge: "রিপিট হয়", taskCalNoDate: "ডিউ ডেট নেই", taskCalPickDay: "কোনো দিনে ট্যাপ করে সেদিনের টাস্ক দেখুন",
     taskCalEmptyDay: "এই দিনে কোনো টাস্ক নেই", taskCalNoDateTasks: "ডিউ ডেট ছাড়া টাস্ক",
+    taskCalMonthOverview: "এই মাস", taskCalMonthTotal: "মোট", taskCalMonthCompleted: "সম্পন্ন", taskCalMonthOverdue: "মেয়াদ শেষ",
     focusTimer: "ফোকাস টাইমার", start: "ফোকাস শুরু", pause: "থামাও", reset: "রিসেট",
     pickTopicForTimer: "ফোকাস করার জন্য একটা টপিক বাছাই করো", freeSession: "ফ্রি সেশন",
     timerMode: "টাইমার", stopwatchMode: "স্টপওয়াচ",
@@ -1375,6 +1378,7 @@ const T = {
     markAllRead: "সব পড়া হয়েছে বলে মার্ক করো", clearAll: "সব মুছে ফেলো",
     notifSessionDoneTitle: "ফোকাস সেশন শেষ!", notifSessionDoneBody: "দারুণ হয়েছে — এখন একটু ব্রেক নাও।",
     notifBreakDoneTitle: "ব্রেক শেষ", notifBreakDoneBody: "পরবর্তী ফোকাস সেশন শুরু হচ্ছে।",
+    notifTopicDoneTitle: "টপিক সম্পন্ন!", notifTopicDoneBody: "এই টপিকের জন্য পরিকল্পিত পুরো সময় শেষ করেছো।",
     notifExamTodayTitle: "আজকে এক্সাম", notifExamTomorrowTitle: "আগামীকাল এক্সাম",
     notifExamSoonTitle: "আর {days} দিন পর এক্সাম",
     notifStreakTitle: "স্ট্রিক ধরে রাখো", notifStreakBody: "আজকে এখনো পড়াশোনা করা হয়নি — স্ট্রিক ভেঙো না!",
@@ -1805,12 +1809,18 @@ export default function FocusGo() {
   const [stopwatchSeconds, setStopwatchSeconds] = useState(0);
   const [stopwatchRunning, setStopwatchRunning] = useState(false);
   const [focusFullscreen, setFocusFullscreen] = useState(false);
+  const focusFullscreenActiveRef = useRef(false); // popstate হ্যান্ডলারের ভেতর থেকে সবসময় সবশেষ ফুলস্ক্রিন অবস্থা জানার জন্য
+  const pushedFocusHistoryRef = useRef(false); // ফুলস্ক্রিন টাইমার খোলার সময় history-তে state push করেছি কিনা
   const [editTopic, setEditTopic] = useState(null);
   // ---- Pomodoro: session type (focus/break), remembered durations, and cycle progress ----
   const [sessionType, setSessionType] = useState("focus"); // "focus" | "break"
   const [focusMinutes, setFocusMinutes] = useState(30); // last-selected Focus duration (minutes)
   const [breakMinutes, setBreakMinutes] = useState(5); // last-selected Break duration (minutes)
-  const [pomodoroSession, setPomodoroSession] = useState(1); // current Focus session number, 1..4
+  const [pomodoroSession, setPomodoroSession] = useState(1); // current Focus session number, 1..pomodoroTotalSessions
+  const [pomodoroTotalSessions, setPomodoroTotalSessions] = useState(4); // সাধারণ ফ্রি সেশনে ৪, টপিক-লিঙ্কড মাল্টি-সেশনে dynamic (ceil(target/chunk))
+  const TOPIC_SESSION_CHUNK_MIN = 30; // টপিক থেকে টাইমার শুরু করলে প্রতিটি ফোকাস সেশনের ডিফল্ট দৈর্ঘ্য (মিনিট) — ৩০ মিনিটের বেশি হলে একাধিক সেশনে ভাগ হয়ে যাবে
+  const [timerTargetMinutes, setTimerTargetMinutes] = useState(null); // টপিক-লিঙ্কড মাল্টি-সেশন চললে মোট টার্গেট মিনিট, নাহলে null (ফ্রি সেশন — পুরনো আচরণ)
+  const [timerElapsedMinutes, setTimerElapsedMinutes] = useState(0); // এই টপিকের জন্য এ পর্যন্ত সম্পন্ন হওয়া ফোকাস মিনিট (target-এর বিপরীতে)
   const [showBreakPrompt, setShowBreakPrompt] = useState(false); // "Focus complete — take a break?" prompt
   const timerRef = useRef(null);
   const stopwatchRef = useRef(null);
@@ -1821,6 +1831,14 @@ export default function FocusGo() {
   useEffect(() => { sessionTypeRef.current = sessionType; }, [sessionType]);
   const pomodoroSessionRef = useRef(pomodoroSession);
   useEffect(() => { pomodoroSessionRef.current = pomodoroSession; }, [pomodoroSession]);
+  const pomodoroTotalSessionsRef = useRef(pomodoroTotalSessions);
+  useEffect(() => { pomodoroTotalSessionsRef.current = pomodoroTotalSessions; }, [pomodoroTotalSessions]);
+  const timerTargetMinutesRef = useRef(timerTargetMinutes);
+  useEffect(() => { timerTargetMinutesRef.current = timerTargetMinutes; }, [timerTargetMinutes]);
+  const timerElapsedMinutesRef = useRef(timerElapsedMinutes);
+  useEffect(() => { timerElapsedMinutesRef.current = timerElapsedMinutes; }, [timerElapsedMinutes]);
+  const timerTopicIdRef = useRef(null);
+  useEffect(() => { timerTopicIdRef.current = timerTopicId; }, [timerTopicId]);
   const focusMinutesRef = useRef(focusMinutes);
   useEffect(() => { focusMinutesRef.current = focusMinutes; }, [focusMinutes]);
   const breakMinutesRef = useRef(breakMinutes);
@@ -1981,6 +1999,42 @@ export default function FocusGo() {
       }
     }
   }, [focusFullscreen]);
+
+  useEffect(() => { focusFullscreenActiveRef.current = focusFullscreen; }, [focusFullscreen]);
+
+  // ফুলস্ক্রিন টাইমার খোলার সময় history-তে একটা state push করা হয়, যাতে হার্ডওয়্যার/ব্রাউজার
+  // ব্যাক বাটনে পুরো অ্যাপ থেকে বের না হয়ে শুধু ফুলস্ক্রিন বন্ধ হয়ে যায়। যেহেতু ছোট টাইমার
+  // widget শুধু Study ট্যাবেই আছে (Today ট্যাবে টাইমার চলাকালীন খুঁজে পাওয়া যায় না), ব্যাক
+  // চাপলে বা "✕" চাপলে — যেখান থেকেই শুরু হোক না কেন — সবসময় Study ট্যাবে নিয়ে যাওয়া হয়,
+  // যাতে ইউজার সবসময় জানে চলমান টাইমারটা কোথায় খুঁজে পাবে।
+  useEffect(() => {
+    if (focusFullscreen) {
+      window.history.pushState({ fgFocusTimer: true }, "");
+      pushedFocusHistoryRef.current = true;
+    }
+  }, [focusFullscreen]);
+
+  useEffect(() => {
+    const onPop = () => {
+      if (focusFullscreenActiveRef.current) {
+        setFocusFullscreen(false);
+        setTab("study");
+      }
+      pushedFocusHistoryRef.current = false;
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  const closeFocusFullscreen = () => {
+    if (pushedFocusHistoryRef.current) {
+      pushedFocusHistoryRef.current = false;
+      window.history.back(); // popstate হ্যান্ডলারই setFocusFullscreen(false) + setTab("study") করবে
+    } else {
+      setFocusFullscreen(false);
+      setTab("study");
+    }
+  };
 
   // Toggle helpers used by both the mini timer card and the fullscreen view,
   // so the start sound + auto-fullscreen behavior stays consistent everywhere.
@@ -2220,19 +2274,37 @@ export default function FocusGo() {
         if (remaining <= 0) {
           playEndSound();
           if (sessionTypeRef.current === "focus") {
-            // একটা Focus session শেষ — থামাও, ইউজারকে ব্রেক নেওয়ার প্রম্পট দেখাও (auto-start করা হচ্ছে না)
+            // একটা Focus session শেষ
             setTimerRunning(false);
             vibrate();
+            const target = timerTargetMinutesRef.current;
+            if (target) {
+              // টপিক-লিঙ্কড মাল্টি-সেশন চলছে — সদ্য শেষ হওয়া চাঙ্কটা মোট এলাপসড-এ যোগ হবে
+              const newElapsed = timerElapsedMinutesRef.current + focusMinutesRef.current;
+              if (newElapsed >= target) {
+                // মোট টার্গেট সময় সম্পন্ন — আর ব্রেক প্রম্পট দেখানো হবে না, টপিকটা অটো-কমপ্লিট হয়ে যাবে
+                setTimerElapsedMinutes(0);
+                setTimerTargetMinutes(null);
+                setShowBreakPrompt(false);
+                if (timerTopicIdRef.current) markTopicDoneFor(todayKey, timerTopicIdRef.current);
+                pushNotification(t.notifTopicDoneTitle, t.notifTopicDoneBody);
+                return;
+              }
+              setTimerElapsedMinutes(newElapsed);
+            }
             setShowBreakPrompt(true);
             pushNotification(t.notifSessionDoneTitle, t.notifSessionDoneBody);
           } else {
             // Break শেষ — পরের Focus session সাথে সাথে শুরু হয়ে যাবে, timer running-ই থাকবে (তাই interval restart লাগবে না)
             vibrate();
             pushNotification(t.notifBreakDoneTitle, t.notifBreakDoneBody);
-            const nextSession = pomodoroSessionRef.current >= 4 ? 1 : pomodoroSessionRef.current + 1;
+            const totalSessions = pomodoroTotalSessionsRef.current;
+            const nextSession = pomodoroSessionRef.current >= totalSessions ? 1 : pomodoroSessionRef.current + 1;
             setPomodoroSession(nextSession);
             setSessionType("focus");
-            const mins = focusMinutesRef.current;
+            const target = timerTargetMinutesRef.current;
+            const mins = target ? Math.max(1, Math.min(TOPIC_SESSION_CHUNK_MIN, target - timerElapsedMinutesRef.current)) : focusMinutesRef.current;
+            setFocusMinutes(mins);
             const newTotal = mins * 60;
             setTimerTotal(newTotal);
             setTimerSeconds(newTotal);
@@ -2336,6 +2408,15 @@ export default function FocusGo() {
   const toggleDoneFor = (dk, id) => {
     setEntries(prev => {
       const list = (prev[dk] || []).map(x => x.id === id ? { ...x, done: !x.done } : x);
+      return { ...prev, [dk]: list };
+    });
+  };
+
+  // টপিক-লিঙ্কড মাল্টি-সেশন টাইমার টার্গেট সময় শেষ হলে টপিকটা অটো-কমপ্লিট মার্ক করার জন্য
+  // (toggle না, সরাসরি done:true — যাতে ইতিমধ্যে done থাকলেও ভুলবশত আনডান না হয়ে যায়)
+  const markTopicDoneFor = (dk, id) => {
+    setEntries(prev => {
+      const list = (prev[dk] || []).map(x => x.id === id ? { ...x, done: true } : x);
       return { ...prev, [dk]: list };
     });
   };
@@ -2586,13 +2667,23 @@ export default function FocusGo() {
     });
   };
 
+  // একটা টপিকের মোট সময়কে (duration) দরকার হলে ৩০-মিনিট চাঙ্কে ভাগ করে timer/target state সেট করে দেয় —
+  // startTimerFor আর selectTimerTopic দুই জায়গাতেই ব্যবহৃত হয়, যাতে আচরণ সবসময় একই থাকে।
+  const applyTopicDurationSplit = (totalMins) => {
+    const needsSplit = totalMins > TOPIC_SESSION_CHUNK_MIN;
+    const chunk = needsSplit ? TOPIC_SESSION_CHUNK_MIN : totalMins;
+    setTimerTargetMinutes(needsSplit ? totalMins : null);
+    setTimerElapsedMinutes(0);
+    setPomodoroTotalSessions(needsSplit ? Math.ceil(totalMins / TOPIC_SESSION_CHUNK_MIN) : 4);
+    setFocusMinutes(chunk);
+    setTimerSeconds(chunk*60);
+    setTimerTotal(chunk*60);
+  };
+
   const startTimerFor = (id, duration) => {
     setTimerTopicId(id);
-    const mins = duration || 30;
-    setTimerSeconds(mins*60);
-    setTimerTotal(mins*60);
+    applyTopicDurationSplit(duration || 30);
     setSessionType("focus");
-    setFocusMinutes(mins);
     setPomodoroSession(1);
     setShowBreakPrompt(false);
     setTimerRunning(true);
@@ -2608,11 +2699,14 @@ export default function FocusGo() {
     if (item) {
       setTimerTopicId(item.id);
       if (focusMode === "timer" && sessionType === "focus") {
-        const mins = item.duration || 30;
-        setTimerSeconds(mins*60); setTimerTotal(mins*60); setFocusMinutes(mins);
+        setPomodoroSession(1);
+        applyTopicDurationSplit(item.duration || 30);
       }
     } else {
       setTimerTopicId(null);
+      setTimerTargetMinutes(null);
+      setTimerElapsedMinutes(0);
+      setPomodoroTotalSessions(4);
     }
     setShowTopicPicker(false);
   };
@@ -2670,10 +2764,11 @@ export default function FocusGo() {
   // ব্রেক স্কিপ করে সরাসরি পরের Focus session-এ চলে যাওয়া
   const skipBreak = () => {
     setShowBreakPrompt(false);
-    const nextSession = pomodoroSession >= 4 ? 1 : pomodoroSession + 1;
+    const nextSession = pomodoroSession >= pomodoroTotalSessions ? 1 : pomodoroSession + 1;
     setPomodoroSession(nextSession);
     setSessionType("focus");
-    const mins = focusMinutes;
+    const mins = timerTargetMinutes ? Math.max(1, Math.min(TOPIC_SESSION_CHUNK_MIN, timerTargetMinutes - timerElapsedMinutes)) : focusMinutes;
+    setFocusMinutes(mins);
     setTimerTotal(mins*60);
     setTimerSeconds(mins*60);
   };
@@ -3314,18 +3409,23 @@ export default function FocusGo() {
                   <RotateCcw size={17} color={textMain}/>
                 </button>
               </div>
-              {/* Pomodoro cycle progress: Session X/4 + ● ○ ○ ○ */}
+              {/* Pomodoro cycle progress: Session X/N + ●●○○○ — N dynamic হয় যদি টপিক থেকে multi-session শুরু হয় */}
               <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, marginTop:10}}>
                 <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>
-                  {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(4)}</Num>
+                  {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num>
                 </div>
-                <div style={{display:"flex", gap:5}}>
-                  {[1,2,3,4].map(i => (
+                <div style={{display:"flex", gap:5, flexWrap:"wrap", justifyContent:"center", maxWidth:180}}>
+                  {Array.from({length:pomodoroTotalSessions}, (_,i)=>i+1).map(i => (
                     <span key={i} style={{fontSize:13, lineHeight:1, color: i===pomodoroSession ? textMain : textMuted2, opacity: i===pomodoroSession ? 1 : 0.45}}>
                       {i===pomodoroSession ? "●" : "○"}
                     </span>
                   ))}
                 </div>
+                {timerTargetMinutes && (
+                  <div style={{fontSize:10.5, color:textMuted2, fontWeight:600, opacity:0.75}}>
+                    <Num>{nf(timerElapsedMinutes)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
+                  </div>
+                )}
               </div>
             </>
           ) : (
@@ -3461,14 +3561,17 @@ export default function FocusGo() {
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {tasks.map(x => (
-                  <div key={x.id} onClick={()=>setEditingTask(x)} style={{display:"flex",alignItems:"center",gap:10,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:"10px 12px",opacity:x.done?0.55:1,cursor:"pointer"}}>
-                    <button onClick={(e)=>{e.stopPropagation();vibrate();toggleTask(x.id);}} style={{width:21,height:21,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
+                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:10,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:"10px 12px",opacity:x.done?0.55:1}}>
+                    <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:21,height:21,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
                       {x.done && <Check size={12} color="#fff" strokeWidth={3}/>}
                     </button>
                     <div style={{flex:1,minWidth:0,fontSize:12.5,fontWeight:650,color:textMain,textDecoration:x.done?"line-through":"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                       {x.title}
                     </div>
-                    <button onClick={(e)=>{e.stopPropagation();vibrate();deleteTask(x.id);}} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:5}}>
+                    <button onClick={()=>setEditingTask(x)} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:5}} title={lang==="bn"?"এডিট":"Edit"}>
+                      <Pencil size={13}/>
+                    </button>
+                    <button onClick={()=>{vibrate();deleteTask(x.id);}} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:5}}>
                       <Trash2 size={14}/>
                     </button>
                   </div>
@@ -3581,13 +3684,13 @@ export default function FocusGo() {
             const CatIcon = taskCategoryIcon(cat.icon);
             const catLabel = x.category === "study" ? t.taskStudy : x.category === "personal" ? t.taskPersonal : (lang === "bn" ? (cat.labelBn || cat.label) : cat.label);
             return (
-              <div key={x.id} onClick={()=>setEditingTask(x)} style={{
+              <div key={x.id} style={{
                 background: x.done ? "rgba(110,139,94,0.07)" : cardBg,
                 border: `1px solid ${x.done ? "rgba(110,139,94,0.35)" : cardBorder}`,
                 borderRadius:16, padding:"12px 14px", display:"flex", alignItems:"center", gap:12, position:"relative",
-                transition:"background .15s ease, border-color .15s ease", cursor:"pointer",
+                transition:"background .15s ease, border-color .15s ease",
               }}>
-                <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{width:34, height:34, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: x.done ? "#6E8B5E" : `${cat.color}1F`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                <button onClick={()=>{vibrate(); toggleTask(x.id);}} style={{width:34, height:34, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: x.done ? "#6E8B5E" : `${cat.color}1F`, display:"flex", alignItems:"center", justifyContent:"center"}}>
                   {x.done ? <Check size={16} color="#fff" strokeWidth={3}/> : <span style={{width:9,height:9,borderRadius:"50%", background:cat.color}}/>}
                 </button>
                 <div style={{flex:1, minWidth:0}}>
@@ -3652,6 +3755,14 @@ export default function FocusGo() {
             const dayTasks = tasksByDay[selectedKey] || [];
             const selectedDateObj = new Date(selectedKey + "T00:00:00");
 
+            // এই মাসের সামারি — মোট / সম্পন্ন / মেয়াদ-শেষ টাস্ক (calendar গ্রিডের উপরে ছোট overview strip)
+            const monthPrefix = `${y}-${pad2(m+1)}-`;
+            const monthTasks = tasks.filter(x => x.dueDate && x.dueDate.startsWith(monthPrefix));
+            const monthTotal = monthTasks.length;
+            const monthDone = monthTasks.filter(x => x.done).length;
+            const monthOverdue = monthTasks.filter(x => !x.done && x.dueDate < todayKey).length;
+            const monthPct = monthTotal ? Math.round((monthDone/monthTotal)*100) : 0;
+
             return (
               <div>
                 <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12}}>
@@ -3659,6 +3770,29 @@ export default function FocusGo() {
                   <span style={{fontSize:14.5, fontWeight:800, color:textMain}}>{monthName(m)} <Num>{nf(y)}</Num></span>
                   <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m+1,1));}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", display:"flex", padding:4}}><ChevronRight size={18}/></button>
                 </div>
+
+                {/* Month overview strip — মোট/সম্পন্ন/মেয়াদ-শেষ + completion %, একনজরে পুরো মাসের প্যাটার্ন বোঝার জন্য */}
+                <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"13px 15px", marginBottom:12}}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
+                    <div style={{fontSize:11, letterSpacing:ls(1.4), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.taskCalMonthOverview}</div>
+                    {monthTotal > 0 && <div style={{fontSize:11.5, fontWeight:800, color:accent}}><Num>{nf(monthPct)}</Num>%</div>}
+                  </div>
+                  <div style={{display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8}}>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:17, fontWeight:800, color:textMain}}><Num>{nf(monthTotal)}</Num></div>
+                      <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65, marginTop:2}}>{t.taskCalMonthTotal}</div>
+                    </div>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:17, fontWeight:800, color:"#6E8B5E"}}><Num>{nf(monthDone)}</Num></div>
+                      <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65, marginTop:2}}>{t.taskCalMonthCompleted}</div>
+                    </div>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:17, fontWeight:800, color: monthOverdue > 0 ? "#C0392B" : textMain}}><Num>{nf(monthOverdue)}</Num></div>
+                      <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65, marginTop:2}}>{t.taskCalMonthOverdue}</div>
+                    </div>
+                  </div>
+                </div>
+
                 <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 12px", marginBottom:14}}>
                   <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:8}}>
                     {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:10.5, fontWeight:700, color:textMuted2}}>{d}</div>))}
@@ -4165,8 +4299,9 @@ export default function FocusGo() {
             if (focusMode === "timer") { setTimerRunning(false); setTimerSeconds(timerTotal); }
             else { setStopwatchRunning(false); setStopwatchSeconds(0); }
           }}
-          onClose={()=>setFocusFullscreen(false)}
-          sessionType={sessionType} pomodoroSession={pomodoroSession}
+          onClose={closeFocusFullscreen}
+          sessionType={sessionType} pomodoroSession={pomodoroSession} pomodoroTotalSessions={pomodoroTotalSessions}
+          timerTargetMinutes={timerTargetMinutes} timerElapsedMinutes={timerElapsedMinutes}
         />
       )}
 
@@ -4326,7 +4461,7 @@ function BreakPromptModal({ t, nf, breakMinutes, accent, onAccept, onSkip }) {
   );
 }
 
-function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, accent, dark, bg, textMain, textMuted2, onToggleRun, onReset, onClose, now, sessionType, pomodoroSession }) {
+function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, accent, dark, bg, textMain, textMuted2, onToggleRun, onReset, onClose, now, sessionType, pomodoroSession, pomodoroTotalSessions, timerTargetMinutes, timerElapsedMinutes }) {
   const orientation = useOrientation();
   const stacked = orientation === "portrait"; // portrait -> mm উপরে/ss নিচে (বড় সংখ্যা), landscape -> পাশাপাশি
   const mm = pad2(Math.floor(Math.max(0,seconds)/60));
@@ -4385,15 +4520,20 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
   const pomodoroIndicator = mode === "timer" && pomodoroSession ? (
     <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:5, marginTop:16}}>
       <div style={{fontSize:11, fontWeight:700, color:fgMuted, letterSpacing:0.6}}>
-        {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(4)}</Num>
+        {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions || 4)}</Num>
       </div>
-      <div style={{display:"flex", gap:6}}>
-        {[1,2,3,4].map(i => (
+      <div style={{display:"flex", gap:6, flexWrap:"wrap", justifyContent:"center", maxWidth:220}}>
+        {Array.from({length:pomodoroTotalSessions || 4}, (_,i)=>i+1).map(i => (
           <span key={i} style={{fontSize:13, lineHeight:1, color: i===pomodoroSession ? accent : fgMuted, opacity: i===pomodoroSession ? 1 : 0.5}}>
             {i===pomodoroSession ? "●" : "○"}
           </span>
         ))}
       </div>
+      {timerTargetMinutes && (
+        <div style={{fontSize:10.5, color:fgMuted, fontWeight:600, opacity:0.8}}>
+          <Num>{nf(timerElapsedMinutes || 0)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
+        </div>
+      )}
     </div>
   ) : null;
 
@@ -5267,7 +5407,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
               style={{width:34,height:34, borderRadius:"50%", border:"none", flexShrink:0, cursor: onToggle?"pointer":"default", background: item.done ? "#6E8B5E" : c.bgSoft, display:"flex",alignItems:"center",justifyContent:"center"}}>
               {item.done ? <Check size={16} color="#fff" strokeWidth={3}/> : <span style={{width:9,height:9,borderRadius:"50%", background:c.bg}}/>}
             </button>
-            <div style={{flex:1, minWidth:0}} onClick={onStartTimer ? ()=>onStartTimer(item.id, item.duration) : undefined}>
+            <div style={{flex:1, minWidth:0}}>
               <span style={{display:"inline-block", fontSize:9.5, fontWeight:800, letterSpacing:ls(0.5), color:c.bg, background:c.bgSoft, borderRadius:6, padding:"2px 7px", marginBottom:3}}>{item.subject.toUpperCase()}</span>
               <div style={{fontSize:14, fontWeight:600, wordBreak:"break-word", textDecoration: item.done ? "line-through" : "none", opacity: item.done ? 0.6 : 1}}>{item.topic}</div>
             </div>
@@ -5285,6 +5425,11 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
               </div>
               <div style={{fontSize:10.5, fontWeight:500, color:textMuted2, opacity:0.6, marginTop:2}}><Num>{nf(item.duration)}</Num> {t.minutes}</div>
             </div>
+            {onStartTimer && !item.done && (
+              <button onClick={()=>onStartTimer(item.id, item.duration)} title={t.start} style={{width:30,height:30, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: c.bg, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                <Play size={13} fill="#fff" color="#fff"/>
+              </button>
+            )}
             {(onEdit || onDelete) && (
               <div style={{position:"relative", flexShrink:0}}>
                 <button onClick={()=>{ setOpenMenuId(v => v===item.id ? null : item.id); setConfirmDeleteId(null); }} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4}}>
