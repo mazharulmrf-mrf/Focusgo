@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { StatusBar, Style } from "@capacitor/status-bar";
+import { Capacitor } from "@capacitor/core";
+import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
 import {
@@ -14,6 +16,8 @@ import {
   updatePassword,
   reauthenticateWithCredential,
   EmailAuthProvider,
+  GoogleAuthProvider,
+  signInWithCredential,
 } from "firebase/auth";
 import { doc, setDoc, onSnapshot } from "firebase/firestore";
 
@@ -166,10 +170,20 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
     setError("");
     setBusy(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      if (Capacitor.isNativePlatform()) {
+        // Native Android/iOS: সরাসরি native account picker (একদম PC/Android Studio বিল্ডের মতোই)
+        const googleUser = await GoogleAuth.signIn();
+        const idToken = googleUser?.authentication?.idToken;
+        if (!idToken) throw new Error("no-id-token");
+        const credential = GoogleAuthProvider.credential(idToken);
+        await signInWithCredential(auth, credential);
+      } else {
+        // ব্রাউজার/Vercel এ চললে আগের মতোই popup flow
+        await signInWithPopup(auth, googleProvider);
+      }
     } catch (err) {
       console.error("Google sign-in error:", err);
-      if (err?.code === "auth/popup-closed-by-user" || err?.code === "auth/cancelled-popup-request") {
+      if (err?.code === "auth/popup-closed-by-user" || err?.code === "auth/cancelled-popup-request" || err?.message === "The user canceled the sign-in flow.") {
         setError(isBn ? "Google sign-in বাতিল করা হয়েছে।" : "Google sign-in was cancelled.");
       } else if (err?.code === "auth/account-exists-with-different-credential") {
         setError(isBn ? "এই ইমেইলে আগে থেকেই অন্যভাবে একাউন্ট আছে। আগে সেই পদ্ধতিতে লগইন করুন।" : "An account already exists with this email using a different sign-in method. Please sign in with that method first.");
