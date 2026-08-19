@@ -6,6 +6,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  setPersistence,
+  browserLocalPersistence,
   signOut,
   sendPasswordResetEmail,
   updateProfile,
@@ -166,9 +168,9 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
     setInfo("");
     setBusy(true);
     try {
-      // Use popup auth here instead of redirect auth. The previous redirect
-      // flow could fail after Google account selection when the browser/WebView
-      // could not restore Firebase's sessionStorage state.
+      // Popup avoids Firebase's redirect/sessionStorage state flow, which was
+      // producing "missing initial state" after Google account selection.
+      await setPersistence(auth, browserLocalPersistence);
       await signInWithPopup(auth, googleProvider);
     } catch (err) {
       console.error("Google sign-in error:", err);
@@ -2992,8 +2994,8 @@ export default function FocusGo() {
   const containerPadding = isDesktop ? "24px 28px 36px" : breakpoint === "tablet" ? "22px 24px 28px" : "18px 16px 24px";
 
   const styles = {
-    page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Hind Siliguri','Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column" },
-    container: { maxWidth: containerMaxWidth, margin: "0 auto", padding: isDesktop ? containerPadding : `${containerPadding.split(" ")[0]} ${containerPadding.split(" ")[1]} 104px ${containerPadding.split(" ")[1]}`, width:"100%", boxSizing:"border-box", flex:"1 0 auto", transition: "max-width .2s ease" },
+    page: { height:"100dvh", minHeight:0, background: bg, color: textMain, fontFamily: lang === "bn" ? "'Hind Siliguri','Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column", overflow:"hidden", position:"fixed", inset:0 },
+    container: { maxWidth: containerMaxWidth, margin: "0 auto", padding: isDesktop ? containerPadding : `${containerPadding.split(" ")[0]} ${containerPadding.split(" ")[1]} 104px ${containerPadding.split(" ")[1]}`, width:"100%", boxSizing:"border-box", flex:"0 0 auto", transition: "max-width .2s ease" },
   };
 
   // Keep the browser/Android UI (status bar + Chrome toolbar area) synced
@@ -3009,10 +3011,12 @@ export default function FocusGo() {
       document.body.style.background = themeColor;
       document.documentElement.style.colorScheme = dark ? "dark" : "light";
       document.body.style.margin = "0";
-      // আগে এখানে overscrollBehaviorY:"none" সেট করা হতো, যেটা ব্রাউজারের নিজস্ব
-      // "উপর থেকে টেনে রিফ্রেশ" (pull-to-refresh) গেসচারটাও বন্ধ করে দিচ্ছিল।
-      // এখন সেটা সরিয়ে দেওয়া হলো, যাতে ইউজার চাইলে উপর থেকে নিচে ধীরে টেনে
-      // পেজ ম্যানুয়ালি রিফ্রেশ করতে পারে (কোনো auto-refresh নেই, শুধু এই gesture)।
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      document.documentElement.style.height = "100%";
+      document.body.style.height = "100%";
+      if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
+      window.scrollTo(0, 0);
 
       // Update <meta name=\"theme-color\"> dynamically. Chrome/Android uses
       // this for the browser/status/navigation UI around the web app.
@@ -3155,17 +3159,31 @@ export default function FocusGo() {
           margin:0;
           padding:0;
           width:100%;
+          height:100%;
           min-height:100%;
           background:${bg};
-          overflow-x:hidden;
+          overflow:hidden;
+          overscroll-behavior:none;
         }
         html { overscroll-behavior-x:none; }
-        body { overflow-x:hidden; }
+        body { overflow:hidden; }
         #root, #__next {
           width:100%;
+          height:100%;
           min-height:100%;
           background:${bg};
+          overflow:hidden;
         }
+        .fg-main-scroll {
+          height:100%;
+          min-height:0;
+          overflow-y:auto;
+          overflow-x:hidden;
+          overscroll-behavior-y:contain;
+          -webkit-overflow-scrolling:touch;
+          scrollbar-width:none;
+        }
+        .fg-main-scroll::-webkit-scrollbar { display:none; }
         html {
           height:100%;
           -webkit-text-size-adjust:100%;
@@ -3175,9 +3193,6 @@ export default function FocusGo() {
           overscroll-behavior-x:none;
         }
         @media (max-width: 1023px) {
-          body {
-            padding-bottom:0;
-          }
           .fg-bottom-nav-wrap {
             padding-left:max(16px, env(safe-area-inset-left, 0px));
             padding-right:max(16px, env(safe-area-inset-right, 0px));
@@ -3209,7 +3224,7 @@ export default function FocusGo() {
           </button>
         </div>
       )}
-      <div style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, ...(isDesktop ? { zoom: desktopZoom } : {})}}>
+      <div className={!isDesktop ? "fg-main-scroll" : undefined} style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, minHeight:0, overflowY:"auto", overflowX:"hidden", WebkitOverflowScrolling:"touch", overscrollBehaviorY:"contain", ...(isDesktop ? { zoom: desktopZoom } : {})}}>
       <div style={styles.container}>
         {/* Header row: logo | clock | toggles */}
         <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap: 8}}>
@@ -4318,7 +4333,7 @@ export default function FocusGo() {
 
       {/* Bottom nav — মোবাইল/ট্যাবলেটে; ডেস্কটপে সাইডবার থাকায় এটা হাইড */}
       {!isDesktop && (
-      <div className="fg-bottom-nav-wrap" style={{position:"fixed", left:0, right:0, bottom:0, display:"flex", justifyContent:"center", padding:"10px 16px calc(12px + env(safe-area-inset-bottom, 0px))", zIndex:40, background: `linear-gradient(to top, ${bg} 68%, transparent)`, pointerEvents:"none"}}>
+      <div className="fg-bottom-nav-wrap" style={{position:"fixed", left:0, right:0, bottom:0, width:"100%", boxSizing:"border-box", display:"flex", justifyContent:"center", padding:"10px 16px calc(12px + env(safe-area-inset-bottom, 0px))", zIndex:40, background: `linear-gradient(to top, ${bg} 68%, transparent)`, pointerEvents:"none", transform:"translateZ(0)", WebkitTransform:"translateZ(0)"}}>
         <div style={{
           width:"100%", maxWidth:480, display:"flex", pointerEvents:"auto",
           background: dark ? "rgba(18,17,16,0.6)" : "rgba(255,255,255,0.55)",
