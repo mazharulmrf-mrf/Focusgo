@@ -3,9 +3,10 @@ import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, Chev
 import { auth, db, googleProvider } from "./firebase";
 import {
   onAuthStateChanged,
+  getRedirectResult,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
   signOut,
   sendPasswordResetEmail,
   updateProfile,
@@ -165,21 +166,21 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
     setError("");
     setBusy(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      // Mobile browser/WebView-এ popup flow অনেক সময় account selection-এর পরে
+      // আটকে যায়। Redirect flow ব্যবহার করলে Google পুরো page-level auth flow
+      // শেষ করে FocusGo-তে ফিরে আসে।
+      await signInWithRedirect(auth, googleProvider);
     } catch (err) {
       console.error("Google sign-in error:", err);
-      if (err?.code === "auth/popup-closed-by-user" || err?.code === "auth/cancelled-popup-request") {
-        setError(isBn ? "Google sign-in বাতিল করা হয়েছে।" : "Google sign-in was cancelled.");
-      } else if (err?.code === "auth/account-exists-with-different-credential") {
+      if (err?.code === "auth/account-exists-with-different-credential") {
         setError(isBn ? "এই ইমেইলে আগে থেকেই অন্যভাবে একাউন্ট আছে। আগে সেই পদ্ধতিতে লগইন করুন।" : "An account already exists with this email using a different sign-in method. Please sign in with that method first.");
       } else if (err?.code === "auth/unauthorized-domain") {
         setError(isBn ? "এই ডোমেইন Firebase-এ অনুমোদিত নয়। Firebase Authentication-এর Authorized domains-এ ডোমেইনটি যোগ করুন।" : "This domain is not authorized in Firebase. Add the domain under Firebase Authentication → Settings → Authorized domains.");
-      } else if (err?.code === "auth/popup-blocked") {
-        setError(isBn ? "ব্রাউজার Google login popup বন্ধ করে দিয়েছে। Popup allow করে আবার চেষ্টা করুন।" : "Your browser blocked the Google sign-in popup. Allow popups and try again.");
+      } else if (err?.code === "auth/network-request-failed") {
+        setError(isBn ? "ইন্টারনেট সংযোগের সমস্যা হয়েছে। আবার চেষ্টা করুন।" : "A network error occurred. Please try again.");
       } else {
         setError(L.errGeneric);
       }
-    } finally {
       setBusy(false);
     }
   };
@@ -410,7 +411,7 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
     <div style={{
       width: collapsed ? 68 : 232, flexShrink: 0, borderRight: `1px solid ${cardBorder}`,
       padding: collapsed ? "28px 10px" : "28px 14px", display: "flex", flexDirection: "column", gap: 3,
-      position: "sticky", top: 0, height: "100dvh", boxSizing: "border-box",
+      position: "sticky", top: 0, height: "100svh", boxSizing: "border-box",
       transition: "width .18s cubic-bezier(0.16,1,0.3,1), padding .18s cubic-bezier(0.16,1,0.3,1)",
     }}>
       {!collapsed && (
@@ -1588,6 +1589,21 @@ const FOCUSGO_MOTIVATIONS = {
 };
 
 export default function FocusGo() {
+  // Google redirect flow: after Google finishes, Firebase restores the auth
+  // state here. onAuthStateChanged below remains the source of truth for login.
+  useEffect(() => {
+    let active = true;
+    getRedirectResult(auth)
+      .then(() => {})
+      .catch((err) => {
+        if (!active) return;
+        console.error("Google redirect result error:", err);
+        // Do not replace the whole app with an error page. Auth state listener
+        // below will still handle a successfully restored Firebase session.
+      });
+    return () => { active = false; };
+  }, []);
+
   useEffect(() => {
     let link = document.querySelector("link[rel~='icon']");
     if (!link) {
@@ -2975,7 +2991,7 @@ export default function FocusGo() {
   const containerPadding = isDesktop ? "24px 28px 36px" : breakpoint === "tablet" ? "22px 24px 28px" : "18px 16px 24px";
 
   const styles = {
-    page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Hind Siliguri','Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column" },
+    page: { minHeight: "100svh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Hind Siliguri','Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column" },
     container: { maxWidth: containerMaxWidth, margin: "0 auto", padding: containerPadding, width:"100%", boxSizing:"border-box", flex:"1 0 auto", transition: "max-width .2s ease" },
   };
 
@@ -3032,7 +3048,7 @@ export default function FocusGo() {
   if (!authChecked) {
     return (
       <div style={{
-        minHeight:"100dvh",
+        minHeight:"100svh",
         width:"100%",
         background:dark ? "#11100F" : "#F7F3ED",
         display:"flex",
@@ -3092,7 +3108,7 @@ export default function FocusGo() {
         display:"flex",
         alignItems:"center",
         justifyContent:"center",
-        minHeight:"100dvh"
+        minHeight:"100svh"
       }}>
         <div style={{
           display:"flex",
@@ -3134,8 +3150,21 @@ export default function FocusGo() {
   return (
     <div style={{...styles.page, flexDirection: isDesktop ? "row" : "column"}}>
       <style>{`
-        html, body { margin:0; padding:0; background:${bg}; }
-        #root, #__next { background:${bg}; }
+        html, body {
+          margin:0;
+          padding:0;
+          width:100%;
+          min-height:100%;
+          background:${bg};
+          overflow-x:hidden;
+        }
+        html { overscroll-behavior-x:none; }
+        body { overflow-x:hidden; }
+        #root, #__next {
+          width:100%;
+          min-height:100%;
+          background:${bg};
+        }
 
         /* ---- subtle motion: tab switches, buttons, cards ---- */
         @keyframes fg-fade-up { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:translateY(0); } }
@@ -3155,7 +3184,7 @@ export default function FocusGo() {
         <DesktopSidebar t={t} tab={tab} setTab={setTab} vibrate={vibrate} dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(v => !v)} onHideAll={() => setSidebarHidden(true)} />
       )}
       {isDesktop && sidebarHidden && (
-        <div style={{ width: 40, flexShrink: 0, borderRight: `1px solid ${cardBorder}`, display: "flex", flexDirection: "column", alignItems: "center", padding: "28px 8px", position: "sticky", top: 0, height: "100dvh", boxSizing: "border-box" }}>
+        <div style={{ width: 40, flexShrink: 0, borderRight: `1px solid ${cardBorder}`, display: "flex", flexDirection: "column", alignItems: "center", padding: "28px 8px", position: "sticky", top: 0, height: "100svh", boxSizing: "border-box" }}>
           <button type="button" onClick={() => { vibrate(); setSidebarHidden(false); }} title="সাইডবার দেখান"
             style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMuted2, borderRadius: 8, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
             <Eye size={14} />
