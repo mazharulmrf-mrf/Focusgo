@@ -3303,39 +3303,38 @@ export default function FocusGo() {
             })()}
           </div>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-            <div style={{display:"flex", alignItems:"baseline", gap:7}}>
-              <span style={{fontSize:11, letterSpacing:ls(1.2), color:textMuted2, fontWeight:700, opacity:0.85}}>{weekdayName(today)}</span>
-              <span style={{fontSize:11, color:textMuted2, opacity:0.5}}>·</span>
-              <span style={{fontSize:11, fontWeight:700, color:textMuted2, opacity:0.85}}><Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}</span>
-            </div>
-            <div style={{display:"flex", alignItems:"center", gap:8}}>
-              <div style={{
-                fontSize:11, fontWeight:700, color:textMuted2, fontVariantNumeric:"tabular-nums", letterSpacing:0.3,
-              }}>
-                <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> <span style={{fontSize:9.5}}>{now.getHours()>=12 ? t.pmLabel : t.amLabel}</span>
+            <div>
+              <div style={{fontSize:15, fontWeight:700, color:textMain, letterSpacing:-0.2}}>
+                {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
               </div>
-              <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
-                border:`1px solid ${dark?"rgba(217,119,87,0.4)":"rgba(217,119,87,0.35)"}`,
-                background: dark?"rgba(217,119,87,0.16)":"rgba(217,119,87,0.12)",
-                borderRadius:"50%",
-                width:32,
-                height:32,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                cursor:"pointer",
-                flexShrink:0,
-                position:"relative",
-              }}>
-                <CalendarDays size={15} color={accent} strokeWidth={2.2}/>
-                {examDateKeys.has(todayKey) && (
-                  <span style={{
-                    position:"absolute", top:3, right:3,
-                    width:7, height:7, borderRadius:"50%",
-                    background:"#C0392B",
-                    border:`1.5px solid ${cardBg}`,
-                  }}/>
-                )}
-              </button>
+              <div style={{display:"flex", alignItems:"center", gap:6, marginTop:4}}>
+                <Clock size={14} color={textMuted2}/>
+                <span style={{
+                  fontSize:13, color:textMuted2, fontVariantNumeric:"tabular-nums",
+                }}>
+                  <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
+                </span>
+              </div>
             </div>
+            <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
+              border:"none",
+              background:"transparent",
+              padding:8,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              cursor:"pointer",
+              flexShrink:0,
+              position:"relative",
+            }}>
+              <CalendarDays size={35} color={accent} strokeWidth={1.8}/>
+              {examDateKeys.has(todayKey) && (
+                <span style={{
+                  position:"absolute", top:6, right:6,
+                  width:7, height:7, borderRadius:"50%",
+                  background:"#C0392B",
+                  border:`1.5px solid ${cardBg}`,
+                }}/>
+              )}
+            </button>
           </div>
         </div>
         )}
