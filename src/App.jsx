@@ -4,6 +4,7 @@ import { Capacitor } from "@capacitor/core";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
+import { setupNotifications } from "./notifications";
 import {
   onAuthStateChanged,
   createUserWithEmailAndPassword,
@@ -3047,6 +3048,15 @@ export default function FocusGo() {
       StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light }).catch(()=>{});
     } catch (e) { /* ignore */ }
   }, [dark, bg, focusFullscreen]);
+
+  // Native app খুললে notification permission চাওয়া হবে (একবারই) —
+  // এটা না করলে Android নিজেই ধরে নেয় app টা কোনো notification পাঠায় না,
+  // এবং system settings-এ toggle disabled/off দেখায়।
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      setupNotifications().catch(() => {});
+    }
+  }, []);
 
 
   // Firebase এখনো auth স্টেট জানায়নি — একটা ছোট লোডিং স্ক্রিন
