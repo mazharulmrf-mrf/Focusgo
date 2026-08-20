@@ -3763,26 +3763,26 @@ export default function FocusGo() {
               <div key={x.id} style={{
                 background: x.done ? "rgba(110,139,94,0.07)" : cardBg,
                 border: `1px solid ${x.done ? "rgba(110,139,94,0.35)" : cardBorder}`,
-                borderRadius:16, padding:"12px 14px", display:"flex", alignItems:"center", gap:12, position:"relative",
+                borderRadius:16, padding:"10px 12px", display:"flex", alignItems:"center", gap:10, position:"relative",
                 transition:"background .15s ease, border-color .15s ease",
               }}>
-                <button onClick={()=>{vibrate(); toggleTask(x.id);}} style={{width:34, height:34, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: x.done ? "#6E8B5E" : `${cat.color}1F`, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                  {x.done ? <Check size={16} color="#fff" strokeWidth={3}/> : <span style={{width:9,height:9,borderRadius:"50%", background:cat.color}}/>}
+                <button onClick={()=>{vibrate(); toggleTask(x.id);}} style={{width:28, height:28, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: x.done ? "#6E8B5E" : `${cat.color}1F`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                  {x.done ? <Check size={14} color="#fff" strokeWidth={3}/> : <span style={{width:8,height:8,borderRadius:"50%", background:cat.color}}/>}
                 </button>
                 <div style={{flex:1, minWidth:0}}>
-                  <div style={{fontSize:14, fontWeight:600, color:textMain, wordBreak:"break-word", textDecoration: x.done?"line-through":"none", opacity: x.done?0.6:1, marginBottom:6, lineHeight:1.3}}>{x.title}</div>
+                  <div style={{fontSize:13.5, fontWeight:500, color:textMain, wordBreak:"break-word", textDecoration: x.done?"line-through":"none", opacity: x.done?0.6:1, marginBottom:4, lineHeight:1.3}}>{x.title}</div>
                   <div style={{display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"}}>
                     {/* আজকের বাইরের যেকোনো টাস্কে ছোট করে শুধু তারিখের নাম্বার (যেমন ০১, ২৮) — done/pending সব ক্ষেত্রেই */}
                     {x.dueDate && x.dueDate !== todayKey && (
-                      <span style={{display:"inline-flex", alignItems:"center", fontSize:10, fontWeight:700, color:textMuted2, padding:"3px 7px", borderRadius:20, border:`1px solid ${cardBorder}`, flexShrink:0}}>
+                      <span style={{display:"inline-flex", alignItems:"center", fontSize:10, fontWeight:600, color:textMuted2, padding:"3px 7px", borderRadius:20, border:`1px solid ${cardBorder}`, flexShrink:0}}>
                         <Num>{nf(pad2(new Date(x.dueDate+"T00:00:00").getDate()))}</Num>
                       </span>
                     )}
                     {/* ক্যাটাগরি ব্যাজ — আগে টাইটেলের উপরে আলাদা লাইনে ছিল, এখন এখানে মেটা রো-তে দিয়ে কার্ড কম্প্যাক্ট করা হয়েছে */}
-                    <span style={{display:"inline-flex", alignItems:"center", gap:4, fontSize:9.5, fontWeight:800, letterSpacing:0.5, color:cat.color, background:`${cat.color}1F`, borderRadius:6, padding:"2px 7px", flexShrink:0}}>
+                    <span style={{display:"inline-flex", alignItems:"center", gap:4, fontSize:9.5, fontWeight:600, letterSpacing:0.5, color:cat.color, background:`${cat.color}1F`, borderRadius:6, padding:"2px 7px", flexShrink:0}}>
                       <CatIcon size={10}/> {catLabel}
                     </span>
-                    <span style={{display:"inline-flex", alignItems:"center", gap:3, fontSize:10, fontWeight:700, color: isOverdue ? "#C0392B" : prColor[x.priority]}}>
+                    <span style={{display:"inline-flex", alignItems:"center", gap:3, fontSize:10, fontWeight:600, color: isOverdue ? "#C0392B" : prColor[x.priority]}}>
                       <span style={{width:5,height:5,borderRadius:"50%", background: isOverdue ? "#C0392B" : prColor[x.priority]}}/>
                       {prLabel[x.priority]}
                     </span>
@@ -3792,10 +3792,10 @@ export default function FocusGo() {
                       </span>
                     )}
                     {x.done ? (
-                      <span style={{fontSize:10, fontWeight:700, color:"#6E8B5E"}}>{t.taskCompleted}</span>
+                      <span style={{fontSize:10, fontWeight:600, color:"#6E8B5E"}}>{t.taskCompleted}</span>
                     ) : (() => {
                       const dl = dueLabel(x.dueDate);
-                      return dl ? <span style={{fontSize:10, fontWeight:700, color:dl.color}}>{dl.text}</span> : null;
+                      return dl ? <span style={{fontSize:10, fontWeight:600, color:dl.color}}>{dl.text}</span> : null;
                     })()}
                   </div>
                 </div>
@@ -3999,13 +3999,13 @@ export default function FocusGo() {
                       <>
                         {todayBucket.length > 0 && (
                           <div style={{marginBottom: upcomingBucket.length ? 18 : 0}}>
-                            <div style={{fontSize:11, fontWeight:800, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionToday}</div>
+                            <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionToday}</div>
                             <div style={{display:"flex", flexDirection:"column", gap:9}}>{todayBucket.map(renderTask)}</div>
                           </div>
                         )}
                         {upcomingBucket.length > 0 && (
                           <div>
-                            <div style={{fontSize:11, fontWeight:800, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionUpcoming}</div>
+                            <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionUpcoming}</div>
                             <div style={{display:"flex", flexDirection:"column", gap:9}}>{upcomingBucket.map(renderTask)}</div>
                           </div>
                         )}
