@@ -3304,7 +3304,7 @@ export default function FocusGo() {
               );
             })()}
           </div>
-          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-end"}}>
             <div style={{display:"flex", alignItems:"center", gap:6}}>
               <span style={{fontSize:13, fontWeight:600, color:textMain, letterSpacing:-0.1}}>
                 {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
