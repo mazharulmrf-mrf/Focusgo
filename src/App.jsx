@@ -3634,7 +3634,7 @@ export default function FocusGo() {
                     <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:21,height:21,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
                       {x.done && <Check size={12} color="#fff" strokeWidth={3}/>}
                     </button>
-                    <div style={{flex:1,minWidth:0,fontSize:12.5,fontWeight:650,color:textMain,textDecoration:x.done?"line-through":"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                    <div style={{flex:1,minWidth:0,fontSize:12.5,fontWeight:500,color:textMain,textDecoration:x.done?"line-through":"none",overflowWrap:"break-word",wordBreak:"break-word",whiteSpace:"normal",lineHeight:1.4}}>
                       {x.title}
                     </div>
                     <div style={{position:"relative", flexShrink:0}}>
