@@ -3301,40 +3301,32 @@ export default function FocusGo() {
                     <div style={{fontSize:22,fontWeight:800,letterSpacing:-0.4,color:textMain}}>
                       {firstName}
                     </div>
-                    <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
-                      border:"none",
-                      background:"transparent",
-                      borderRadius:10,
-                      width:34,
-                      height:34,
-                      padding:0,
-                      display:"flex", alignItems:"center", justifyContent:"center",
-                      cursor:"pointer",
-                      flexShrink:0,
-                      position:"relative",
-                    }}>
-                      <CalendarDays size={22} color={accent} strokeWidth={2}/>
+                  </div>
+                  <div style={{fontSize:12,color:textMuted2,marginTop:0,lineHeight:1.4}}>
+                    {line}
+                  </div>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8}}>
+                    <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
+                      <Calendar size={18} color={accent} strokeWidth={2}/>
+                      <span style={{fontSize:13, fontWeight:600, color:textMain, letterSpacing:-0.1}}>
+                        {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
+                      </span>
                       {examDateKeys.has(todayKey) && (
                         <span style={{
-                          position:"absolute", top:4, right:4,
+                          position:"absolute", top:-2, left:12,
                           width:7, height:7, borderRadius:"50%",
                           background:"#C0392B",
                           border:`1.5px solid ${cardBg}`,
                         }}/>
                       )}
                     </button>
-                  </div>
-                  <div style={{fontSize:12,color:textMuted2,marginTop:0,lineHeight:1.4}}>
-                    {line}
-                  </div>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8}}>
-                    <span style={{fontSize:13, fontWeight:600, color:textMain, letterSpacing:-0.1}}>
-                      {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
-                    </span>
-                    <span style={{
-                      fontSize:13, color:textMuted2, fontWeight:500, fontVariantNumeric:"tabular-nums",
-                    }}>
-                      <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
+                    <span style={{display:"flex", alignItems:"center", gap:4}}>
+                      <Clock size={13} color={textMuted2} strokeWidth={2}/>
+                      <span style={{
+                        fontSize:13, color:textMuted2, fontWeight:500, fontVariantNumeric:"tabular-nums",
+                      }}>
+                        <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
+                      </span>
                     </span>
                   </div>
                 </>
@@ -3347,36 +3339,37 @@ export default function FocusGo() {
         {tab === "study" && (
           <div className="fg-tab-panel" style={{marginTop:18, marginBottom:-2}}>
             <div style={{fontSize:21, fontWeight:800, letterSpacing:-0.4, color:textMain}}>Study</div>
-            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginTop:3}}>
-              <div style={{fontSize:12, color:textMuted2}}>Plan, focus, and track your study.</div>
+            <div style={{fontSize:12, color:textMuted2, marginTop:3}}>Plan, focus, and track your study.</div>
+            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginTop:16, borderBottom:`1px solid ${cardBorder}`}}>
+              <div style={{display:"flex", gap:22}}>
+                <button onClick={()=>{vibrate(); setStudySection("plan");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 10px", fontSize:13.5, fontWeight:800, color: studySection==="plan" ? textMain : textMuted2, borderBottom: studySection==="plan" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
+                  {t.planViewStudy}
+                </button>
+                <button onClick={()=>{vibrate(); setStudySection("stats");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 10px", fontSize:13.5, fontWeight:800, color: studySection==="stats" ? textMain : textMuted2, borderBottom: studySection==="stats" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
+                  {lang==="bn" ? "স্ট্যাটস" : "Stats"}
+                </button>
+              </div>
               <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
                 border:"none",
                 background:"transparent",
                 borderRadius:"50%",
-                width:32,
-                height:32,
+                width:30,
+                height:30,
+                marginBottom:6,
                 display:"flex", alignItems:"center", justifyContent:"center",
                 cursor:"pointer",
                 flexShrink:0,
                 position:"relative",
               }}>
-                <CalendarDays size={22} color={accent} strokeWidth={2}/>
+                <CalendarDays size={20} color={accent} strokeWidth={2}/>
                 {examDateKeys.has(todayKey) && (
                   <span style={{
-                    position:"absolute", top:3, right:3,
+                    position:"absolute", top:2, right:2,
                     width:7, height:7, borderRadius:"50%",
                     background:"#C0392B",
                     border:`1.5px solid ${cardBg}`,
                   }}/>
                 )}
-              </button>
-            </div>
-            <div style={{display:"flex", gap:22, marginTop:16, borderBottom:`1px solid ${cardBorder}`}}>
-              <button onClick={()=>{vibrate(); setStudySection("plan");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 10px", fontSize:13.5, fontWeight:800, color: studySection==="plan" ? textMain : textMuted2, borderBottom: studySection==="plan" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
-                {t.planViewStudy}
-              </button>
-              <button onClick={()=>{vibrate(); setStudySection("stats");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 10px", fontSize:13.5, fontWeight:800, color: studySection==="stats" ? textMain : textMuted2, borderBottom: studySection==="stats" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
-                {lang==="bn" ? "স্ট্যাটস" : "Stats"}
               </button>
             </div>
           </div>
