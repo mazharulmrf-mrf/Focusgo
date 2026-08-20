@@ -3171,10 +3171,17 @@ export default function FocusGo() {
           setSalahLocLoading(false);
           return;
         }
-        const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: false, timeout: 10000 });
+        // প্রথমে GPS (high accuracy) দিয়ে চেষ্টা — নেটওয়ার্ক দুর্বল থাকলেও এটা কাজ করবে;
+        // এটা ব্যর্থ হলে network-based লোকেশন দিয়ে আরেকবার চেষ্টা করা হয়
+        let pos;
+        try {
+          pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000 });
+        } catch (gpsErr) {
+          pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: false, timeout: 15000 });
+        }
         saveCoords(pos.coords.latitude, pos.coords.longitude);
       } catch (e) {
-        setSalahLocError(lang === "bn" ? "লোকেশন পাওয়া যায়নি" : "Couldn't get location");
+        setSalahLocError(lang === "bn" ? "লোকেশন পাওয়া যায়নি — ফোনের Location (GPS) অন আছে কিনা দেখুন" : "Couldn't get location — check your phone's Location (GPS) is turned on");
       } finally {
         setSalahLocLoading(false);
       }
@@ -3190,7 +3197,7 @@ export default function FocusGo() {
         setSalahLocError(lang === "bn" ? "লোকেশন পারমিশন পাওয়া যায়নি" : "Location permission denied");
         setSalahLocLoading(false);
       },
-      { enableHighAccuracy: false, timeout: 10000, maximumAge: 3600000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 3600000 }
     );
   };
   const salahTimes = React.useMemo(() => {
