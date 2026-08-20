@@ -1724,6 +1724,7 @@ export default function FocusGo() {
   const [editingTask, setEditingTask] = useState(null); // এডিট করার জন্য সিলেক্টেড টাস্ক অবজেক্ট, নাহলে null
   const [taskMenuOpenId, setTaskMenuOpenId] = useState(null); // কোন টাস্ক কার্ডের "..." মেনু খোলা আছে
   const [taskDeleteConfirmId, setTaskDeleteConfirmId] = useState(null); // ভুলে ডিলিট এড়াতে — মেনুর ভেতরেই কনফার্ম ধাপ
+  const [taskDetailId, setTaskDetailId] = useState(null); // টাস্ক রো-তে ট্যাপ করলে যেই টাস্কের ডিটেইল শিট খোলে
   const closeTaskMenu = () => { setTaskMenuOpenId(null); setTaskDeleteConfirmId(null); };
   const [taskAddDefaultDate, setTaskAddDefaultDate] = useState(null); // Calendar view-এ কোনো দিন সিলেক্ট করা অবস্থায় + চাপলে সেই দিনটাই নতুন টাস্কের due date হিসেবে prefill হয়
   // কাস্টম টাস্ক ক্যাটাগরি — ডিফল্টে Study/Personal, ইউজার চাইলে আরো ক্যাটাগরি যোগ করতে পারবে (localStorage-এ সেভ থাকে)
@@ -3772,54 +3773,32 @@ export default function FocusGo() {
           else if (taskFilter === "upcoming") filteredTasks = tasks.filter(x => bucketOf(x) === "upcoming");
           else filteredTasks = tasks;
 
-          // ---- টাস্ক কার্ড: Study Plan-এর TopicsList কার্ডের মতোই — বড় গোল toggle বাটন, উপরে ক্যাটাগরি ব্যাজ (subject ট্যাগের মতো) ----
+          // ---- টাস্ক রো: কম্প্যাক্ট, প্রায়োরিটি অনুযায়ী রঙিন (বাঁ পাশের বর্ডার + হালকা টিন্ট) ----
+          // ক্যাটাগরি/প্রায়োরিটি/ডিউ-ডেট ব্যাজ এখানে দেখানো হয় না — রো-এর রংই প্রায়োরিটি বোঝায়, বাকি ডিটেইল ট্যাপ করলে দেখা যায়
+          const prBg = { high: "rgba(192,57,43,0.09)", med: `${accent}17`, low: "rgba(110,139,94,0.09)" };
           const renderTask = (x) => {
-            const isOverdue = !x.done && x.dueDate && x.dueDate < todayKey;
-            const cat = findTaskCategory(taskCategories, x.category);
-            const CatIcon = taskCategoryIcon(cat.icon);
-            const catLabel = x.category === "study" ? t.taskStudy : x.category === "personal" ? t.taskPersonal : (lang === "bn" ? (cat.labelBn || cat.label) : cat.label);
+            const pr = x.priority || "med";
+            const borderColor = x.done ? "#6E8B5E" : prColor[pr];
             return (
-              <div key={x.id} style={{
-                background: x.done ? "rgba(110,139,94,0.07)" : cardBg,
-                border: `1px solid ${x.done ? "rgba(110,139,94,0.35)" : cardBorder}`,
-                borderRadius:16, padding:"10px 12px", display:"flex", alignItems:"center", gap:10, position:"relative",
-                transition:"background .15s ease, border-color .15s ease",
+              <div key={x.id} onClick={()=>setTaskDetailId(x.id)} style={{
+                background: x.done ? "rgba(110,139,94,0.07)" : prBg[pr],
+                borderLeft: `3px solid ${borderColor}`,
+                borderRadius:12, padding:"9px 10px", display:"flex", alignItems:"center", gap:9, position:"relative", cursor:"pointer",
+                transition:"background .15s ease",
               }}>
-                <button onClick={()=>{vibrate(); toggleTask(x.id);}} style={{width:28, height:28, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: x.done ? "#6E8B5E" : `${cat.color}1F`, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                  {x.done ? <Check size={14} color="#fff" strokeWidth={3}/> : <span style={{width:8,height:8,borderRadius:"50%", background:cat.color}}/>}
+                <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{width:20, height:20, borderRadius:"50%", flexShrink:0, cursor:"pointer", border:`2px solid ${borderColor}`, background: x.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", padding:0}}>
+                  {x.done && <Check size={11} color="#fff" strokeWidth={3}/>}
                 </button>
-                <div style={{flex:1, minWidth:0}}>
-                  <div style={{fontSize:13.5, fontWeight:500, color:textMain, wordBreak:"break-word", textDecoration: x.done?"line-through":"none", opacity: x.done?0.6:1, marginBottom:4, lineHeight:1.3}}>{x.title}</div>
-                  <div style={{display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"}}>
-                    {/* আজকের বাইরের যেকোনো টাস্কে ছোট করে শুধু তারিখের নাম্বার (যেমন ০১, ২৮) — done/pending সব ক্ষেত্রেই */}
-                    {x.dueDate && x.dueDate !== todayKey && (
-                      <span style={{display:"inline-flex", alignItems:"center", fontSize:10, fontWeight:600, color:textMuted2, padding:"3px 7px", borderRadius:20, border:`1px solid ${cardBorder}`, flexShrink:0}}>
-                        <Num>{nf(pad2(new Date(x.dueDate+"T00:00:00").getDate()))}</Num>
-                      </span>
-                    )}
-                    {/* ক্যাটাগরি ব্যাজ — আগে টাইটেলের উপরে আলাদা লাইনে ছিল, এখন এখানে মেটা রো-তে দিয়ে কার্ড কম্প্যাক্ট করা হয়েছে */}
-                    <span style={{display:"inline-flex", alignItems:"center", gap:4, fontSize:9.5, fontWeight:600, letterSpacing:0.5, color:cat.color, background:`${cat.color}1F`, borderRadius:6, padding:"2px 7px", flexShrink:0}}>
-                      <CatIcon size={10}/> {catLabel}
-                    </span>
-                    <span style={{display:"inline-flex", alignItems:"center", gap:3, fontSize:10, fontWeight:600, color: isOverdue ? "#C0392B" : prColor[x.priority]}}>
-                      <span style={{width:5,height:5,borderRadius:"50%", background: isOverdue ? "#C0392B" : prColor[x.priority]}}/>
-                      {prLabel[x.priority]}
-                    </span>
-                    {x.repeat && (
-                      <span title={t.taskRepeatBadge} style={{display:"inline-flex", alignItems:"center", color:textMuted2}}>
-                        <Repeat size={11}/>
-                      </span>
-                    )}
-                    {x.done ? (
-                      <span style={{fontSize:10, fontWeight:600, color:"#6E8B5E"}}>{t.taskCompleted}</span>
-                    ) : (() => {
-                      const dl = dueLabel(x.dueDate);
-                      return dl ? <span style={{fontSize:10, fontWeight:600, color:dl.color}}>{dl.text}</span> : null;
-                    })()}
-                  </div>
+                <div style={{flex:1, minWidth:0, fontSize:12.5, fontWeight:400, color:textMain, wordBreak:"break-word", overflowWrap:"break-word", whiteSpace:"normal", lineHeight:1.4, textDecoration: x.done?"line-through":"none", opacity: x.done?0.6:1}}>
+                  {x.title}
                 </div>
-                <div style={{position:"relative", flexShrink:0}}>
-                  <button onClick={(e)=>{ e.stopPropagation(); setTaskMenuOpenId(v => v===x.id ? null : x.id); setTaskDeleteConfirmId(null); }} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:4}}>
+                {x.note && (
+                  <span title={lang==="bn"?"নোট আছে":"Has a note"} style={{flexShrink:0, color:textMuted2, display:"flex"}}>
+                    <FileText size={13}/>
+                  </span>
+                )}
+                <div style={{position:"relative", flexShrink:0}} onClick={(e)=>e.stopPropagation()}>
+                  <button onClick={()=>{ setTaskMenuOpenId(v => v===x.id ? null : x.id); setTaskDeleteConfirmId(null); }} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:4}}>
                     <MoreVertical size={16}/>
                   </button>
                   {taskMenuOpenId === x.id && (
@@ -4445,6 +4424,25 @@ export default function FocusGo() {
           categories={taskCategories} onAddCategory={addTaskCategory}
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark} bg={bg}/>
       )}
+
+      {/* টাস্ক ডিটেইল শিট — লিস্টের রো-তে ট্যাপ করলে খোলে, ফুল টাইটেল/নোট/মেটা দেখায়, "এডিট" চাপলে AddTaskModal খোলে */}
+      {taskDetailId && (() => {
+        const x = tasks.find(tk => tk.id === taskDetailId);
+        if (!x) return null;
+        const cat = findTaskCategory(taskCategories, x.category);
+        const catLabel = x.category === "study" ? t.taskStudy : x.category === "personal" ? t.taskPersonal : (lang === "bn" ? (cat.labelBn || cat.label) : cat.label);
+        const pr = x.priority || "med";
+        return (
+          <TaskDetailSheet
+            task={x} categoryLabel={catLabel} priorityLabel={{high:t.taskPrHigh, med:t.taskPrMed, low:t.taskPrLow}[pr]}
+            priorityColor={{high:"#C0392B", med:accent, low:"#6E8B5E"}[pr]}
+            lang={lang} nf={nf}
+            onClose={()=>setTaskDetailId(null)}
+            onToggleDone={()=>{vibrate(); toggleTask(x.id);}}
+            onEdit={()=>{setTaskDetailId(null); setEditingTask(x);}}
+            cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark} bg={bg}/>
+        );
+      })()}
 
       {/* Edit topic modal */}
       {editTopic && (
@@ -7194,12 +7192,59 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   );
 }
 
+// টাস্ক রো-তে ট্যাপ করলে খোলা রিড-অনলি ডিটেইল শিট — ফুল টাইটেল, প্রায়োরিটি, ক্যাটাগরি/ডিউ-ডেট, নোট দেখায়; এডিট করতে পেন্সিল আইকনে চাপলে AddTaskModal খোলে
+function TaskDetailSheet({ task, categoryLabel, priorityLabel, priorityColor, lang, nf, onClose, onToggleDone, onEdit, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
+  return (
+    <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:"80vh", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"22px 22px 0 0", padding:"18px 20px 26px", color:textMain}}>
+        <div style={{width:36, height:4, borderRadius:4, background:cardBorder, margin:"0 auto 14px"}}/>
+        <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10}}>
+          <div style={{flex:1, fontSize:16, fontWeight:700, lineHeight:1.35, wordBreak:"break-word", textDecoration: task.done?"line-through":"none", opacity: task.done?0.6:1}}>
+            {task.title}
+          </div>
+          <button onClick={onEdit} title={lang==="bn"?"এডিট":"Edit"} style={{border:"none", background:bg, color:textMuted2, width:30, height:30, borderRadius:"50%", cursor:"pointer", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
+            <Pencil size={14}/>
+          </button>
+          <button onClick={onClose} style={{border:"none", background:bg, color:textMuted2, width:30, height:30, borderRadius:"50%", cursor:"pointer", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
+            <X size={16}/>
+          </button>
+        </div>
+
+        <button onClick={onToggleDone} style={{display:"flex", alignItems:"center", gap:8, border:`1px solid ${task.done ? "#6E8B5E" : cardBorder}`, background: task.done ? "rgba(110,139,94,0.1)" : "transparent", color: task.done ? "#6E8B5E" : textMuted2, borderRadius:12, padding:"8px 12px", fontSize:12.5, fontWeight:700, cursor:"pointer", marginTop:14}}>
+          <span style={{width:16, height:16, borderRadius:"50%", border:`2px solid ${task.done ? "#6E8B5E" : textMuted2}`, background: task.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+            {task.done && <Check size={10} color="#fff" strokeWidth={3}/>}
+          </span>
+          {task.done ? (lang==="bn" ? "সম্পন্ন হয়েছে" : "Completed") : (lang==="bn" ? "সম্পন্ন হিসেবে চিহ্নিত করুন" : "Mark as done")}
+        </button>
+
+        <div style={{fontSize:10, fontWeight:700, letterSpacing:0.5, color:textMuted2, textTransform:"uppercase", marginTop:18, marginBottom:6}}>{lang==="bn"?"প্রায়োরিটি":"Priority"}</div>
+        <span style={{display:"inline-flex", alignItems:"center", gap:5, fontSize:12, fontWeight:700, color:priorityColor, background:`${priorityColor}1A`, borderRadius:8, padding:"5px 10px"}}>
+          <span style={{width:6,height:6,borderRadius:"50%", background:priorityColor}}/>
+          {priorityLabel}
+        </span>
+
+        <div style={{fontSize:10, fontWeight:700, letterSpacing:0.5, color:textMuted2, textTransform:"uppercase", marginTop:16, marginBottom:6}}>{lang==="bn"?"ক্যাটাগরি ও ডিউ ডেট":"Category & Due Date"}</div>
+        <div style={{fontSize:13, fontWeight:500, color:textMain}}>
+          {categoryLabel}{task.dueDate ? ` · ${new Date(task.dueDate+"T00:00:00").toLocaleDateString(lang==="bn"?"bn-BD":"en-US", {day:"numeric", month:"short"})}` : ""}
+        </div>
+
+        <div style={{fontSize:10, fontWeight:700, letterSpacing:0.5, color:textMuted2, textTransform:"uppercase", marginTop:16, marginBottom:6}}>{lang==="bn"?"নোট":"Note"}</div>
+        <div style={{fontSize:12.5, fontWeight:400, lineHeight:1.55, color: task.note ? textMain : textMuted2, background:bg, borderRadius:12, padding:"10px 12px", minHeight:20, whiteSpace:"pre-wrap", wordBreak:"break-word"}}>
+          {task.note || (lang==="bn" ? "কোনো নোট নেই — এডিট করে যোগ করুন।" : "No note yet — tap edit to add one.")}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate, categories, onAddCategory, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
   const [title, setTitle] = useState(initialTask?.title || "");
   const [category, setCategory] = useState(initialTask?.category || (categories && categories[0] && categories[0].key) || "study");
   const [priority, setPriority] = useState(initialTask?.priority || "med");
   const [dueDate, setDueDate] = useState(initialTask?.dueDate || defaultDueDate || "");
   const [repeat, setRepeat] = useState(initialTask?.repeat || "none"); // "none" | "daily" | "weekly" | "monthly"
+  const [note, setNote] = useState(initialTask?.note || "");
   const [addingCategory, setAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   // ডিফল্টে শুধু Title + Date দেখানো হয় (দ্রুত টাস্ক যোগ করার জন্য) — Category/Priority/Repeat "More options"-এর নিচে লুকানো,
@@ -7217,6 +7262,7 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
       id: initialTask?.id || `${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
       title: title.trim(), category, priority, dueDate: dueDate || null,
       repeat: repeat === "none" ? null : repeat,
+      note: note.trim(),
       done: initialTask?.done || false
     });
     onClose();
@@ -7335,6 +7381,10 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
             </div>
           </>
         )}
+
+        <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{lang==="bn" ? "নোট (ঐচ্ছিক)" : "Note (optional)"}</div>
+        <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder={lang==="bn" ? "কোনো নোট লিখুন..." : "Add a note..."}
+          style={{width:"100%", boxSizing:"border-box", minHeight:64, background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 12px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit", resize:"none", marginBottom:18}}/>
 
         <button onClick={submit} style={{width:"100%", padding:"13px 0", borderRadius:14, border:"none", background:accent, color:"#fff", fontWeight:800, fontSize:14, cursor:"pointer"}}>
           {isEditing ? (lang==="bn" ? "সেভ করুন" : "Save Changes") : t.taskAddBtn}
