@@ -3839,7 +3839,7 @@ export default function FocusGo() {
 
         {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — Option 2: circular progress, premium look */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (
-        <div className="fg-tab-panel" style={{marginTop:10, background: dark ? "#1E1A16" : cardBg, border: dark ? `1px solid ${accent}40` : `1px solid ${cardBorder}`, borderRadius:16, padding:"16px", position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:22, background: dark ? "#1E1A16" : cardBg, border: dark ? `1px solid ${accent}40` : `1px solid ${cardBorder}`, borderRadius:16, padding:"16px", position:"relative", overflow:"hidden"}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:14}}>
             <div style={{display:"flex", alignItems:"center", gap:14, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
