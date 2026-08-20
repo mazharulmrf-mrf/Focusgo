@@ -3291,18 +3291,16 @@ export default function FocusGo() {
 
               return (
                 <>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                    <div>
-                      <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2}}>
-                        {lang === "bn" ? greetingBn : greetingEn}
-                      </div>
-                      <div style={{fontSize:22,fontWeight:800,letterSpacing:-0.4,color:textMain}}>
-                        {firstName}
-                      </div>
+                  <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2}}>
+                    {lang === "bn" ? greetingBn : greetingEn}
+                  </div>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
+                    <div style={{fontSize:22,fontWeight:800,letterSpacing:-0.4,color:textMain}}>
+                      {firstName}
                     </div>
                     <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
                       border:"none",
-                      background: dark?"rgba(217,119,87,0.16)":"rgba(217,119,87,0.12)",
+                      background:"transparent",
                       borderRadius:10,
                       width:34,
                       height:34,
@@ -3323,7 +3321,7 @@ export default function FocusGo() {
                       )}
                     </button>
                   </div>
-                  <div style={{fontSize:12,color:textMuted2,marginTop:3,lineHeight:1.4}}>
+                  <div style={{fontSize:12,color:textMuted2,marginTop:0,lineHeight:1.4}}>
                     {line}
                   </div>
                   <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8}}>
