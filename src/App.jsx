@@ -1606,6 +1606,26 @@ const FOCUSGO_MOTIVATIONS = {
 };
 
 export default function FocusGo() {
+  // Android WebView-এ (বিশেষত Capacitor অ্যাপে) একটা পুরনো আচরণ আছে — Backspace key যদি কোনো
+  // প্রকৃত এডিটেবল ফিল্ডের (input/textarea/contentEditable) বাইরে বা তার "সক্রিয়" স্টেটের বাইরে
+  // চাপা হয়, তাহলে ব্রাউজার সেটাকে "history.back()" হিসেবে ধরে নেয়। নোট এডিটরে এটাই bug তৈরি করছিল:
+  // Backspace চাপলে সেভ না হয়েই এডিটর বন্ধ হয়ে, ইতিহাসের আর কোনো entry না থাকলে পুরো অ্যাপই বন্ধ হয়ে যেত।
+  // এখানে capture-phase এ Backspace ধরে, target আসলেই এডিটেবল কিনা যাচাই করে — না হলে navigation
+  // থামিয়ে দিই। এডিটেবল ফিল্ডে স্বাভাবিক backspace আচরণ (delete character) অক্ষতই থাকে।
+  useEffect(() => {
+    const guardBackspaceNav = (e) => {
+      if (e.key !== "Backspace") return;
+      const target = e.target;
+      const tag = (target && target.tagName || "").toLowerCase();
+      const isEditable = tag === "input" || tag === "textarea" || (target && target.isContentEditable);
+      if (!isEditable) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener("keydown", guardBackspaceNav, true);
+    return () => document.removeEventListener("keydown", guardBackspaceNav, true);
+  }, []);
+
   useEffect(() => {
     let link = document.querySelector("link[rel~='icon']");
     if (!link) {
@@ -4001,11 +4021,11 @@ export default function FocusGo() {
                 Calendar view-এ থাকলে ও কোনো দিন সিলেক্ট করা থাকলে সেই দিনটাই নতুন টাস্কের due date হিসেবে prefill হয়ে যাবে */}
             <button onClick={()=>{vibrate(); setTaskAddDefaultDate(taskViewMode === "calendar" ? (taskCalSelectedDay || todayKey) : null); setShowAddTask(true);}} title={t.taskAdd} style={{
               position:"fixed", right:20, bottom: isDesktop ? 28 : 96, zIndex:41,
-              width:56, height:56, borderRadius:"50%", border:"none", background:accent, color:"#fff",
+              width:46, height:46, borderRadius:"50%", border:"none", background:accent, color:"#fff",
               display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
               boxShadow: dark ? "0 8px 20px rgba(0,0,0,0.45)" : "0 8px 20px rgba(217,119,87,0.45)",
             }}>
-              <Plus size={24} strokeWidth={2.5}/>
+              <Plus size={21} strokeWidth={2.5}/>
             </button>
           </>
           );
@@ -6109,6 +6129,8 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   const [showBgColorPicker, setShowBgColorPicker] = useState(false); // বটম টুলবারের নতুন রঙ (Palette) আইকন দিয়ে টগল হয় — নোট কার্ডের ব্যাকগ্রাউন্ড রঙ বাছাই
   const [showMoreMenu, setShowMoreMenu] = useState(false); // এডিটর হেডারের ⋮ মেনু
   const [showFormatBar, setShowFormatBar] = useState(false); // বটম টুলবারের "Aa" আইকন দিয়ে টগল হয় — Bold/Italic/Underline/H1/H2 রো
+  const [categoryMenuFor, setCategoryMenuFor] = useState(null); // কোন ক্যাটাগরি চিপ লং-প্রেস করা হয়েছে — Rename/Delete মেনু দেখানোর জন্য
+  const catPressTimerRef = useRef(null); // ক্যাটাগরি চিপ লং-প্রেস ডিটেক্ট করার টাইমার
   const [filterDate, setFilterDate] = useState(null); // নির্দিষ্ট তারিখে ফিল্টার — ক্যালেন্ডার আইকন দিয়ে সিলেক্ট করলে সেট হয়
   const [showDatePicker, setShowDatePicker] = useState(false); // সার্চের পাশের ক্যালেন্ডার আইকনে ট্যাপ করলে ছোট ডেট-পিকার দেখা যায়
   const [calMonth, setCalMonth] = useState(new Date()); // ডেট-পিকারে বর্তমানে কোন মাস দেখানো হচ্ছে
@@ -6198,6 +6220,45 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     syncActiveFontSize();
   };
 
+  // নোট বডিতে "1. " দিয়ে লাইন শুরু করে Enter চাপলে পরের লাইনে অটো ২, ৩, ৪... বসে —
+  // আর খালি নাম্বারড লাইনে (মানে ডাবল Enter) আবার Enter চাপলে নাম্বারিং থেমে গিয়ে লাইনটা প্লেইন খালি লাইন হয়ে যায়
+  const handleBodyEnterKey = (e) => {
+    if (e.key !== "Enter" || e.shiftKey) return;
+    const el = bodyRef.current;
+    if (!el) return;
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const anchor = sel.anchorNode;
+    if (!anchor || !el.contains(anchor)) return;
+
+    // কার্সার যে লাইনে আছে, সেই লাইনের ব্লক-লেভেল এলিমেন্ট খুঁজে বের করা (bodyRef-এর সরাসরি চাইল্ড)
+    let block = anchor;
+    while (block && block !== el && block.parentNode !== el) block = block.parentNode;
+    if (!block || block === el) return; // প্রথম লাইনে এখনো কোনো wrapping div তৈরি হয়নি — স্বাভাবিক Enter চলবে
+
+    const lineText = block.textContent || "";
+    const m = /^(\d+)\.[ \u00A0]?(.*)$/.exec(lineText);
+    if (!m) return; // নাম্বারড লাইন না হলে স্বাভাবিক Enter আচরণই চলবে
+
+    e.preventDefault();
+    const currentNum = parseInt(m[1], 10);
+    const restText = m[2];
+
+    if (restText.trim() === "") {
+      // ডাবল এন্টার — নাম্বার মুছে লাইনটা প্লেইন খালি লাইন করে দেওয়া, নতুন লাইন তৈরি না করে এখানেই থামা
+      block.innerHTML = "<br>";
+      const r = document.createRange();
+      r.setStart(block, 0);
+      r.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(r);
+    } else {
+      const nextNum = currentNum + 1;
+      document.execCommand("insertHTML", false, `<div>${nextNum}.&nbsp;</div>`);
+    }
+    if (bodyRef.current) setBody(bodyRef.current.innerHTML);
+  };
+
   // ---- ফন্ট সাইজ: পুরো বক্স না, শুধু সিলেক্ট করা অংশ বা কার্সার থেকে যা টাইপ হবে তার সাইজ বদলায় ----
   const FONT_MIN = 12, FONT_MAX = 26, FONT_STEP = 1.5;
 
@@ -6271,6 +6332,15 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   useEffect(() => {
     try { window.localStorage.setItem("focusgo_note_categories_v1", JSON.stringify(categories)); } catch (e) {}
   }, [categories]);
+
+  // ক্যাটাগরি চিপে চেপে ধরে রাখলে (long-press) Rename/Delete মেনু দেখানোর জন্য টাইমার শুরু/বাতিল
+  const startCatPress = (cat) => {
+    cancelCatPress();
+    catPressTimerRef.current = setTimeout(() => { vibrate(); setCategoryMenuFor(cat); }, 480);
+  };
+  const cancelCatPress = () => {
+    if (catPressTimerRef.current) { clearTimeout(catPressTimerRef.current); catPressTimerRef.current = null; }
+  };
 
   const openNew = (startWithChecklist) => {
     savedRef.current = false;
@@ -6543,7 +6613,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
   return (
     <>
-    <div className="fg-tab-panel" style={{ marginTop: 20, paddingBottom: 30 }} onClick={() => { openMenu && setOpenMenu(null); fabOpen && setFabOpen(false); }}>
+    <div className="fg-tab-panel" style={{ marginTop: 20, paddingBottom: 30 }} onClick={() => { openMenu && setOpenMenu(null); fabOpen && setFabOpen(false); categoryMenuFor && setCategoryMenuFor(null); }}>
       {/* Bold/Italic/Underline/H1/H2 রিচ টেক্সট স্টাইল — নোট এডিটর ও নোট কার্ড প্রিভিউ, দুই জায়গাতেই কাজ করার জন্য একবারই বসানো */}
       <style>{`
         .fg-note-body h1{font-size:1.5em;font-weight:800;margin:0.5em 0 0.25em;line-height:1.25;}
@@ -6560,20 +6630,20 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           <div style={{ fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain }}>{t.notesTitle}</div>
           <div style={{ fontSize:11.5, color:textMuted2, marginTop:3 }}>{t.notesSubtitle}</div>
         </div>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
+        <div style={{display:"flex",alignItems:"center",gap:7}}>
           <button
             onClick={(e)=>{e.stopPropagation();setShowSearch(v=>{const next=!v; if(next){requestAnimationFrame(()=>searchRef.current&&searchRef.current.focus());}else{setSearch("");} return next;});}}
-            style={{ width:52,height:40,display:"flex",alignItems:"center",justifyContent:"center",background:showSearch?accent:cardBg,color:showSearch?"#fff":textMain,border:`1px solid ${showSearch?accent:cardBorder}`,borderRadius:13,cursor:"pointer" }}
+            style={{ width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",background:showSearch?accent:cardBg,color:showSearch?"#fff":textMain,border:`1px solid ${showSearch?accent:cardBorder}`,borderRadius:"50%",cursor:"pointer",flexShrink:0 }}
             title={lang==="bn"?"সার্চ":"Search"}
           >
-            {showSearch ? <X size={19}/> : <Search size={19}/>}
+            {showSearch ? <X size={16}/> : <Search size={16}/>}
           </button>
           <button
             onClick={(e)=>{e.stopPropagation();setCalMonth(filterDate || new Date());setShowDatePicker(true);}}
-            style={{ width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",background:filterDate?accent:cardBg,color:filterDate?"#fff":textMain,border:`1px solid ${filterDate?accent:cardBorder}`,borderRadius:13,cursor:"pointer" }}
+            style={{ width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",background:filterDate?accent:cardBg,color:filterDate?"#fff":textMain,border:`1px solid ${filterDate?accent:cardBorder}`,borderRadius:"50%",cursor:"pointer",flexShrink:0 }}
             title={lang==="bn"?"তারিখ দিয়ে দেখুন":"View by date"}
           >
-            <Calendar size={18}/>
+            <Calendar size={15}/>
           </button>
         </div>
       </div>
@@ -6655,7 +6725,29 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         <button onClick={(e)=>{e.stopPropagation();setActiveFolder("All Notes");}} style={{border:`1px solid ${activeFolder==="All Notes"?accent:cardBorder}`,background:activeFolder==="All Notes"?(dark?"#2B281F":"#FFF4DF"):(dark?"#211F1B":"#F5F2EA"),color:activeFolder==="All Notes"?accent:textMain,cursor:"pointer",fontSize:12,fontWeight:700,padding:"5px 11px",borderRadius:999,flex:"0 0 auto"}}>{lang==="bn"?"সব":"All"}</button>
         <button onClick={(e)=>{e.stopPropagation();setActiveFolder("Pinned");}} style={{border:`1px solid ${activeFolder==="Pinned"?accent:cardBorder}`,background:activeFolder==="Pinned"?(dark?"#2B281F":"#FFF4DF"):(dark?"#211F1B":"#F5F2EA"),color:activeFolder==="Pinned"?accent:textMain,cursor:"pointer",fontSize:12,fontWeight:700,padding:"5px 11px",borderRadius:999,flex:"0 0 auto",display:"flex",alignItems:"center",gap:4}}><Pin size={11}/>{lang==="bn"?"পিন":"Pinned"}</button>
         {categories.map(cat => (
-          <button key={cat} onClick={(e)=>{e.stopPropagation();setActiveFolder(cat);}} style={{border:`1px solid ${activeFolder===cat?accent:cardBorder}`,background:activeFolder===cat?(dark?"#2B281F":"#FFF4DF"):(dark?"#211F1B":"#F5F2EA"),color:activeFolder===cat?accent:textMain,cursor:"pointer",fontSize:12,fontWeight:700,padding:"5px 11px",borderRadius:999,flex:"0 0 auto"}}>{cat}</button>
+          <div key={cat} style={{position:"relative",flex:"0 0 auto"}}>
+            <button
+              onClick={(e)=>{e.stopPropagation();setActiveFolder(cat);}}
+              onMouseDown={(e)=>{e.stopPropagation();startCatPress(cat);}}
+              onMouseUp={cancelCatPress}
+              onMouseLeave={cancelCatPress}
+              onTouchStart={(e)=>{e.stopPropagation();startCatPress(cat);}}
+              onTouchEnd={cancelCatPress}
+              onTouchMove={cancelCatPress}
+              style={{border:`1px solid ${activeFolder===cat?accent:cardBorder}`,background:activeFolder===cat?(dark?"#2B281F":"#FFF4DF"):(dark?"#211F1B":"#F5F2EA"),color:activeFolder===cat?accent:textMain,cursor:"pointer",fontSize:12,fontWeight:700,padding:"5px 11px",borderRadius:999}}>{cat}</button>
+            {categoryMenuFor === cat && (
+              <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:"calc(100% + 4px)",left:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:4,boxShadow:"0 10px 26px rgba(0,0,0,.2)",zIndex:30,display:"flex",flexDirection:"column",minWidth:128}}>
+                <button onClick={()=>{renameCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:7,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12,fontWeight:700,color:textMain,cursor:"pointer",borderRadius:7}}>
+                  <Pencil size={13}/> {lang==="bn"?"নাম পরিবর্তন":"Rename"}
+                </button>
+                {cat !== "General" && (
+                  <button onClick={()=>{deleteCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:7,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12,fontWeight:700,color:"#C54B4B",cursor:"pointer",borderRadius:7}}>
+                    <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         ))}
         <button onClick={(e)=>{e.stopPropagation();addCategory();}} style={{flex:"0 0 auto",border:`1px dashed ${cardBorder}`,background:"transparent",color:accent,borderRadius:999,padding:"5px 11px",fontSize:12,fontWeight:800,cursor:"pointer"}}>+</button>
       </div>
@@ -6757,12 +6849,12 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           </div>
         )}
         <button onClick={(e)=>{e.stopPropagation();vibrate();setFabOpen(v=>!v);}} title={t.notesNew} style={{
-          width:56, height:56, borderRadius:"50%", border:"none", background:accent, color:"#fff",
+          width:46, height:46, borderRadius:"50%", border:"none", background:accent, color:"#fff",
           display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
           boxShadow: dark ? "0 8px 20px rgba(0,0,0,0.45)" : "0 8px 20px rgba(217,119,87,0.45)",
           transform: fabOpen ? "rotate(45deg)" : "none", transition:"transform .15s",
         }}>
-          <Plus size={24} strokeWidth={2.5}/>
+          <Plus size={21} strokeWidth={2.5}/>
         </button>
       </div>
 
@@ -6775,7 +6867,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         const iconColor = textMain; // হেডার ও বটম টুলবারের আইকন/টেক্সট — পেজ ব্যাকগ্রাউন্ডের সাথে ঠিকমতো কনট্রাস্ট থাকার জন্য
         const toolbarActiveBg = dark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.07)";
         return (
-        <div style={{position:"fixed",left:0,top:0,width:"100%",height:vh,background:editorBg,display:"flex",flexDirection:"column",zIndex:60}} onClick={()=>{setShowMoreMenu(false);setShowColorPicker(false);}}>
+        <div style={{position:"fixed",left:0,top:0,width:"100%",height:vh,background:editorBg,display:"flex",flexDirection:"column",zIndex:60}} onClick={()=>{setShowMoreMenu(false);setShowColorPicker(false);categoryMenuFor && setCategoryMenuFor(null);}}>
 
           {/* Top bar */}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 14px",flexShrink:0}}>
@@ -6885,6 +6977,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                 suppressContentEditableWarning
                 className="fg-note-body"
                 onInput={()=>{ if (bodyRef.current) setBody(bodyRef.current.innerHTML); }}
+                onKeyDown={handleBodyEnterKey}
                 onSelect={syncActiveFontSize}
                 onKeyUp={syncActiveFontSize}
                 onMouseUp={syncActiveFontSize}
@@ -6893,51 +6986,44 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               />
             </div>
 
-            {/* ফরম্যাটিং রো — বটম টুলবারের "Aa" আইকনে টগল হয়: H1, H2, Bold, Italic, Underline, Clear */}
-            {showFormatBar && (
-              <div onMouseDown={e=>e.preventDefault()} style={{display:"flex",alignItems:"center",gap:2,paddingTop:6,paddingBottom:2,flexWrap:"wrap"}}>
-                {[
-                  { icon: Heading1, title: lang==="bn"?"হেডিং ১":"Heading 1", action: ()=>applyBodyCommand(()=>document.execCommand("formatBlock", false, "H1")) },
-                  { icon: Heading2, title: lang==="bn"?"হেডিং ২":"Heading 2", action: ()=>applyBodyCommand(()=>document.execCommand("formatBlock", false, "H2")) },
-                  { icon: Bold, title: lang==="bn"?"বোল্ড":"Bold", action: ()=>applyBodyCommand(()=>document.execCommand("bold")) },
-                  { icon: Italic, title: lang==="bn"?"ইটালিক":"Italic", action: ()=>applyBodyCommand(()=>document.execCommand("italic")) },
-                  { icon: Underline, title: lang==="bn"?"আন্ডারলাইন":"Underline", action: ()=>applyBodyCommand(()=>document.execCommand("underline")) },
-                  { icon: RemoveFormatting, title: lang==="bn"?"ফরম্যাট মুছুন":"Clear formatting", action: ()=>applyBodyCommand(()=>{ document.execCommand("removeFormat"); document.execCommand("formatBlock", false, "P"); }) },
-                ].map(({icon:Icon, title, action}, i) => (
-                  <button key={i} onMouseDown={e=>e.preventDefault()} onClick={action} title={title}
-                    style={{border:"none",background:"transparent",color:paperText,cursor:"pointer",padding:9,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                    <Icon size={17}/>
-                  </button>
-                ))}
-                {/* টেক্সট রঙ — সিলেক্ট করা লেখার রঙ বদলাতে, কিছু সাধারণ রঙ */}
-                <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:4,paddingLeft:8,borderLeft:`1px solid ${cardBorder}`}}>
-                  {[{key:"default",hex:paperText},...NOTE_TEXT_COLORS].map(c => (
-                    <button key={c.key} onMouseDown={e=>e.preventDefault()}
-                      onClick={()=>applyBodyCommand(()=>{ document.execCommand("styleWithCSS", false, false); document.execCommand("foreColor", false, c.hex); })}
-                      title={c.key==="default" ? (lang==="bn"?"ডিফল্ট":"Default") : c.key}
-                      style={{width:19,height:19,borderRadius:"50%",padding:0,cursor:"pointer",background:c.hex,border: c.key==="default" ? `1.5px dashed ${paperText}` : "1.5px solid rgba(0,0,0,0.15)",flexShrink:0}}>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Category পিকার — বটম টুলবারের Tag আইকন দিয়ে টগল হয়, নাম-সহ চিপ যাতে বোঝা যায় কোনটা সিলেক্ট করা আছে */}
+            {/* Category পিকার — বটম টুলবারের Tag আইকন দিয়ে টগল হয়, নাম-সহ চিপ যাতে বোঝা যায় কোনটা সিলেক্ট করা আছে; চেপে ধরলে Rename/Delete */}
             {showColorPicker && (
               <div onClick={e=>e.stopPropagation()} style={{display:"flex",flexWrap:"wrap",gap:7,paddingTop:6,paddingBottom:2}}>
                 {categories.map(cat => {
                   const c = noteColorFor(cat, categories);
                   const selected = category === cat;
                   return (
-                    <button key={cat} onClick={()=>setCategory(cat)} style={{
-                      display:"flex",alignItems:"center",gap:5,
-                      background:c.bg, color:c.text,
-                      border: selected ? `1.5px solid ${paperText}` : "1px solid transparent",
-                      borderRadius:999,padding:"6px 12px",fontSize:11.5,fontWeight:800,cursor:"pointer"
-                    }}>
-                      {selected && <Check size={12}/>}
-                      {cat}
-                    </button>
+                    <div key={cat} style={{position:"relative"}}>
+                      <button
+                        onClick={()=>setCategory(cat)}
+                        onMouseDown={()=>startCatPress(cat)}
+                        onMouseUp={cancelCatPress}
+                        onMouseLeave={cancelCatPress}
+                        onTouchStart={()=>startCatPress(cat)}
+                        onTouchEnd={cancelCatPress}
+                        onTouchMove={cancelCatPress}
+                        style={{
+                        display:"flex",alignItems:"center",gap:5,
+                        background:c.bg, color:c.text,
+                        border: selected ? `1.5px solid ${paperText}` : "1px solid transparent",
+                        borderRadius:999,padding:"6px 12px",fontSize:11.5,fontWeight:800,cursor:"pointer"
+                      }}>
+                        {selected && <Check size={12}/>}
+                        {cat}
+                      </button>
+                      {categoryMenuFor === cat && (
+                        <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:"calc(100% + 4px)",left:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:4,boxShadow:"0 10px 26px rgba(0,0,0,.2)",zIndex:30,display:"flex",flexDirection:"column",minWidth:128}}>
+                          <button onClick={()=>{renameCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:7,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12,fontWeight:700,color:textMain,cursor:"pointer",borderRadius:7}}>
+                            <Pencil size={13}/> {lang==="bn"?"নাম পরিবর্তন":"Rename"}
+                          </button>
+                          {cat !== "General" && (
+                            <button onClick={()=>{deleteCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:7,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12,fontWeight:700,color:"#C54B4B",cursor:"pointer",borderRadius:7}}>
+                              <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
                 <button onClick={addCategory} style={{flex:"0 0 auto",border:`1.5px dashed ${paperText}`,background:"transparent",color:paperText,borderRadius:999,padding:"6px 12px",fontSize:11.5,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>
@@ -6968,6 +7054,38 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               </div>
             )}
           </div>
+
+          {/* ফরম্যাটিং রো — বটম টুলবারের "Aa" আইকনে টগল হয়: H1, H2, Bold, Italic, Underline, Clear, Color।
+              আগে এটা স্ক্রলযোগ্য কনটেন্টের ভেতরে (body-র ঠিক পরে) ছিল, তাই বড় নোটে অনেক লেখার নিচে হারিয়ে যেত —
+              এখন paper card-এর নিজস্ব ফ্লোটিং ফুটার হিসেবে বসানো, তাই স্ক্রল যতই করা হোক, এটা সবসময় নিচে
+              স্থির দেখা যাবে, খুঁজে বের করার দরকার হবে না */}
+          {showFormatBar && (
+            <div onMouseDown={e=>e.preventDefault()} onClick={e=>e.stopPropagation()} style={{display:"flex",alignItems:"center",gap:2,padding:"8px 14px",borderTop:`1px solid ${paperBorder}`,background:paperBg,flexShrink:0,overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
+              {[
+                { icon: Heading1, title: lang==="bn"?"হেডিং ১":"Heading 1", action: ()=>applyBodyCommand(()=>document.execCommand("formatBlock", false, "H1")) },
+                { icon: Heading2, title: lang==="bn"?"হেডিং ২":"Heading 2", action: ()=>applyBodyCommand(()=>document.execCommand("formatBlock", false, "H2")) },
+                { icon: Bold, title: lang==="bn"?"বোল্ড":"Bold", action: ()=>applyBodyCommand(()=>document.execCommand("bold")) },
+                { icon: Italic, title: lang==="bn"?"ইটালিক":"Italic", action: ()=>applyBodyCommand(()=>document.execCommand("italic")) },
+                { icon: Underline, title: lang==="bn"?"আন্ডারলাইন":"Underline", action: ()=>applyBodyCommand(()=>document.execCommand("underline")) },
+                { icon: RemoveFormatting, title: lang==="bn"?"ফরম্যাট মুছুন":"Clear formatting", action: ()=>applyBodyCommand(()=>{ document.execCommand("removeFormat"); document.execCommand("formatBlock", false, "P"); }) },
+              ].map(({icon:Icon, title, action}, i) => (
+                <button key={i} onMouseDown={e=>e.preventDefault()} onClick={action} title={title}
+                  style={{border:"none",background:"transparent",color:paperText,cursor:"pointer",padding:9,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <Icon size={17}/>
+                </button>
+              ))}
+              {/* টেক্সট রঙ — সিলেক্ট করা লেখার রঙ বদলাতে, কিছু সাধারণ রঙ */}
+              <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:4,paddingLeft:8,borderLeft:`1px solid ${paperBorder}`,flexShrink:0}}>
+                {[{key:"default",hex:paperText},...NOTE_TEXT_COLORS].map(c => (
+                  <button key={c.key} onMouseDown={e=>e.preventDefault()}
+                    onClick={()=>applyBodyCommand(()=>{ document.execCommand("styleWithCSS", false, false); document.execCommand("foreColor", false, c.hex); })}
+                    title={c.key==="default" ? (lang==="bn"?"ডিফল্ট":"Default") : c.key}
+                    style={{width:19,height:19,borderRadius:"50%",padding:0,cursor:"pointer",background:c.hex,border: c.key==="default" ? `1.5px dashed ${paperText}` : "1.5px solid rgba(0,0,0,0.15)",flexShrink:0}}>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           </div>
 
           {/* Bottom icon toolbar — পেজ ব্যাকগ্রাউন্ডের উপর, উপরের বর্ডার দিয়ে paper card থেকে আলাদা করা */}
