@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { StatusBar, Style } from "@capacitor/status-bar";
+import { NavigationBar } from "@capacitor-community/navigation-bar";
 import { Capacitor } from "@capacitor/core";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
@@ -3148,6 +3149,12 @@ export default function FocusGo() {
       // ওয়েবে (browser/Vercel) চললে এই কলগুলো চুপচাপ fail করবে, তাই .catch() দিয়ে ignore করা হলো।
       StatusBar.setBackgroundColor({ color: themeColor }).catch(()=>{});
       StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light }).catch(()=>{});
+
+      // নিচের Android navigation bar (গেসচার বার) — এটা StatusBar প্লাগিনের আওতায় পড়ে না,
+      // তাই আলাদাভাবে থিমের সাথে মিলিয়ে সেট করা হচ্ছে, যাতে নিচে কালো ফাঁকা অংশ না দেখায়।
+      if (Capacitor.isNativePlatform()) {
+        NavigationBar.setColor({ color: themeColor, darkButtons: !dark }).catch(()=>{});
+      }
     } catch (e) { /* ignore */ }
   }, [dark, bg, focusFullscreen]);
 
