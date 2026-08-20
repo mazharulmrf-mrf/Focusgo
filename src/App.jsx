@@ -1525,10 +1525,12 @@ const Num = ({ children }) => <span style={{ fontFamily: "'Noto Sans Bengali','H
 // Light haptic tick for navigation (tabs, opening calendar/day views, etc).
 // নেটিভ অ্যাপে (Capacitor build) navigator.vibrate() কাজ করে না — তাই নেটিভ প্ল্যাটফর্মে আসল Haptics প্লাগিন ব্যবহার করা হচ্ছে,
 // আর ব্রাউজার/PWA-তে আগের মতোই Web Vibration API fallback হিসেবে থাকছে।
-const vibrate = (pattern = 12) => {
+// নোট: ImpactStyle.Light অনেক Android ডিভাইসে এখনও বেশ শক্তিশালী অনুভূত হয়, তাই তার বদলে
+// Haptics.vibrate() দিয়ে খুব কম duration (ms) সেট করে সত্যিকারের হালকা tick তৈরি করা হচ্ছে।
+const vibrate = (pattern = 8) => {
   try {
     if (Capacitor.isNativePlatform()) {
-      Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
+      Haptics.vibrate({ duration: 8 }).catch(() => {});
     } else if (navigator.vibrate) {
       navigator.vibrate(pattern);
     }
@@ -1617,6 +1619,21 @@ const FOCUSGO_MOTIVATIONS = {
 };
 
 export default function FocusGo() {
+  // দ্বিতীয় স্তরের সুরক্ষা: Android WebView-তে কখনো কখনো "backspace = back navigation"
+  // আচরণটা এমন লেভেলে ট্রিগার হয় যেটা নিচের keydown guard-ও সবসময় ধরতে পারে না
+  // (একাধিকবার Backspace চাপলে দ্বিতীয়/তৃতীয়বারে অ্যাপ পুরো বন্ধ হয়ে যাচ্ছিল)।
+  // তাই এখানে history-তে একটা স্থায়ী "trap" entry রাখা হচ্ছে — কোনোভাবে back navigation
+  // (popstate) ঘটলেই সাথে সাথে সেই entry আবার পুশ করে দেওয়া হয়, ফলে অ্যাপ visually
+  // কখনো পিছিয়ে যায় না বা বন্ধ হয় না, উৎসটা backspace হোক বা hardware back বাটন।
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    const blockBack = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+    window.addEventListener("popstate", blockBack);
+    return () => window.removeEventListener("popstate", blockBack);
+  }, []);
+
   // Android WebView-এ (বিশেষত Capacitor অ্যাপে) একটা পুরনো আচরণ আছে — Backspace key যদি কোনো
   // প্রকৃত এডিটেবল ফিল্ডের (input/textarea/contentEditable) বাইরে বা তার "সক্রিয়" স্টেটের বাইরে
   // চাপা হয়, তাহলে ব্রাউজার সেটাকে "history.back()" হিসেবে ধরে নেয়। নোট এডিটরে এটাই bug তৈরি করছিল:
