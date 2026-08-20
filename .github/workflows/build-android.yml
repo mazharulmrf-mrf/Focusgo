@@ -34,6 +34,11 @@ jobs:
       - name: Add google-services.json
         run: cp android-keystore/google-services.json android/app/google-services.json
 
+      - name: Apply Google Services Gradle plugin
+        run: |
+          sed -i "/dependencies {/a\\    classpath 'com.google.gms:google-services:4.4.2'" android/build.gradle
+          echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
