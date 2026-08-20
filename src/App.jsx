@@ -193,7 +193,9 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
       } else if (err?.code === "auth/popup-blocked") {
         setError(isBn ? "ব্রাউজার Google login popup বন্ধ করে দিয়েছে। Popup allow করে আবার চেষ্টা করুন।" : "Your browser blocked the Google sign-in popup. Allow popups and try again.");
       } else {
-        setError(L.errGeneric);
+        // সমস্যা খুঁজে বের করার জন্য সাময়িকভাবে আসল error code/message ও দেখানো হচ্ছে
+        const debugInfo = err?.code || err?.message || String(err);
+        setError(`${L.errGeneric} [${debugInfo}]`);
       }
     } finally {
       setBusy(false);
