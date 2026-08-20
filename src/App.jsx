@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { StatusBar, Style } from "@capacitor/status-bar";
-import { NavigationBar } from "@capacitor-community/navigation-bar";
+import { NavigationBar } from "@ethion/capacitor-navigation-bar";
 import { Capacitor } from "@capacitor/core";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
