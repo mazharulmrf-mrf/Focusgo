@@ -3347,8 +3347,8 @@ export default function FocusGo() {
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginTop:3}}>
               <div style={{fontSize:12, color:textMuted2}}>Plan, focus, and track your study.</div>
               <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
-                border:`1px solid ${dark?"rgba(217,119,87,0.4)":"rgba(217,119,87,0.35)"}`,
-                background: dark?"rgba(217,119,87,0.16)":"rgba(217,119,87,0.12)",
+                border:"none",
+                background:"transparent",
                 borderRadius:"50%",
                 width:32,
                 height:32,
@@ -3357,7 +3357,7 @@ export default function FocusGo() {
                 flexShrink:0,
                 position:"relative",
               }}>
-                <CalendarDays size={15} color={accent} strokeWidth={2.2}/>
+                <CalendarDays size={22} color={accent} strokeWidth={2}/>
                 {examDateKeys.has(todayKey) && (
                   <span style={{
                     position:"absolute", top:3, right:3,
