@@ -3295,7 +3295,7 @@ export default function FocusGo() {
 
               return (
                 <>
-                  <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2}}>
+                  <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2, marginBottom:3}}>
                     {lang === "bn" ? greetingBn : greetingEn}
                   </div>
                   <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
@@ -3303,7 +3303,7 @@ export default function FocusGo() {
                       {firstName}
                     </div>
                   </div>
-                  <div style={{fontSize:12,color:textMuted2,marginTop:0,lineHeight:1.4}}>
+                  <div style={{fontSize:12,color:textMuted2,marginTop:5,lineHeight:1.4}}>
                     {line}
                   </div>
                   <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8}}>
