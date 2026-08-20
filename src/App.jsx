@@ -4,7 +4,7 @@ import { NavigationBar } from "@capgo/capacitor-navigation-bar";
 import { Capacitor } from "@capacitor/core";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
 import { setupNotifications } from "./notifications";
 import {
@@ -3566,20 +3566,45 @@ export default function FocusGo() {
                         background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:16,
                         padding:10, boxShadow: dark ? "0 14px 30px rgba(0,0,0,0.5)" : "0 14px 30px rgba(0,0,0,0.15)",
                       }}>
-                        <div style={{fontSize:11, fontWeight:700, color:textMuted2, letterSpacing:0.3, padding:"2px 6px 8px"}}>
-                          {lang === "bn" ? "সালাতের সময়" : "Salah Times"}
+                        <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", padding:"2px 4px 8px"}}>
+                          <span style={{fontSize:11, fontWeight:700, color:textMuted2, letterSpacing:0.3}}>
+                            {lang === "bn" ? "সালাতের সময়" : "Salah Times"}
+                          </span>
+                          {/* লোকেশন আইকন — সব সময় দেখা যাবে; ক্লিক করলে লাইভ লোকেশন নেয়া হবে/আপডেট হবে।
+                              লোকেশন একবার সেট হয়ে গেলে আইকনটা accent রঙে "সিলেক্টেড" দেখাবে, আবার ক্লিক করলে
+                              লোকেশন নতুন করে ফেচ হয়ে চেঞ্জ হবে (পারমিশন একবার দেয়া থাকলে আবার জিজ্ঞেস করবে না)। */}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); vibrate(); requestSalahLocation(); }}
+                            disabled={salahLocLoading}
+                            title={
+                              salahLocLoading
+                                ? (lang === "bn" ? "লোকেশন খোঁজা হচ্ছে…" : "Getting location…")
+                                : salahCoords
+                                  ? (lang === "bn" ? "লোকেশন পরিবর্তন করুন" : "Change location")
+                                  : (lang === "bn" ? "লাইভ লোকেশন নিন" : "Get live location")
+                            }
+                            style={{
+                              width:24, height:24, borderRadius:"50%", flexShrink:0, border:"none", padding:0,
+                              background: salahCoords ? accent : (dark ? "#26231D" : "#F3EEE3"),
+                              display:"flex", alignItems:"center", justifyContent:"center",
+                              cursor: salahLocLoading ? "default" : "pointer",
+                              opacity: salahLocLoading ? 0.55 : 1,
+                              transition:"background .18s ease, opacity .18s ease",
+                            }}
+                          >
+                            <MapPin size={13} color={salahCoords ? "#fff" : textMuted2} strokeWidth={2.4}/>
+                          </button>
                         </div>
                         {!salahCoords && (
-                          <div style={{padding:"6px 6px 8px", fontSize:12, color:textMuted2, lineHeight:1.5}}>
+                          <div style={{padding:"0 6px 8px", fontSize:12, color:textMuted2, lineHeight:1.5}}>
                             {salahLocLoading
                               ? (lang === "bn" ? "লোকেশন খোঁজা হচ্ছে…" : "Getting location…")
-                              : (salahLocError || (lang === "bn" ? "লোকেশন পারমিশন লাগবে" : "Location permission needed"))}
-                            <button
-                              onClick={() => { vibrate(); requestSalahLocation(); }}
-                              style={{marginTop:8, width:"100%", border:"none", borderRadius:10, padding:"8px 0", background:accent, color:"#fff", fontSize:12.5, fontWeight:700, cursor:"pointer"}}
-                            >
-                              {lang === "bn" ? "লোকেশন দাও" : "Allow location"}
-                            </button>
+                              : (salahLocError || (lang === "bn" ? "লোকেশন আইকনে ক্লিক করে সেট করুন" : "Tap the location icon to set it"))}
+                          </div>
+                        )}
+                        {salahCoords && salahLocError && (
+                          <div style={{padding:"0 6px 8px", fontSize:11.5, color:"#C0392B", lineHeight:1.5}}>
+                            {salahLocError}
                           </div>
                         )}
                         {salahCoords && salahTimes && salahTimes.map(w => {
