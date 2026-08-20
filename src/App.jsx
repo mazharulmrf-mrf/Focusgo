@@ -3532,7 +3532,6 @@ export default function FocusGo() {
                     </button>
                     <span style={{display:"flex", alignItems:"center", gap:10}}>
                       <span style={{display:"flex", alignItems:"center", gap:4}}>
-                        <Clock size={13} color={textMuted2} strokeWidth={2}/>
                         <span style={{
                           fontSize:13, color:textMuted2, fontWeight:500, fontVariantNumeric:"tabular-nums",
                         }}>
