@@ -3,6 +3,7 @@ import { StatusBar, Style } from "@capacitor/status-bar";
 import { NavigationBar } from "@capgo/capacitor-navigation-bar";
 import { Capacitor } from "@capacitor/core";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
+import { Geolocation } from "@capacitor/geolocation";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
@@ -3147,15 +3148,42 @@ export default function FocusGo() {
   const nf = (n) => lang === "bn" ? toBn(n) : n;
 
   // সালাত টাইমার — coordinates থাকলে adhan লাইব্রেরি দিয়ে আজকের ৫ ওয়াক্তের শুরু/শেষ সময় বের করা হয় (Karachi method, Shafi madhab)
-  const requestSalahLocation = () => {
-    if (!navigator.geolocation) { setSalahLocError(lang === "bn" ? "লোকেশন সাপোর্ট নেই" : "Location not supported"); return; }
+  // নেটিভ অ্যাপে (Capacitor) @capacitor/geolocation প্লাগিন ব্যবহার করা হচ্ছে — এই প্লাগিনের নিজের
+  // AndroidManifest.xml-এই লোকেশন পারমিশন ডিক্লেয়ার করা থাকে, বিল্ডের সময় সেটা অটোমেটিক্যালি
+  // অ্যাপের মূল manifest-এর সাথে merge হয়ে যায়, তাই আলাদা করে manifest এডিট করার দরকার নেই।
+  // ওয়েবে চালালে navigator.geolocation-এ fallback হবে
+  const requestSalahLocation = async () => {
     setSalahLocLoading(true);
     setSalahLocError("");
+    const saveCoords = (lat, lng) => {
+      const coords = { lat, lng };
+      setSalahCoords(coords);
+      try { window.localStorage.setItem("focusgo_salah_coords", JSON.stringify(coords)); } catch (e) {}
+    };
+    if (Capacitor.isNativePlatform()) {
+      try {
+        let status = await Geolocation.checkPermissions();
+        if (status.location !== "granted" && status.coarseLocation !== "granted") {
+          status = await Geolocation.requestPermissions();
+        }
+        if (status.location !== "granted" && status.coarseLocation !== "granted") {
+          setSalahLocError(lang === "bn" ? "লোকেশন পারমিশন পাওয়া যায়নি" : "Location permission denied");
+          setSalahLocLoading(false);
+          return;
+        }
+        const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: false, timeout: 10000 });
+        saveCoords(pos.coords.latitude, pos.coords.longitude);
+      } catch (e) {
+        setSalahLocError(lang === "bn" ? "লোকেশন পাওয়া যায়নি" : "Couldn't get location");
+      } finally {
+        setSalahLocLoading(false);
+      }
+      return;
+    }
+    if (!navigator.geolocation) { setSalahLocError(lang === "bn" ? "লোকেশন সাপোর্ট নেই" : "Location not supported"); setSalahLocLoading(false); return; }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        setSalahCoords(coords);
-        try { window.localStorage.setItem("focusgo_salah_coords", JSON.stringify(coords)); } catch (e) {}
+        saveCoords(pos.coords.latitude, pos.coords.longitude);
         setSalahLocLoading(false);
       },
       (err) => {
