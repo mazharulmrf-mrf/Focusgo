@@ -940,6 +940,71 @@ const LOGO_FULL_DARK = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAr4AAADICA
 const BN_DIGITS = ["০","১","২","৩","৪","৫","৬","৭","৮","৯"];
 const toBn = (n) => String(n).split("").map(c => (c>='0'&&c<='9') ? BN_DIGITS[+c] : c).join("");
 const pad2 = (n) => String(n).padStart(2,"0");
+
+// ---------- সালাত টাইমার হিসাব — কোনো npm প্যাকেজ ছাড়াই (Karachi method, Shafi madhab) ----------
+// সূত্র: standard astronomical prayer-time algorithm (sun declination + equation of time), praytimes.org-এর মতোই
+const _D2R = Math.PI / 180, _R2D = 180 / Math.PI;
+const _dsin = (d) => Math.sin(d * _D2R);
+const _dcos = (d) => Math.cos(d * _D2R);
+const _dtan = (d) => Math.tan(d * _D2R);
+const _darcsin = (x) => Math.asin(x) * _R2D;
+const _darccos = (x) => Math.acos(Math.max(-1, Math.min(1, x))) * _R2D;
+const _darctan2 = (y, x) => Math.atan2(y, x) * _R2D;
+const _darccot = (x) => Math.atan(1 / x) * _R2D;
+const _fixHour = (a) => { a = a - 24 * Math.floor(a / 24); return a < 0 ? a + 24 : a; };
+const _fixAngle = (a) => { a = a - 360 * Math.floor(a / 360); return a < 0 ? a + 360 : a; };
+function _julianDate(y, m, d) {
+  if (m <= 2) { y -= 1; m += 12; }
+  const A = Math.floor(y / 100);
+  const B = 2 - A + Math.floor(A / 4);
+  return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + B - 1524.5;
+}
+function _sunPosition(jd) {
+  const D = jd - 2451545.0;
+  const g = _fixAngle(357.529 + 0.98560028 * D);
+  const q = _fixAngle(280.459 + 0.98564736 * D);
+  const L = _fixAngle(q + 1.915 * _dsin(g) + 0.020 * _dsin(2 * g));
+  const e = 23.439 - 0.00000036 * D;
+  let RA = _fixHour(_darctan2(_dcos(e) * _dsin(L), _dcos(L)) / 15);
+  const eqt = q / 15 - RA;
+  const decl = _darcsin(_dsin(e) * _dsin(L));
+  return { decl, eqt };
+}
+// date: JS Date (স্থানীয় দিন হিসেবে ধরা হয়), lat/lng: ডিগ্রি — রিটার্ন করে {fajr, sunrise, dhuhr, asr, maghrib, isha} প্রতিটা একটা JS Date অবজেক্ট হিসেবে
+function computeSalahTimesForDate(date, lat, lng) {
+  const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
+  const tzOffset = -date.getTimezoneOffset() / 60; // ফোনের টাইমজোন থেকেই ধরে নেওয়া হয় (লোকেশনের সাথে মিলে যাবে বেশিরভাগ ক্ষেত্রে)
+  const jDate = _julianDate(y, m, d) - lng / (15 * 24);
+  const { decl, eqt } = _sunPosition(jDate + 0.5);
+  const noon = _fixHour(12 - eqt);
+  const timeForAngle = (angle, before) => {
+    const cosArg = (-_dsin(angle) - _dsin(decl) * _dsin(lat)) / (_dcos(decl) * _dcos(lat));
+    if (cosArg > 1 || cosArg < -1) return noon; // মেরু অঞ্চলে সূর্য ওই কোণে পৌঁছায় না — fallback হিসেবে দুপুর ধরা হলো
+    const T = (1 / 15) * _darccos(cosArg);
+    return before ? noon - T : noon + T;
+  };
+  const FAJR_ANGLE = 18, ISHA_ANGLE = 18, ASR_FACTOR = 1; // Karachi method, Shafi madhab
+  const asrAngle = -_darccot(ASR_FACTOR + _dtan(Math.abs(lat - decl)));
+  const raw = {
+    fajr: timeForAngle(FAJR_ANGLE, true),
+    sunrise: timeForAngle(0.833, true),
+    dhuhr: noon,
+    asr: timeForAngle(asrAngle, false),
+    maghrib: timeForAngle(0.833, false),
+    isha: timeForAngle(ISHA_ANGLE, false),
+  };
+  const toDate = (hour) => {
+    const h = _fixHour(hour + tzOffset - lng / 15);
+    const hh = Math.floor(h), mm = Math.round((h - hh) * 60);
+    const dt = new Date(y, m - 1, d, hh, mm >= 60 ? 0 : mm);
+    if (mm >= 60) dt.setHours(dt.getHours() + 1);
+    return dt;
+  };
+  return {
+    fajr: toDate(raw.fajr), sunrise: toDate(raw.sunrise), dhuhr: toDate(raw.dhuhr),
+    asr: toDate(raw.asr), maghrib: toDate(raw.maghrib), isha: toDate(raw.isha),
+  };
+}
 const to12h = (h24) => ((h24 % 12) || 12);
 const isPm = (h24) => h24 >= 12;
 // "HH:MM" (24-hour string, as stored for study-plan entries) -> { h12, m, pm }
@@ -1782,6 +1847,22 @@ export default function FocusGo() {
     return () => { if (mq.removeEventListener) mq.removeEventListener("change", handler); else mq.removeListener(handler); };
   }, []);
   const dark = themeMode === "system" ? systemPrefersDark : themeMode === "dark";
+  // সালাত টাইমার সংক্রান্ত state — লাইভ লোকেশন (lat/lng) একবার পারমিশন পেলে localStorage-এ ক্যাশ থাকে, আইকনে আবার চাপলে re-select করা যায়
+  const [salahCoords, setSalahCoords] = useState(() => {
+    try { return JSON.parse(window.localStorage.getItem("focusgo_salah_coords") || "null"); } catch (e) { return null; }
+  });
+  const [showSalahDropdown, setShowSalahDropdown] = useState(false);
+  const [salahLocLoading, setSalahLocLoading] = useState(false);
+  const [salahLocError, setSalahLocError] = useState("");
+  const salahMenuRef = useRef(null);
+  useEffect(() => {
+    if (!showSalahDropdown) return;
+    const handler = (e) => { if (salahMenuRef.current && !salahMenuRef.current.contains(e.target)) setShowSalahDropdown(false); };
+    document.addEventListener("mousedown", handler);
+    document.addEventListener("touchstart", handler);
+    return () => { document.removeEventListener("mousedown", handler); document.removeEventListener("touchstart", handler); };
+  }, [showSalahDropdown]);
+
   const [tab, setTab] = useState("today");
   const [user, setUser] = useState(null);
   const [isGuest, setIsGuest] = useState(false); // "Continue without an account" — data stays in-memory only, never synced
@@ -3064,6 +3145,53 @@ export default function FocusGo() {
   const monthEntries = rangeEntries(monthDays.filter(d => d <= today));
 
   const nf = (n) => lang === "bn" ? toBn(n) : n;
+
+  // সালাত টাইমার — coordinates থাকলে adhan লাইব্রেরি দিয়ে আজকের ৫ ওয়াক্তের শুরু/শেষ সময় বের করা হয় (Karachi method, Shafi madhab)
+  const requestSalahLocation = () => {
+    if (!navigator.geolocation) { setSalahLocError(lang === "bn" ? "লোকেশন সাপোর্ট নেই" : "Location not supported"); return; }
+    setSalahLocLoading(true);
+    setSalahLocError("");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setSalahCoords(coords);
+        try { window.localStorage.setItem("focusgo_salah_coords", JSON.stringify(coords)); } catch (e) {}
+        setSalahLocLoading(false);
+      },
+      (err) => {
+        setSalahLocError(lang === "bn" ? "লোকেশন পারমিশন পাওয়া যায়নি" : "Location permission denied");
+        setSalahLocLoading(false);
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 3600000 }
+    );
+  };
+  const salahTimes = React.useMemo(() => {
+    if (!salahCoords) return null;
+    try {
+      const today0 = new Date();
+      const tomorrow0 = new Date(today0); tomorrow0.setDate(tomorrow0.getDate() + 1);
+      const pt = computeSalahTimesForDate(today0, salahCoords.lat, salahCoords.lng);
+      const ptTomorrow = computeSalahTimesForDate(tomorrow0, salahCoords.lat, salahCoords.lng);
+      return [
+        { key: "fajr", label: lang === "bn" ? "ফজর" : "Fajr", start: pt.fajr, end: pt.sunrise },
+        { key: "dhuhr", label: lang === "bn" ? "যোহর" : "Dhuhr", start: pt.dhuhr, end: pt.asr },
+        { key: "asr", label: lang === "bn" ? "আসর" : "Asr", start: pt.asr, end: pt.maghrib },
+        { key: "maghrib", label: lang === "bn" ? "মাগরিব" : "Maghrib", start: pt.maghrib, end: pt.isha },
+        { key: "isha", label: lang === "bn" ? "এশা" : "Isha", start: pt.isha, end: ptTomorrow.fajr },
+      ];
+    } catch (e) { return null; }
+  }, [salahCoords, lang, todayKey]);
+  const fmtSalahTime = (d) => {
+    if (!d) return "--:--";
+    const h12 = ((d.getHours() % 12) || 12);
+    const ampm = d.getHours() >= 12 ? t.pmLabel : t.amLabel;
+    return `${nf(h12)}:${nf(pad2(d.getMinutes()))} ${ampm}`;
+  };
+  const activeSalahKey = React.useMemo(() => {
+    if (!salahTimes) return null;
+    const found = salahTimes.find(w => now >= w.start && now < w.end);
+    return found ? found.key : null;
+  }, [salahTimes, now]);
   const monthName = (i) => lang === "bn" ? MONTHS_BN[i] : MONTHS_EN[i];
   const weekdayName = (d) => lang === "bn" ? WEEKDAYS_BN[d.getDay()] : WEEKDAYS_EN[d.getDay()];
   const weekdayShort = (d) => lang === "bn" ? WEEKDAYS_SHORT_BN[d.getDay()] : WEEKDAYS_SHORT_EN[d.getDay()];
@@ -3379,10 +3507,64 @@ export default function FocusGo() {
                   <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2, marginBottom:3}}>
                     {lang === "bn" ? greetingBn : greetingEn}
                   </div>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", position:"relative"}} ref={salahMenuRef}>
                     <div style={{fontSize:22,fontWeight:800,letterSpacing:-0.4,color:textMain}}>
                       {firstName}
                     </div>
+                    <button
+                      onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
+                      style={{
+                        width:30, height:30, borderRadius:"50%", flexShrink:0,
+                        background: dark ? "#3A2A22" : "#FBEAE0",
+                        border:`1px solid ${accent}`,
+                        display:"flex", alignItems:"center", justifyContent:"center",
+                        fontSize:14, cursor:"pointer",
+                      }}
+                      title={lang === "bn" ? "সালাতের সময়" : "Salah times"}
+                    >
+                      🕌
+                    </button>
+
+                    {showSalahDropdown && (
+                      <div style={{
+                        position:"absolute", top:38, right:0, width:220, zIndex:20,
+                        background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:16,
+                        padding:10, boxShadow: dark ? "0 14px 30px rgba(0,0,0,0.5)" : "0 14px 30px rgba(0,0,0,0.15)",
+                      }}>
+                        <div style={{fontSize:11, fontWeight:700, color:textMuted2, letterSpacing:0.3, padding:"2px 6px 8px"}}>
+                          {lang === "bn" ? "সালাতের সময়" : "Salah Times"}
+                        </div>
+                        {!salahCoords && (
+                          <div style={{padding:"6px 6px 8px", fontSize:12, color:textMuted2, lineHeight:1.5}}>
+                            {salahLocLoading
+                              ? (lang === "bn" ? "লোকেশন খোঁজা হচ্ছে…" : "Getting location…")
+                              : (salahLocError || (lang === "bn" ? "লোকেশন পারমিশন লাগবে" : "Location permission needed"))}
+                            <button
+                              onClick={() => { vibrate(); requestSalahLocation(); }}
+                              style={{marginTop:8, width:"100%", border:"none", borderRadius:10, padding:"8px 0", background:accent, color:"#fff", fontSize:12.5, fontWeight:700, cursor:"pointer"}}
+                            >
+                              {lang === "bn" ? "লোকেশন দাও" : "Allow location"}
+                            </button>
+                          </div>
+                        )}
+                        {salahCoords && salahTimes && salahTimes.map(w => {
+                          const isActive = w.key === activeSalahKey;
+                          return (
+                            <div key={w.key} style={{
+                              display:"flex", justifyContent:"space-between", alignItems:"center",
+                              padding:"8px 8px", borderRadius:10, marginBottom:3, fontSize:13,
+                              background: isActive ? (dark ? "rgba(217,119,87,0.16)" : "#FBEAE0") : "transparent",
+                              border: isActive ? `1px solid ${dark ? "rgba(217,119,87,0.4)" : "#F0CBB8"}` : "1px solid transparent",
+                            }}>
+                              <span style={{color: isActive ? accent : textMain, fontWeight: isActive ? 700 : 600}}>{w.label}</span>
+                              <span style={{color: isActive ? accent : textMuted2, fontWeight: isActive ? 700 : 500, fontSize:12.5, fontVariantNumeric:"tabular-nums"}}>
+                                {fmtSalahTime(w.start)} – {fmtSalahTime(w.end)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                   <div style={{fontSize:12,color:textMuted2,marginTop:5,lineHeight:1.4}}>
                     {line}
