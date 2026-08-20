@@ -37,4 +37,6 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      -
+      - name: Use stable debug keystore
+        run: |
+          mkdir -p ~/.android
