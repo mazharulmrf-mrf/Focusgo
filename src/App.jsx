@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { Capacitor } from "@capacitor/core";
-import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
@@ -457,7 +456,7 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
         <button key={k} onClick={() => { vibrate(); setTab(k); }} title={collapsed ? t.tabs[k] : undefined} style={{
           display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "flex-start", gap: 12, border: "none", borderRadius: 12,
           padding: collapsed ? "11px 0" : "11px 12px", fontSize: 14, fontWeight: 700, cursor: "pointer", textAlign: "left",
-          background: tab === k ? "rgba(217,119,87,0.14)" : "transparent",
+          background: tab === k ? "rgba(76,134,214,0.14)" : "transparent",
           color: tab === k ? accent : textMuted2,
           transition: "background .2s ease, color .2s ease",
         }}>
@@ -1850,34 +1849,6 @@ export default function FocusGo() {
   const [focusFullscreen, setFocusFullscreen] = useState(false);
   const focusFullscreenActiveRef = useRef(false); // popstate হ্যান্ডলারের ভেতর থেকে সবসময় সবশেষ ফুলস্ক্রিন অবস্থা জানার জন্য
   const pushedFocusHistoryRef = useRef(false); // ফুলস্ক্রিন টাইমার খোলার সময় history-তে state push করেছি কিনা
-
-  // ---------- ফোকাস টাইমার/স্টপওয়াচ চালু থাকলে অটো-রোটেট ----------
-  // ফোনের সিস্টেম সেটিং-এ auto-rotate বন্ধ থাকলেও, টাইমার চলাকালীন ফোন ঘোরালে অ্যাপ ঘুরে যাবে —
-  // Capacitor-এর নেটিভ ScreenOrientation প্লাগিন সরাসরি Android Activity-র orientation lock
-  // নিয়ন্ত্রণ করে, তাই এটা সিস্টেম-লেভেল auto-rotate টগলের উপর নির্ভর করে না। টাইমার/স্টপওয়াচ বন্ধ
-  // হলে আবার পোর্ট্রেটে লক হয়ে যায় (যেহেতু বাকি পুরো অ্যাপ পোর্ট্রেট লেআউটের জন্য ডিজাইন করা)।
-  // ব্রাউজারে (নেটিভ অ্যাপ না হলে) Screen Orientation Web API দিয়ে best-effort ফলব্যাক ব্যবহার হয়।
-  useEffect(() => {
-    const focusActive = timerRunning || stopwatchRunning;
-    (async () => {
-      try {
-        if (Capacitor.isNativePlatform()) {
-          if (focusActive) {
-            await ScreenOrientation.unlock();
-          } else {
-            await ScreenOrientation.lock({ orientation: "portrait" });
-          }
-        } else if (window.screen && window.screen.orientation) {
-          if (focusActive && window.screen.orientation.unlock) {
-            window.screen.orientation.unlock();
-          } else if (!focusActive && window.screen.orientation.lock) {
-            window.screen.orientation.lock("portrait").catch(() => {});
-          }
-        }
-      } catch (e) { /* প্লাগিন ইনস্টল না থাকলে বা অসমর্থিত হলে চুপচাপ ইগনোর */ }
-    })();
-  }, [timerRunning, stopwatchRunning]);
-
   const [editTopic, setEditTopic] = useState(null);
   // ---- Pomodoro: session type (focus/break), remembered durations, and cycle progress ----
   const [sessionType, setSessionType] = useState("focus"); // "focus" | "break"
@@ -3019,16 +2990,16 @@ export default function FocusGo() {
   const fmtTime = (h, m, s) => <>{<Num>{nf(pad2(h))}</Num>}:{<Num>{nf(pad2(m))}</Num>}{s !== undefined ? <>:{<Num>{nf(pad2(s))}</Num>}</> : null}</>;
 
   // theme tokens
-  const bg = dark ? "#121110" : "#FAFAF8";
-  const cardBg = dark ? "#1B1815" : "#FFFFFF";
-  const cardBorder = dark ? "#2C2820" : "#E9E3D6";
-  const textMain = dark ? "#F3EFE7" : "#211D18";
-  const textMuted = dark ? "#9C948400" : "#8A8272";
-  const textMuted2 = dark ? "#A69E8C" : "#8A8272";
-  const accent = "#D97757";
-  const accentLight = dark ? "#3A2A22" : "#FBEAE0"; // primary light — very light peach, শুধু active/selected state-এর হালকা background-এ ব্যবহার হবে
-  const neutralIconBg = dark ? "#26231D" : "#F3EEE3"; // decorative icon/avatar background — orange নয়, warm neutral
-  const neutralIconColor = dark ? "#C9C0AC" : "#6B6353"; // decorative icon color — warm gray, orange নয়
+  const bg = dark ? "#121417" : "#F7F9FC";
+  const cardBg = dark ? "#1A1D22" : "#FFFFFF";
+  const cardBorder = dark ? "#282C33" : "#E7ECF3";
+  const textMain = dark ? "#EEF1F5" : "#1D242C";
+  const textMuted = dark ? "#9099A800" : "#7C8598";
+  const textMuted2 = dark ? "#9099A8" : "#7C8598";
+  const accent = "#4C86D6";
+  const accentLight = dark ? "#1E2A3D" : "#E5EFFB"; // primary light — very light blue, শুধু active/selected state-এর হালকা background-এ ব্যবহার হবে
+  const neutralIconBg = dark ? "#20242B" : "#EEF2F8"; // decorative icon/avatar background — নীল থিমের নিউট্রাল
+  const neutralIconColor = dark ? "#B7C0CE" : "#5C6478"; // decorative icon color — cool gray, orange নয়
 
   // ডেস্কটপ (≥1024px): বাম সাইডবার নেভিগেশন থাকবে, bottom dock হাইড হবে, আর content column
   // single-column-এই থাকবে কিন্তু zoom দিয়ে গোটা কনটেন্ট একসাথে বড় দেখানো হয় (অন্য অ্যাপগুলোর মতো)
@@ -3229,7 +3200,7 @@ export default function FocusGo() {
         button:active:not(:disabled) { transform: scale(0.96); }
         .fg-card { transition: transform .16s cubic-bezier(0.16,1,0.3,1), box-shadow .2s ease, border-color .2s ease; }
         .fg-card:active { transform: scale(0.985); }
-        input:focus, select:focus, textarea:focus { outline: 2px solid rgba(217,119,87,0.30); outline-offset: 1px; transition: outline-color .15s ease; }
+        input:focus, select:focus, textarea:focus { outline: 2px solid rgba(76,134,214,0.30); outline-offset: 1px; transition: outline-color .15s ease; }
         .fg-week-strip { scrollbar-width: none; -ms-overflow-style: none; }
         .fg-week-strip::-webkit-scrollbar { display: none; }
       `}</style>
@@ -3344,17 +3315,17 @@ export default function FocusGo() {
                 <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> <span style={{fontSize:9.5}}>{now.getHours()>=12 ? t.pmLabel : t.amLabel}</span>
               </div>
               <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
-                border:`1px solid ${dark?"rgba(217,119,87,0.4)":"rgba(217,119,87,0.35)"}`,
-                background: dark?"rgba(217,119,87,0.16)":"rgba(217,119,87,0.12)",
+                border:`1px solid ${cardBorder}`,
+                background: cardBg,
                 borderRadius:"50%",
-                width:34,
-                height:34,
+                width:32,
+                height:32,
                 display:"flex", alignItems:"center", justifyContent:"center",
                 cursor:"pointer",
                 flexShrink:0,
                 position:"relative",
               }}>
-                <CalendarDays size={15} color={accent} strokeWidth={2.2}/>
+                <CalendarDays size={15} color={textMuted2} strokeWidth={2.2}/>
                 {examDateKeys.has(todayKey) && (
                   <span style={{
                     position:"absolute", top:3, right:3,
@@ -3375,17 +3346,17 @@ export default function FocusGo() {
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginTop:3}}>
               <div style={{fontSize:12, color:textMuted2}}>Plan, focus, and track your study.</div>
               <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
-                border:`1px solid ${dark?"rgba(217,119,87,0.4)":"rgba(217,119,87,0.35)"}`,
-                background: dark?"rgba(217,119,87,0.16)":"rgba(217,119,87,0.12)",
+                border:`1px solid ${cardBorder}`,
+                background: cardBg,
                 borderRadius:"50%",
-                width:34,
-                height:34,
+                width:32,
+                height:32,
                 display:"flex", alignItems:"center", justifyContent:"center",
                 cursor:"pointer",
                 flexShrink:0,
                 position:"relative",
               }}>
-                <CalendarDays size={15} color={accent} strokeWidth={2.2}/>
+                <CalendarDays size={15} color={textMuted2} strokeWidth={2.2}/>
                 {examDateKeys.has(todayKey) && (
                   <span style={{
                     position:"absolute", top:3, right:3,
@@ -3594,7 +3565,7 @@ export default function FocusGo() {
               </div>
             </div>
             <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:3, paddingLeft:14, borderLeft: dark ? `1px solid ${accent}30` : `1px solid ${cardBorder}`}}>
-              <div style={{width:30, height:30, borderRadius:"50%", background: dark?"rgba(217,119,87,0.2)":"rgba(217,119,87,0.12)", display:"flex", alignItems:"center", justifyContent:"center"}}>
+              <div style={{width:30, height:30, borderRadius:"50%", background: dark?"rgba(76,134,214,0.2)":"rgba(76,134,214,0.12)", display:"flex", alignItems:"center", justifyContent:"center"}}>
                 <Flame size={16} color={accent} fill={`${accent}55`}/>
               </div>
               <div style={{fontSize:16, fontWeight:800, color:accent, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
@@ -4052,7 +4023,7 @@ export default function FocusGo() {
               position:"fixed", right:20, bottom: isDesktop ? 28 : 96, zIndex:41,
               width:46, height:46, borderRadius:"50%", border:"none", background:accent, color:"#fff",
               display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
-              boxShadow: dark ? "0 8px 20px rgba(0,0,0,0.45)" : "0 8px 20px rgba(217,119,87,0.45)",
+              boxShadow: dark ? "0 8px 20px rgba(0,0,0,0.45)" : "0 8px 20px rgba(76,134,214,0.45)",
             }}>
               <Plus size={21} strokeWidth={2.5}/>
             </button>
@@ -4117,7 +4088,7 @@ export default function FocusGo() {
                 </div>
               </div>
               {/* সাবজেক্ট ম্যানেজ করার শর্টকাট — আগে টেক্সট বাটন হিসেবে নিচে আলাদা লাইনে ছিল, এখন হেডিং-এর পাশেই ছোট + আইকন হিসেবে হাইলাইট করা */}
-              <button onClick={()=>{vibrate(); setShowSubjects(true);}} title={t.manageSubjects} style={{width:32, height:32, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", border:"none", borderRadius:"50%", background:accent, color:"#fff", cursor:"pointer", boxShadow: dark ? "0 4px 12px rgba(0,0,0,0.35)" : "0 4px 12px rgba(217,119,87,0.35)"}}>
+              <button onClick={()=>{vibrate(); setShowSubjects(true);}} title={t.manageSubjects} style={{width:32, height:32, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", border:"none", borderRadius:"50%", background:accent, color:"#fff", cursor:"pointer", boxShadow: dark ? "0 4px 12px rgba(0,0,0,0.35)" : "0 4px 12px rgba(76,134,214,0.35)"}}>
                 <Plus size={16} strokeWidth={2.5}/>
               </button>
             </div>
@@ -4373,7 +4344,7 @@ export default function FocusGo() {
           ].map(({k, Icon}) => (
             <button key={k} onClick={()=>{vibrate(); setTab(k);}} style={{
               flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:2, border:"none", borderRadius:11, padding:"7px 4px", fontSize:9.5, fontWeight:700, cursor:"pointer",
-              background: tab===k ? "rgba(217,119,87,0.15)" : "transparent",
+              background: tab===k ? "rgba(76,134,214,0.15)" : "transparent",
               color: tab===k ? accent : textMuted2,
               transform: tab===k ? "translateY(-1px)" : "none",
               transition:"background .2s ease, color .2s ease, transform .2s cubic-bezier(0.16,1,0.3,1)"
@@ -5127,7 +5098,7 @@ function CombinedExamEditorModal({ t, allSubjects, editingCombinedExam, onSave, 
               <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.typeLabel}</div>
               <div style={{display:"flex", gap:8}}>
                 {typeOptions.map(o => (
-                  <button key={o.k} onClick={()=>setType(o.k)} style={{flex:1, border:`1px solid ${type===o.k ? accent : cardBorder}`, background: type===o.k ? (dark?"rgba(217,119,87,0.15)":"rgba(217,119,87,0.1)") : "transparent", color: type===o.k ? accent : textMuted2, borderRadius:10, padding:"9px 0", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
+                  <button key={o.k} onClick={()=>setType(o.k)} style={{flex:1, border:`1px solid ${type===o.k ? accent : cardBorder}`, background: type===o.k ? (dark?"rgba(76,134,214,0.15)":"rgba(76,134,214,0.1)") : "transparent", color: type===o.k ? accent : textMuted2, borderRadius:10, padding:"9px 0", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
                     {o.label}
                   </button>
                 ))}
@@ -5962,7 +5933,7 @@ function WeekDayStrip({ days, entries, selectedKey, onSelectDay, todayKey, weekd
             <span style={{fontSize:10.5, fontWeight:700, color: isSelected ? accent : (isToday ? accent : textMuted2)}}>{weekdayShort(d)}</span>
             <span style={{
               width:34, height:34, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
-              background: isSelected ? (dark ? "rgba(217,119,87,0.22)" : "rgba(217,119,87,0.14)") : "transparent",
+              background: isSelected ? (dark ? "rgba(76,134,214,0.22)" : "rgba(76,134,214,0.14)") : "transparent",
               boxShadow: isSelected ? `0 0 0 1.5px ${accent}` : "none",
               fontSize:16, fontWeight:800, color: isSelected ? accent : textMain, transition:"background .15s ease",
             }}><Num>{nf(d.getDate())}</Num></span>
@@ -6250,14 +6221,9 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   };
 
   // নোট বডিতে "1. " দিয়ে লাইন শুরু করে Enter চাপলে পরের লাইনে অটো ২, ৩, ৪... বসে —
-  // আর খালি নাম্বারড লাইনে (মানে ডাবল Enter) আবার Enter চাপলে নাম্বারিং থেমে গিয়ে লাইনটা প্লেইন খালি লাইন হয়ে যায়।
-  // মোবাইল সফট কিবোর্ডে (Gboard ইত্যাদি) "keydown" ইভেন্টে preventDefault() করলেও কাজ করে না — কারণ
-  // ভার্চুয়াল কিবোর্ড আসলে টেক্সট বসায় "beforeinput" ইভেন্টের মাধ্যমে (IME পাইপলাইন দিয়ে), keydown দিয়ে না।
-  // তাই আগে keydown ধরে "1. nice" লেখার পর Enter চাপলে ব্রাউজার নিজেই "2." বসিয়ে দিচ্ছিল সেই একই লাইনে
-  // (নতুন লাইনে না গিয়েই) — এখন নেটিভ "beforeinput" ইভেন্টে ধরা হচ্ছে, যেটা ডেস্কটপ ও মোবাইল দুই জায়গাতেই
-  // ব্রাউজারের নিজস্ব insertion থামাতে নির্ভরযোগ্যভাবে কাজ করে
-  const handleBodyBeforeInput = (e) => {
-    if (e.inputType !== "insertParagraph" && e.inputType !== "insertLineBreak") return;
+  // আর খালি নাম্বারড লাইনে (মানে ডাবল Enter) আবার Enter চাপলে নাম্বারিং থেমে গিয়ে লাইনটা প্লেইন খালি লাইন হয়ে যায়
+  const handleBodyEnterKey = (e) => {
+    if (e.key !== "Enter" || e.shiftKey) return;
     const el = bodyRef.current;
     if (!el) return;
     const sel = window.getSelection();
@@ -6885,7 +6851,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         <button onClick={(e)=>{e.stopPropagation();vibrate();setFabOpen(v=>!v);}} title={t.notesNew} style={{
           width:46, height:46, borderRadius:"50%", border:"none", background:accent, color:"#fff",
           display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
-          boxShadow: dark ? "0 8px 20px rgba(0,0,0,0.45)" : "0 8px 20px rgba(217,119,87,0.45)",
+          boxShadow: dark ? "0 8px 20px rgba(0,0,0,0.45)" : "0 8px 20px rgba(76,134,214,0.45)",
           transform: fabOpen ? "rotate(45deg)" : "none", transition:"transform .15s",
         }}>
           <Plus size={21} strokeWidth={2.5}/>
@@ -7006,17 +6972,12 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                     el.innerHTML = body || "";
                     el.dataset.init = "1";
                   }
-                  // "beforeinput" নেটিভ লিসেনার — React-এর synthetic onKeyDown-এর বদলে সরাসরি DOM-এ বসানো,
-                  // কারণ মোবাইল সফট কিবোর্ডে (Gboard) Enter-এর প্রকৃত insertion এই ইভেন্ট দিয়েই হয়
-                  if (el && el.dataset.beforeinputBound !== "1") {
-                    el.addEventListener("beforeinput", handleBodyBeforeInput);
-                    el.dataset.beforeinputBound = "1";
-                  }
                 }}
                 contentEditable
                 suppressContentEditableWarning
                 className="fg-note-body"
                 onInput={()=>{ if (bodyRef.current) setBody(bodyRef.current.innerHTML); }}
+                onKeyDown={handleBodyEnterKey}
                 onSelect={syncActiveFontSize}
                 onKeyUp={syncActiveFontSize}
                 onMouseUp={syncActiveFontSize}
@@ -7298,7 +7259,7 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
                 <button key={r} onClick={()=>setRepeat(r)} style={{
                   flex:1, padding:"8px 4px", borderRadius:12, cursor:"pointer", flexShrink:0, whiteSpace:"nowrap",
                   border:`1.5px solid ${repeat===r ? accent : cardBorder}`,
-                  background: repeat===r ? "rgba(217,119,87,0.08)" : "transparent",
+                  background: repeat===r ? "rgba(76,134,214,0.08)" : "transparent",
                   color: repeat===r ? accent : textMuted2, fontWeight:700, fontSize:12,
                 }}>
                   {label}
