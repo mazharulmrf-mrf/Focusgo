@@ -3258,7 +3258,7 @@ export default function FocusGo() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:6}}>
+        <div style={{marginTop:18}}>
           <div style={{marginBottom:2}}>
             {(() => {
               const fullName = (user?.displayName || "").trim();
@@ -3294,50 +3294,50 @@ export default function FocusGo() {
                   <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2}}>
                     {lang === "bn" ? greetingBn : greetingEn}
                   </div>
-                  <div style={{fontSize:22,fontWeight:800,letterSpacing:-0.4,color:textMain, marginTop:2}}>
-                    {firstName}
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:0}}>
+                    <div style={{fontSize:22,fontWeight:800,letterSpacing:-0.4,color:textMain}}>
+                      {firstName}
+                    </div>
+                    <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
+                      border:"none",
+                      background: dark?"rgba(217,119,87,0.16)":"rgba(217,119,87,0.12)",
+                      borderRadius:10,
+                      width:34,
+                      height:34,
+                      padding:0,
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      cursor:"pointer",
+                      flexShrink:0,
+                      position:"relative",
+                    }}>
+                      <CalendarDays size={22} color={accent} strokeWidth={2}/>
+                      {examDateKeys.has(todayKey) && (
+                        <span style={{
+                          position:"absolute", top:4, right:4,
+                          width:7, height:7, borderRadius:"50%",
+                          background:"#C0392B",
+                          border:`1.5px solid ${cardBg}`,
+                        }}/>
+                      )}
+                    </button>
                   </div>
-                  <div style={{fontSize:12,color:textMuted2,marginTop:3,lineHeight:1.4}}>
+                  <div style={{marginTop:2}}>
+                    <span style={{fontSize:13, fontWeight:600, color:textMain, letterSpacing:-0.1}}>
+                      {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
+                    </span>
+                    <span style={{fontSize:13, color:"#C9A08A", fontWeight:400}}>·</span>
+                    <span style={{
+                      fontSize:13, color:textMuted2, fontWeight:500, fontVariantNumeric:"tabular-nums",
+                    }}>
+                      <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
+                    </span>
+                  </div>
+                  <div style={{fontSize:12,color:textMuted2,marginTop:2,lineHeight:1.4}}>
                     {line}
                   </div>
                 </>
               );
             })()}
-          </div>
-          <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
-            <div style={{display:"flex", alignItems:"center", gap:6}}>
-              <span style={{fontSize:13, fontWeight:600, color:textMain, letterSpacing:-0.1}}>
-                {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
-              </span>
-              <span style={{fontSize:13, color:"#C9A08A", fontWeight:400}}>·</span>
-              <span style={{
-                fontSize:13, color:textMuted2, fontWeight:500, fontVariantNumeric:"tabular-nums",
-              }}>
-                <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
-              </span>
-            </div>
-            <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
-              border:"none",
-              background: dark?"rgba(217,119,87,0.16)":"rgba(217,119,87,0.12)",
-              borderRadius:10,
-              width:34,
-              height:34,
-              padding:0,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              cursor:"pointer",
-              flexShrink:0,
-              position:"relative",
-            }}>
-              <CalendarDays size={22} color={accent} strokeWidth={2}/>
-              {examDateKeys.has(todayKey) && (
-                <span style={{
-                  position:"absolute", top:4, right:4,
-                  width:7, height:7, borderRadius:"50%",
-                  background:"#C0392B",
-                  border:`1.5px solid ${cardBg}`,
-                }}/>
-              )}
-            </button>
           </div>
         </div>
         )}
