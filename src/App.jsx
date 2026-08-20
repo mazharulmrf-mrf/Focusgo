@@ -1722,6 +1722,9 @@ export default function FocusGo() {
   }); // {id, title, category:"study"|"personal", priority:"high"|"med"|"low", done}[]
   const [showAddTask, setShowAddTask] = useState(false);
   const [editingTask, setEditingTask] = useState(null); // এডিট করার জন্য সিলেক্টেড টাস্ক অবজেক্ট, নাহলে null
+  const [taskMenuOpenId, setTaskMenuOpenId] = useState(null); // কোন টাস্ক কার্ডের "..." মেনু খোলা আছে
+  const [taskDeleteConfirmId, setTaskDeleteConfirmId] = useState(null); // ভুলে ডিলিট এড়াতে — মেনুর ভেতরেই কনফার্ম ধাপ
+  const closeTaskMenu = () => { setTaskMenuOpenId(null); setTaskDeleteConfirmId(null); };
   const [taskAddDefaultDate, setTaskAddDefaultDate] = useState(null); // Calendar view-এ কোনো দিন সিলেক্ট করা অবস্থায় + চাপলে সেই দিনটাই নতুন টাস্কের due date হিসেবে prefill হয়
   // কাস্টম টাস্ক ক্যাটাগরি — ডিফল্টে Study/Personal, ইউজার চাইলে আরো ক্যাটাগরি যোগ করতে পারবে (localStorage-এ সেভ থাকে)
   const [taskCategories, setTaskCategories] = useState(() => {
@@ -3641,12 +3644,38 @@ export default function FocusGo() {
                     <div style={{flex:1,minWidth:0,fontSize:12.5,fontWeight:650,color:textMain,textDecoration:x.done?"line-through":"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                       {x.title}
                     </div>
-                    <button onClick={()=>setEditingTask(x)} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:5}} title={lang==="bn"?"এডিট":"Edit"}>
-                      <Pencil size={13}/>
-                    </button>
-                    <button onClick={()=>{vibrate();deleteTask(x.id);}} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:5}}>
-                      <Trash2 size={14}/>
-                    </button>
+                    <div style={{position:"relative", flexShrink:0}}>
+                      <button onClick={(e)=>{ e.stopPropagation(); setTaskMenuOpenId(v => v===x.id ? null : x.id); setTaskDeleteConfirmId(null); }} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:5}}>
+                        <MoreVertical size={16}/>
+                      </button>
+                      {taskMenuOpenId === x.id && (
+                        <>
+                          <div onClick={closeTaskMenu} style={{position:"fixed", inset:0, zIndex:59}}/>
+                          <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 6px 18px rgba(0,0,0,0.15)", zIndex:60, minWidth:150, overflow:"hidden"}}>
+                            {taskDeleteConfirmId === x.id ? (
+                              <>
+                                <div style={{padding:"9px 12px", fontSize:11.5, color:textMuted2, fontWeight:600}}>{lang==="bn"?"টাস্কটি ডিলিট করবেন?":"Delete this task?"}</div>
+                                <button onClick={()=>{ closeTaskMenu(); vibrate(); deleteTask(x.id); }} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:12.5, fontWeight:700, cursor:"pointer", textAlign:"left"}}>
+                                  <Trash2 size={13}/> {lang==="bn"?"ডিলিট নিশ্চিত করুন":"Confirm delete"}
+                                </button>
+                                <button onClick={()=>setTaskDeleteConfirmId(null)} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                                  {t.cancel}
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button onClick={()=>{closeTaskMenu(); setEditingTask(x);}} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                                  <Pencil size={13}/> {lang==="bn"?"এডিট":"Edit"}
+                                </button>
+                                <button onClick={()=>setTaskDeleteConfirmId(x.id)} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                                  <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -3796,13 +3825,37 @@ export default function FocusGo() {
                     })()}
                   </div>
                 </div>
-                <div style={{display:"flex", flexDirection:"column", gap:2, flexShrink:0}}>
-                  <button onClick={(e)=>{e.stopPropagation(); setEditingTask(x);}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:4}} title={lang==="bn"?"এডিট":"Edit"}>
-                    <Pencil size={14}/>
+                <div style={{position:"relative", flexShrink:0}}>
+                  <button onClick={(e)=>{ e.stopPropagation(); setTaskMenuOpenId(v => v===x.id ? null : x.id); setTaskDeleteConfirmId(null); }} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:4}}>
+                    <MoreVertical size={16}/>
                   </button>
-                  <button onClick={(e)=>{e.stopPropagation(); vibrate(); deleteTask(x.id);}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:4}} title={lang==="bn"?"ডিলিট":"Delete"}>
-                    <Trash2 size={15}/>
-                  </button>
+                  {taskMenuOpenId === x.id && (
+                    <>
+                      <div onClick={closeTaskMenu} style={{position:"fixed", inset:0, zIndex:59}}/>
+                      <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 6px 18px rgba(0,0,0,0.15)", zIndex:60, minWidth:150, overflow:"hidden"}}>
+                        {taskDeleteConfirmId === x.id ? (
+                          <>
+                            <div style={{padding:"9px 12px", fontSize:11.5, color:textMuted2, fontWeight:600}}>{lang==="bn"?"টাস্কটি ডিলিট করবেন?":"Delete this task?"}</div>
+                            <button onClick={()=>{ closeTaskMenu(); vibrate(); deleteTask(x.id); }} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:12.5, fontWeight:700, cursor:"pointer", textAlign:"left"}}>
+                              <Trash2 size={13}/> {lang==="bn"?"ডিলিট নিশ্চিত করুন":"Confirm delete"}
+                            </button>
+                            <button onClick={()=>setTaskDeleteConfirmId(null)} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                              {t.cancel}
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button onClick={()=>{closeTaskMenu(); setEditingTask(x);}} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                              <Pencil size={13}/> {lang==="bn"?"এডিট":"Edit"}
+                            </button>
+                            <button onClick={()=>setTaskDeleteConfirmId(x.id)} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                              <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             );
@@ -6254,8 +6307,28 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       sel.removeAllRanges();
       sel.addRange(r);
     } else {
+      // execCommand("insertHTML")-এ নতুন <div> insert করা মোবাইল WebView-তে অনির্ভরযোগ্য — মাঝেমধ্যে
+      // নতুন ব্লক তৈরি না করে ইনলাইন টেক্সট হিসেবে বসিয়ে দেয় (যেমন "1. Maruf2." একই লাইনে)।
+      // তাই সরাসরি DOM/Range API দিয়ে কার্সারের পরের অংশ কেটে একটা আসল নতুন <div> বানিয়ে বসানো হচ্ছে —
+      // এতে সবসময় নতুন লাইনেই নাম্বারিং শুরু হবে।
       const nextNum = currentNum + 1;
-      document.execCommand("insertHTML", false, `<div>${nextNum}.&nbsp;</div>`);
+      const range = sel.getRangeAt(0);
+      const afterRange = document.createRange();
+      afterRange.setStart(range.endContainer, range.endOffset);
+      afterRange.setEnd(block, block.childNodes.length);
+      const afterFragment = afterRange.extractContents();
+
+      const newDiv = document.createElement("div");
+      const prefix = document.createTextNode(`${nextNum}.\u00A0`);
+      newDiv.appendChild(prefix);
+      newDiv.appendChild(afterFragment);
+      block.parentNode.insertBefore(newDiv, block.nextSibling);
+
+      const newRange = document.createRange();
+      newRange.setStart(newDiv, 1);
+      newRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(newRange);
     }
     if (bodyRef.current) setBody(bodyRef.current.innerHTML);
   };
