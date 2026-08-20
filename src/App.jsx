@@ -3259,7 +3259,7 @@ export default function FocusGo() {
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
         <div style={{marginTop:6}}>
-          <div style={{marginBottom:8}}>
+          <div style={{marginBottom:2}}>
             {(() => {
               const fullName = (user?.displayName || "").trim();
               const parts = fullName.split(/\s+/).filter(Boolean);
@@ -3304,7 +3304,7 @@ export default function FocusGo() {
               );
             })()}
           </div>
-          <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-end"}}>
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
             <div style={{display:"flex", alignItems:"center", gap:6}}>
               <span style={{fontSize:13, fontWeight:600, color:textMain, letterSpacing:-0.1}}>
                 {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
