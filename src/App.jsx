@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { Capacitor } from "@capacitor/core";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
@@ -1849,6 +1850,34 @@ export default function FocusGo() {
   const [focusFullscreen, setFocusFullscreen] = useState(false);
   const focusFullscreenActiveRef = useRef(false); // popstate হ্যান্ডলারের ভেতর থেকে সবসময় সবশেষ ফুলস্ক্রিন অবস্থা জানার জন্য
   const pushedFocusHistoryRef = useRef(false); // ফুলস্ক্রিন টাইমার খোলার সময় history-তে state push করেছি কিনা
+
+  // ---------- ফোকাস টাইমার/স্টপওয়াচ চালু থাকলে অটো-রোটেট ----------
+  // ফোনের সিস্টেম সেটিং-এ auto-rotate বন্ধ থাকলেও, টাইমার চলাকালীন ফোন ঘোরালে অ্যাপ ঘুরে যাবে —
+  // Capacitor-এর নেটিভ ScreenOrientation প্লাগিন সরাসরি Android Activity-র orientation lock
+  // নিয়ন্ত্রণ করে, তাই এটা সিস্টেম-লেভেল auto-rotate টগলের উপর নির্ভর করে না। টাইমার/স্টপওয়াচ বন্ধ
+  // হলে আবার পোর্ট্রেটে লক হয়ে যায় (যেহেতু বাকি পুরো অ্যাপ পোর্ট্রেট লেআউটের জন্য ডিজাইন করা)।
+  // ব্রাউজারে (নেটিভ অ্যাপ না হলে) Screen Orientation Web API দিয়ে best-effort ফলব্যাক ব্যবহার হয়।
+  useEffect(() => {
+    const focusActive = timerRunning || stopwatchRunning;
+    (async () => {
+      try {
+        if (Capacitor.isNativePlatform()) {
+          if (focusActive) {
+            await ScreenOrientation.unlock();
+          } else {
+            await ScreenOrientation.lock({ orientation: "portrait" });
+          }
+        } else if (window.screen && window.screen.orientation) {
+          if (focusActive && window.screen.orientation.unlock) {
+            window.screen.orientation.unlock();
+          } else if (!focusActive && window.screen.orientation.lock) {
+            window.screen.orientation.lock("portrait").catch(() => {});
+          }
+        }
+      } catch (e) { /* প্লাগিন ইনস্টল না থাকলে বা অসমর্থিত হলে চুপচাপ ইগনোর */ }
+    })();
+  }, [timerRunning, stopwatchRunning]);
+
   const [editTopic, setEditTopic] = useState(null);
   // ---- Pomodoro: session type (focus/break), remembered durations, and cycle progress ----
   const [sessionType, setSessionType] = useState("focus"); // "focus" | "break"
@@ -3317,9 +3346,9 @@ export default function FocusGo() {
               <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
                 border:`1px solid ${dark?"rgba(217,119,87,0.4)":"rgba(217,119,87,0.35)"}`,
                 background: dark?"rgba(217,119,87,0.16)":"rgba(217,119,87,0.12)",
-                borderRadius:12,
-                width:32,
-                height:32,
+                borderRadius:"50%",
+                width:34,
+                height:34,
                 display:"flex", alignItems:"center", justifyContent:"center",
                 cursor:"pointer",
                 flexShrink:0,
@@ -3348,9 +3377,9 @@ export default function FocusGo() {
               <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
                 border:`1px solid ${dark?"rgba(217,119,87,0.4)":"rgba(217,119,87,0.35)"}`,
                 background: dark?"rgba(217,119,87,0.16)":"rgba(217,119,87,0.12)",
-                borderRadius:12,
-                width:32,
-                height:32,
+                borderRadius:"50%",
+                width:34,
+                height:34,
                 display:"flex", alignItems:"center", justifyContent:"center",
                 cursor:"pointer",
                 flexShrink:0,
@@ -6221,9 +6250,14 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   };
 
   // নোট বডিতে "1. " দিয়ে লাইন শুরু করে Enter চাপলে পরের লাইনে অটো ২, ৩, ৪... বসে —
-  // আর খালি নাম্বারড লাইনে (মানে ডাবল Enter) আবার Enter চাপলে নাম্বারিং থেমে গিয়ে লাইনটা প্লেইন খালি লাইন হয়ে যায়
-  const handleBodyEnterKey = (e) => {
-    if (e.key !== "Enter" || e.shiftKey) return;
+  // আর খালি নাম্বারড লাইনে (মানে ডাবল Enter) আবার Enter চাপলে নাম্বারিং থেমে গিয়ে লাইনটা প্লেইন খালি লাইন হয়ে যায়।
+  // মোবাইল সফট কিবোর্ডে (Gboard ইত্যাদি) "keydown" ইভেন্টে preventDefault() করলেও কাজ করে না — কারণ
+  // ভার্চুয়াল কিবোর্ড আসলে টেক্সট বসায় "beforeinput" ইভেন্টের মাধ্যমে (IME পাইপলাইন দিয়ে), keydown দিয়ে না।
+  // তাই আগে keydown ধরে "1. nice" লেখার পর Enter চাপলে ব্রাউজার নিজেই "2." বসিয়ে দিচ্ছিল সেই একই লাইনে
+  // (নতুন লাইনে না গিয়েই) — এখন নেটিভ "beforeinput" ইভেন্টে ধরা হচ্ছে, যেটা ডেস্কটপ ও মোবাইল দুই জায়গাতেই
+  // ব্রাউজারের নিজস্ব insertion থামাতে নির্ভরযোগ্যভাবে কাজ করে
+  const handleBodyBeforeInput = (e) => {
+    if (e.inputType !== "insertParagraph" && e.inputType !== "insertLineBreak") return;
     const el = bodyRef.current;
     if (!el) return;
     const sel = window.getSelection();
@@ -6972,12 +7006,17 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                     el.innerHTML = body || "";
                     el.dataset.init = "1";
                   }
+                  // "beforeinput" নেটিভ লিসেনার — React-এর synthetic onKeyDown-এর বদলে সরাসরি DOM-এ বসানো,
+                  // কারণ মোবাইল সফট কিবোর্ডে (Gboard) Enter-এর প্রকৃত insertion এই ইভেন্ট দিয়েই হয়
+                  if (el && el.dataset.beforeinputBound !== "1") {
+                    el.addEventListener("beforeinput", handleBodyBeforeInput);
+                    el.dataset.beforeinputBound = "1";
+                  }
                 }}
                 contentEditable
                 suppressContentEditableWarning
                 className="fg-note-body"
                 onInput={()=>{ if (bodyRef.current) setBody(bodyRef.current.innerHTML); }}
-                onKeyDown={handleBodyEnterKey}
                 onSelect={syncActiveFontSize}
                 onKeyUp={syncActiveFontSize}
                 onMouseUp={syncActiveFontSize}
