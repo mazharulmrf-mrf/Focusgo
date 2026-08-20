@@ -490,6 +490,18 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, car
   const [legalDoc, setLegalDoc] = useState(null); // null | "privacy" | "terms"
   const isBn = lang === "bn";
 
+  // হ্যাপটিক ফিডব্যাক অন/অফ — localStorage-এ সেভ থাকে, vibrate() ফাংশন এটা নিজেই চেক করে
+  const [hapticsEnabled, setHapticsEnabled] = useState(() => {
+    try { return window.localStorage.getItem("focusgo_haptics_enabled") !== "0"; } catch (e) { return true; }
+  });
+  const toggleHaptics = () => {
+    setHapticsEnabled(v => {
+      const next = !v;
+      try { window.localStorage.setItem("focusgo_haptics_enabled", next ? "1" : "0"); } catch (e) {}
+      return next;
+    });
+  };
+
   const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:`1px solid ${cardBorder}` };
   const labelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14, fontWeight:700, color:textMain };
   const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#C9C0AC" : "#6B6353" };
@@ -590,6 +602,22 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, car
           <div style={labelStyle}><span style={iconWrapStyle}><span style={{fontSize:13, fontWeight:800}}>{lang==="bn"?"বাং":"EN"}</span></span>{t.language}</div>
           <button onClick={()=>setLang(l=>l==="bn"?"en":"bn")} style={{border:`1px solid ${cardBorder}`, background: dark?"#121110":"#F8F5EE", color:textMain, borderRadius:10, padding:"7px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
             {lang==="bn" ? "English" : "বাংলা"}
+          </button>
+        </div>
+
+        {/* Haptic feedback on/off */}
+        <div style={rowStyle}>
+          <div style={labelStyle}><span style={iconWrapStyle}><span style={{fontSize:15}}>📳</span></span>{t.hapticFeedback}</div>
+          <button onClick={toggleHaptics} aria-pressed={hapticsEnabled} style={{
+              width:44, height:26, borderRadius:13, border:"none", cursor:"pointer", padding:0,
+              background: hapticsEnabled ? accent : (dark ? "#3A362E" : "#DCD5C4"),
+              position:"relative", transition:"background 0.15s"
+            }}>
+            <span style={{
+              position:"absolute", top:3, left: hapticsEnabled ? 21 : 3,
+              width:20, height:20, borderRadius:"50%", background:"#fff",
+              transition:"left 0.15s", boxShadow:"0 1px 2px rgba(0,0,0,0.25)"
+            }}/>
           </button>
         </div>
 
@@ -1156,6 +1184,7 @@ const T = {
     addTopicTitle: "Add a topic", subjectLabel: "Subject", subjectPlaceholder: "e.g. Physics, বাংলা...",
     pickSubject: "Pick a subject, or type a new one below", newSubjectAutoSaved: "A new subject you type here is added to your subject list too.",
     lightMode: "Switch to light mode", darkMode: "Switch to dark mode",
+    hapticFeedback: "Haptic feedback",
     themeSystem: "System", themeLight: "Light", themeDark: "Dark",
     topicLabel: "Topic", topicPlaceholder: "e.g. Newton's Laws",
     durationLabel: "Duration (minutes)", cancel: "Cancel", add: "Add",
@@ -1301,6 +1330,7 @@ const T = {
     addTopicTitle: "টপিক যোগ করুন", subjectLabel: "সাবজেক্ট", subjectPlaceholder: "যেমন: Physics, বাংলা...",
     pickSubject: "একটা সাবজেক্ট বেছে নাও, বা নিচে নতুন লিখো", newSubjectAutoSaved: "এখানে নতুন যা লিখবে সেটাও তোমার সাবজেক্ট লিস্টে যোগ হয়ে যাবে।",
     lightMode: "লাইট মোডে যান", darkMode: "ডার্ক মোডে যান",
+    hapticFeedback: "কম্পন (Haptic Feedback)",
     themeSystem: "সিস্টেম", themeLight: "লাইট", themeDark: "ডার্ক",
     topicLabel: "টপিক", topicPlaceholder: "যেমন: নিউটনের সূত্র",
     durationLabel: "সময়কাল (মিনিট)", cancel: "বাতিল", add: "যোগ করো",
@@ -1527,8 +1557,14 @@ const Num = ({ children }) => <span style={{ fontFamily: "'Noto Sans Bengali','H
 // আর ব্রাউজার/PWA-তে আগের মতোই Web Vibration API fallback হিসেবে থাকছে।
 // নোট: ImpactStyle.Light অনেক Android ডিভাইসে এখনও বেশ শক্তিশালী অনুভূত হয়, তাই তার বদলে
 // Haptics.vibrate() দিয়ে খুব কম duration (ms) সেট করে সত্যিকারের হালকা tick তৈরি করা হচ্ছে।
+// Settings থেকে ইউজার হ্যাপটিক বন্ধ/চালু করতে পারে (localStorage-এ সেভ থাকে) — বন্ধ থাকলে কিছুই হয় না।
+const HAPTICS_PREF_KEY = "focusgo_haptics_enabled";
+const isHapticsEnabled = () => {
+  try { return window.localStorage.getItem(HAPTICS_PREF_KEY) !== "0"; } catch (e) { return true; }
+};
 const vibrate = (pattern = 8) => {
   try {
+    if (!isHapticsEnabled()) return;
     if (Capacitor.isNativePlatform()) {
       Haptics.vibrate({ duration: 8 }).catch(() => {});
     } else if (navigator.vibrate) {
