@@ -3258,8 +3258,8 @@ export default function FocusGo() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:14}}>
-          <div style={{marginBottom:10}}>
+        <div style={{marginTop:6}}>
+          <div style={{marginBottom:8}}>
             {(() => {
               const fullName = (user?.displayName || "").trim();
               const parts = fullName.split(/\s+/).filter(Boolean);
@@ -3286,7 +3286,7 @@ export default function FocusGo() {
               // সময় অনুযায়ী গ্রিটিং — Good morning / afternoon / evening / night
               const hr = now.getHours();
               const greetKey = hr < 12 ? "morning" : hr < 17 ? "afternoon" : hr < 21 ? "evening" : "night";
-              const greetingEn = { morning: "Good morning", afternoon: "Good afternoon", evening: "Good evening", night: "Good night" }[greetKey];
+              const greetingEn = { morning: "Good Morning", afternoon: "Good Afternoon", evening: "Good Evening", night: "Good Night" }[greetKey];
               const greetingBn = { morning: "শুভ সকাল", afternoon: "শুভ বিকেল", evening: "শুভ সন্ধ্যা", night: "শুভ রাত্রি" }[greetKey];
 
               return (
@@ -3548,7 +3548,7 @@ export default function FocusGo() {
 
         {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — Option 2: circular progress, premium look */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (
-        <div className="fg-tab-panel" style={{marginTop:12, background: dark ? "#1E1A16" : cardBg, border: dark ? `1px solid ${accent}40` : `1px solid ${cardBorder}`, borderRadius:16, padding:"16px", position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:10, background: dark ? "#1E1A16" : cardBg, border: dark ? `1px solid ${accent}40` : `1px solid ${cardBorder}`, borderRadius:16, padding:"16px", position:"relative", overflow:"hidden"}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:14}}>
             <div style={{display:"flex", alignItems:"center", gap:14, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
