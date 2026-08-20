@@ -22,14 +22,6 @@
           }
         },
         {
-          "client_id": "448849450957-svnuenfe604la2uim1rv1r1cuk3mb9nk.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.maruf.focusgo",
-            "certificate_hash": "cd9da67a85123d019ae945fd94e8703946c1d7d3"
-          }
-        },
-        {
           "client_id": "448849450957-hgopm56u06j2uhougldvm52rdbnntvrg.apps.googleusercontent.com",
           "client_type": 3
         }
