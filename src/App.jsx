@@ -1406,12 +1406,14 @@ const T = {
 };
 
 const SUBJECT_COLORS = [
-  { bg: "#D97757", bgSoft: "rgba(217,119,87,0.14)" },
+  { bg: "#3B8686", bgSoft: "rgba(59,134,134,0.14)" },
   { bg: "#6E8B5E", bgSoft: "rgba(110,139,94,0.14)" },
   { bg: "#7E6EC9", bgSoft: "rgba(126,110,201,0.14)" },
   { bg: "#C08A2E", bgSoft: "rgba(192,138,46,0.14)" },
   { bg: "#4C8FA6", bgSoft: "rgba(76,143,166,0.14)" },
   { bg: "#B25B8F", bgSoft: "rgba(178,91,143,0.14)" },
+  { bg: "#5C6BC0", bgSoft: "rgba(92,107,192,0.14)" },
+  { bg: "#8A7355", bgSoft: "rgba(138,115,85,0.14)" },
 ];
 const colorForSubject = (name, subjects) => {
   const idx = subjects.indexOf(name);
@@ -3318,17 +3320,20 @@ export default function FocusGo() {
             </div>
             <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
               border:"none",
-              background:"transparent",
-              padding:8,
+              background: dark?"rgba(217,119,87,0.16)":"rgba(217,119,87,0.12)",
+              borderRadius:10,
+              width:34,
+              height:34,
+              padding:0,
               display:"flex", alignItems:"center", justifyContent:"center",
               cursor:"pointer",
               flexShrink:0,
               position:"relative",
             }}>
-              <CalendarDays size={35} color={accent} strokeWidth={1.8}/>
+              <CalendarDays size={22} color={accent} strokeWidth={2}/>
               {examDateKeys.has(todayKey) && (
                 <span style={{
-                  position:"absolute", top:6, right:6,
+                  position:"absolute", top:4, right:4,
                   width:7, height:7, borderRadius:"50%",
                   background:"#C0392B",
                   border:`1.5px solid ${cardBg}`,
@@ -3557,17 +3562,17 @@ export default function FocusGo() {
                   <span style={{display:"inline-flex", alignItems:"center", gap:5, color:"#6E8B5E", background: dark?"rgba(110,139,94,0.18)":"rgba(110,139,94,0.14)", padding:"4px 10px", borderRadius:20, fontSize:12, fontWeight:700}}>
                     <Check size={12} strokeWidth={3}/> <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.progressCompletedLabel}
                   </span>
-                  <span style={{display:"inline-flex", alignItems:"center", gap:5, color:accent, background: dark?`${accent}26`:`${accent}18`, padding:"4px 10px", borderRadius:20, fontSize:12, fontWeight:700}}>
+                  <span style={{display:"inline-flex", alignItems:"center", gap:5, color:"#C08A2E", background: dark?"rgba(192,138,46,0.2)":"rgba(192,138,46,0.14)", padding:"4px 10px", borderRadius:20, fontSize:12, fontWeight:700}}>
                     <Clock size={12}/> <Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}
                   </span>
                 </div>
               </div>
             </div>
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:3, paddingLeft:14, borderLeft: dark ? `1px solid ${accent}30` : `1px solid ${cardBorder}`}}>
-              <div style={{width:30, height:30, borderRadius:"50%", background: dark?"rgba(217,119,87,0.2)":"rgba(217,119,87,0.12)", display:"flex", alignItems:"center", justifyContent:"center"}}>
-                <Flame size={16} color={accent} fill={`${accent}55`}/>
+            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:3, paddingLeft:14, borderLeft: `1px solid ${cardBorder}`}}>
+              <div style={{width:30, height:30, borderRadius:"50%", background: dark?"rgba(192,138,46,0.2)":"rgba(192,138,46,0.12)", display:"flex", alignItems:"center", justifyContent:"center"}}>
+                <Flame size={16} color="#C08A2E" fill="#C08A2E55"/>
               </div>
-              <div style={{fontSize:16, fontWeight:800, color:accent, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
+              <div style={{fontSize:16, fontWeight:800, color:"#C08A2E", lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
               <div style={{fontSize:9, color:textMuted2, fontWeight:600, opacity:0.85, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
             </div>
           </div>
@@ -3847,7 +3852,7 @@ export default function FocusGo() {
                 <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"13px 15px", marginBottom:12}}>
                   <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
                     <div style={{fontSize:11, letterSpacing:ls(1.4), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.taskCalMonthOverview}</div>
-                    {monthTotal > 0 && <div style={{fontSize:11.5, fontWeight:800, color:accent}}><Num>{nf(monthPct)}</Num>%</div>}
+                    {monthTotal > 0 && <div style={{fontSize:11.5, fontWeight:800, color:"#6E8B5E"}}><Num>{nf(monthPct)}</Num>%</div>}
                   </div>
                   <div style={{display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8}}>
                     <div style={{textAlign:"center"}}>
@@ -4779,7 +4784,7 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
       {attempts.length > 0 && (
         <div style={{display:"flex", gap:10, marginTop:8, paddingLeft:22, fontSize:11.5, color:textMuted2, fontWeight:600, flexWrap:"wrap"}}>
           <span><Num>{nf(attempts.length)}</Num> {t.attemptsLabel}</span>
-          {avgPct !== null && <span style={{color:accent, fontWeight:700}}>{t.average} <Num>{nf(avgPct)}</Num>%</span>}
+          {avgPct !== null && <span style={{color:"#4C8FA6", fontWeight:700}}>{t.average} <Num>{nf(avgPct)}</Num>%</span>}
         </div>
       )}
 
@@ -4938,7 +4943,7 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
       {hasAttempts && (
         <div style={{display:"flex", gap:10, marginTop:8, paddingLeft:22, fontSize:11.5, color:textMuted2, fontWeight:600}}>
           <span><Num>{nf(attempts.length)}</Num> {t.attemptsLabel}</span>
-          {avgPct !== null && <span style={{color:accent, fontWeight:700}}>{t.average} <Num>{nf(avgPct)}</Num>%</span>}
+          {avgPct !== null && <span style={{color:"#4C8FA6", fontWeight:700}}>{t.average} <Num>{nf(avgPct)}</Num>%</span>}
         </div>
       )}
 
@@ -5164,7 +5169,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
       <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
         <div style={{display:"flex", alignItems:"center", gap:7}}>
           <div style={{fontSize:17, fontWeight:800, letterSpacing:-0.2}}>{t.monthlySummaryExam}</div>
-          <span style={{fontSize:9, fontWeight:800, letterSpacing:0.3, padding:"2px 7px", borderRadius:10, background:`${accent}1F`, color:accent, flexShrink:0}}>
+          <span style={{fontSize:9, fontWeight:800, letterSpacing:0.3, padding:"2px 7px", borderRadius:10, background: dark?"#26231D":"#F3EEE3", color: dark?"#C9C0AC":"#6B6353", flexShrink:0}}>
             {t.planViewExam}
           </span>
         </div>
@@ -5192,7 +5197,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
             </div>
             <div style={statBox}>
               <div style={{fontSize:10.5, color:textMuted2, fontWeight:700, letterSpacing:ls(0.5)}}>{t.avgScoreLabel}</div>
-              <div style={{fontSize:22, fontWeight:800, marginTop:4, color:accent}}><Num>{nf(avgScorePct)}</Num>%</div>
+              <div style={{fontSize:22, fontWeight:800, marginTop:4, color:"#4C8FA6"}}><Num>{nf(avgScorePct)}</Num>%</div>
             </div>
             <div style={statBox}>
               <div style={{fontSize:10.5, color:textMuted2, fontWeight:700, letterSpacing:ls(0.5)}}>{t.maxScoreLabel}</div>
@@ -5216,7 +5221,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
                     </span>
                     <span style={{textAlign:"right"}}><Num>{nf(d.topics.size)}</Num></span>
                     <span style={{textAlign:"right"}}><Num>{nf(d.attempts)}</Num></span>
-                    <span style={{textAlign:"right", color:accent, fontWeight:700}}><Num>{nf(avg)}</Num>%</span>
+                    <span style={{textAlign:"right", color:"#4C8FA6", fontWeight:700}}><Num>{nf(avg)}</Num>%</span>
                   </div>
                 );
               })}
@@ -5270,7 +5275,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
           <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:8}}>{t.overview}</div>
           <div style={{display:"flex", gap:16}}>
             <div>
-              <div style={{fontSize:20, fontWeight:800, color:accent}}><Num>{nf(doneCount)}</Num></div>
+              <div style={{fontSize:20, fontWeight:800, color:"#6E8B5E"}}><Num>{nf(doneCount)}</Num></div>
               <div style={{fontSize:11, color:textMuted2, fontWeight:600}}>{t.doneCount}</div>
             </div>
             <div>
@@ -7188,7 +7193,7 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
           )}
         </div>
 
-        <button onClick={()=>setShowMore(v=>!v)} style={{display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", color:accent, cursor:"pointer", padding:"2px 0", fontSize:12, fontWeight:800, marginBottom: showMore ? 14 : 20}}>
+        <button onClick={()=>setShowMore(v=>!v)} style={{display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:"2px 0", fontSize:12, fontWeight:800, marginBottom: showMore ? 14 : 20}}>
           <ChevronDown size={14} style={{transform: showMore ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
           {showMore ? (lang==="bn" ? "কম দেখাও" : "Fewer options") : (lang==="bn" ? "আরও অপশন (ক্যাটাগরি, প্রায়োরিটি, রিপিট)" : "More options (category, priority, repeat)")}
         </button>
