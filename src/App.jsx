@@ -3507,27 +3507,62 @@ export default function FocusGo() {
                   <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2, marginBottom:3}}>
                     {lang === "bn" ? greetingBn : greetingEn}
                   </div>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", position:"relative"}} ref={salahMenuRef}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
                     <div style={{fontSize:22,fontWeight:800,letterSpacing:-0.4,color:textMain}}>
                       {firstName}
                     </div>
-                    <button
-                      onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
-                      style={{
-                        width:30, height:30, borderRadius:"50%", flexShrink:0,
-                        background: dark ? "#3A2A22" : "#FBEAE0",
-                        border:`1px solid ${accent}`,
-                        display:"flex", alignItems:"center", justifyContent:"center",
-                        fontSize:14, cursor:"pointer",
-                      }}
-                      title={lang === "bn" ? "সালাতের সময়" : "Salah times"}
-                    >
-                      🕌
+                  </div>
+                  <div style={{fontSize:12,color:textMuted2,marginTop:5,lineHeight:1.4}}>
+                    {line}
+                  </div>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8, position:"relative"}} ref={salahMenuRef}>
+                    <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
+                      <Calendar size={18} color={accent} strokeWidth={2}/>
+                      <span style={{fontSize:13, fontWeight:600, color:textMain, letterSpacing:-0.1}}>
+                        {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
+                      </span>
+                      {examDateKeys.has(todayKey) && (
+                        <span style={{
+                          position:"absolute", top:-2, left:12,
+                          width:7, height:7, borderRadius:"50%",
+                          background:"#C0392B",
+                          border:`1.5px solid ${cardBg}`,
+                        }}/>
+                      )}
                     </button>
+                    <span style={{display:"flex", alignItems:"center", gap:10}}>
+                      <span style={{display:"flex", alignItems:"center", gap:4}}>
+                        <Clock size={13} color={textMuted2} strokeWidth={2}/>
+                        <span style={{
+                          fontSize:13, color:textMuted2, fontWeight:500, fontVariantNumeric:"tabular-nums",
+                        }}>
+                          <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
+                        </span>
+                      </span>
+                      <button
+                        onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
+                        style={{
+                          width:20, height:20, borderRadius:"50%", flexShrink:0,
+                          background: dark ? "#3A2A22" : "#FBEAE0",
+                          border:`1px solid ${accent}`,
+                          display:"flex", alignItems:"center", justifyContent:"center",
+                          cursor:"pointer", padding:0,
+                        }}
+                        title={lang === "bn" ? "সালাতের সময়" : "Salah times"}
+                      >
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 20h18"/>
+                          <path d="M5 20v-6.5c0-.9.7-1.5 1.5-1.5S8 12.6 8 13.5V20"/>
+                          <path d="M9.2 20v-9c0-1.5 1.2-3 2.8-3s2.8 1.5 2.8 3v9"/>
+                          <path d="M16.5 20v-6.5c0-.9.7-1.5 1.5-1.5s1.5.6 1.5 1.5V20"/>
+                          <circle cx="12" cy="4.5" r="1.3"/>
+                        </svg>
+                      </button>
+                    </span>
 
                     {showSalahDropdown && (
                       <div style={{
-                        position:"absolute", top:38, right:0, width:220, zIndex:20,
+                        position:"absolute", top:28, right:0, width:220, zIndex:20,
                         background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:16,
                         padding:10, boxShadow: dark ? "0 14px 30px rgba(0,0,0,0.5)" : "0 14px 30px rgba(0,0,0,0.15)",
                       }}>
@@ -3565,33 +3600,6 @@ export default function FocusGo() {
                         })}
                       </div>
                     )}
-                  </div>
-                  <div style={{fontSize:12,color:textMuted2,marginTop:5,lineHeight:1.4}}>
-                    {line}
-                  </div>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8}}>
-                    <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
-                      <Calendar size={18} color={accent} strokeWidth={2}/>
-                      <span style={{fontSize:13, fontWeight:600, color:textMain, letterSpacing:-0.1}}>
-                        {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
-                      </span>
-                      {examDateKeys.has(todayKey) && (
-                        <span style={{
-                          position:"absolute", top:-2, left:12,
-                          width:7, height:7, borderRadius:"50%",
-                          background:"#C0392B",
-                          border:`1.5px solid ${cardBg}`,
-                        }}/>
-                      )}
-                    </button>
-                    <span style={{display:"flex", alignItems:"center", gap:4}}>
-                      <Clock size={13} color={textMuted2} strokeWidth={2}/>
-                      <span style={{
-                        fontSize:13, color:textMuted2, fontWeight:500, fontVariantNumeric:"tabular-nums",
-                      }}>
-                        <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
-                      </span>
-                    </span>
                   </div>
                 </>
               );
@@ -3640,7 +3648,7 @@ export default function FocusGo() {
         )}
         {/* Focus timer - main home of Study tab (Study Plan sub-section) */}
         {tab === "study" && studySection === "plan" && (
-        <div className="fg-tab-panel" style={{marginTop:14, background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:24, padding:"18px 20px 20px", color:textMain, boxShadow: dark ? "0 10px 28px rgba(0,0,0,0.35)" : `0 10px 28px ${accent}1F`, position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:24, background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:24, padding:"18px 20px 20px", color:textMain, boxShadow: dark ? "0 10px 28px rgba(0,0,0,0.35)" : `0 10px 28px ${accent}1F`, position:"relative", overflow:"hidden"}}>
           <div style={{position:"absolute", top:-60, right:-60, width:160, height:160, borderRadius:"50%", background:`${accent}14`, pointerEvents:"none"}}/>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", position:"relative"}}>
             <span style={{fontSize:11, letterSpacing:ls(1.5), fontWeight:800, color:textMuted2}}>{t.focusTimer}</span>
