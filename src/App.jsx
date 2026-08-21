@@ -940,6 +940,7 @@ const LOGO_FULL_DARK = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAr4AAADICA
 // ---------- helpers ----------
 const BN_DIGITS = ["০","১","২","৩","৪","৫","৬","৭","৮","৯"];
 const toBn = (n) => String(n).split("").map(c => (c>='0'&&c<='9') ? BN_DIGITS[+c] : c).join("");
+const fromBn = (s) => String(s).split("").map(c => { const i = BN_DIGITS.indexOf(c); return i === -1 ? c : String(i); }).join("");
 const pad2 = (n) => String(n).padStart(2,"0");
 
 // ---------- সালাত টাইমার হিসাব — কোনো npm প্যাকেজ ছাড়াই (Karachi method, Shafi madhab) ----------
@@ -1220,12 +1221,12 @@ const T = {
     taskAddCategory: "Add category", taskNewCategoryPlaceholder: "New category name",
     taskDone: "done", taskLinkHint: "You can start a \"Study\" task directly with the Focus Timer — it'll auto-complete when the session ends.",
     taskLeftLabel: "left", taskAllDoneLabel: "All done",
-    taskFilterToday: "Today", taskFilterUpcoming: "Upcoming", taskFilterDone: "Done",
+    taskFilterToday: "Today", taskFilterUpcoming: "Upcoming", taskFilterDone: "Done", taskFilterOverdue: "Overdue",
     notesTitle: "Notes", notesSubtitle: "Capture ideas, lessons, and things to remember", notesSearch: "Search notes...", notesNew: "New Note", notesEmpty: "No notes yet", notesEmptySub: "Save an idea, lesson, or reminder here.", notesTitlePlaceholder: "Note title", notesBodyPlaceholder: "Write your note...", notesSave: "Save Note", notesEdit: "Edit Note", notesDelete: "Delete",
     taskDueDate: "Due Date", taskDueDateOptional: "Due Date (optional)", taskNoDueDate: "No due date",
     taskDueToday: "Today", taskDueTomorrow: "Tomorrow", taskOverdue: "Overdue", taskCompleted: "Completed",
     taskSectionToday: "Today", taskSectionUpcoming: "Upcoming", taskSectionNoDate: "No Due Date",
-    taskEmptyToday: "Nothing due today", taskEmptyUpcoming: "Nothing upcoming", taskEmptyDone: "No completed tasks yet",
+    taskEmptyToday: "Nothing due today", taskEmptyUpcoming: "Nothing upcoming", taskEmptyDone: "No completed tasks yet", taskEmptyOverdue: "No overdue tasks",
     taskViewList: "List", taskViewCalendar: "Calendar",
     taskViewListHint: "All your tasks, grouped by due date", taskViewCalendarHint: "Tap a day on the calendar to see its tasks",
     taskRepeat: "Repeat", taskRepeatNone: "Never", taskRepeatDaily: "Daily", taskRepeatWeekly: "Weekly", taskRepeatMonthly: "Monthly",
@@ -1366,12 +1367,12 @@ const T = {
     taskAddCategory: "ক্যাটাগরি যোগ করো", taskNewCategoryPlaceholder: "নতুন ক্যাটাগরির নাম",
     taskDone: "সম্পন্ন", taskLinkHint: "\"স্টাডি\" ক্যাটাগরির টাস্ক চাইলে সরাসরি Focus Timer দিয়ে শুরু করা যাবে — সেশন শেষ হলে টাস্ক অটো-সম্পন্ন হবে।",
     taskLeftLabel: "বাকি", taskAllDoneLabel: "সব সম্পন্ন",
-    taskFilterToday: "আজ", taskFilterUpcoming: "আসন্ন", taskFilterDone: "সম্পন্ন",
+    taskFilterToday: "আজ", taskFilterUpcoming: "আসন্ন", taskFilterDone: "সম্পন্ন", taskFilterOverdue: "মেয়াদ শেষ",
     notesTitle: "নোট", notesSubtitle: "আইডিয়া, পড়ার বিষয় ও দরকারি তথ্য সংরক্ষণ করো", notesSearch: "নোট খুঁজুন...", notesNew: "নতুন নোট", notesEmpty: "এখনো কোনো নোট নেই", notesEmptySub: "আইডিয়া, পড়ার বিষয় বা দরকারি কিছু এখানে রাখো।", notesTitlePlaceholder: "নোটের শিরোনাম", notesBodyPlaceholder: "নোট লিখুন...", notesSave: "নোট সেভ", notesEdit: "নোট এডিট", notesDelete: "মুছুন",
     taskDueDate: "ডিউ ডেট", taskDueDateOptional: "ডিউ ডেট (ঐচ্ছিক)", taskNoDueDate: "কোনো ডিউ ডেট নেই",
     taskDueToday: "আজ", taskDueTomorrow: "আগামীকাল", taskOverdue: "মেয়াদ শেষ", taskCompleted: "সম্পন্ন হয়েছে",
     taskSectionToday: "আজ", taskSectionUpcoming: "আসন্ন", taskSectionNoDate: "ডিউ ডেট নেই",
-    taskEmptyToday: "আজ কিছু বাকি নেই", taskEmptyUpcoming: "আসন্ন কিছু নেই", taskEmptyDone: "এখনো কোনো টাস্ক সম্পন্ন হয়নি",
+    taskEmptyToday: "আজ কিছু বাকি নেই", taskEmptyUpcoming: "আসন্ন কিছু নেই", taskEmptyDone: "এখনো কোনো টাস্ক সম্পন্ন হয়নি", taskEmptyOverdue: "মেয়াদ-শেষ কোনো টাস্ক নেই",
     taskViewList: "লিস্ট", taskViewCalendar: "ক্যালেন্ডার",
     taskViewListHint: "তোমার সব টাস্ক, ডিউ ডেট অনুযায়ী সাজানো", taskViewCalendarHint: "ক্যালেন্ডারে কোনো দিনে ট্যাপ করে সেদিনের টাস্ক দেখো",
     taskRepeat: "রিপিট", taskRepeatNone: "একবারই", taskRepeatDaily: "প্রতিদিন", taskRepeatWeekly: "প্রতি সপ্তাহে", taskRepeatMonthly: "প্রতি মাসে",
@@ -3574,13 +3575,15 @@ export default function FocusGo() {
                   </div>
                   <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8, position:"relative"}} ref={salahMenuRef}>
                     <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
-                      <Calendar size={18} color={accent} strokeWidth={2}/>
+                      <span style={{width:30, height:30, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                        <CalendarDays size={20} color={accent} strokeWidth={2}/>
+                      </span>
                       <span style={{fontSize:13, fontWeight:600, color:textMain, letterSpacing:-0.1}}>
                         {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
                       </span>
                       {examDateKeys.has(todayKey) && (
                         <span style={{
-                          position:"absolute", top:-2, left:12,
+                          position:"absolute", top:-2, left:24,
                           width:7, height:7, borderRadius:"50%",
                           background:"#C0392B",
                           border:`1.5px solid ${cardBg}`,
@@ -3598,21 +3601,28 @@ export default function FocusGo() {
                       <button
                         onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
                         style={{
-                          width:20, height:20, borderRadius:"50%", flexShrink:0,
-                          background: dark ? "#3A2A22" : "#FBEAE0",
-                          border:`1px solid ${accent}`,
+                          width:30, height:30, borderRadius:"50%", flexShrink:0,
+                          background:"transparent", border:"none",
                           display:"flex", alignItems:"center", justifyContent:"center",
-                          cursor:"pointer", padding:0,
+                          cursor:"pointer", padding:0, position:"relative",
                         }}
                         title={lang === "bn" ? "সালাতের সময়" : "Salah times"}
                       >
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M3 20h18"/>
                           <path d="M5 20v-6.5c0-.9.7-1.5 1.5-1.5S8 12.6 8 13.5V20"/>
                           <path d="M9.2 20v-9c0-1.5 1.2-3 2.8-3s2.8 1.5 2.8 3v9"/>
                           <path d="M16.5 20v-6.5c0-.9.7-1.5 1.5-1.5s1.5.6 1.5 1.5V20"/>
                           <circle cx="12" cy="4.5" r="1.3"/>
                         </svg>
+                        {salahCoords && (
+                          <span style={{
+                            position:"absolute", top:3, right:3,
+                            width:6, height:6, borderRadius:"50%",
+                            background:accent,
+                            border:`1.5px solid ${cardBg}`,
+                          }}/>
+                        )}
                       </button>
                     </span>
 
@@ -3950,7 +3960,9 @@ export default function FocusGo() {
         )}
 
         {/* Today's Tasks — after Today's Study */}
-        {tab === "today" && (
+        {tab === "today" && (() => {
+          const homeTodayTasks = tasks.filter(x => x.dueDate === todayKey);
+          return (
           <div className="fg-tab-panel" style={{marginTop:18}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <div style={{display:"flex",alignItems:"center",gap:7,fontSize:19,fontWeight:800,letterSpacing:-0.3,color:textMain}}>
@@ -3959,14 +3971,14 @@ export default function FocusGo() {
               </div>
               <span style={{fontSize:11.5,fontWeight:700,color:textMuted2}}>
                 {(() => {
-                  const left = tasks.filter(x => !x.done).length;
+                  const left = homeTodayTasks.filter(x => !x.done).length;
                   return left > 0 ? <><Num>{nf(left)}</Num> {t.taskLeftLabel}</> : t.taskAllDoneLabel;
                 })()}
               </span>
             </div>
-            {tasks.length > 0 && (() => {
-              const doneCount = tasks.filter(x => x.done).length;
-              const pct = Math.round((doneCount / tasks.length) * 100);
+            {homeTodayTasks.length > 0 && (() => {
+              const doneCount = homeTodayTasks.filter(x => x.done).length;
+              const pct = Math.round((doneCount / homeTodayTasks.length) * 100);
               return (
                 <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:12}}>
                   <div style={{flex:1, height:6, borderRadius:6, background: dark?"#2C2820":"#EFE9DC", overflow:"hidden"}}>
@@ -3976,13 +3988,13 @@ export default function FocusGo() {
                 </div>
               );
             })()}
-            {tasks.length === 0 ? (
+            {homeTodayTasks.length === 0 ? (
               <div style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"17px 14px",textAlign:"center",color:textMuted2,fontSize:12}}>
                 No tasks for today
               </div>
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                {tasks.map(x => (
+                {homeTodayTasks.map(x => (
                   <div key={x.id} style={{display:"flex",alignItems:"center",gap:10,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:"10px 12px",opacity:x.done?0.55:1}}>
                     <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:21,height:21,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
                       {x.done && <Check size={12} color="#fff" strokeWidth={3}/>}
@@ -4027,7 +4039,8 @@ export default function FocusGo() {
               </div>
             )}
           </div>
-        )}
+          );
+        })()}
 
         {/* STUDY planning section */}
         {tab === "study" && studySection === "plan" && (
@@ -4098,9 +4111,15 @@ export default function FocusGo() {
           const doneCount = tasks.filter(x => x.done).length;
           const pct = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0;
 
-          // ---- Due-date helpers: bucket a task into "today" (today/overdue/no-date) or "upcoming" ----
+          // ---- Due-date helpers: bucket a task into "overdue" (past due date), "today" (due exactly today),
+          // "nodate" (no due date set), or "upcoming" (future date) ----
           const tomorrowKey = dateKey(new Date(today.getFullYear(), today.getMonth(), today.getDate()+1));
-          const bucketOf = (x) => (!x.dueDate || x.dueDate <= todayKey) ? "today" : "upcoming";
+          const bucketOf = (x) => {
+            if (!x.dueDate) return "nodate";
+            if (x.dueDate < todayKey) return "overdue";
+            if (x.dueDate === todayKey) return "today";
+            return "upcoming";
+          };
           const dueLabel = (dk) => {
             if (!dk) return null;
             if (dk === todayKey) return { text: t.taskDueToday, color: accent };
@@ -4117,12 +4136,14 @@ export default function FocusGo() {
             ["today", t.taskFilterToday, Calendar],
             ["upcoming", t.taskFilterUpcoming, CalendarDays],
             ["done", t.taskFilterDone, Check],
+            ["overdue", t.taskFilterOverdue, CalendarClock],
           ];
 
           let filteredTasks;
           if (taskFilter === "done") filteredTasks = tasks.filter(x => x.done);
           else if (taskFilter === "today") filteredTasks = tasks.filter(x => bucketOf(x) === "today");
           else if (taskFilter === "upcoming") filteredTasks = tasks.filter(x => bucketOf(x) === "upcoming");
+          else if (taskFilter === "overdue") filteredTasks = tasks.filter(x => bucketOf(x) === "overdue");
           else filteredTasks = tasks;
 
           // ---- টাস্ক রো: কম্প্যাক্ট, প্রায়োরিটি অনুযায়ী রঙিন (বাঁ পাশের বর্ডার + হালকা টিন্ট) ----
@@ -4186,7 +4207,7 @@ export default function FocusGo() {
           };
 
 
-          const emptyMsg = taskFilter === "today" ? t.taskEmptyToday : taskFilter === "upcoming" ? t.taskEmptyUpcoming : taskFilter === "done" ? t.taskEmptyDone : t.taskEmpty;
+          const emptyMsg = taskFilter === "today" ? t.taskEmptyToday : taskFilter === "upcoming" ? t.taskEmptyUpcoming : taskFilter === "done" ? t.taskEmptyDone : taskFilter === "overdue" ? t.taskEmptyOverdue : t.taskEmpty;
 
           // ---- Calendar view: Stats ট্যাবের InlineMonthCalendar-এর মতোই একই ভিজ্যুয়াল স্টাইল (গ্রিড + legend), শুধু ডট রঙ টাস্ক অনুযায়ী (completed/pending/overdue) ----
           const renderTaskCalendarView = () => {
@@ -4367,27 +4388,34 @@ export default function FocusGo() {
                   )}
 
                   {filteredTasks.length > 0 && taskFilter === "all" ? (() => {
-                    const overdueBucket = filteredTasks.filter(x => x.dueDate && x.dueDate < todayKey);
-                    const todayBucket = filteredTasks.filter(x => bucketOf(x) === "today" && !(x.dueDate && x.dueDate < todayKey));
+                    const overdueBucket = filteredTasks.filter(x => bucketOf(x) === "overdue");
+                    const todayBucket = filteredTasks.filter(x => bucketOf(x) === "today");
                     const upcomingBucket = filteredTasks.filter(x => bucketOf(x) === "upcoming");
+                    const nodateBucket = filteredTasks.filter(x => bucketOf(x) === "nodate");
                     return (
                       <>
                         {overdueBucket.length > 0 && (
-                          <div style={{marginBottom: (todayBucket.length || upcomingBucket.length) ? 18 : 0}}>
+                          <div style={{marginBottom: (todayBucket.length || upcomingBucket.length || nodateBucket.length) ? 18 : 0}}>
                             <div style={{fontSize:11, fontWeight:700, letterSpacing:ls(1), color:"#C0392B", opacity:0.95, marginBottom:9}}>{t.taskOverdue}</div>
                             <div style={{display:"flex", flexDirection:"column", gap:9}}>{overdueBucket.map(renderTask)}</div>
                           </div>
                         )}
                         {todayBucket.length > 0 && (
-                          <div style={{marginBottom: upcomingBucket.length ? 18 : 0}}>
+                          <div style={{marginBottom: (upcomingBucket.length || nodateBucket.length) ? 18 : 0}}>
                             <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionToday}</div>
                             <div style={{display:"flex", flexDirection:"column", gap:9}}>{todayBucket.map(renderTask)}</div>
                           </div>
                         )}
                         {upcomingBucket.length > 0 && (
-                          <div>
+                          <div style={{marginBottom: nodateBucket.length ? 18 : 0}}>
                             <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionUpcoming}</div>
                             <div style={{display:"flex", flexDirection:"column", gap:9}}>{upcomingBucket.map(renderTask)}</div>
+                          </div>
+                        )}
+                        {nodateBucket.length > 0 && (
+                          <div>
+                            <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionNoDate}</div>
+                            <div style={{display:"flex", flexDirection:"column", gap:9}}>{nodateBucket.map(renderTask)}</div>
                           </div>
                         )}
                       </>
@@ -6668,11 +6696,12 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     if (!block || block === el) return; // প্রথম লাইনে এখনো কোনো wrapping div তৈরি হয়নি — স্বাভাবিক Enter চলবে
 
     const lineText = block.textContent || "";
-    const m = /^(\d+)\.[ \u00A0]?(.*)$/.exec(lineText);
+    const m = /^([0-9০-৯]+)\.[ \u00A0]?(.*)$/.exec(lineText);
     if (!m) return; // নাম্বারড লাইন না হলে স্বাভাবিক Enter আচরণই চলবে
 
     e.preventDefault();
-    const currentNum = parseInt(m[1], 10);
+    const isBn = /[০-৯]/.test(m[1]);
+    const currentNum = parseInt(fromBn(m[1]), 10);
     const restText = m[2];
 
     if (restText.trim() === "") {
@@ -6689,6 +6718,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       // তাই সরাসরি DOM/Range API দিয়ে কার্সারের পরের অংশ কেটে একটা আসল নতুন <div> বানিয়ে বসানো হচ্ছে —
       // এতে সবসময় নতুন লাইনেই নাম্বারিং শুরু হবে।
       const nextNum = currentNum + 1;
+      const nextNumStr = isBn ? toBn(nextNum) : String(nextNum);
       const range = sel.getRangeAt(0);
       const afterRange = document.createRange();
       afterRange.setStart(range.endContainer, range.endOffset);
@@ -6696,7 +6726,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       const afterFragment = afterRange.extractContents();
 
       const newDiv = document.createElement("div");
-      const prefix = document.createTextNode(`${nextNum}.\u00A0`);
+      const prefix = document.createTextNode(`${nextNumStr}.\u00A0`);
       newDiv.appendChild(prefix);
       newDiv.appendChild(afterFragment);
       block.parentNode.insertBefore(newDiv, block.nextSibling);
