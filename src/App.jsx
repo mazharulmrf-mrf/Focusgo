@@ -1856,6 +1856,13 @@ export default function FocusGo() {
   const [showSalahDropdown, setShowSalahDropdown] = useState(false);
   const [salahLocLoading, setSalahLocLoading] = useState(false);
   const [salahLocError, setSalahLocError] = useState("");
+  // কোন দিনে কোন সালাত আদায় করা হয়েছে তার হিসাব — প্রতিদিন আলাদা, তারিখ অনুযায়ী সেভ থাকে
+  const [salahCompleted, setSalahCompleted] = useState(() => {
+    try { return JSON.parse(window.localStorage.getItem("focusgo_salah_completed") || "{}"); } catch (e) { return {}; }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("focusgo_salah_completed", JSON.stringify(salahCompleted)); } catch (e) {}
+  }, [salahCompleted]);
   const salahMenuRef = useRef(null);
   useEffect(() => {
     if (!showSalahDropdown) return;
@@ -3257,6 +3264,21 @@ export default function FocusGo() {
     const found = salahTimes.find(w => now >= w.start && now < w.end);
     return found ? found.key : null;
   }, [salahTimes, now]);
+  // আজকের যে সালাতগুলো আদায় করা হয়েছে বলে টিক দেওয়া আছে
+  const todaySalahDone = salahCompleted[todayKey] || [];
+  const toggleSalahDone = (key) => {
+    vibrate();
+    setSalahCompleted(prev => {
+      const list = prev[todayKey] || [];
+      const nextList = list.includes(key) ? list.filter(k => k !== key) : [...list, key];
+      const merged = { ...prev, [todayKey]: nextList };
+      // ৯০ দিনের বেশি পুরনো এন্ট্রি মুছে ফেলা হয়, যাতে localStorage অযথা বড় না হয়
+      const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 90);
+      const cutoffKey = dateKey(cutoff);
+      Object.keys(merged).forEach(k => { if (k < cutoffKey) delete merged[k]; });
+      return merged;
+    });
+  };
   const monthName = (i) => lang === "bn" ? MONTHS_BN[i] : MONTHS_EN[i];
   const weekdayName = (d) => lang === "bn" ? WEEKDAYS_BN[d.getDay()] : WEEKDAYS_EN[d.getDay()];
   const weekdayShort = (d) => lang === "bn" ? WEEKDAYS_SHORT_BN[d.getDay()] : WEEKDAYS_SHORT_EN[d.getDay()];
@@ -3563,11 +3585,12 @@ export default function FocusGo() {
                 .replace(/\s{2,}/g, " ")
                 .trim();
 
-              // সময় অনুযায়ী গ্রিটিং — Good morning / afternoon / evening / night
-              const hr = now.getHours();
-              const greetKey = hr < 12 ? "morning" : hr < 17 ? "afternoon" : hr < 21 ? "evening" : "night";
-              const greetingEn = { morning: "Good Morning", afternoon: "Good Afternoon", evening: "Good Evening", night: "Good Night" }[greetKey];
-              const greetingBn = { morning: "শুভ সকাল", afternoon: "শুভ বিকেল", evening: "শুভ সন্ধ্যা", night: "শুভ রাত্রি" }[greetKey];
+              // সময় অনুযায়ী গ্রিটিং — Good morning / noon / afternoon / evening / night
+              // সবসময় বাংলাদেশের সময় (Asia/Dhaka) অনুযায়ী হিসাব হয়, ইউজারের ডিভাইসের টাইমজোন যাই হোক না কেন
+              const hr = parseInt(new Intl.DateTimeFormat("en-US", { hour: "2-digit", hour12: false, timeZone: "Asia/Dhaka" }).format(now), 10) % 24;
+              const greetKey = hr < 5 ? "night" : hr < 12 ? "morning" : hr < 14 ? "noon" : hr < 17 ? "afternoon" : hr < 21 ? "evening" : "night";
+              const greetingEn = { morning: "Good Morning", noon: "Good Noon", afternoon: "Good Afternoon", evening: "Good Evening", night: "Good Night" }[greetKey];
+              const greetingBn = { morning: "শুভ সকাল", noon: "শুভ দুপুর", afternoon: "শুভ বিকেল", evening: "শুভ সন্ধ্যা", night: "শুভ রাত্রি" }[greetKey];
 
               return (
                 <>
@@ -3645,6 +3668,12 @@ export default function FocusGo() {
                           <span style={{fontSize:11, fontWeight:700, color:textMuted2, letterSpacing:0.3}}>
                             {lang === "bn" ? "সালাতের সময়" : "Salah Times"}
                           </span>
+                          <span style={{display:"flex", alignItems:"center", gap:6}}>
+                            {salahCoords && salahTimes && (
+                              <span style={{fontSize:11, fontWeight:800, color: todaySalahDone.length===5 ? accent : textMuted2, fontVariantNumeric:"tabular-nums"}}>
+                                {todaySalahDone.length}/5
+                              </span>
+                            )}
                           {/* লোকেশন আইকন — সব সময় দেখা যাবে; ক্লিক করলে লাইভ লোকেশন নেয়া হবে/আপডেট হবে।
                               লোকেশন একবার সেট হয়ে গেলে আইকনটা accent রঙে "সিলেক্টেড" দেখাবে, আবার ক্লিক করলে
                               লোকেশন নতুন করে ফেচ হয়ে চেঞ্জ হবে (পারমিশন একবার দেয়া থাকলে আবার জিজ্ঞেস করবে না)। */}
@@ -3669,6 +3698,7 @@ export default function FocusGo() {
                           >
                             <MapPin size={13} color={salahCoords ? "#fff" : textMuted2} strokeWidth={2.4}/>
                           </button>
+                          </span>
                         </div>
                         {!salahCoords && (
                           <div style={{padding:"0 6px 8px", fontSize:12, color:textMuted2, lineHeight:1.5}}>
@@ -3684,15 +3714,32 @@ export default function FocusGo() {
                         )}
                         {salahCoords && salahTimes && salahTimes.map(w => {
                           const isActive = w.key === activeSalahKey;
+                          const isDone = todaySalahDone.includes(w.key);
                           return (
                             <div key={w.key} style={{
-                              display:"flex", justifyContent:"space-between", alignItems:"center",
+                              display:"flex", justifyContent:"space-between", alignItems:"center", gap:8,
                               padding:"8px 8px", borderRadius:10, marginBottom:3, fontSize:13,
                               background: isActive ? (dark ? "rgba(217,119,87,0.16)" : "#FBEAE0") : "transparent",
                               border: isActive ? `1px solid ${dark ? "rgba(217,119,87,0.4)" : "#F0CBB8"}` : "1px solid transparent",
                             }}>
-                              <span style={{color: isActive ? accent : textMain, fontWeight: isActive ? 700 : 600}}>{w.label}</span>
-                              <span style={{color: isActive ? accent : textMuted2, fontWeight: isActive ? 700 : 500, fontSize:12.5, fontVariantNumeric:"tabular-nums"}}>
+                              <span style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
+                                {/* সালাত আদায় হয়ে গেলে এখানে ট্যাপ করে টিক দেওয়া যায় — প্রতিদিনের হিসাব আলাদাভাবে সেভ থাকে */}
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); toggleSalahDone(w.key); }}
+                                  title={isDone ? (lang === "bn" ? "আদায় হয়েছে — বাতিল করতে ট্যাপ করুন" : "Marked done — tap to undo") : (lang === "bn" ? "আদায় হলে টিক দিন" : "Tap to mark as prayed")}
+                                  style={{
+                                    width:18, height:18, borderRadius:6, flexShrink:0, padding:0, cursor:"pointer",
+                                    border: isDone ? "none" : `1.5px solid ${isActive ? accent : cardBorder}`,
+                                    background: isDone ? accent : "transparent",
+                                    display:"flex", alignItems:"center", justifyContent:"center",
+                                    transition:"background .15s ease, border-color .15s ease",
+                                  }}
+                                >
+                                  {isDone && <Check size={12} color="#fff" strokeWidth={3}/>}
+                                </button>
+                                <span style={{color: isActive ? accent : textMain, fontWeight: isActive ? 700 : 600, opacity: isDone ? 0.7 : 1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{w.label}</span>
+                              </span>
+                              <span style={{color: isActive ? accent : textMuted2, fontWeight: isActive ? 700 : 500, fontSize:12.5, fontVariantNumeric:"tabular-nums", flexShrink:0, opacity: isDone ? 0.7 : 1}}>
                                 {fmtSalahTime(w.start)} – {fmtSalahTime(w.end)}
                               </span>
                             </div>
@@ -4059,11 +4106,11 @@ export default function FocusGo() {
                 {lang === "bn" ? `পরের ${nf(planRange)} দিন` : `Next ${nf(planRange)} Days`}
               </div>
               {/* range selector: 7/15/30/60/90 দিনের মধ্যে বেছে নেওয়া যায়, পছন্দ মনে থাকে */}
-              <div style={{display:"flex", gap:3, background: dark?"#211E19":"#F0EBDF", borderRadius:10, padding:3, flexShrink:0}}>
+              <div style={{display:"flex", gap:3, background: dark?"#211E19":"#F0EBDF", borderRadius:16, padding:3, flexShrink:0}}>
                 {[7,15,30,60,90].map(r => (
                   <button key={r} onClick={()=>setPlanRange(r)} style={{
                     border:"none", cursor:"pointer", fontFamily:"inherit", fontWeight:700, fontSize:10.5,
-                    padding:"5px 8px", borderRadius:8,
+                    padding:"5px 8px", borderRadius:12,
                     background: planRange===r ? accent : "transparent",
                     color: planRange===r ? "#FFFFFF" : textMuted2,
                     transition:"background .15s ease, color .15s ease"
