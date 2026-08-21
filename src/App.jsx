@@ -3476,6 +3476,8 @@ export default function FocusGo() {
         input:focus, select:focus, textarea:focus { outline: 2px solid rgba(217,119,87,0.30); outline-offset: 1px; transition: outline-color .15s ease; }
         .fg-week-strip { scrollbar-width: none; -ms-overflow-style: none; }
         .fg-week-strip::-webkit-scrollbar { display: none; }
+        .fg-chip-row { scrollbar-width: none; -ms-overflow-style: none; }
+        .fg-chip-row::-webkit-scrollbar { display: none; }
       `}</style>
       {isDesktop && !sidebarHidden && (
         <DesktopSidebar t={t} tab={tab} setTab={setTab} vibrate={vibrate} dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(v => !v)} onHideAll={() => setSidebarHidden(true)} />
@@ -4360,15 +4362,15 @@ export default function FocusGo() {
 
               {taskViewMode === "list" ? (
                 <>
-                  <div style={{display:"flex", gap:8, marginBottom:14, overflowX:"auto"}}>
+                  <div className="fg-chip-row" style={{display:"flex", gap:6, marginBottom:14, overflowX:"auto"}}>
                     {filterChips.map(([key,label,Icon]) => (
                       <button key={key} onClick={()=>{vibrate(); setTaskFilter(key);}} style={{
-                        display:"flex", alignItems:"center", gap:5, padding:"7px 13px", borderRadius:20, cursor:"pointer", flexShrink:0,
+                        display:"flex", alignItems:"center", gap:4, padding:"6px 10px", borderRadius:20, cursor:"pointer", flexShrink:0,
                         border:`1px solid ${taskFilter===key ? accent : cardBorder}`,
                         background: taskFilter===key ? accent : "transparent",
-                        color: taskFilter===key ? "#fff" : textMuted2, fontWeight:700, fontSize:12,
+                        color: taskFilter===key ? "#fff" : textMuted2, fontWeight:700, fontSize:10.5, whiteSpace:"nowrap",
                       }}>
-                        <Icon size={12}/> {label}
+                        <Icon size={10}/> {label}
                       </button>
                     ))}
                   </div>
