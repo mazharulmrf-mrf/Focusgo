@@ -1618,7 +1618,7 @@ function RecentTopicChips({ topics, onPick, accent, cardBorder, textMuted2, dark
 
 
 // Renders digits in Noto Sans Bengali (clean, reliable Bengali numeral rendering, Google-hosted).
-const Num = ({ children }) => <span style={{ fontFamily: "'Noto Sans Bengali','Hind Siliguri',serif" }}>{children}</span>;
+const Num = ({ children }) => <span style={{ fontFamily: "'Noto Sans Bengali',serif" }}>{children}</span>;
 
 // Light haptic tick for navigation (tabs, opening calendar/day views, etc).
 // নেটিভ অ্যাপে (Capacitor build) navigator.vibrate() কাজ করে না — তাই নেটিভ প্ল্যাটফর্মে আসল Haptics প্লাগিন ব্যবহার করা হচ্ছে,
@@ -1819,7 +1819,7 @@ export default function FocusGo() {
     addLink("preconnect", "https://fonts.gstatic.com", { crossOrigin: "anonymous" });
     // আসল ফন্ট stylesheet — এবার real <link>, তাই ব্রাউজার এটাকে render-blocking resource
     // হিসেবে priority দিয়ে আগেভাগে ফেচ করে, `@import`-এর মতো দেরি করে না
-    addLink("stylesheet", "https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&family=Bebas+Neue&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap");
+    addLink("stylesheet", "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap");
   }, []);
 
   const breakpoint = useViewport(); // "mobile" | "tablet" | "desktop"
@@ -3309,7 +3309,7 @@ export default function FocusGo() {
   const containerPadding = isDesktop ? "24px 28px 36px" : breakpoint === "tablet" ? "22px 24px 28px" : "18px 16px 24px";
 
   const styles = {
-    page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Hind Siliguri','Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column" },
+    page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column" },
     container: { maxWidth: containerMaxWidth, margin: "0 auto", padding: containerPadding, width:"100%", boxSizing:"border-box", flex:"1 0 auto", transition: "max-width .2s ease" },
   };
 
@@ -3394,7 +3394,7 @@ export default function FocusGo() {
         alignItems:"center",
         justifyContent:"center",
         overflow:"hidden",
-        fontFamily:lang === "bn" ? "'Hind Siliguri','Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif",
+        fontFamily:lang === "bn" ? "'Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif",
       }}>
         <div style={{
           display:"flex",
@@ -4228,14 +4228,13 @@ export default function FocusGo() {
 
           // ---- টাস্ক রো: কম্প্যাক্ট, প্রায়োরিটি অনুযায়ী রঙিন (বাঁ পাশের বর্ডার + হালকা টিন্ট) ----
           // ক্যাটাগরি/প্রায়োরিটি/ডিউ-ডেট ব্যাজ এখানে দেখানো হয় না — রো-এর রংই প্রায়োরিটি বোঝায়, বাকি ডিটেইল ট্যাপ করলে দেখা যায়
-          const prBg = { high: "rgba(192,57,43,0.09)", med: `${accent}17`, low: "rgba(110,139,94,0.09)" };
           const renderTask = (x) => {
             const pr = x.priority || "med";
             const borderColor = x.done ? "#6E8B5E" : prColor[pr];
             return (
               <div key={x.id} onClick={()=>setTaskDetailId(x.id)} style={{
-                background: x.done ? "rgba(110,139,94,0.07)" : prBg[pr],
-                borderLeft: `3px solid ${borderColor}`,
+                background: cardBg,
+                border: `1px solid ${cardBorder}`,
                 borderRadius:12, padding:"9px 10px", display:"flex", alignItems:"center", gap:9, position:"relative", cursor:"pointer",
                 transition:"background .15s ease",
               }}>
@@ -4996,7 +4995,7 @@ function FlipBlock({ children, textMain, dark, stacked, running, blockWidth, blo
       boxShadow: (!running && !dark) ? "0 6px 18px rgba(33,29,24,0.06)" : "none",
     }}>
       <div style={{
-        fontFamily:"'Bebas Neue','Hind Siliguri',sans-serif",
+        fontFamily:"'Bebas Neue','Noto Sans Bengali',sans-serif",
         fontSize: stacked ? "clamp(100px, 36vw, 230px)" : "clamp(80px, 20vw, 170px)",
         fontWeight:400,
         lineHeight:1,
@@ -5065,7 +5064,7 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
       <span style={{width:"clamp(7px,1.8vw,11px)", height:"clamp(7px,1.8vw,11px)", borderRadius:"50%", background:fgMuted}}/>
     </div>
   ) : (
-    <div style={{fontFamily:"'Bebas Neue','Hind Siliguri',sans-serif", fontSize:"clamp(55px,11vw,100px)", fontWeight:400, color:fgMuted, marginBottom:6}}>:</div>
+    <div style={{fontFamily:"'Bebas Neue','Noto Sans Bengali',sans-serif", fontSize:"clamp(55px,11vw,100px)", fontWeight:400, color:fgMuted, marginBottom:6}}>:</div>
   );
 
   const clockDigits = (
