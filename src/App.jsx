@@ -3291,7 +3291,7 @@ export default function FocusGo() {
   const cardBorder = dark ? "#2C2820" : "#E9E3D6";
   const textMain = dark ? "#F3EFE7" : "#211D18";
   const textMuted = dark ? "#9C948400" : "#8A8272";
-  const textMuted2 = dark ? "#A69E8C" : "#756D5D"; // light mode: আগের #8A8272-এ contrast ~3.8:1 ছিল (WCAG AA normal text ফেল করত), এখন ~5:1
+  const textMuted2 = dark ? "#B7AE9B" : "#756D5D"; // dark mode: আগের #A69E8C-তে contrast কম ছিল, brighten করা হলো; light mode: আগের #8A8272-এ contrast ~3.8:1 ছিল (WCAG AA normal text ফেল করত), এখন ~5:1
   const accent = "#D97757";
   const accentLight = dark ? "#3A2A22" : "#FBEAE0"; // primary light — very light peach, শুধু active/selected state-এর হালকা background-এ ব্যবহার হবে
   const neutralIconBg = dark ? "#26231D" : "#F3EEE3"; // decorative icon/avatar background — orange নয়, warm neutral
@@ -4347,15 +4347,15 @@ export default function FocusGo() {
                   <div style={{display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8}}>
                     <div style={{textAlign:"center"}}>
                       <div style={{fontSize:17, fontWeight:800, color:textMain}}><Num>{nf(monthTotal)}</Num></div>
-                      <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65, marginTop:2}}>{t.taskCalMonthTotal}</div>
+                      <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.8, marginTop:2}}>{t.taskCalMonthTotal}</div>
                     </div>
                     <div style={{textAlign:"center"}}>
                       <div style={{fontSize:17, fontWeight:800, color:"#6E8B5E"}}><Num>{nf(monthDone)}</Num></div>
-                      <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65, marginTop:2}}>{t.taskCalMonthCompleted}</div>
+                      <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.8, marginTop:2}}>{t.taskCalMonthCompleted}</div>
                     </div>
                     <div style={{textAlign:"center"}}>
                       <div style={{fontSize:17, fontWeight:800, color: monthOverdue > 0 ? "#C0392B" : textMain}}><Num>{nf(monthOverdue)}</Num></div>
-                      <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65, marginTop:2}}>{t.taskCalMonthOverdue}</div>
+                      <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.8, marginTop:2}}>{t.taskCalMonthOverdue}</div>
                     </div>
                   </div>
                 </div>
@@ -4562,18 +4562,18 @@ export default function FocusGo() {
             <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:20}}>
               <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"16px 8px 14px", display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:8}}>
                 <div style={{width:30,height:30, borderRadius:9, background:`rgba(110,139,94,0.15)`, display:"flex", alignItems:"center", justifyContent:"center"}}><Check size={14} color="#6E8B5E"/></div>
-                <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.2, color:textMain, lineHeight:1.1}}><Num>{nf(studyOverview.doneCount)}</Num></div>
-                <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65}}>{t.topicsCompletedLabel}</div>
+                <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.2, color:"#6E8B5E", lineHeight:1.1}}><Num>{nf(studyOverview.doneCount)}</Num></div>
+                <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.8}}>{t.topicsCompletedLabel}</div>
               </div>
               <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"16px 8px 14px", display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:8}}>
-                <div style={{width:30,height:30, borderRadius:9, background: dark?"#26231D":"#F3EEE3", display:"flex", alignItems:"center", justifyContent:"center"}}><TrendingUp size={14} color={dark ? "#C9C0AC" : "#6B6353"}/></div>
-                <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.2, color:textMain, lineHeight:1.1}}><Num>{nf(studyOverview.pct)}</Num>%</div>
-                <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65}}>{t.completionLabel}</div>
+                <div style={{width:30,height:30, borderRadius:9, background: dark?"rgba(76,143,166,0.2)":"rgba(76,143,166,0.12)", display:"flex", alignItems:"center", justifyContent:"center"}}><TrendingUp size={14} color="#4C8FA6"/></div>
+                <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.2, color:"#4C8FA6", lineHeight:1.1}}><Num>{nf(studyOverview.pct)}</Num>%</div>
+                <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.8}}>{t.completionLabel}</div>
               </div>
               <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"16px 8px 14px", display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:8}}>
-                <div style={{width:30,height:30, borderRadius:9, background: dark?"#2C2820":"#EFE9DC", display:"flex", alignItems:"center", justifyContent:"center"}}><Flame size={14} color={textMain}/></div>
-                <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.2, color:textMain, lineHeight:1.1}}><Num>{nf(studyOverview.streak)}</Num></div>
-                <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.65}}>{t.streakLabel}</div>
+                <div style={{width:30,height:30, borderRadius:9, background: dark?"rgba(192,138,46,0.2)":"rgba(192,138,46,0.12)", display:"flex", alignItems:"center", justifyContent:"center"}}><Flame size={14} color="#C08A2E"/></div>
+                <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.2, color:"#C08A2E", lineHeight:1.1}}><Num>{nf(studyOverview.streak)}</Num></div>
+                <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, opacity:0.8}}>{t.streakLabel}</div>
               </div>
             </div>
 
@@ -4696,7 +4696,7 @@ export default function FocusGo() {
                           {hh > 0 ? <><Num>{nf(hh)}</Num>h<Num>{nf(mm)}</Num></> : <Num>{nf(mm)}</Num>}
                         </span>
                       ) : <span style={{fontSize:8.5, height:11}}/>}
-                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:6, background: w.min>0 ? (isToday ? accent : "#4C8FA655") : (dark?"#2C2820":"#EFE9DC"), transition:"height .3s"}}/>
+                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:6, background: w.min>0 ? (isToday ? accent : "#4C8FA655") : (dark?"#3A342A":"#F2ECDF"), border: w.min>0 ? "none" : `1px dashed ${textMuted2}55`, boxSizing:"border-box", transition:"height .3s"}}/>
                       <span style={{fontSize:9, fontWeight:700, color: isToday?accent:textMuted2}}>{weekdayShort(w.day)}</span>
                     </div>
                   );
@@ -4735,7 +4735,7 @@ export default function FocusGo() {
                           {hh > 0 ? <><Num>{nf(hh)}</Num>h<Num>{nf(mm)}</Num></> : <Num>{nf(mm)}</Num>}
                         </span>
                       ) : <span style={{fontSize:8.5, height:11}}/>}
-                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:6, background: w.min>0 ? (isCurrent ? accent : "#4C8FA655") : (dark?"#2C2820":"#EFE9DC"), transition:"height .3s"}}/>
+                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:6, background: w.min>0 ? (isCurrent ? accent : "#4C8FA655") : (dark?"#3A342A":"#F2ECDF"), border: w.min>0 ? "none" : `1px dashed ${textMuted2}55`, boxSizing:"border-box", transition:"height .3s"}}/>
                       <span style={{fontSize:9, fontWeight:700, color: isCurrent?accent:textMuted2}}>{t.weekLabelShort}<Num>{nf(w.weekNum)}</Num></span>
                     </div>
                   );
@@ -4760,7 +4760,7 @@ export default function FocusGo() {
                 <span style={{width:7,height:7,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
               </span>
               <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10.5, color:textMuted2, fontWeight:600}}>
-                <span style={{width:7,height:7,borderRadius:"50%", background:"#1A1814"}}/>{t.calendarLegendExam}
+                <span style={{width:7,height:7,borderRadius:"50%", background: dark ? "#F3EFE7" : "#1A1814"}}/>{t.calendarLegendExam}
               </span>
               <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10.5, color:textMuted2, fontWeight:600}}>
                 <span style={{width:7,height:7,borderRadius:"50%", background:"#4C8FA6"}}/>{t.calendarLegendPlanned}
@@ -5740,6 +5740,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
 
 function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBorder, textMuted2, accent, dark, allSubjects, mode, crossWeekResolve }) {
   const ls = (px) => (lang === "bn" ? 0 : px);
+  const textMain = dark ? "#F3EFE7" : "#211D18";
   // Subject-level catch-up: if a subject has any completed entry in this range,
   // its not-yet-done entries in the same range are treated as caught up too.
   const doneSubjects = new Set(entries.filter(e => e.done).map(e => e.subject));
@@ -5800,7 +5801,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
           <div style={{display:"flex", flexDirection:"column", gap:10}}>
             {Object.keys(subjMinutes).length === 0 && (
               <div style={{textAlign:"center", padding:"26px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16, display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
-                <BarChart3 size={20} style={{opacity:0.45}}/>
+                <BarChart3 size={20} style={{opacity:0.6}}/>
                 {t.noTimeData}
               </div>
             )}
@@ -5825,7 +5826,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
         <div style={{display:"flex", flexDirection:"column", gap:10, marginBottom:20}}>
           {Object.entries(subjTotals).length === 0 && (
             <div style={{textAlign:"center", padding:"26px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16, display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
-              <Calendar size={20} style={{opacity:0.45}}/>
+              <Calendar size={20} style={{opacity:0.6}}/>
               {t.noSubjectData}
             </div>
           )}
@@ -5850,13 +5851,13 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
       <SubjectGroupedList entries={effectiveEntries} nf={nf} t={t}
         remainingLabel={t.missed} doneLabel={t.covered}
         remainingEmptyText={t.noneMissed} doneEmptyText={t.noneCovered}
-        cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent}/>
+        cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
     </div>
   );
 }
 
 // Read-only subject-grouped list: remaining topics first, then done topics.
-function SubjectGroupedList({ entries, nf, t, remainingLabel, doneLabel, remainingEmptyText, doneEmptyText, cardBg, cardBorder, textMuted2, accent }) {
+function SubjectGroupedList({ entries, nf, t, remainingLabel, doneLabel, remainingEmptyText, doneEmptyText, cardBg, cardBorder, textMain, textMuted2, accent }) {
   const remaining = {}, done = {};
   entries.forEach(e => {
     const bucket = e.done ? done : remaining;
@@ -5870,10 +5871,10 @@ function SubjectGroupedList({ entries, nf, t, remainingLabel, doneLabel, remaini
   return (
     <div style={{display:"flex", flexDirection:"column", gap:18}}>
       <div>
-        <div style={{fontSize:12, fontWeight:700, color:"#211D18", marginBottom:8}}>✕ {remainingLabel} (<Num>{nf(remainingCount)}</Num>)</div>
+        <div style={{fontSize:12, fontWeight:700, color:textMain, marginBottom:8}}>✕ {remainingLabel} (<Num>{nf(remainingCount)}</Num>)</div>
         {remainingSubjects.length === 0 ?
           <div style={{textAlign:"center", padding:"18px 10px", color:textMuted2, fontSize:12, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", gap:6}}>
-            <Check size={16} style={{opacity:0.45, color:"#6E8B5E"}}/>
+            <Check size={16} style={{opacity:0.7, color:"#6E8B5E"}}/>
             {remainingEmptyText}
           </div> :
           <div style={{display:"flex", flexDirection:"column", gap:10}}>
@@ -5893,7 +5894,7 @@ function SubjectGroupedList({ entries, nf, t, remainingLabel, doneLabel, remaini
         <div style={{fontSize:12, fontWeight:700, color:"#6E8B5E", marginBottom:8}}>✓ {doneLabel} (<Num>{nf(doneCount)}</Num>)</div>
         {doneSubjects.length === 0 ?
           <div style={{textAlign:"center", padding:"18px 10px", color:textMuted2, fontSize:12, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", gap:6}}>
-            <Folder size={16} style={{opacity:0.45}}/>
+            <Folder size={16} style={{opacity:0.6}}/>
             {doneEmptyText}
           </div> :
           <div style={{display:"flex", flexDirection:"column", gap:10}}>
@@ -5953,7 +5954,7 @@ function TopicSummaryPeriodCard({ label, rangeLabel, isComplete, pendingText, co
         <SubjectGroupedList entries={entries} nf={nf} t={t}
           remainingLabel={t.missed} doneLabel={t.covered}
           remainingEmptyText={t.noneMissed} doneEmptyText={t.noneCovered}
-          cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} accent={accent}/>
+          cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
       )}
     </div>
   );
@@ -6520,7 +6521,7 @@ function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSe
                   background: isSelected ? accent : "transparent",
                   border: isToday && !isSelected ? `1px solid ${accent}` : "none",
                   color: isSelected ? "#fff" : textMain}}>
-                  {isExam && <span style={{position:"absolute", top:-2, right:-2, width:5, height:5, borderRadius:"50%", background:"#1A1814"}}/>}
+                  {isExam && <span style={{position:"absolute", top:-2, right:-2, width:5, height:5, borderRadius:"50%", background: dark ? "#F3EFE7" : "#1A1814"}}/>}
                   {isHoliday && <span style={{position:"absolute", top:-2, left:-2, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
                   <Num>{nf(d.getDate())}</Num>
                 </div>
@@ -8096,7 +8097,7 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
               <button key={i} onClick={()=>onSelectDay(d)} disabled={future && !hasAny}
                 title={isHoliday ? holidayName(dk, lang) : undefined}
                 style={{position:"relative", aspectRatio:"1", border: isToday ? `1.5px solid ${accent}` : "1px solid transparent", borderRadius:10, background: dark?"#121110":"#F8F5EE", cursor:(future&&!hasAny)?"default":"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:3, opacity: (future&&!hasAny)?0.4:1}}>
-                {isExam && <span style={{position:"absolute", top:4, right:4, width:5, height:5, borderRadius:"50%", background:"#1A1814"}}/>}
+                {isExam && <span style={{position:"absolute", top:4, right:4, width:5, height:5, borderRadius:"50%", background: dark ? "#F3EFE7" : "#1A1814"}}/>}
                 {isHoliday && <span style={{position:"absolute", top:4, left:4, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
                 <span style={{fontSize:12, fontWeight:600, color:textMain}}><Num>{nf(d.getDate())}</Num></span>
                 <span style={{width:5,height:5,borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : "#4C8FA6")}}/>
@@ -8110,7 +8111,7 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
             <span style={{width:6,height:6,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
           </span>
           <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10, color:textMuted2, fontWeight:600}}>
-            <span style={{width:6,height:6,borderRadius:"50%", background:"#1A1814"}}/>{t.calendarLegendExam}
+            <span style={{width:6,height:6,borderRadius:"50%", background: dark ? "#F3EFE7" : "#1A1814"}}/>{t.calendarLegendExam}
           </span>
           <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10, color:textMuted2, fontWeight:600}}>
             <span style={{width:6,height:6,borderRadius:"50%", background:"#4C8FA6"}}/>{t.calendarLegendPlanned}
