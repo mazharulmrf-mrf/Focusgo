@@ -4339,12 +4339,8 @@ export default function FocusGo() {
                 </div>
               </div>
 
-              <div style={{height:8, borderRadius:20, background: dark?"#2C2820":"#EFE9DC", marginBottom:16, overflow:"hidden"}}>
-                <div style={{height:"100%", width:`${pct}%`, background:accent, borderRadius:20, transition:"width .3s ease"}}/>
-              </div>
-
               {/* List / Calendar ভিউ টগল — Study Plan/Stats-এর মতো একই underline-tab স্টাইল */}
-              <div style={{display:"flex", gap:22, marginBottom:12, borderBottom:`1px solid ${cardBorder}`}}>
+              <div style={{display:"flex", gap:22, marginBottom:14, borderBottom:`1px solid ${cardBorder}`}}>
                 {[["list", t.taskViewList, List], ["calendar", t.taskViewCalendar, CalendarRange]].map(([key,label,Icon]) => {
                   const active = taskViewMode === key;
                   return (
@@ -4360,9 +4356,6 @@ export default function FocusGo() {
                     </button>
                   );
                 })}
-              </div>
-              <div style={{fontSize:11, color:textMuted2, fontWeight:600, marginBottom:14, opacity:0.85}}>
-                {taskViewMode === "list" ? t.taskViewListHint : t.taskViewCalendarHint}
               </div>
 
               {taskViewMode === "list" ? (
