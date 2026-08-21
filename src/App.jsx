@@ -331,13 +331,13 @@ function UserMenu({ onOpenProfile, onOpenSettings, cardBorder, cardBg, textMain,
     <div style={{position:"relative", flexShrink:0}}>
       <button
         onClick={() => setOpen(v => !v)}
-        style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMain, borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, overflow:"hidden", padding:0 }}
+        style={{ border: `1px solid ${cardBorder}`, background: cardBg, color: textMain, borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, overflow:"hidden", padding:0 }}
         title={profileLabel}
       >
         {user && user.photoURL ? (
           <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
         ) : (
-          <User size={16} />
+          <User size={14} />
         )}
       </button>
       {open && (
@@ -377,12 +377,12 @@ function NotificationBell({ t, lang, notifications, onMarkAllRead, onClear, card
     <div style={{ position: "relative", flexShrink: 0 }}>
       <button
         onClick={() => { setOpen(v => !v); if (!open) onMarkAllRead(); }}
-        style={{ position: "relative", border: `1px solid ${cardBorder}`, background: cardBg, color: textMuted2, borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
+        style={{ position: "relative", border: `1px solid ${cardBorder}`, background: cardBg, color: textMuted2, borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
         title={t.notifications}
       >
-        <Bell size={16} />
+        <Bell size={14} />
         {unreadCount > 0 && (
-          <span style={{ position: "absolute", top: -2, right: -2, minWidth: 15, height: 15, padding: "0 3px", borderRadius: "50%", background: "#C0392B", color: "#fff", fontSize: 9, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>
+          <span style={{ position: "absolute", top: -2, right: -2, minWidth: 14, height: 14, padding: "0 3px", borderRadius: "50%", background: "#C0392B", color: "#fff", fontSize: 8.5, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -3291,7 +3291,7 @@ export default function FocusGo() {
   const cardBorder = dark ? "#2C2820" : "#E9E3D6";
   const textMain = dark ? "#F3EFE7" : "#211D18";
   const textMuted = dark ? "#9C948400" : "#8A8272";
-  const textMuted2 = dark ? "#A69E8C" : "#8A8272";
+  const textMuted2 = dark ? "#A69E8C" : "#756D5D"; // light mode: আগের #8A8272-এ contrast ~3.8:1 ছিল (WCAG AA normal text ফেল করত), এখন ~5:1
   const accent = "#D97757";
   const accentLight = dark ? "#3A2A22" : "#FBEAE0"; // primary light — very light peach, শুধু active/selected state-এর হালকা background-এ ব্যবহার হবে
   const neutralIconBg = dark ? "#26231D" : "#F3EEE3"; // decorative icon/avatar background — orange নয়, warm neutral
@@ -3507,6 +3507,14 @@ export default function FocusGo() {
         .fg-week-strip::-webkit-scrollbar { display: none; }
         .fg-chip-row { scrollbar-width: none; -ms-overflow-style: none; }
         .fg-chip-row::-webkit-scrollbar { display: none; }
+
+        /* ---- micro-interactions: timer / task completion / progress ---- */
+        @keyframes fg-pulse-soft { 0%, 100% { opacity:1; } 50% { opacity:0.82; } }
+        .fg-timer-running { animation: fg-pulse-soft 2.2s ease-in-out infinite; }
+        @keyframes fg-check-pop { 0% { transform:scale(0.6); } 60% { transform:scale(1.15); } 100% { transform:scale(1); } }
+        .fg-check-pop { animation: fg-check-pop .28s cubic-bezier(0.34,1.56,0.64,1); }
+        @keyframes fg-ring-pop { 0% { transform:scale(1); } 50% { transform:scale(1.06); } 100% { transform:scale(1); } }
+        .fg-ring-pop { animation: fg-ring-pop .35s cubic-bezier(0.34,1.56,0.64,1); }
       `}</style>
       {isDesktop && !sidebarHidden && (
         <DesktopSidebar t={t} tab={tab} setTab={setTab} vibrate={vibrate} dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(v => !v)} onHideAll={() => setSidebarHidden(true)} />
@@ -3538,8 +3546,8 @@ export default function FocusGo() {
             )}
             <button onClick={()=>{vibrate(); setThemeMode(themeMode==="system" ? "light" : themeMode==="light" ? "dark" : "system");}}
               title={themeMode==="system" ? t.themeSystem : themeMode==="light" ? t.themeLight : t.themeDark}
-              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
-              {themeMode==="system" ? <Contrast size={16}/> : themeMode==="light" ? <Sun size={16}/> : <Moon size={16}/>}
+              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
+              {themeMode==="system" ? <Contrast size={14}/> : themeMode==="light" ? <Sun size={14}/> : <Moon size={14}/>}
             </button>
             <NotificationBell
               t={t} lang={lang} notifications={notifications}
@@ -3637,6 +3645,7 @@ export default function FocusGo() {
                           background:"transparent", border:"none",
                           display:"flex", alignItems:"center", justifyContent:"center",
                           cursor:"pointer", padding:0, position:"relative",
+                          marginTop:-4,
                         }}
                         title={lang === "bn" ? "সালাতের সময়" : "Salah times"}
                       >
@@ -3795,7 +3804,7 @@ export default function FocusGo() {
         )}
         {/* Focus timer - main home of Study tab (Study Plan sub-section) */}
         {tab === "study" && studySection === "plan" && (
-        <div className="fg-tab-panel" style={{marginTop:16, background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:22, padding:"14px 18px 16px", color:textMain, boxShadow: dark ? "0 10px 28px rgba(0,0,0,0.35)" : `0 10px 28px ${accent}1F`, position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:14, background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:20, padding:"11px 16px 12px", color:textMain, boxShadow: dark ? "0 10px 28px rgba(0,0,0,0.35)" : `0 10px 28px ${accent}1F`, position:"relative", overflow:"hidden"}}>
           <div style={{position:"absolute", top:-50, right:-50, width:130, height:130, borderRadius:"50%", background:`${accent}14`, pointerEvents:"none"}}/>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", position:"relative"}}>
             <span style={{fontSize:11, letterSpacing:ls(1.5), fontWeight:800, color:textMuted2}}>{t.focusTimer}</span>
@@ -3813,7 +3822,7 @@ export default function FocusGo() {
           {focusMode === "timer" ? (
             <>
               {/* Session Type dropdown: Focus নাকি Break এখন সেট করা হচ্ছে */}
-              <div style={{display:"flex", justifyContent:"center", marginTop:8}}>
+              <div style={{display:"flex", justifyContent:"center", marginTop:6}}>
                 <select
                   value={sessionType}
                   disabled={timerRunning}
@@ -3824,7 +3833,7 @@ export default function FocusGo() {
                   <option value="break">{t.breakOption}</option>
                 </select>
               </div>
-              <div style={{textAlign:"center", margin: timerRunning ? "6px 0 4px" : "4px 0 2px", transition:"margin .25s ease"}}>
+              <div style={{textAlign:"center", margin: timerRunning ? "4px 0 2px" : "3px 0 1px", transition:"margin .25s ease"}}>
                 {editingDuration ? (
                   <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4}}>
                     <input
@@ -3841,7 +3850,7 @@ export default function FocusGo() {
                     <span style={{fontSize:14, fontWeight:700, color:textMuted2}}>{t.minutes}</span>
                   </div>
                 ) : (
-                  <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} style={{fontSize: timerRunning ? 46 : 36, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
+                  <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined} style={{fontSize: timerRunning ? 42 : 32, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
                     <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
                   </div>
                 )}
@@ -3887,18 +3896,18 @@ export default function FocusGo() {
                   </div>
                 )}
               </div>
-              <div style={{display:"flex", gap:8, marginTop:10}}>
+              <div style={{display:"flex", gap:8, marginTop:8}}>
                 <button
                   onClick={toggleTimerRunning}
-                  style={{flex:1, background: accent, border:"none", borderRadius:16, padding:"14px 0", color:"#fff", fontWeight:800, fontSize:15, display:"flex",alignItems:"center",justifyContent:"center", gap:7, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`}}>
+                  style={{flex:1, background: accent, border:"none", borderRadius:14, padding:"11px 0", color:"#fff", fontWeight:800, fontSize:15, display:"flex",alignItems:"center",justifyContent:"center", gap:7, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`}}>
                   {timerRunning ? <Pause size={17} fill="#fff"/> : <Play size={17} fill="#fff"/>} {timerRunning ? t.pause : t.start}
                 </button>
-                <button onClick={()=>{setTimerRunning(false); setTimerSeconds(timerTotal);}} style={{background: dark?"#332E25":"#F0DCC9", border:"none", borderRadius:16, width:50, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+                <button onClick={()=>{setTimerRunning(false); setTimerSeconds(timerTotal);}} style={{background: dark?"#332E25":"#F0DCC9", border:"none", borderRadius:14, width:44, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
                   <RotateCcw size={17} color={textMain}/>
                 </button>
               </div>
               {/* Pomodoro cycle progress: Session X/N + ●●○○○ — N dynamic হয় যদি টপিক থেকে multi-session শুরু হয় */}
-              <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:3, marginTop:8}}>
+              <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:3, marginTop:6}}>
                 <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>
                   {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num>
                 </div>
@@ -3918,8 +3927,8 @@ export default function FocusGo() {
             </>
           ) : (
             <>
-              <div style={{textAlign:"center", margin: stopwatchRunning ? "6px 0 4px" : "4px 0 2px", transition:"margin .25s ease"}}>
-                <div style={{fontSize: stopwatchRunning ? 46 : 36, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", lineHeight:1}}>
+              <div style={{textAlign:"center", margin: stopwatchRunning ? "4px 0 2px" : "3px 0 1px", transition:"margin .25s ease"}}>
+                <div className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize: stopwatchRunning ? 42 : 32, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", lineHeight:1}}>
                   <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
                 </div>
                 {!stopwatchRunning ? (
@@ -3945,13 +3954,13 @@ export default function FocusGo() {
                   </div>
                 )}
               </div>
-              <div style={{display:"flex", gap:8, marginTop:10}}>
+              <div style={{display:"flex", gap:8, marginTop:8}}>
                 <button
                   onClick={toggleStopwatchRunning}
-                  style={{flex:1, background: accent, border:"none", borderRadius:16, padding:"14px 0", color:"#fff", fontWeight:800, fontSize:15, display:"flex",alignItems:"center",justifyContent:"center", gap:7, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`}}>
+                  style={{flex:1, background: accent, border:"none", borderRadius:14, padding:"11px 0", color:"#fff", fontWeight:800, fontSize:15, display:"flex",alignItems:"center",justifyContent:"center", gap:7, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`}}>
                   {stopwatchRunning ? <Pause size={17} fill="#fff"/> : <Play size={17} fill="#fff"/>} {stopwatchRunning ? t.pause : t.start}
                 </button>
-                <button onClick={()=>{setStopwatchRunning(false); setStopwatchSeconds(0);}} style={{background: dark?"#332E25":"#F0DCC9", border:"none", borderRadius:16, width:50, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+                <button onClick={()=>{setStopwatchRunning(false); setStopwatchSeconds(0);}} style={{background: dark?"#332E25":"#F0DCC9", border:"none", borderRadius:14, width:44, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
                   <RotateCcw size={17} color={textMain}/>
                 </button>
               </div>
@@ -4006,7 +4015,8 @@ export default function FocusGo() {
             onToggle={(id)=>toggleDoneFor(todayKey, id)} onStartTimer={startTimerFor}
             onEdit={(item)=>setEditTopic({...item, _dk: todayKey})} onDelete={(id)=>deleteTopicFor(todayKey, id)}
             onRename={(item, newTopic)=>saveEditFor(todayKey, {...item, topic:newTopic})}
-            emptyText={t.noTopicsToday}/>
+            emptyText={t.noTopicsToday} emptyIcon={GraduationCap}
+            onEmptyAdd={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} emptyAddLabel={t.addTopic}/>
         </div>
         )}
 
@@ -4045,8 +4055,14 @@ export default function FocusGo() {
               );
             })()}
             {homeTodayTasks.length === 0 ? (
-              <div style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"17px 14px",textAlign:"center",color:textMuted2,fontSize:12}}>
-                No tasks for today
+              <div style={{background:cardBg,border:`1px dashed ${cardBorder}`,borderRadius:16,padding:"28px 16px",textAlign:"center",color:textMuted2,fontSize:13}}>
+                <div style={{width:40, height:40, borderRadius:"50%", background: `${accent}14`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 10px"}}>
+                  <Check size={19} color={accent} strokeWidth={2}/>
+                </div>
+                <div style={{fontWeight:700, color:textMain, fontSize:13.5}}>{t.taskEmptyToday}</div>
+                <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}} style={{marginTop:14, display:"inline-flex", alignItems:"center", gap:5, border:"none", background:accent, color:"#fff", borderRadius:12, padding:"8px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+                  <Plus size={13}/> {t.taskAdd}
+                </button>
               </div>
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
@@ -5180,18 +5196,31 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
 function PercentRing({ pct, size = 56, stroke = 5, accent, trackColor, textMain, nf, caption, captionColor }) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
-  const offset = c - (Math.min(100, Math.max(0, pct)) / 100) * c;
+  const clampedPct = Math.min(100, Math.max(0, pct));
+  const offset = c - (clampedPct / 100) * c;
+  const roundedPct = Math.round(clampedPct);
+  const [pop, setPop] = useState(false);
+  const prevPctRef = useRef(roundedPct);
+  useEffect(() => {
+    if (prevPctRef.current === roundedPct) return;
+    prevPctRef.current = roundedPct;
+    setPop(true);
+    const timeout = setTimeout(() => setPop(false), 350);
+    return () => clearTimeout(timeout);
+  }, [roundedPct]);
   return (
+    <div className={pop ? "fg-ring-pop" : undefined} style={{display:"inline-flex", flexShrink:0}}>
     <svg width={size} height={size} style={{transform:"rotate(-90deg)", flexShrink:0}}>
       <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={trackColor} strokeWidth={stroke}/>
       <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={accent} strokeWidth={stroke}
-        strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round" style={{transition:"stroke-dashoffset .3s"}}/>
+        strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round" style={{transition:"stroke-dashoffset .5s cubic-bezier(0.34,1.2,0.64,1)"}}/>
       <text x="50%" y="50%" fill={accent} fontSize={size*(caption?0.24:0.24)} fontWeight={800}
         textAnchor="middle" dominantBaseline="central" style={{transform:`rotate(90deg)`, transformOrigin:"center"}}>
         <tspan x="50%" dy={caption ? -size*0.07 : 0}>{nf(pct)}%</tspan>
         {caption && <tspan x="50%" dy={size*0.19} fontSize={size*0.13} fontWeight={600} fill={captionColor || textMain}>{caption}</tspan>}
       </text>
     </svg>
+    </div>
   );
 }
 
@@ -5956,16 +5985,26 @@ function TopicSummaryPeriodCard({ label, rangeLabel, isComplete, pendingText, co
 }
 
 // Read-only-capable list of topics used by the Today and Plan tabs.
-function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textMuted2, textMain, accent, onToggle, onStartTimer, onEdit, onDelete, onRename, emptyText, emptySubtext }) {
+function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textMuted2, textMain, accent, onToggle, onStartTimer, onEdit, onDelete, onRename, emptyText, emptySubtext, emptyIcon: EmptyIcon, onEmptyAdd, emptyAddLabel }) {
   const ls = (px) => (lang === "bn" ? 0 : px);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const closeMenu = () => { setOpenMenuId(null); setConfirmDeleteId(null); };
   if (items.length === 0) {
     return (
-      <div style={{textAlign:"center", padding:"30px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16}}>
-        <div>{emptyText}</div>
+      <div style={{textAlign:"center", padding:"32px 16px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16}}>
+        {EmptyIcon && (
+          <div style={{width:40, height:40, borderRadius:"50%", background: `${accent}14`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 10px"}}>
+            <EmptyIcon size={19} color={accent} strokeWidth={1.8}/>
+          </div>
+        )}
+        <div style={{fontWeight:700, color:textMain, fontSize:13.5}}>{emptyText}</div>
         {emptySubtext && <div style={{fontSize:12, opacity:0.8, marginTop:4}}>{emptySubtext}</div>}
+        {onEmptyAdd && (
+          <button onClick={onEmptyAdd} style={{marginTop:14, display:"inline-flex", alignItems:"center", gap:5, border:"none", background:accent, color:"#fff", borderRadius:12, padding:"8px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+            <Plus size={13}/> {emptyAddLabel}
+          </button>
+        )}
       </div>
     );
   }
@@ -5981,8 +6020,8 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
             transition:"background .15s ease, border-color .15s ease",
           }}>
             <button onClick={onToggle ? ()=>onToggle(item.id) : undefined} disabled={!onToggle}
-              style={{width:34,height:34, borderRadius:"50%", border:"none", flexShrink:0, cursor: onToggle?"pointer":"default", background: item.done ? "#6E8B5E" : c.bgSoft, display:"flex",alignItems:"center",justifyContent:"center"}}>
-              {item.done ? <Check size={16} color="#fff" strokeWidth={3}/> : <span style={{width:9,height:9,borderRadius:"50%", background:c.bg}}/>}
+              style={{width:34,height:34, borderRadius:"50%", border:"none", flexShrink:0, cursor: onToggle?"pointer":"default", background: item.done ? "#6E8B5E" : c.bgSoft, display:"flex",alignItems:"center",justifyContent:"center", transition:"background-color .2s ease"}}>
+              {item.done ? <span key={`done-${item.id}`} className="fg-check-pop" style={{display:"flex"}}><Check size={16} color="#fff" strokeWidth={3}/></span> : <span style={{width:9,height:9,borderRadius:"50%", background:c.bg}}/>}
             </button>
             <div style={{flex:1, minWidth:0}}>
               <span style={{display:"inline-block", fontSize:9.5, fontWeight:800, letterSpacing:ls(0.5), color:c.bg, background:c.bgSoft, borderRadius:6, padding:"2px 7px", marginBottom:3}}>{item.subject.toUpperCase()}</span>
@@ -6628,6 +6667,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   const [showCatMenu, setShowCatMenu] = useState(false); // হ্যামবার্গার আইকনে ট্যাপ করলে ক্যাটাগরি/ফোল্ডার ড্রপডাউন দেখা যায় (Google Keep-এর সাইড মেনুর মতো)
   const [fabOpen, setFabOpen] = useState(false); // নিচের ফ্লোটিং + বাটনে ট্যাপ করলে Note/Checklist অপশন দেখা যায়
   const [pinnedDraft, setPinnedDraft] = useState(false); // এডিটরের ভেতরের pin টগল (এখনো সেভ না হওয়া নোটের জন্যও কাজ করে)
+  const [sensitiveDraft, setSensitiveDraft] = useState(false); // "sensitive" মার্ক করা নোটের প্রিভিউ কার্ডে body ব্লার হয়ে দেখাবে
   const [showChecklist, setShowChecklist] = useState(false); // বটম টুলবারের checklist আইকন দিয়ে টগল হয়
   const [showColorPicker, setShowColorPicker] = useState(false); // বটম টুলবারের palette আইকন দিয়ে টগল হয়
   const [showBgColorPicker, setShowBgColorPicker] = useState(false); // বটম টুলবারের নতুন রঙ (Palette) আইকন দিয়ে টগল হয় — নোট কার্ডের ব্যাকগ্রাউন্ড রঙ বাছাই
@@ -6916,6 +6956,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     setOpenMenu(null);
     setFabOpen(false);
     setPinnedDraft(false);
+    setSensitiveDraft(false);
     setShowChecklist(!!startWithChecklist);
     setShowColorPicker(false);
     setShowBgColorPicker(false);
@@ -6937,6 +6978,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     setNoteColor(note.color || null);
     setOpenMenu(null);
     setPinnedDraft(!!note.pinned);
+    setSensitiveDraft(!!note.sensitive);
     setShowChecklist(Array.isArray(note.checklist) && note.checklist.length > 0);
     setShowColorPicker(false);
     setShowBgColorPicker(false);
@@ -6964,7 +7006,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     const cleanBody = bodyIsEmpty ? "" : body;
     if (editing?.id) {
       setNotes(prev => prev.map(n => n.id === editing.id
-        ? { ...n, title: title.trim() || "Untitled", body: cleanBody, category, checklist: cleanChecklist, pinned: pinnedDraft, fontSize, color: noteColor, updatedAt: now }
+        ? { ...n, title: title.trim() || "Untitled", body: cleanBody, category, checklist: cleanChecklist, pinned: pinnedDraft, sensitive: sensitiveDraft, fontSize, color: noteColor, updatedAt: now }
         : n
       ));
     } else {
@@ -6975,6 +7017,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         category,
         checklist: cleanChecklist,
         pinned: pinnedDraft,
+        sensitive: sensitiveDraft,
         fontSize,
         color: noteColor,
         createdAt: now,
@@ -7445,6 +7488,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                 <div style={{minWidth:0,flex:1}}>
                   <div style={{display:"flex",alignItems:"center",gap:5}}>
                     {note.pinned && <Pin size={12} fill={col.text} color={col.text}/>}
+                    {note.sensitive && <EyeOff size={12} color={col.text}/>}
                     <div style={{fontSize:13.5,fontWeight:800,color:coverText,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{note.title}</div>
                   </div>
                 </div>
@@ -7499,13 +7543,13 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               })()}
 
               {looksLikeHtml(note.body) ? (
-                <div className="fg-note-body" style={{fontSize:12,color:coverText,opacity:0.85,lineHeight:1.5,marginTop:6,display:"-webkit-box",WebkitLineClamp:isList?2:5,WebkitBoxOrient:"vertical",overflow:"hidden"}} dangerouslySetInnerHTML={{__html: note.body || "—"}}/>
+                <div className="fg-note-body" style={{fontSize:12,color:coverText,opacity:0.85,lineHeight:1.5,marginTop:6,display:"-webkit-box",WebkitLineClamp:isList?2:5,WebkitBoxOrient:"vertical",overflow:"hidden", ...(note.sensitive ? {filter:"blur(5px)", userSelect:"none"} : {})}} dangerouslySetInnerHTML={{__html: note.body || "—"}}/>
               ) : (
-                <div style={{fontSize:12,color:coverText,opacity:0.85,lineHeight:1.5,marginTop:6,display:"-webkit-box",WebkitLineClamp:isList?2:5,WebkitBoxOrient:"vertical",overflow:"hidden",whiteSpace:"pre-wrap"}}>{renderFormattedText(note.body) || "—"}</div>
+                <div style={{fontSize:12,color:coverText,opacity:0.85,lineHeight:1.5,marginTop:6,display:"-webkit-box",WebkitLineClamp:isList?2:5,WebkitBoxOrient:"vertical",overflow:"hidden",whiteSpace:"pre-wrap", ...(note.sensitive ? {filter:"blur(5px)", userSelect:"none"} : {})}}>{renderFormattedText(note.body) || "—"}</div>
               )}
 
               {Array.isArray(note.checklist) && note.checklist.length > 0 && (
-                <div style={{marginTop:8,display:"flex",flexDirection:"column",gap:4}}>
+                <div style={{marginTop:8,display:"flex",flexDirection:"column",gap:4, ...(note.sensitive ? {filter:"blur(5px)", userSelect:"none"} : {})}}>
                   {note.checklist.slice(0,isList?2:3).map(item => (
                     <div key={item.id} style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:coverText,opacity:0.85}}>
                       <span style={{width:12,height:12,borderRadius:4,border:`1px solid ${col.text}`,background:item.done?col.text:"transparent",display:"inline-flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:8,flexShrink:0}}>{item.done?"✓":""}</span>
@@ -7581,6 +7625,10 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               <button onClick={(e)=>{e.stopPropagation();setPinnedDraft(v=>!v);}} title={lang==="bn"?"পিন":"Pin"}
                 style={{border:"none",background:pinnedDraft?toolbarActiveBg:"transparent",color:pinnedDraft?accent:iconColor,cursor:"pointer",padding:8,borderRadius:"50%",display:"flex"}}>
                 <Pin size={18} fill={pinnedDraft?accent:"none"}/>
+              </button>
+              <button onClick={(e)=>{e.stopPropagation();setSensitiveDraft(v=>!v);}} title={lang==="bn"?"সংবেদনশীল — প্রিভিউতে ব্লার থাকবে":"Sensitive — blurred in preview"}
+                style={{border:"none",background:sensitiveDraft?toolbarActiveBg:"transparent",color:sensitiveDraft?accent:iconColor,cursor:"pointer",padding:8,borderRadius:"50%",display:"flex"}}>
+                {sensitiveDraft ? <EyeOff size={18}/> : <Eye size={18}/>}
               </button>
               <button onClick={(e)=>{e.stopPropagation();setShowMoreMenu(v=>!v);setShowColorPicker(false);}} style={{border:"none",background:showMoreMenu?toolbarActiveBg:"transparent",color:iconColor,cursor:"pointer",padding:8,borderRadius:"50%",display:"flex"}}>
                 <MoreVertical size={19}/>
