@@ -3795,8 +3795,8 @@ export default function FocusGo() {
         )}
         {/* Focus timer - main home of Study tab (Study Plan sub-section) */}
         {tab === "study" && studySection === "plan" && (
-        <div className="fg-tab-panel" style={{marginTop:24, background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:24, padding:"18px 20px 20px", color:textMain, boxShadow: dark ? "0 10px 28px rgba(0,0,0,0.35)" : `0 10px 28px ${accent}1F`, position:"relative", overflow:"hidden"}}>
-          <div style={{position:"absolute", top:-60, right:-60, width:160, height:160, borderRadius:"50%", background:`${accent}14`, pointerEvents:"none"}}/>
+        <div className="fg-tab-panel" style={{marginTop:16, background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:22, padding:"14px 18px 16px", color:textMain, boxShadow: dark ? "0 10px 28px rgba(0,0,0,0.35)" : `0 10px 28px ${accent}1F`, position:"relative", overflow:"hidden"}}>
+          <div style={{position:"absolute", top:-50, right:-50, width:130, height:130, borderRadius:"50%", background:`${accent}14`, pointerEvents:"none"}}/>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", position:"relative"}}>
             <span style={{fontSize:11, letterSpacing:ls(1.5), fontWeight:800, color:textMuted2}}>{t.focusTimer}</span>
             <div style={{display:"flex", alignItems:"center", gap:6}}>
@@ -3824,7 +3824,7 @@ export default function FocusGo() {
                   <option value="break">{t.breakOption}</option>
                 </select>
               </div>
-              <div style={{textAlign:"center", margin: timerRunning ? "10px 0 6px" : "6px 0 2px", transition:"margin .25s ease"}}>
+              <div style={{textAlign:"center", margin: timerRunning ? "6px 0 4px" : "4px 0 2px", transition:"margin .25s ease"}}>
                 {editingDuration ? (
                   <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4}}>
                     <input
@@ -3836,12 +3836,12 @@ export default function FocusGo() {
                       onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
                       min={1}
                       max={180}
-                      style={{width:90, fontSize:32, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:1, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${textMain}`, textAlign:"center", outline:"none"}}
+                      style={{width:80, fontSize:26, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:1, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${textMain}`, textAlign:"center", outline:"none"}}
                     />
                     <span style={{fontSize:14, fontWeight:700, color:textMuted2}}>{t.minutes}</span>
                   </div>
                 ) : (
-                  <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} style={{fontSize: timerRunning ? 60 : 46, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
+                  <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} style={{fontSize: timerRunning ? 46 : 36, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
                     <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
                   </div>
                 )}
@@ -3887,7 +3887,7 @@ export default function FocusGo() {
                   </div>
                 )}
               </div>
-              <div style={{display:"flex", gap:8, marginTop:14}}>
+              <div style={{display:"flex", gap:8, marginTop:10}}>
                 <button
                   onClick={toggleTimerRunning}
                   style={{flex:1, background: accent, border:"none", borderRadius:16, padding:"14px 0", color:"#fff", fontWeight:800, fontSize:15, display:"flex",alignItems:"center",justifyContent:"center", gap:7, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`}}>
@@ -3898,7 +3898,7 @@ export default function FocusGo() {
                 </button>
               </div>
               {/* Pomodoro cycle progress: Session X/N + ●●○○○ — N dynamic হয় যদি টপিক থেকে multi-session শুরু হয় */}
-              <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, marginTop:10}}>
+              <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:3, marginTop:8}}>
                 <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>
                   {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num>
                 </div>
@@ -3918,8 +3918,8 @@ export default function FocusGo() {
             </>
           ) : (
             <>
-              <div style={{textAlign:"center", margin: stopwatchRunning ? "10px 0 6px" : "6px 0 2px", transition:"margin .25s ease"}}>
-                <div style={{fontSize: stopwatchRunning ? 60 : 46, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", lineHeight:1}}>
+              <div style={{textAlign:"center", margin: stopwatchRunning ? "6px 0 4px" : "4px 0 2px", transition:"margin .25s ease"}}>
+                <div style={{fontSize: stopwatchRunning ? 46 : 36, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", lineHeight:1}}>
                   <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
                 </div>
                 {!stopwatchRunning ? (
@@ -3945,7 +3945,7 @@ export default function FocusGo() {
                   </div>
                 )}
               </div>
-              <div style={{display:"flex", gap:8, marginTop:14}}>
+              <div style={{display:"flex", gap:8, marginTop:10}}>
                 <button
                   onClick={toggleStopwatchRunning}
                   style={{flex:1, background: accent, border:"none", borderRadius:16, padding:"14px 0", color:"#fff", fontWeight:800, fontSize:15, display:"flex",alignItems:"center",justifyContent:"center", gap:7, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`}}>
@@ -3962,14 +3962,14 @@ export default function FocusGo() {
 
         {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — Option 2: circular progress, premium look */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (
-        <div className="fg-tab-panel" style={{marginTop:22, background: dark ? "#1E1A16" : cardBg, border: dark ? `1px solid ${accent}40` : `1px solid ${cardBorder}`, borderRadius:16, padding:"16px", position:"relative", overflow:"hidden"}}>
-          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:14}}>
-            <div style={{display:"flex", alignItems:"center", gap:14, minWidth:0}}>
+        <div className="fg-tab-panel" style={{marginTop:14, background: dark ? "#1E1A16" : cardBg, border: dark ? `1px solid ${accent}40` : `1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px", position:"relative", overflow:"hidden"}}>
+          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
+            <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
-                size={72} stroke={6.5} accent={accent} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain}
+                size={58} stroke={5.5} accent={accent} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain}
                 caption={t.progressLabel} captionColor={textMuted2} nf={nf}/>
               <div style={{minWidth:0}}>
-                <div style={{fontSize:14.5, fontWeight:800, color:textMain, marginBottom:8}}>{t.todaysProgress}</div>
+                <div style={{fontSize:13.5, fontWeight:800, color:textMain, marginBottom:6}}>{t.todaysProgress}</div>
                 <div style={{display:"flex", alignItems:"center", gap:7, flexWrap:"wrap"}}>
                   <span style={{display:"inline-flex", alignItems:"center", gap:5, color:"#6E8B5E", background: dark?"rgba(110,139,94,0.18)":"rgba(110,139,94,0.14)", padding:"4px 10px", borderRadius:20, fontSize:12, fontWeight:700}}>
                     <Check size={12} strokeWidth={3}/> <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.progressCompletedLabel}
@@ -3980,11 +3980,11 @@ export default function FocusGo() {
                 </div>
               </div>
             </div>
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:3, paddingLeft:14, borderLeft: `1px solid ${cardBorder}`}}>
-              <div style={{width:30, height:30, borderRadius:"50%", background: dark?"rgba(192,138,46,0.2)":"rgba(192,138,46,0.12)", display:"flex", alignItems:"center", justifyContent:"center"}}>
-                <Flame size={16} color="#C08A2E" fill="#C08A2E55"/>
+            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:2, paddingLeft:12, borderLeft: `1px solid ${cardBorder}`}}>
+              <div style={{width:26, height:26, borderRadius:"50%", background: dark?"rgba(192,138,46,0.2)":"rgba(192,138,46,0.12)", display:"flex", alignItems:"center", justifyContent:"center"}}>
+                <Flame size={14} color="#C08A2E" fill="#C08A2E55"/>
               </div>
-              <div style={{fontSize:16, fontWeight:800, color:"#C08A2E", lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
+              <div style={{fontSize:14.5, fontWeight:800, color:"#C08A2E", lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
               <div style={{fontSize:9, color:textMuted2, fontWeight:600, opacity:0.85, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
             </div>
           </div>
@@ -3993,9 +3993,9 @@ export default function FocusGo() {
 
         {/* Today's study list - Today tab + Study tab (shown above Study Plan/Exam) */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (
-        <div className="fg-tab-panel" style={{marginTop:18}}>
-          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
-            <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
+        <div className="fg-tab-panel" style={{marginTop:14}}>
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
+            <div style={{fontSize:17, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
             <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} style={{display:"flex",alignItems:"center",gap:5, background: accent, color: "#FFFFFF", border:"none", borderRadius:12, padding:"8px 12px", fontSize:11.5, fontWeight:700, cursor:"pointer"}}>
               <Plus size={13}/> {t.addTopic}
             </button>
