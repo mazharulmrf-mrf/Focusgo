@@ -1972,6 +1972,13 @@ export default function FocusGo() {
   const [showSubjects, setShowSubjects] = useState(false);
   const [showAllSubjectsProgress, setShowAllSubjectsProgress] = useState(false); // Stats-এ Subject Progress গ্রিড — সাবজেক্ট বেশি হলে ডিফল্টে ৬টা দেখায়, "See all" চাপলে বাকিগুলো
   const [planDate, setPlanDate] = useState(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d; });
+  // Plan tab-এর "Next N Days" strip কতদিন দেখাবে — 7/15/30/60/90, পছন্দ localStorage-এ মনে থাকে
+  const [planRange, setPlanRange] = useState(() => {
+    try { const saved = parseInt(window.localStorage.getItem("focusgo_plan_range"), 10); return [7,15,30,60,90].includes(saved) ? saved : 7; } catch (e) { return 7; }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("focusgo_plan_range", String(planRange)); } catch (e) {}
+  }, [planRange]);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -2611,8 +2618,8 @@ export default function FocusGo() {
   const allSubjects = Array.from(new Set([...subjects, ...derivedSubjects]));
   const timerTopic = todayTopics.find(x => x.id === timerTopicId);
 
-  // ---- plan tab: next 7 days, starting tomorrow ----
-  const planDays = Array.from({ length: 7 }, (_, i) => { const d = new Date(today); d.setDate(d.getDate() + i + 1); return d; });
+  // ---- plan tab: next N days, starting tomorrow (N = planRange: 7/15/30/60/90) ----
+  const planDays = Array.from({ length: planRange }, (_, i) => { const d = new Date(today); d.setDate(d.getDate() + i + 1); return d; });
   const planKey = dateKey(planDate);
   const isPlanToday = planKey === todayKey;
   const planTopics = entries[planKey] || [];
@@ -4047,8 +4054,27 @@ export default function FocusGo() {
         {/* STUDY planning section */}
         {tab === "study" && studySection === "plan" && (
           <div key="plan" className="fg-tab-panel" style={{marginTop:20}}>
-            <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:10}}>{t.next7Days}</div>
-            <div style={{display:"flex", justifyContent:"space-between", gap:2, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"16px 8px"}}>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8, marginBottom:10}}>
+              <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>
+                {lang === "bn" ? `পরের ${nf(planRange)} দিন` : `Next ${nf(planRange)} Days`}
+              </div>
+              {/* range selector: 7/15/30/60/90 দিনের মধ্যে বেছে নেওয়া যায়, পছন্দ মনে থাকে */}
+              <div style={{display:"flex", gap:3, background: dark?"#211E19":"#F0EBDF", borderRadius:10, padding:3, flexShrink:0}}>
+                {[7,15,30,60,90].map(r => (
+                  <button key={r} onClick={()=>setPlanRange(r)} style={{
+                    border:"none", cursor:"pointer", fontFamily:"inherit", fontWeight:700, fontSize:10.5,
+                    padding:"5px 8px", borderRadius:8,
+                    background: planRange===r ? accent : "transparent",
+                    color: planRange===r ? "#FFFFFF" : textMuted2,
+                    transition:"background .15s ease, color .15s ease"
+                  }}>
+                    <Num>{nf(r)}</Num>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{display:"flex", gap:2, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"16px 8px",
+              overflowX: planRange > 7 ? "auto" : "visible", WebkitOverflowScrolling:"touch"}}>
               {planDays.map((d,i) => {
                 const dk = dateKey(d);
                 const isSel = dk === planKey;
@@ -4057,7 +4083,7 @@ export default function FocusGo() {
                 const doneAll = hasAny && dayList.every(x=>x.done);
                 const statusColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : "#4C8FA6");
                 return (
-                  <div key={i} onClick={()=>setPlanDate(d)} style={{textAlign:"center", cursor:"pointer", flex:1, padding:"0 2px"}}>
+                  <div key={i} onClick={()=>setPlanDate(d)} style={{textAlign:"center", cursor:"pointer", flex: planRange > 7 ? "0 0 40px" : 1, padding:"0 2px"}}>
                     <div style={{fontSize:9, fontWeight:700, color: isSel ? accent : textMuted2, opacity: isSel ? 1 : 0.85, marginBottom:8, letterSpacing:0.3}}>{weekdayShort(d)}</div>
                     <div style={{width:34,height:34, borderRadius:"50%", display:"flex",alignItems:"center",justifyContent:"center", margin:"0 auto", fontSize:13, fontWeight:800,
                       transition:"background .18s ease, color .18s ease, box-shadow .18s ease", boxShadow: isSel ? `0 0 0 1.5px ${accent}` : "none",
@@ -4072,6 +4098,11 @@ export default function FocusGo() {
                 );
               })}
             </div>
+            {planRange > 7 && (
+              <div style={{marginTop:8, fontSize:11, color:textMuted2, textAlign:"center", opacity:0.8}}>
+                {lang === "bn" ? "← স্ক্রল করে বাকি দিনগুলো দেখো →" : "← scroll to see more days →"}
+              </div>
+            )}
 
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:20, marginBottom:12}}>
               <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.3}}>
