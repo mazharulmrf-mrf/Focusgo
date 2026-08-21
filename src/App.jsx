@@ -6691,13 +6691,14 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     if (!block || block === el) return; // প্রথম লাইনে এখনো কোনো wrapping div তৈরি হয়নি — স্বাভাবিক Enter চলবে
 
     const lineText = block.textContent || "";
-    const m = /^([0-9০-৯]+)\.[ \u00A0]?(.*)$/.exec(lineText);
+    const m = /^([0-9০-৯]+)([.।)])[ \u00A0]?(.*)$/.exec(lineText);
     if (!m) return; // নাম্বারড লাইন না হলে স্বাভাবিক Enter আচরণই চলবে
 
     e.preventDefault();
     const isBn = /[০-৯]/.test(m[1]);
     const currentNum = parseInt(fromBn(m[1]), 10);
-    const restText = m[2];
+    const punct = m[2];
+    const restText = m[3];
 
     if (restText.trim() === "") {
       // ডাবল এন্টার — নাম্বার মুছে লাইনটা প্লেইন খালি লাইন করে দেওয়া, নতুন লাইন তৈরি না করে এখানেই থামা
@@ -6721,7 +6722,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       const afterFragment = afterRange.extractContents();
 
       const newDiv = document.createElement("div");
-      const prefix = document.createTextNode(`${nextNumStr}.\u00A0`);
+      const prefix = document.createTextNode(`${nextNumStr}${punct}\u00A0`);
       newDiv.appendChild(prefix);
       newDiv.appendChild(afterFragment);
       block.parentNode.insertBefore(newDiv, block.nextSibling);
