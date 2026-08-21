@@ -3152,6 +3152,22 @@ export default function FocusGo() {
   // AndroidManifest.xml-এই লোকেশন পারমিশন ডিক্লেয়ার করা থাকে, বিল্ডের সময় সেটা অটোমেটিক্যালি
   // অ্যাপের মূল manifest-এর সাথে merge হয়ে যায়, তাই আলাদা করে manifest এডিট করার দরকার নেই।
   // ওয়েবে চালালে navigator.geolocation-এ fallback হবে
+  // Geolocation প্লাগিনের নির্দিষ্ট error code অনুযায়ী স্পষ্ট মেসেজ — এতে আসল কারণ (Play Services,
+  // timeout, নাকি সিস্টেম লোকেশন বন্ধ) সহজে বোঝা যাবে
+  const salahErrMsg = (e) => {
+    const code = e && e.code;
+    const map = {
+      "OS-PLUG-GLOC-0007": lang === "bn" ? "ফোনের Location সার্ভিস বন্ধ আছে — Settings থেকে চালু করুন" : "Device location services are off — turn them on in Settings",
+      "OS-PLUG-GLOC-0009": lang === "bn" ? "Location চালু করার অনুরোধ বাতিল হয়েছে" : "Request to enable location was declined",
+      "OS-PLUG-GLOC-0010": lang === "bn" ? "লোকেশন খুঁজে পেতে বেশি সময় লাগছে — খোলা জায়গায়/জানালার কাছে গিয়ে আবার চেষ্টা করুন" : "Timed out finding location — try again outdoors or near a window",
+      "OS-PLUG-GLOC-0014": lang === "bn" ? "Google Play Services-এ সমস্যা (আপডেট করা লাগতে পারে)" : "Google Play Services issue (may need an update)",
+      "OS-PLUG-GLOC-0015": lang === "bn" ? "Google Play Services এভেইলেবল না" : "Google Play Services not available on this device",
+      "OS-PLUG-GLOC-0016": lang === "bn" ? "ডিভাইসের Location সেটিংসে সমস্যা" : "Device location settings issue",
+      "OS-PLUG-GLOC-0017": lang === "bn" ? "Network ও Location দুটোই বন্ধ আছে — Location অন করুন" : "Both Network and Location are off — turn Location on",
+      "OS-PLUG-GLOC-0018": lang === "bn" ? "অ্যাপে লোকেশন পারমিশন ডিক্লেয়ার নেই (নতুন বিল্ড দরকার)" : "Location permission not declared in this build (rebuild needed)",
+    };
+    return map[code] || (lang === "bn" ? "লোকেশন পাওয়া যায়নি — ফোনের Location (GPS) অন আছে কিনা দেখুন" : "Couldn't get location — check your phone's Location (GPS) is turned on");
+  };
   const requestSalahLocation = async () => {
     setSalahLocLoading(true);
     setSalahLocError("");
@@ -3173,15 +3189,21 @@ export default function FocusGo() {
         }
         // প্রথমে GPS (high accuracy) দিয়ে চেষ্টা — নেটওয়ার্ক দুর্বল থাকলেও এটা কাজ করবে;
         // এটা ব্যর্থ হলে network-based লোকেশন দিয়ে আরেকবার চেষ্টা করা হয়
-        let pos;
+        let pos, lastErr;
         try {
-          pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000 });
+          pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 20000 });
         } catch (gpsErr) {
-          pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: false, timeout: 15000 });
+          lastErr = gpsErr;
+          try {
+            pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: false, timeout: 20000 });
+          } catch (netErr) {
+            lastErr = netErr;
+          }
         }
-        saveCoords(pos.coords.latitude, pos.coords.longitude);
+        if (pos) saveCoords(pos.coords.latitude, pos.coords.longitude);
+        else setSalahLocError(salahErrMsg(lastErr));
       } catch (e) {
-        setSalahLocError(lang === "bn" ? "লোকেশন পাওয়া যায়নি — ফোনের Location (GPS) অন আছে কিনা দেখুন" : "Couldn't get location — check your phone's Location (GPS) is turned on");
+        setSalahLocError(salahErrMsg(e));
       } finally {
         setSalahLocLoading(false);
       }
@@ -4345,10 +4367,17 @@ export default function FocusGo() {
                   )}
 
                   {filteredTasks.length > 0 && taskFilter === "all" ? (() => {
-                    const todayBucket = filteredTasks.filter(x => bucketOf(x) === "today");
+                    const overdueBucket = filteredTasks.filter(x => x.dueDate && x.dueDate < todayKey);
+                    const todayBucket = filteredTasks.filter(x => bucketOf(x) === "today" && !(x.dueDate && x.dueDate < todayKey));
                     const upcomingBucket = filteredTasks.filter(x => bucketOf(x) === "upcoming");
                     return (
                       <>
+                        {overdueBucket.length > 0 && (
+                          <div style={{marginBottom: (todayBucket.length || upcomingBucket.length) ? 18 : 0}}>
+                            <div style={{fontSize:11, fontWeight:700, letterSpacing:ls(1), color:"#C0392B", opacity:0.95, marginBottom:9}}>{t.taskOverdue}</div>
+                            <div style={{display:"flex", flexDirection:"column", gap:9}}>{overdueBucket.map(renderTask)}</div>
+                          </div>
+                        )}
                         {todayBucket.length > 0 && (
                           <div style={{marginBottom: upcomingBucket.length ? 18 : 0}}>
                             <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionToday}</div>
