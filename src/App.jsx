@@ -4743,44 +4743,7 @@ export default function FocusGo() {
               })()}
             </div>
 
-            <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:10}}>{t.thisWeek}</div>
-            <div style={{display:"flex", justifyContent:"space-between", gap:2, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"16px 8px", marginBottom:20}}>
-              {weekDays.map((d,i) => {
-                const dk = dateKey(d);
-                const isSel = dk === dateKey(statsMonthDay);
-                const dayList = entries[dk] || [];
-                const hasAny = dayList.length > 0;
-                const doneAll = hasAny && dayList.every(x=>x.done);
-                const statusColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : "#4C8FA6");
-                return (
-                  <div key={i} onClick={()=>selectStatsDay(d)} style={{textAlign:"center", cursor:"pointer", flex:1, padding:"0 2px"}}>
-                    <div style={{fontSize:9, fontWeight:700, color: isSel ? accent : textMuted2, opacity: isSel ? 1 : 0.85, marginBottom:8, letterSpacing:0.3}}>{weekdayShort(d)}</div>
-                    <div style={{width:34,height:34, borderRadius:"50%", display:"flex",alignItems:"center",justifyContent:"center", margin:"0 auto", fontSize:13, fontWeight:800,
-                      transition:"background .18s ease, color .18s ease, box-shadow .18s ease", boxShadow: isSel ? `0 0 0 1.5px ${accent}` : "none",
-                      background:"transparent", color: isSel ? accent : textMain}}>
-                      <Num>{nf(d.getDate())}</Num>
-                    </div>
-                    <div style={{marginTop:8, display:"flex", justifyContent:"center"}}>
-                      <span style={{width:6, height:6, borderRadius:"50%", background: statusColor, opacity: hasAny ? 1 : 0.3}}/>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <TopicSummaryPeriodCard
-              label={t.weeklySummary}
-              rangeLabel={`${nf(summaryWeekStart.getDate())} ${monthName(summaryWeekStart.getMonth())} – ${nf(summaryWeekEnd.getDate())} ${monthName(summaryWeekEnd.getMonth())}`}
-              isComplete={summaryWeekComplete}
-              pendingText={t.summaryPendingWeek}
-              covered={summaryWeekTopics.covered} missed={summaryWeekTopics.missed}
-              canGoPrev={true} canGoNext={canGoNextSummaryWeek}
-              onPrev={()=>setSummaryWeekAnchor(d=>{const x=new Date(d); x.setDate(x.getDate()-7); return x;})}
-              onNext={()=>setSummaryWeekAnchor(d=>{const x=new Date(d); x.setDate(x.getDate()+7); return x;})}
-              sourceLabel={t.planViewStudy} sourceColor="#4C8FA6"
-              t={t} nf={nf} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
-
-            <div style={{display:"flex", alignItems:"center", gap:10, margin:"20px 0 16px"}}>
+            <div style={{display:"flex", alignItems:"center", gap:10, margin:"4px 0 16px"}}>
               <div style={{flex:1, height:1, background:cardBorder}}/>
               <span style={{fontSize:10.5, fontWeight:700, letterSpacing:0.8, color:textMuted2, textTransform:"uppercase", opacity:0.85}}>{lang==="bn" ? "মাস" : "Month"}</span>
               <div style={{flex:1, height:1, background:cardBorder}}/>
@@ -4792,7 +4755,7 @@ export default function FocusGo() {
               cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
 
             {/* Calendar legend */}
-            <div style={{display:"flex", justifyContent:"center", alignItems:"center", gap:14, marginTop:10, flexWrap:"wrap"}}>
+            <div style={{display:"flex", justifyContent:"center", alignItems:"center", gap:14, marginTop:10, flexWrap:"wrap", marginBottom:20}}>
               <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10.5, color:textMuted2, fontWeight:600}}>
                 <span style={{width:7,height:7,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
               </span>
@@ -4806,6 +4769,18 @@ export default function FocusGo() {
                 <span style={{width:7,height:7,borderRadius:"50%", background:"#C0392B"}}/>{t.calendarLegendHoliday}
               </span>
             </div>
+
+            <TopicSummaryPeriodCard
+              label={t.weeklySummary}
+              rangeLabel={`${nf(summaryWeekStart.getDate())} ${monthName(summaryWeekStart.getMonth())} – ${nf(summaryWeekEnd.getDate())} ${monthName(summaryWeekEnd.getMonth())}`}
+              isComplete={summaryWeekComplete}
+              pendingText={t.summaryPendingWeek}
+              covered={summaryWeekTopics.covered} missed={summaryWeekTopics.missed}
+              canGoPrev={true} canGoNext={canGoNextSummaryWeek}
+              onPrev={()=>setSummaryWeekAnchor(d=>{const x=new Date(d); x.setDate(x.getDate()-7); return x;})}
+              onNext={()=>setSummaryWeekAnchor(d=>{const x=new Date(d); x.setDate(x.getDate()+7); return x;})}
+              sourceLabel={t.planViewStudy} sourceColor="#4C8FA6"
+              t={t} nf={nf} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
 
             <TopicSummaryPeriodCard
               label={t.monthlySummary}
