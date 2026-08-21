@@ -1259,6 +1259,8 @@ const T = {
     dayDetail: "Day Detail", planned: "Planned", done: "Done", notDone: "Not Done", noData: "No study data for this day.",
     noSubjectData: "No subject data for this period.",
     minutes: "min", close: "Close", deleteTopic: "Delete",
+    timeRemainingLabel: "remaining",
+    dayFocusedLabel: "focused", tasksRemainingLabel: "tasks remaining",
     confirmDeleteTopic: "Delete this topic?", confirmDelete: "Yes, delete",
     monthOverview: "Month Overview", back: "Back",
     todaysGoal: "Today's Goal", adjustGoal: "Adjust Goal", topics: "topics",
@@ -1405,6 +1407,8 @@ const T = {
     dayDetail: "দিনের বিবরণ", planned: "পরিকল্পিত", done: "সম্পন্ন", notDone: "সম্পন্ন হয়নি", noData: "এই দিনের কোনো তথ্য নেই।",
     noSubjectData: "এই সময়ের জন্য কোনো সাবজেক্ট তথ্য নেই।",
     minutes: "মিনিট", close: "বন্ধ", deleteTopic: "মুছুন",
+    timeRemainingLabel: "বাকি আছে",
+    dayFocusedLabel: "ফোকাস করা হয়েছে", tasksRemainingLabel: "টি টাস্ক বাকি",
     confirmDeleteTopic: "এই টপিকটি মুছে ফেলবে?", confirmDelete: "হ্যাঁ, মুছে ফেলো",
     monthOverview: "মাসের সংক্ষিপ্ত দৃশ্য", back: "পেছনে",
     todaysGoal: "আজকের লক্ষ্য", adjustGoal: "লক্ষ্য পরিবর্তন করুন", topics: "টপিক",
@@ -4013,6 +4017,7 @@ export default function FocusGo() {
           <TopicsList items={todayTopics} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
             cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} textMain={textMain} accent={accent}
             onToggle={(id)=>toggleDoneFor(todayKey, id)} onStartTimer={startTimerFor}
+            activeTimerId={timerTopicId} timerRunning={timerRunning} timerSeconds={timerSeconds} onToggleRun={toggleTimerRunning}
             onEdit={(item)=>setEditTopic({...item, _dk: todayKey})} onDelete={(id)=>deleteTopicFor(todayKey, id)}
             onRename={(item, newTopic)=>saveEditFor(todayKey, {...item, topic:newTopic})}
             emptyText={t.noTopicsToday} emptyIcon={GraduationCap}
@@ -4059,7 +4064,7 @@ export default function FocusGo() {
                 <div style={{width:40, height:40, borderRadius:"50%", background: `${accent}14`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 10px"}}>
                   <Check size={19} color={accent} strokeWidth={2}/>
                 </div>
-                <div style={{fontWeight:700, color:textMain, fontSize:13.5}}>{t.taskEmptyToday}</div>
+                <div style={{fontWeight:500, color:textMuted2, fontSize:13.5}}>{t.taskEmptyToday}</div>
                 <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}} style={{marginTop:14, display:"inline-flex", alignItems:"center", gap:5, border:"none", background:accent, color:"#fff", borderRadius:12, padding:"8px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
                   <Plus size={13}/> {t.taskAdd}
                 </button>
@@ -4180,6 +4185,7 @@ export default function FocusGo() {
               cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} textMain={textMain} accent={accent}
               onToggle={isPlanToday ? (id)=>toggleDoneFor(planKey, id) : null}
               onStartTimer={isPlanToday ? startTimerFor : null}
+              activeTimerId={isPlanToday ? timerTopicId : null} timerRunning={timerRunning} timerSeconds={timerSeconds} onToggleRun={toggleTimerRunning}
               onEdit={(item)=>setEditTopic({...item, _dk: planKey})}
               onDelete={(id)=>deleteTopicFor(planKey, id)}
               onRename={(item, newTopic)=>saveEditFor(planKey, {...item, topic:newTopic})}
@@ -4750,7 +4756,7 @@ export default function FocusGo() {
             </div>
 
             <InlineMonthCalendar calMonth={statsCalMonth} setCalMonth={setStatsCalMonth} entries={entries}
-              selectedKey={dateKey(statsMonthDay)} onSelectDay={selectStatsDay} lang={lang} nf={nf} monthName={monthName} today={today}
+              selectedKey={dateKey(statsMonthDay)} onSelectDay={(d)=>{selectStatsDay(d); setSelectedDay(d);}} lang={lang} nf={nf} monthName={monthName} today={today}
               examDateKeys={examDateKeys}
               cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
 
@@ -4943,7 +4949,7 @@ export default function FocusGo() {
       {/* Day detail modal */}
       {selectedDay && (
         <DayDetailModal t={t} lang={lang} nf={nf} weekdayName={weekdayName} monthName={monthName}
-          day={selectedDay} entries={entries[dateKey(selectedDay)] || []} allSubjects={allSubjects}
+          day={selectedDay} entries={entries[dateKey(selectedDay)] || []} allSubjects={allSubjects} tasks={tasks}
           onClose={()=>setSelectedDay(null)} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
       )}
 
@@ -5961,7 +5967,7 @@ function TopicSummaryPeriodCard({ label, rangeLabel, isComplete, pendingText, co
 }
 
 // Read-only-capable list of topics used by the Today and Plan tabs.
-function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textMuted2, textMain, accent, onToggle, onStartTimer, onEdit, onDelete, onRename, emptyText, emptySubtext, emptyIcon: EmptyIcon, onEmptyAdd, emptyAddLabel }) {
+function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textMuted2, textMain, accent, onToggle, onStartTimer, onEdit, onDelete, onRename, emptyText, emptySubtext, emptyIcon: EmptyIcon, onEmptyAdd, emptyAddLabel, activeTimerId, timerRunning, timerSeconds, onToggleRun }) {
   const ls = (px) => (lang === "bn" ? 0 : px);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
@@ -5974,7 +5980,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
             <EmptyIcon size={19} color={accent} strokeWidth={1.8}/>
           </div>
         )}
-        <div style={{fontWeight:700, color:textMain, fontSize:13.5}}>{emptyText}</div>
+        <div style={{fontWeight:500, color:textMuted2, fontSize:13.5}}>{emptyText}</div>
         {emptySubtext && <div style={{fontSize:12, opacity:0.8, marginTop:4}}>{emptySubtext}</div>}
         {onEmptyAdd && (
           <button onClick={onEmptyAdd} style={{marginTop:14, display:"inline-flex", alignItems:"center", gap:5, border:"none", background:accent, color:"#fff", borderRadius:12, padding:"8px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
@@ -5988,10 +5994,11 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
     <div style={{display:"flex", flexDirection:"column", gap:10}}>
       {items.map(item => {
         const c = colorForSubject(item.subject, allSubjects);
+        const isActiveTimer = activeTimerId && activeTimerId === item.id;
         return (
           <div key={item.id} style={{
-            background: item.done ? "rgba(110,139,94,0.07)" : cardBg,
-            border: `1px solid ${item.done ? "rgba(110,139,94,0.35)" : cardBorder}`,
+            background: item.done ? "rgba(110,139,94,0.07)" : (isActiveTimer ? `${c.bg}0F` : cardBg),
+            border: `1px solid ${item.done ? "rgba(110,139,94,0.35)" : (isActiveTimer ? c.bg : cardBorder)}`,
             borderRadius:16, padding:"12px 14px", display:"flex", alignItems:"center", gap:12, position:"relative",
             transition:"background .15s ease, border-color .15s ease",
           }}>
@@ -6004,23 +6011,35 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
               <div style={{fontSize:14, fontWeight:600, wordBreak:"break-word", textDecoration: item.done ? "line-through" : "none", opacity: item.done ? 0.6 : 1}}>{item.topic}</div>
             </div>
             <div style={{textAlign:"right", flexShrink:0}}>
-              <div style={{fontSize:11.5, fontWeight:500, color:textMuted2, opacity:0.85}}>
-                {item.time ? (() => {
-                  const st = parseTime12(item.time);
-                  const et = item.endTime ? parseTime12(item.endTime) : null;
-                  if (!st) return t.noTimeSet;
-                  const stPart = <><Num>{nf(st.h12)}</Num>:<Num>{nf(pad2(st.m))}</Num> <span style={{fontSize:9.5}}>{st.pm ? t.pmLabel : t.amLabel}</span></>;
-                  if (!et) return stPart;
-                  const etPart = <><Num>{nf(et.h12)}</Num>:<Num>{nf(pad2(et.m))}</Num> <span style={{fontSize:9.5}}>{et.pm ? t.pmLabel : t.amLabel}</span></>;
-                  return <>{stPart}–{etPart}</>;
-                })() : t.noTimeSet}
-              </div>
-              <div style={{fontSize:10.5, fontWeight:500, color:textMuted2, opacity:0.6, marginTop:2}}><Num>{nf(item.duration)}</Num> {t.minutes}</div>
+              {isActiveTimer ? (
+                <div className={timerRunning ? "fg-timer-running" : undefined} style={{fontSize:13, fontWeight:800, fontVariantNumeric:"tabular-nums", color:c.bg, whiteSpace:"nowrap"}}>
+                  <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num> <span style={{fontSize:9.5, fontWeight:700, opacity:0.85}}>{t.timeRemainingLabel}</span>
+                </div>
+              ) : (
+                <div style={{fontSize:11.5, fontWeight:500, color:textMuted2, opacity:0.85}}>
+                  {item.time ? (() => {
+                    const st = parseTime12(item.time);
+                    const et = item.endTime ? parseTime12(item.endTime) : null;
+                    if (!st) return t.noTimeSet;
+                    const stPart = <><Num>{nf(st.h12)}</Num>:<Num>{nf(pad2(st.m))}</Num> <span style={{fontSize:9.5}}>{st.pm ? t.pmLabel : t.amLabel}</span></>;
+                    if (!et) return stPart;
+                    const etPart = <><Num>{nf(et.h12)}</Num>:<Num>{nf(pad2(et.m))}</Num> <span style={{fontSize:9.5}}>{et.pm ? t.pmLabel : t.amLabel}</span></>;
+                    return <>{stPart}–{etPart}</>;
+                  })() : t.noTimeSet}
+                </div>
+              )}
+              {!isActiveTimer && <div style={{fontSize:10.5, fontWeight:500, color:textMuted2, opacity:0.6, marginTop:2}}><Num>{nf(item.duration)}</Num> {t.minutes}</div>}
             </div>
             {onStartTimer && !item.done && (
-              <button onClick={()=>onStartTimer(item.id, item.duration)} title={t.start} style={{width:30,height:30, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: c.bg, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                <Play size={13} fill="#fff" color="#fff"/>
-              </button>
+              isActiveTimer ? (
+                <button onClick={onToggleRun} title={timerRunning ? t.pause : t.start} style={{width:30,height:30, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: c.bg, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                  {timerRunning ? <Pause size={13} fill="#fff" color="#fff"/> : <Play size={13} fill="#fff" color="#fff"/>}
+                </button>
+              ) : (
+                <button onClick={()=>onStartTimer(item.id, item.duration)} title={t.start} style={{width:30,height:30, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: c.bg, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                  <Play size={13} fill="#fff" color="#fff"/>
+                </button>
+              )
             )}
             {(onEdit || onDelete) && (
               <div style={{position:"relative", flexShrink:0}}>
@@ -8125,7 +8144,13 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
   );
 }
 
-function DayDetailModal({ t, lang, nf, weekdayName, monthName, day, entries, allSubjects, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
+function DayDetailModal({ t, lang, nf, weekdayName, monthName, day, entries, allSubjects, tasks, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
+  const dk = dateKey(day);
+  const doneCount = entries.filter(e => e.done).length;
+  const focusedMin = entries.filter(e => e.done).reduce((s,e) => s + (e.duration || 0), 0);
+  const fh = Math.floor(focusedMin/60), fm = focusedMin%60;
+  const tasksRemaining = (tasks || []).filter(x => x.dueDate === dk && !x.done).length;
+  const hasAnyStat = doneCount > 0 || focusedMin > 0 || tasksRemaining > 0;
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"75vh", overflowY:"auto"}}>
@@ -8136,10 +8161,29 @@ function DayDetailModal({ t, lang, nf, weekdayName, monthName, day, entries, all
           </div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
-        {isHolidayKey(dateKey(day)) && (
+        {isHolidayKey(dk) && (
           <div style={{marginTop:12, display:"flex", alignItems:"center", gap:7, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 12px"}}>
             <span style={{width:8,height:8,borderRadius:"50%", background:"#C0392B", flexShrink:0}}/>
-            <span style={{fontSize:12.5, fontWeight:700, color:textMain}}>{holidayName(dateKey(day), lang)}</span>
+            <span style={{fontSize:12.5, fontWeight:700, color:textMain}}>{holidayName(dk, lang)}</span>
+          </div>
+        )}
+        {hasAnyStat && (
+          <div style={{display:"flex", flexDirection:"column", gap:7, marginTop:14, background: dark?"rgba(76,143,166,0.08)":"rgba(76,143,166,0.05)", border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px"}}>
+            {doneCount > 0 && (
+              <div style={{display:"flex", alignItems:"center", gap:8, fontSize:13, fontWeight:600, color:"#6E8B5E"}}>
+                <Check size={14} strokeWidth={3}/><span><Num>{nf(doneCount)}</Num> {t.topicsCompletedLabel}</span>
+              </div>
+            )}
+            {focusedMin > 0 && (
+              <div style={{display:"flex", alignItems:"center", gap:8, fontSize:13, fontWeight:600, color:"#4C8FA6"}}>
+                <Clock size={14}/><span>{fh > 0 && <><Num>{nf(fh)}</Num>h </>}<Num>{nf(fm)}</Num>m {t.dayFocusedLabel}</span>
+              </div>
+            )}
+            {tasksRemaining > 0 && (
+              <div style={{display:"flex", alignItems:"center", gap:8, fontSize:13, fontWeight:600, color:textMuted2}}>
+                <span style={{width:14, display:"flex", justifyContent:"center"}}>○</span><span><Num>{nf(tasksRemaining)}</Num> {t.tasksRemainingLabel}</span>
+              </div>
+            )}
           </div>
         )}
         <div style={{marginTop:16}}>
