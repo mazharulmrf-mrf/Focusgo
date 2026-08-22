@@ -1227,6 +1227,7 @@ const T = {
     taskDueToday: "Today", taskDueTomorrow: "Tomorrow", taskOverdue: "Overdue", taskCompleted: "Completed",
     taskSectionToday: "Today", taskSectionUpcoming: "Upcoming", taskSectionNoDate: "No Due Date", taskSectionCompletedToday: "Completed today",
     taskEmptyToday: "Nothing due today", taskEmptyUpcoming: "Nothing upcoming", taskEmptyDone: "No completed tasks yet", taskEmptyOverdue: "No overdue tasks",
+    taskEmptyTodayHome: "No tasks today", taskAddBtn: "Add Task",
     taskViewList: "List", taskViewCalendar: "Calendar",
     taskViewListHint: "All your tasks, grouped by due date", taskViewCalendarHint: "Tap a day on the calendar to see its tasks",
     taskRepeat: "Repeat", taskRepeatNone: "Never", taskRepeatDaily: "Daily", taskRepeatWeekly: "Weekly", taskRepeatMonthly: "Monthly",
@@ -1241,7 +1242,7 @@ const T = {
     startBreakBtn: "Start Break", skipBreakBtn: "Skip",
     editTopicTitle: "Edit Topic", save: "Save", edit: "Edit",
     yourRhythm: "Your Rhythm", todaysStudy: "Today's Study", todaysProgress: "Today's Progress", addTopic: "Add Topic",
-    noTopicsToday: "No topics yet. Add one to start your rhythm.",
+    noTopicsToday: "No study planned",
     thisWeek: "This Week",
     longView: "Long View", syllabusProgress: "Subject Progress", complete: "Complete",
     weeklySummary: "Weekly Summary", monthlySummary: "Monthly Summary",
@@ -1375,6 +1376,7 @@ const T = {
     taskDueToday: "আজ", taskDueTomorrow: "আগামীকাল", taskOverdue: "মেয়াদ শেষ", taskCompleted: "সম্পন্ন হয়েছে",
     taskSectionToday: "আজ", taskSectionUpcoming: "আসন্ন", taskSectionNoDate: "ডিউ ডেট নেই", taskSectionCompletedToday: "আজ সম্পন্ন হয়েছে",
     taskEmptyToday: "আজ কিছু বাকি নেই", taskEmptyUpcoming: "আসন্ন কিছু নেই", taskEmptyDone: "এখনো কোনো টাস্ক সম্পন্ন হয়নি", taskEmptyOverdue: "মেয়াদ-শেষ কোনো টাস্ক নেই",
+    taskEmptyTodayHome: "আজ কোনো টাস্ক নেই", taskAddBtn: "টাস্ক যোগ করুন",
     taskViewList: "লিস্ট", taskViewCalendar: "ক্যালেন্ডার",
     taskViewListHint: "তোমার সব টাস্ক, ডিউ ডেট অনুযায়ী সাজানো", taskViewCalendarHint: "ক্যালেন্ডারে কোনো দিনে ট্যাপ করে সেদিনের টাস্ক দেখো",
     taskRepeat: "রিপিট", taskRepeatNone: "একবারই", taskRepeatDaily: "প্রতিদিন", taskRepeatWeekly: "প্রতি সপ্তাহে", taskRepeatMonthly: "প্রতি মাসে",
@@ -1389,7 +1391,7 @@ const T = {
     startBreakBtn: "ব্রেক শুরু করো", skipBreakBtn: "স্কিপ",
     editTopicTitle: "টপিক এডিট করুন", save: "সেভ করো", edit: "এডিট",
     yourRhythm: "আপনার ছন্দ", todaysStudy: "আজকের পড়া", todaysProgress: "আজকের অগ্রগতি", addTopic: "টপিক যোগ করো",
-    noTopicsToday: "এখনো কোনো টপিক নেই। শুরু করতে একটা যোগ করুন।",
+    noTopicsToday: "আজ কোনো পড়াশোনা পরিকল্পনা নেই",
     thisWeek: "এই সপ্তাহ",
     longView: "সামগ্রিক দৃশ্য", syllabusProgress: "বিষয়ভিত্তিক অগ্রগতি", complete: "সম্পন্ন",
     weeklySummary: "সাপ্তাহিক সারাংশ", monthlySummary: "মাসিক সারাংশ",
@@ -4020,8 +4022,7 @@ export default function FocusGo() {
             activeTimerId={timerTopicId} timerRunning={timerRunning} timerSeconds={timerSeconds} onToggleRun={toggleTimerRunning}
             onEdit={(item)=>setEditTopic({...item, _dk: todayKey})} onDelete={(id)=>deleteTopicFor(todayKey, id)}
             onRename={(item, newTopic)=>saveEditFor(todayKey, {...item, topic:newTopic})}
-            emptyText={t.noTopicsToday} emptyIcon={GraduationCap}
-            onEmptyAdd={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} emptyAddLabel={t.addTopic}/>
+            emptyText={t.noTopicsToday} emptyIcon={GraduationCap}/>
         </div>
         )}
 
@@ -4040,22 +4041,22 @@ export default function FocusGo() {
                 <ListChecks size={17} color={textMuted2}/>
                 Today's Tasks
               </div>
-              <span style={{fontSize:11.5,fontWeight:700,color:textMuted2}}>
-                {(() => {
-                  const left = homeTodayTasks.filter(x => !x.done).length;
-                  return left > 0 ? <><Num>{nf(left)}</Num> {t.taskLeftLabel}</> : t.taskAllDoneLabel;
-                })()}
-              </span>
+              <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}} style={{display:"flex",alignItems:"center",gap:5, background: accent, color: "#FFFFFF", border:"none", borderRadius:12, padding:"8px 12px", fontSize:11.5, fontWeight:700, cursor:"pointer"}}>
+                <Plus size={13}/> {t.taskAddBtn}
+              </button>
             </div>
             {homeTodayTasks.length > 0 && (() => {
               const doneCount = homeTodayTasks.filter(x => x.done).length;
               const pct = Math.round((doneCount / homeTodayTasks.length) * 100);
+              const left = homeTodayTasks.length - doneCount;
               return (
                 <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:12}}>
                   <div style={{flex:1, height:6, borderRadius:6, background: dark?"#2C2820":"#EFE9DC", overflow:"hidden"}}>
                     <div style={{width:`${pct}%`, height:"100%", borderRadius:6, background:"#6E8B5E", transition:"width .25s ease"}}/>
                   </div>
-                  <div style={{fontSize:10.5, fontWeight:700, color:textMuted2, flexShrink:0}}><Num>{nf(pct)}</Num>%</div>
+                  <div style={{fontSize:10.5, fontWeight:700, color:textMuted2, flexShrink:0, whiteSpace:"nowrap"}}>
+                    {left > 0 ? <><Num>{nf(left)}</Num> {t.taskLeftLabel}</> : t.taskAllDoneLabel}
+                  </div>
                 </div>
               );
             })()}
@@ -4064,10 +4065,7 @@ export default function FocusGo() {
                 <div style={{width:40, height:40, borderRadius:"50%", background: `${accent}14`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 10px"}}>
                   <Check size={19} color={accent} strokeWidth={2}/>
                 </div>
-                <div style={{fontWeight:500, color:textMuted2, fontSize:13.5}}>{t.taskEmptyToday}</div>
-                <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}} style={{marginTop:14, display:"inline-flex", alignItems:"center", gap:5, border:"none", background:accent, color:"#fff", borderRadius:12, padding:"8px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
-                  <Plus size={13}/> {t.taskAdd}
-                </button>
+                <div style={{fontWeight:500, color:textMuted2, fontSize:13.5}}>{t.taskEmptyTodayHome}</div>
               </div>
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
