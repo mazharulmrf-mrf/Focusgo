@@ -19,6 +19,12 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # package.json-এ আগে থেকে save করা না থাকলেও, প্রতিবার এই লাইনটা নিশ্চিত করে দেয়
+      # যে @capacitor/local-notifications ইনস্টল হয়ে আছে — নাহলে notification-related
+      # import (App.jsx-এ LocalNotifications) না পেয়ে বিল্ড পুরোপুরি fail করতে পারে।
+      - name: Ensure Local Notifications plugin is installed
+        run: npm install @capacitor/local-notifications --save
+
       - name: Build web app
         run: npm run build
 
