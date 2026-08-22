@@ -1225,7 +1225,7 @@ const T = {
     notesTitle: "Notes", notesSubtitle: "Capture ideas, lessons, and things to remember", notesSearch: "Search notes...", notesNew: "New Note", notesEmpty: "No notes yet", notesEmptySub: "Save an idea, lesson, or reminder here.", notesTitlePlaceholder: "Note title", notesBodyPlaceholder: "Write your note...", notesSave: "Save Note", notesEdit: "Edit Note", notesDelete: "Delete",
     taskDueDate: "Due Date", taskDueDateOptional: "Due Date (optional)", taskNoDueDate: "No due date",
     taskDueToday: "Today", taskDueTomorrow: "Tomorrow", taskOverdue: "Overdue", taskCompleted: "Completed",
-    taskSectionToday: "Today", taskSectionUpcoming: "Upcoming", taskSectionNoDate: "No Due Date",
+    taskSectionToday: "Today", taskSectionUpcoming: "Upcoming", taskSectionNoDate: "No Due Date", taskSectionCompletedToday: "Completed today",
     taskEmptyToday: "Nothing due today", taskEmptyUpcoming: "Nothing upcoming", taskEmptyDone: "No completed tasks yet", taskEmptyOverdue: "No overdue tasks",
     taskViewList: "List", taskViewCalendar: "Calendar",
     taskViewListHint: "All your tasks, grouped by due date", taskViewCalendarHint: "Tap a day on the calendar to see its tasks",
@@ -1275,7 +1275,7 @@ const T = {
     manageSubjects: "Manage Subjects", noSubjectsYet: "No subjects yet. Add your syllabus subjects here.",
     addSubjectsFirst: "Add subjects in Syllabus first.", selectSubject: "Select Subject",
     startTimeLabel: "Start Time", endTimeLabel: "End Time",
-    addTimeToggle: "Add a specific time", noTimeSet: "No time set", amLabel: "AM", pmLabel: "PM",
+    addTimeToggle: "Add a specific time", addDurationToggle: "Add an expected duration", noTimeSet: "No time set", amLabel: "AM", pmLabel: "PM",
     remainingHeader: "Remaining", doneHeader: "Done",
     next7Days: "Next 7 Days", subjectTimeBreakdown: "Time by subject", noTimeData: "No completed topics yet.",
     overview: "Overview", caughtUpNote: "Caught up later",
@@ -1373,7 +1373,7 @@ const T = {
     notesTitle: "নোট", notesSubtitle: "আইডিয়া, পড়ার বিষয় ও দরকারি তথ্য সংরক্ষণ করো", notesSearch: "নোট খুঁজুন...", notesNew: "নতুন নোট", notesEmpty: "এখনো কোনো নোট নেই", notesEmptySub: "আইডিয়া, পড়ার বিষয় বা দরকারি কিছু এখানে রাখো।", notesTitlePlaceholder: "নোটের শিরোনাম", notesBodyPlaceholder: "নোট লিখুন...", notesSave: "নোট সেভ", notesEdit: "নোট এডিট", notesDelete: "মুছুন",
     taskDueDate: "ডিউ ডেট", taskDueDateOptional: "ডিউ ডেট (ঐচ্ছিক)", taskNoDueDate: "কোনো ডিউ ডেট নেই",
     taskDueToday: "আজ", taskDueTomorrow: "আগামীকাল", taskOverdue: "মেয়াদ শেষ", taskCompleted: "সম্পন্ন হয়েছে",
-    taskSectionToday: "আজ", taskSectionUpcoming: "আসন্ন", taskSectionNoDate: "ডিউ ডেট নেই",
+    taskSectionToday: "আজ", taskSectionUpcoming: "আসন্ন", taskSectionNoDate: "ডিউ ডেট নেই", taskSectionCompletedToday: "আজ সম্পন্ন হয়েছে",
     taskEmptyToday: "আজ কিছু বাকি নেই", taskEmptyUpcoming: "আসন্ন কিছু নেই", taskEmptyDone: "এখনো কোনো টাস্ক সম্পন্ন হয়নি", taskEmptyOverdue: "মেয়াদ-শেষ কোনো টাস্ক নেই",
     taskViewList: "লিস্ট", taskViewCalendar: "ক্যালেন্ডার",
     taskViewListHint: "তোমার সব টাস্ক, ডিউ ডেট অনুযায়ী সাজানো", taskViewCalendarHint: "ক্যালেন্ডারে কোনো দিনে ট্যাপ করে সেদিনের টাস্ক দেখো",
@@ -1423,7 +1423,7 @@ const T = {
     manageSubjects: "সাবজেক্ট ম্যানেজ করো", noSubjectsYet: "এখনো কোনো সাবজেক্ট নেই। এখানে সিলেবাসের সাবজেক্ট যোগ করো।",
     addSubjectsFirst: "আগে সিলেবাসে সাবজেক্ট যোগ করো।", selectSubject: "সাবজেক্ট বেছে নাও",
     startTimeLabel: "শুরুর সময়", endTimeLabel: "শেষের সময়",
-    addTimeToggle: "নির্দিষ্ট সময় যোগ করবো", noTimeSet: "সময় নির্ধারিত নেই", amLabel: "AM", pmLabel: "PM",
+    addTimeToggle: "নির্দিষ্ট সময় যোগ করবো", addDurationToggle: "সময়কাল (কতক্ষণ পড়বো) যোগ করবো", noTimeSet: "সময় নির্ধারিত নেই", amLabel: "AM", pmLabel: "PM",
     remainingHeader: "বাকি আছে", doneHeader: "শেষ হয়েছে",
     next7Days: "পরের ৭ দিন", subjectTimeBreakdown: "সাবজেক্ট অনুযায়ী সময়ের হিসাব", noTimeData: "এখনো কোনো টপিক শেষ হয়নি।",
     overview: "সারসংক্ষেপ", caughtUpNote: "পরে শেষ হয়েছে",
@@ -1937,10 +1937,10 @@ export default function FocusGo() {
     if (target && !target.done && target.repeat) {
       const base = target.dueDate || todayKey;
       const nextDue = nextDueDateFromKey(base, target.repeat);
-      const nextInstance = { ...target, id: `${Date.now()}_${Math.random().toString(36).slice(2,7)}`, dueDate: nextDue, done: false };
-      return [nextInstance, ...ts.map(x => x.id === id ? { ...x, done: true } : x)];
+      const nextInstance = { ...target, id: `${Date.now()}_${Math.random().toString(36).slice(2,7)}`, dueDate: nextDue, done: false, doneAt: null };
+      return [nextInstance, ...ts.map(x => x.id === id ? { ...x, done: true, doneAt: todayKey } : x)];
     }
-    return ts.map(x => x.id === id ? { ...x, done: !x.done } : x);
+    return ts.map(x => x.id === id ? { ...x, done: !x.done, doneAt: !x.done ? todayKey : null } : x);
   });
   const deleteTask = (id) => setTasks(ts => ts.filter(x => x.id !== id));
   const addTask = (newTask) => setTasks(ts => [newTask, ...ts]);
@@ -4248,7 +4248,7 @@ export default function FocusGo() {
           else if (taskFilter === "today") filteredTasks = tasks.filter(x => !x.done && bucketOf(x) === "today");
           else if (taskFilter === "upcoming") filteredTasks = tasks.filter(x => !x.done && bucketOf(x) === "upcoming");
           else if (taskFilter === "overdue") filteredTasks = tasks.filter(x => !x.done && bucketOf(x) === "overdue");
-          else filteredTasks = tasks.filter(x => !x.done && bucketOf(x) !== "overdue");
+          else filteredTasks = tasks.filter(x => (!x.done && bucketOf(x) !== "overdue") || (x.done && x.doneAt === todayKey));
 
           // ---- টাস্ক রো: কম্প্যাক্ট, প্রায়োরিটি অনুযায়ী রঙিন (বাঁ পাশের বর্ডার + হালকা টিন্ট) ----
           // ক্যাটাগরি/প্রায়োরিটি/ডিউ-ডেট ব্যাজ এখানে দেখানো হয় না — রো-এর রংই প্রায়োরিটি বোঝায়, বাকি ডিটেইল ট্যাপ করলে দেখা যায়
@@ -4490,27 +4490,34 @@ export default function FocusGo() {
                   )}
 
                   {filteredTasks.length > 0 && taskFilter === "all" ? (() => {
-                    const todayBucket = filteredTasks.filter(x => bucketOf(x) === "today");
-                    const upcomingBucket = filteredTasks.filter(x => bucketOf(x) === "upcoming");
-                    const nodateBucket = filteredTasks.filter(x => bucketOf(x) === "nodate");
+                    const todayBucket = filteredTasks.filter(x => !x.done && bucketOf(x) === "today");
+                    const upcomingBucket = filteredTasks.filter(x => !x.done && bucketOf(x) === "upcoming");
+                    const nodateBucket = filteredTasks.filter(x => !x.done && bucketOf(x) === "nodate");
+                    const doneTodayBucket = filteredTasks.filter(x => x.done);
                     return (
                       <>
                         {todayBucket.length > 0 && (
-                          <div style={{marginBottom: (upcomingBucket.length || nodateBucket.length) ? 18 : 0}}>
+                          <div style={{marginBottom: (upcomingBucket.length || nodateBucket.length || doneTodayBucket.length) ? 18 : 0}}>
                             <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionToday}</div>
                             <div style={{display:"flex", flexDirection:"column", gap:9}}>{todayBucket.map(renderTask)}</div>
                           </div>
                         )}
                         {upcomingBucket.length > 0 && (
-                          <div style={{marginBottom: nodateBucket.length ? 18 : 0}}>
+                          <div style={{marginBottom: (nodateBucket.length || doneTodayBucket.length) ? 18 : 0}}>
                             <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionUpcoming}</div>
                             <div style={{display:"flex", flexDirection:"column", gap:9}}>{upcomingBucket.map(renderTask)}</div>
                           </div>
                         )}
                         {nodateBucket.length > 0 && (
-                          <div>
+                          <div style={{marginBottom: doneTodayBucket.length ? 18 : 0}}>
                             <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionNoDate}</div>
                             <div style={{display:"flex", flexDirection:"column", gap:9}}>{nodateBucket.map(renderTask)}</div>
+                          </div>
+                        )}
+                        {doneTodayBucket.length > 0 && (
+                          <div>
+                            <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:"#6E8B5E", opacity:0.9, marginBottom:9}}>{t.taskSectionCompletedToday}</div>
+                            <div style={{display:"flex", flexDirection:"column", gap:9}}>{doneTodayBucket.map(renderTask)}</div>
                           </div>
                         )}
                       </>
@@ -6029,7 +6036,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
                   })() : t.noTimeSet}
                 </div>
               )}
-              {!isActiveTimer && <div style={{fontSize:10.5, fontWeight:500, color:textMuted2, opacity:0.6, marginTop:2}}><Num>{nf(item.duration)}</Num> {t.minutes}</div>}
+              {!isActiveTimer && item.duration > 0 && <div style={{fontSize:10.5, fontWeight:500, color:textMuted2, opacity:0.6, marginTop:2}}><Num>{nf(item.duration)}</Num> {t.minutes}</div>}
             </div>
             {onStartTimer && !item.done && (
               isActiveTimer ? (
@@ -6093,9 +6100,10 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
   const [useTime, setUseTime] = useState(false);
   const [startTime, setStartTime] = useState(defaultStart);
   const [endTime, setEndTime] = useState(minutesToTime(timeToMinutes(defaultStart) + 30));
+  const [useDuration, setUseDuration] = useState(false);
   const [durationInput, setDurationInput] = useState(30);
   const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
-  const duration = useTime ? diffMinutes(startTime, endTime) : (Number(durationInput) || 0);
+  const duration = useTime ? diffMinutes(startTime, endTime) : (useDuration ? (Number(durationInput) || 0) : 0);
   const canSubmit = subject.trim() && topic.trim();
   // Topic Bank quick-pick: not-yet-used topics first (still pending), then previously-used ones by recency —
   // ফ্রি-টেক্সট ফলব্যাক এখনো আছে (নিচের input), নতুন কিছু লিখলে সেটাও অটো ব্যাংকে যোগ হয়ে যাবে
@@ -6154,13 +6162,22 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
               </div>
             </div>
           ) : (
-            <div>
-              <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.durationLabel}</div>
-              <input type="number" min="1" style={inputStyle} value={durationInput} onChange={e=>setDurationInput(e.target.value)}/>
-            </div>
+            <>
+              <label style={{display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none"}}>
+                <input type="checkbox" checked={useDuration} onChange={e=>setUseDuration(e.target.checked)}
+                  style={{width:16, height:16, accentColor:accent, cursor:"pointer"}}/>
+                <span style={{fontSize:13, fontWeight:600, color:textMain}}>{t.addDurationToggle}</span>
+              </label>
+              {useDuration && (
+                <div>
+                  <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.durationLabel}</div>
+                  <input type="number" min="1" style={inputStyle} value={durationInput} onChange={e=>setDurationInput(e.target.value)}/>
+                </div>
+              )}
+            </>
           )}
 
-          <div style={{fontSize:12, color:textMuted2, fontWeight:600}}><Num>{nf(duration)}</Num> {t.minutes}</div>
+          {duration > 0 && <div style={{fontSize:12, color:textMuted2, fontWeight:600}}><Num>{nf(duration)}</Num> {t.minutes}</div>}
         </div>
         <div style={{display:"flex", gap:10, marginTop:20}}>
           <button onClick={onClose} style={{flex:1, padding:"12px 0", borderRadius:12, border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, fontWeight:700, cursor:"pointer"}}>{t.cancel}</button>
@@ -6179,9 +6196,10 @@ function EditModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, item
   const [useTime, setUseTime] = useState(!!item.time);
   const [startTime, setStartTime] = useState(item.time || "09:00");
   const [endTime, setEndTime] = useState(item.endTime || minutesToTime(timeToMinutes(item.time || "09:00") + (item.duration || 30)));
+  const [useDuration, setUseDuration] = useState(!!item.duration);
   const [durationInput, setDurationInput] = useState(item.duration || 30);
   const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
-  const duration = useTime ? diffMinutes(startTime, endTime) : (Number(durationInput) || 0);
+  const duration = useTime ? diffMinutes(startTime, endTime) : (useDuration ? (Number(durationInput) || 0) : 0);
   const pickTopics = topicPickList(topicBank, entries, subject).filter(tp => tp !== item.topic);
   const submit = () => {
     if (!(subject && topic.trim())) return;
@@ -6229,13 +6247,22 @@ function EditModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, item
               </div>
             </div>
           ) : (
-            <div>
-              <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.durationLabel}</div>
-              <input type="number" min="1" style={inputStyle} value={durationInput} onChange={e=>setDurationInput(e.target.value)}/>
-            </div>
+            <>
+              <label style={{display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none"}}>
+                <input type="checkbox" checked={useDuration} onChange={e=>setUseDuration(e.target.checked)}
+                  style={{width:16, height:16, accentColor:accent, cursor:"pointer"}}/>
+                <span style={{fontSize:13, fontWeight:600, color:textMain}}>{t.addDurationToggle}</span>
+              </label>
+              {useDuration && (
+                <div>
+                  <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.durationLabel}</div>
+                  <input type="number" min="1" style={inputStyle} value={durationInput} onChange={e=>setDurationInput(e.target.value)}/>
+                </div>
+              )}
+            </>
           )}
 
-          <div style={{fontSize:12, color:textMuted2, fontWeight:600}}><Num>{nf(duration)}</Num> {t.minutes}</div>
+          {duration > 0 && <div style={{fontSize:12, color:textMuted2, fontWeight:600}}><Num>{nf(duration)}</Num> {t.minutes}</div>}
         </div>
         <div style={{display:"flex", gap:10, marginTop:20}}>
           <button onClick={onClose} style={{flex:1, padding:"12px 0", borderRadius:12, border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, fontWeight:700, cursor:"pointer"}}>{t.cancel}</button>
