@@ -5,7 +5,7 @@ import { Capacitor } from "@capacitor/core";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Geolocation } from "@capacitor/geolocation";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Image as ImageIcon } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
 import { setupNotifications } from "./notifications";
 import {
@@ -1951,7 +1951,9 @@ export default function FocusGo() {
   const [showManageTopicsFor, setShowManageTopicsFor] = useState(null); // subject name | null — which subject's topic-bank editor is open
   const [examSubjects, setExamSubjects] = useState({}); // subject -> { topics: { [topicName]: { attempts: [{id, date, obtained, total}] } } }
   const [combinedExams, setCombinedExams] = useState({}); // id -> { name, type: "daily"|"weekly"|"monthly", subjects: [names], attempts: [{id, date, obtained, total}] }
-  const [nextExam, setNextExam] = useState(null); // { subject, topic, date } | null
+  const [nextExam, setNextExam] = useState(null); // { subject, topic, date } | null — পুরনো একক "next exam" ফিল্ড, ব্যাকওয়ার্ড-কম্প্যাটিবিলিটির জন্য রাখা হয়েছে
+  const [examSchedule, setExamSchedule] = useState([]); // [{id, subject, date, startTime, endTime}] — একাধিক তারিখ-সহ পরীক্ষার পূর্ণ রুটিন (Home + Study ট্যাব দুই জায়গাতেই দেখা যায়)
+  const [showExamSchedule, setShowExamSchedule] = useState(false); // Study ট্যাবের "Exams" কার্ডে ট্যাপ করলে এই ম্যানেজার মডাল খোলে
   // ---- In-app notifications: session done, exam reminders, streak, daily goal, inactivity ----
   const [notifications, setNotifications] = useState(() => {
     try { return JSON.parse(window.localStorage.getItem("focusgo_notifications") || "[]"); } catch (e) { return []; }
@@ -2307,6 +2309,7 @@ export default function FocusGo() {
               if (cached.examSubjects) setExamSubjects(cached.examSubjects);
               if (cached.combinedExams) setCombinedExams(cached.combinedExams);
               if (cached.nextExam !== undefined) setNextExam(cached.nextExam);
+              if (cached.examSchedule) setExamSchedule(cached.examSchedule);
               // cached.tasks/cached.notes ইচ্ছাকৃতভাবে এখানে সেট করা হয়নি — এই ইউজারের জন্য এখনো কোনো cache
               // তৈরি না হয়ে থাকলে (আপডেটের পর প্রথমবার), init-এ থাকা পুরনো localStorage fallback-টাই থেকে যাবে,
               // এবং নিচের Firestore listener এসে সেটাকেই cloud-এ মাইগ্রেট করে দেবে
@@ -2323,7 +2326,7 @@ export default function FocusGo() {
       } else {
         // Sign out — remove the previous user's in-memory data (tasks/notes-ও, নাহলে একই ডিভাইসে
         // অন্য একাউন্টে লগইন করলে আগের ইউজারের টাস্ক/নোট দেখা যাওয়ার ঝুঁকি থাকে)
-        setEntries({}); setSubjects([]); setTopicBank({}); setExamSubjects({}); setCombinedExams({}); setNextExam(null);
+        setEntries({}); setSubjects([]); setTopicBank({}); setExamSubjects({}); setCombinedExams({}); setNextExam(null); setExamSchedule([]);
         setTasks([]); setNotes([]);
         setLoaded(false);
         setServerSynced(false);
@@ -2346,6 +2349,7 @@ export default function FocusGo() {
           if (saved.examSubjects) setExamSubjects(saved.examSubjects);
           if (saved.combinedExams) setCombinedExams(saved.combinedExams);
           if (saved.nextExam !== undefined) setNextExam(saved.nextExam);
+          if (saved.examSchedule) setExamSchedule(saved.examSchedule);
           if (saved.tasks) setTasks(saved.tasks);
           if (saved.notes) setNotes(saved.notes);
           if (saved.lang) setLang(saved.lang);
@@ -2363,10 +2367,10 @@ export default function FocusGo() {
     if (!loaded || user || !isGuest) return;
     if (!isStandaloneApp()) return;
     const timer = setTimeout(() => {
-      saveGuestData({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, tasks, notes, lang, themeMode });
+      saveGuestData({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode });
     }, 600);
     return () => clearTimeout(timer);
-  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, tasks, notes, lang, themeMode, loaded, user, isGuest]);
+  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, loaded, user, isGuest]);
 
   // ইউজার লগইন করার পর Firestore-এর সাথে real-time sync (users/{uid}) —
   // getDoc দিয়ে একবার read করার বদলে onSnapshot দিয়ে live listen করা হয়, তাই অন্য কোনো
@@ -2384,12 +2388,13 @@ export default function FocusGo() {
               (data.topicBank && Object.keys(data.topicBank).length) ||
               (data.examSubjects && Object.keys(data.examSubjects).length) ||
               (data.combinedExams && Object.keys(data.combinedExams).length) ||
+              (data.examSchedule && data.examSchedule.length) ||
               (data.tasks && data.tasks.length) ||
               (data.notes && data.notes.length);
             if (nonEmpty) hadServerDataRef.current = true;
             const incomingKey = JSON.stringify({
               entries: data.entries, subjects: data.subjects, topicBank: data.topicBank, examSubjects: data.examSubjects,
-              combinedExams: data.combinedExams, nextExam: data.nextExam, tasks: data.tasks, notes: data.notes,
+              combinedExams: data.combinedExams, nextExam: data.nextExam, examSchedule: data.examSchedule, tasks: data.tasks, notes: data.notes,
               lang: data.lang, themeMode: data.themeMode,
             });
             // যদি এই data আমাদেরই সবশেষ write-এর echo হয়, আবার setState করে re-render/re-save লুপ তৈরি করার দরকার নেই
@@ -2419,6 +2424,7 @@ export default function FocusGo() {
               }
               if (data.combinedExams) setCombinedExams(data.combinedExams);
               if (data.nextExam !== undefined) setNextExam(data.nextExam);
+              if (data.examSchedule) setExamSchedule(data.examSchedule);
               // data.tasks/data.notes না থাকলে (এই ইউজারের জন্য এখনো কোনোদিন cloud-এ সেভ হয়নি — যেমন এই
               // ফিক্সের পর প্রথমবার) লোকাল state (পুরনো localStorage থেকে আসা) অপরিবর্তিত থাকবে, যাতে সেটা
               // মুছে না গিয়ে বরং নিচের write effect এটাকেই প্রথমবার Firestore-এ মাইগ্রেট করে দেয়
@@ -2460,6 +2466,7 @@ export default function FocusGo() {
       Object.keys(topicBank).length === 0 &&
       Object.keys(examSubjects).length === 0 &&
       Object.keys(combinedExams).length === 0 &&
+      examSchedule.length === 0 &&
       tasks.length === 0 &&
       notes.length === 0;
     if (isEffectivelyEmpty && hadServerDataRef.current) {
@@ -2468,7 +2475,7 @@ export default function FocusGo() {
     }
 
     const payload = {
-      entries, subjects, topicBank, examSubjects, combinedExams, nextExam, tasks, notes, lang, themeMode,
+      entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode,
       updatedAt: new Date().toISOString(),
     };
 
@@ -2481,7 +2488,7 @@ export default function FocusGo() {
     const t = setTimeout(() => {
       // এই মুহূর্তে যা লিখছি তার একটা "ছাপ" রেখে দেওয়া — real-time listener পরে এই একই data
       // ফেরত পেলে বুঝবে এটা নিজেরই echo, আবার setState/re-save করবে না
-      lastSavedPayloadRef.current = JSON.stringify({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, tasks, notes, lang, themeMode });
+      lastSavedPayloadRef.current = JSON.stringify({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode });
       setDoc(doc(db, "users", user.uid), payload, { merge: true })
         .catch(e => console.error("Firestore save error:", e));
       // দৈনিক অটো-ব্যাকআপ — প্রতিদিন একবার (তারিখ অনুযায়ী ডকুমেন্ট আইডি, তাই বারবার ওভাররাইট হয়, জমতে থাকে না)।
@@ -2493,7 +2500,7 @@ export default function FocusGo() {
       }
     }, 600); // দ্রুত একের পর এক change হলে বারবার write না করে একবারে সেভ করা
     return () => clearTimeout(t);
-  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, tasks, notes, lang, themeMode, serverSynced, user]);
+  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, serverSynced, user]);
 
   // clock tick
   useEffect(() => {
@@ -2710,6 +2717,16 @@ export default function FocusGo() {
   const removeExamSubject = (name) => {
     setExamSubjects(prev => { const next = { ...prev }; delete next[name]; return next; });
     setNextExam(prev => (prev && prev.subject === name) ? null : prev);
+  };
+  // ---- Exam Schedule: একাধিক তারিখ-সহ পরীক্ষার পূর্ণ রুটিন — subject + date + start/end time ----
+  const addExamScheduleItem = (item) => {
+    setExamSchedule(prev => [...prev, { id: `${Date.now()}_${Math.random().toString(36).slice(2,7)}`, ...item }]);
+  };
+  const updateExamScheduleItem = (id, patch) => {
+    setExamSchedule(prev => prev.map(x => x.id === id ? { ...x, ...patch } : x));
+  };
+  const removeExamScheduleItem = (id) => {
+    setExamSchedule(prev => prev.filter(x => x.id !== id));
   };
   const addExamTopic = (subj, topicName) => {
     const name = (topicName || "").trim();
@@ -3062,7 +3079,7 @@ export default function FocusGo() {
     if (!loaded) return;
     const DAILY_GOAL_MIN = 120; // ডিফল্ট দৈনিক টার্গেট (মিনিট) — কোনো সেটিংস UI নেই বলে একটা যুক্তিসঙ্গত ডিফল্ট ব্যবহার করা হয়েছে
 
-    // 1) Exam reminder — nextExam-এর তারিখ ৩ দিন, ১ দিন, বা আজকে হলে
+    // 1) Exam reminder — nextExam-এর তারিখ ৩ দিন, ১ দিন, বা আজকে হলে (পুরনো একক ফিল্ড, ব্যাকওয়ার্ড কম্প্যাটিবিলিটি)
     if (nextExam?.date) {
       const diff = Math.round((new Date(nextExam.date + "T00:00:00") - new Date(todayKey + "T00:00:00")) / 86400000);
       const examLabel = `${nextExam.subject}${nextExam.topic ? " · " + nextExam.topic : ""}`;
@@ -3074,6 +3091,19 @@ export default function FocusGo() {
         pushNotification(t.notifExamSoonTitle.replace("{days}", String(diff)), examLabel, `exam_${nextExam.date}_3`);
       }
     }
+    // 1b) Exam Schedule — একাধিক পরীক্ষার প্রতিটার জন্য আলাদাভাবে একই ৩/১/০ দিনের রিমাইন্ডার
+    examSchedule.forEach(ex => {
+      if (!ex.date) return;
+      const diff = Math.round((new Date(ex.date + "T00:00:00") - new Date(todayKey + "T00:00:00")) / 86400000);
+      const examLabel = ex.subject;
+      if (diff === 0) {
+        pushNotification(t.notifExamTodayTitle, examLabel, `examsch_${ex.id}_0`);
+      } else if (diff === 1) {
+        pushNotification(t.notifExamTomorrowTitle, examLabel, `examsch_${ex.id}_1`);
+      } else if (diff === 3) {
+        pushNotification(t.notifExamSoonTitle.replace("{days}", String(diff)), examLabel, `examsch_${ex.id}_3`);
+      }
+    });
 
     // 2) Streak-at-risk — গতকাল streak সচল ছিল কিন্তু আজ সন্ধ্যা ৮টার পরও কোনো টপিক done হয়নি
     const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
@@ -3098,7 +3128,7 @@ export default function FocusGo() {
         pushNotification(t.notifInactiveTitle, t.notifInactiveBody, `inactive_${todayKey}`);
       }
     }
-  }, [loaded, nowMinute, nextExam, todayKey, entries]);
+  }, [loaded, nowMinute, nextExam, examSchedule, todayKey, entries]);
 
   // ---- weekly activity — minutes studied per day, this week (for the Stats mini bar chart) ----
   const weeklyActivity = weekDays.map(d => {
@@ -3151,8 +3181,13 @@ export default function FocusGo() {
     Object.values(examSubjects).forEach(s => Object.values(s.topics || {}).forEach(tp => (tp.attempts||[]).forEach(a => a.date && set.add(a.date))));
     Object.values(combinedExams).forEach(ce => (ce.attempts||[]).forEach(a => a.date && set.add(a.date)));
     if (nextExam?.date) set.add(nextExam.date);
+    examSchedule.forEach(ex => ex.date && set.add(ex.date));
     return set;
   })();
+
+  // ---- Exam Schedule sorted soonest-first, and the single nearest upcoming one (Home countdown card) ----
+  const sortedExamSchedule = [...examSchedule].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+  const nearestUpcomingExam = sortedExamSchedule.find(ex => ex.date && ex.date >= todayKey) || null;
 
   // ---- weekly / monthly summary ----
   const rangeEntries = (days) => days.flatMap(d => (entries[dateKey(d)] || []).map(e => ({...e, _dk: dateKey(d)})));
@@ -3770,6 +3805,31 @@ export default function FocusGo() {
         </div>
         )}
 
+        {/* কাছের পরীক্ষার কাউন্টডাউন কার্ড — Home ট্যাবে, শুধু যদি Exam Schedule-এ আসন্ন কোনো পরীক্ষা থাকে; ট্যাপ করলে Study ট্যাবের Exam ম্যানেজার খোলে */}
+        {tab === "today" && nearestUpcomingExam && (() => {
+          const diffDays = Math.round((new Date(nearestUpcomingExam.date + "T00:00:00") - new Date(todayKey + "T00:00:00")) / 86400000);
+          const daysLabel = diffDays === 0 ? (lang==="bn" ? "আজ" : "Today") : diffDays === 1 ? (lang==="bn" ? "আগামীকাল" : "Tomorrow") : (lang==="bn" ? `${nf(diffDays)} দিন বাকি` : `${diffDays} days left`);
+          return (
+            <button
+              onClick={()=>{ vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
+              className="fg-tab-panel"
+              style={{marginTop:12, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: dark ? "rgba(217,119,87,0.14)" : "#FBEAE0", borderRadius:18, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}
+            >
+              <div style={{minWidth:0}}>
+                <div style={{fontSize:10.5, fontWeight:800, letterSpacing:0.4, color:accent, textTransform:"uppercase"}}>{lang==="bn"?"পরবর্তী পরীক্ষা":"Next Exam"}</div>
+                <div style={{fontSize:14.5, fontWeight:800, color:textMain, marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{nearestUpcomingExam.subject}</div>
+                <div style={{fontSize:11.5, color:textMuted2, marginTop:2}}>
+                  {weekdayName(new Date(nearestUpcomingExam.date+"T00:00:00"))}, <Num>{nf(new Date(nearestUpcomingExam.date+"T00:00:00").getDate())}</Num> {monthName(new Date(nearestUpcomingExam.date+"T00:00:00").getMonth())}
+                  {nearestUpcomingExam.startTime ? ` · ${nearestUpcomingExam.startTime}${nearestUpcomingExam.endTime ? "–"+nearestUpcomingExam.endTime : ""}` : ""}
+                </div>
+              </div>
+              <div style={{flexShrink:0, fontSize:12.5, fontWeight:800, color:accent, background: dark ? "rgba(0,0,0,0.25)" : "#fff", padding:"6px 12px", borderRadius:999, whiteSpace:"nowrap"}}>
+                {daysLabel}
+              </div>
+            </button>
+          );
+        })()}
+
         {tab === "study" && (
           <div className="fg-tab-panel" style={{marginTop:18, marginBottom:-2}}>
             <div style={{fontSize:21, fontWeight:800, letterSpacing:-0.4, color:textMain}}>Study</div>
@@ -3808,6 +3868,31 @@ export default function FocusGo() {
             </div>
           </div>
         )}
+
+        {/* Exams কার্ড — Exam Schedule ম্যানেজার খোলে; কাছের পরীক্ষা থাকলে সেটার নাম+তারিখ দেখায়, নাহলে "যোগ করুন" */}
+        {tab === "study" && studySection === "plan" && (
+          <button
+            onClick={()=>{ vibrate(); setShowExamSchedule(true); }}
+            className="fg-tab-panel"
+            style={{marginTop:14, width:"100%", textAlign:"left", border:`1px solid ${cardBorder}`, cursor:"pointer", background:cardBg, borderRadius:18, padding:"13px 16px", display:"flex", alignItems:"center", gap:12, color:textMain}}
+          >
+            <div style={{width:38, height:38, borderRadius:12, background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+              <CalendarClock size={19} color={accent}/>
+            </div>
+            <div style={{flex:1, minWidth:0}}>
+              <div style={{fontSize:13.5, fontWeight:800, color:textMain}}>{lang==="bn"?"পরীক্ষার সময়সূচি":"Exam Schedule"}</div>
+              <div style={{fontSize:11.5, color:textMuted2, marginTop:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                {nearestUpcomingExam
+                  ? `${nearestUpcomingExam.subject} · ${weekdayName(new Date(nearestUpcomingExam.date+"T00:00:00"))} ${nf(new Date(nearestUpcomingExam.date+"T00:00:00").getDate())} ${monthName(new Date(nearestUpcomingExam.date+"T00:00:00").getMonth())}`
+                  : (lang==="bn" ? "কোনো পরীক্ষা যোগ করা নেই — ট্যাপ করে যোগ করুন" : "No exams added yet — tap to add")}
+              </div>
+            </div>
+            {examSchedule.length > 0 && (
+              <span style={{fontSize:11, fontWeight:800, color:accent, background:`${accent}1A`, borderRadius:999, padding:"3px 9px", flexShrink:0}}>{nf(examSchedule.length)}</span>
+            )}
+          </button>
+        )}
+
         {/* Focus timer - main home of Study tab (Study Plan sub-section) */}
         {tab === "study" && studySection === "plan" && (
         <div className="fg-tab-panel" style={{marginTop:14, background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:20, padding:"11px 16px 12px", color:textMain, boxShadow: dark ? "0 10px 28px rgba(0,0,0,0.35)" : `0 10px 28px ${accent}1F`, position:"relative", overflow:"hidden"}}>
@@ -4944,6 +5029,14 @@ export default function FocusGo() {
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
       )}
 
+      {/* Exam Schedule ম্যানেজার — একাধিক তারিখ-সহ পরীক্ষা যোগ/এডিট/ডিলিট করার মডাল, Home ও Study দুই ট্যাবের কার্ড থেকেই খোলে */}
+      {showExamSchedule && (
+        <ExamScheduleModal t={t} lang={lang} nf={nf} allSubjects={allSubjects} examSchedule={examSchedule}
+          onAdd={addExamScheduleItem} onUpdate={updateExamScheduleItem} onRemove={removeExamScheduleItem}
+          onClose={()=>setShowExamSchedule(false)}
+          cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark} bg={bg}/>
+      )}
+
       {/* Calendar month view */}
       {showCalendar && (
         <CalendarModal t={t} lang={lang} nf={nf} monthName={monthName} weekdayShort={weekdayShort}
@@ -5523,6 +5616,128 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// একাধিক তারিখ-সহ পরীক্ষার সম্পূর্ণ রুটিন ম্যানেজার — সাবজেক্ট + তারিখ + সময় দিয়ে একের পর এক এন্ট্রি যোগ করা যায়,
+// তারিখ অনুযায়ী সাজানো থাকে, আসন্নগুলো উপরে হাইলাইট, চলে যাওয়া তারিখগুলো নিচে আলাদা "সম্পন্ন" সেকশনে ধূসর হয়ে থাকে
+function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUpdate, onRemove, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
+  const [subject, setSubject] = useState("");
+  const [date, setDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const todayKey = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
+  const monthName = (i) => lang === "bn" ? MONTHS_BN[i] : MONTHS_EN[i];
+  const weekdayName = (d) => lang === "bn" ? WEEKDAYS_BN[d.getDay()] : WEEKDAYS_EN[d.getDay()];
+
+  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:13.5, background: dark?"#121110":"#F8F5EE", color: dark?"#F3EFE7":"#211D18", outline:"none", width:"100%", boxSizing:"border-box" };
+
+  const resetForm = () => { setSubject(""); setDate(""); setStartTime(""); setEndTime(""); setEditingId(null); };
+
+  const submit = () => {
+    if (!subject.trim() || !date) return;
+    if (editingId) {
+      onUpdate(editingId, { subject: subject.trim(), date, startTime, endTime });
+    } else {
+      onAdd({ subject: subject.trim(), date, startTime, endTime });
+    }
+    resetForm();
+  };
+
+  const startEdit = (ex) => {
+    setEditingId(ex.id);
+    setSubject(ex.subject);
+    setDate(ex.date);
+    setStartTime(ex.startTime || "");
+    setEndTime(ex.endTime || "");
+  };
+
+  const sorted = [...examSchedule].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+  const upcoming = sorted.filter(ex => (ex.date || "") >= todayKey);
+  const past = sorted.filter(ex => (ex.date || "") < todayKey);
+
+  const dateLabel = (dk) => {
+    const d = new Date(dk + "T00:00:00");
+    return `${weekdayName(d)}, ${nf(d.getDate())} ${monthName(d.getMonth())}`;
+  };
+
+  const ExamRow = ({ ex, faded }) => (
+    <div style={{display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:12, opacity: faded ? 0.55 : 1}}>
+      <div style={{flex:1, minWidth:0}}>
+        <div style={{fontSize:13, fontWeight:800, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{ex.subject}</div>
+        <div style={{fontSize:11, color:textMuted2, marginTop:2}}>
+          {dateLabel(ex.date)}{ex.startTime ? ` · ${ex.startTime}${ex.endTime ? "–"+ex.endTime : ""}` : ""}
+        </div>
+      </div>
+      <button onClick={()=>startEdit(ex)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex", padding:4, flexShrink:0}}>
+        <Pencil size={14}/>
+      </button>
+      <button onClick={()=>onRemove(ex.id)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex", padding:4, flexShrink:0}}>
+        <Trash2 size={14}/>
+      </button>
+    </div>
+  );
+
+  return (
+    <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, maxHeight:"85vh", borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, display:"flex", flexDirection:"column", gap:14, overflow:"hidden"}}>
+        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", flexShrink:0}}>
+          <div style={{fontSize:16, fontWeight:800}}>{lang==="bn" ? "পরীক্ষার সময়সূচি" : "Exam Schedule"}</div>
+          <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
+        </div>
+
+        <div style={{flex:1, minHeight:0, overflowY:"auto", display:"flex", flexDirection:"column", gap:14, WebkitOverflowScrolling:"touch"}}>
+          {/* Add / edit form */}
+          <div style={{background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:14, padding:12, display:"flex", flexDirection:"column", gap:8, flexShrink:0}}>
+            <div style={{fontSize:10, fontWeight:700, letterSpacing:0.8, color:textMuted2, opacity:0.85, textTransform:"uppercase"}}>
+              {editingId ? (lang==="bn"?"এডিট করুন":"Edit exam") : (lang==="bn"?"নতুন পরীক্ষা যোগ করুন":"Add an exam")}
+            </div>
+            <input list="fg-exam-subject-list" value={subject} onChange={e=>setSubject(e.target.value)} placeholder={lang==="bn"?"কোর্স/সাবজেক্ট (যেমন HRM 5101)":"Course / subject (e.g. HRM 5101)"} style={inputStyle}/>
+            <datalist id="fg-exam-subject-list">
+              {allSubjects.map(s => <option key={s} value={s}/>)}
+            </datalist>
+            <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={inputStyle}/>
+            <div style={{display:"flex", gap:8}}>
+              <input type="time" value={startTime} onChange={e=>setStartTime(e.target.value)} style={inputStyle}/>
+              <input type="time" value={endTime} onChange={e=>setEndTime(e.target.value)} style={inputStyle}/>
+            </div>
+            <div style={{display:"flex", gap:8}}>
+              <button onClick={submit} disabled={!subject.trim() || !date} style={{flex:1, border:"none", borderRadius:10, padding:"10px 0", background: (!subject.trim() || !date) ? (dark?"#2A261F":"#E9E2D3") : accent, color: (!subject.trim() || !date) ? textMuted2 : "#fff", fontWeight:800, fontSize:13, cursor: (!subject.trim() || !date) ? "default" : "pointer"}}>
+                {editingId ? (lang==="bn"?"সেভ করুন":"Save") : (lang==="bn"?"যোগ করুন":"Add")}
+              </button>
+              {editingId && (
+                <button onClick={resetForm} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, padding:"10px 16px", color:textMuted2, fontWeight:700, fontSize:13, cursor:"pointer"}}>
+                  {lang==="bn"?"বাতিল":"Cancel"}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Upcoming */}
+          <div style={{display:"flex", flexDirection:"column", gap:8}}>
+            <div style={{fontSize:10, fontWeight:700, letterSpacing:0.8, color:textMuted2, opacity:0.85, textTransform:"uppercase"}}>
+              {lang==="bn"?"আসন্ন":"Upcoming"} {upcoming.length > 0 && `(${nf(upcoming.length)})`}
+            </div>
+            {upcoming.length === 0 ? (
+              <div style={{fontSize:12.5, color:textMuted2, textAlign:"center", padding:"14px 0"}}>{lang==="bn"?"কোনো আসন্ন পরীক্ষা নেই":"No upcoming exams"}</div>
+            ) : (
+              upcoming.map(ex => <ExamRow key={ex.id} ex={ex}/>)
+            )}
+          </div>
+
+          {/* Past */}
+          {past.length > 0 && (
+            <div style={{display:"flex", flexDirection:"column", gap:8}}>
+              <div style={{fontSize:10, fontWeight:700, letterSpacing:0.8, color:textMuted2, opacity:0.85, textTransform:"uppercase"}}>
+                {lang==="bn"?"সম্পন্ন":"Past"} ({nf(past.length)})
+              </div>
+              {past.map(ex => <ExamRow key={ex.id} ex={ex} faded/>)}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -6671,12 +6886,49 @@ const NOTE_PAPER_BG = "#F7F1E3";
 const NOTE_PAPER_TEXT = "#2C2820";
 const NOTE_PAPER_MUTED = "#7C7361";
 
+// নোটে যোগ করা ছবি সরাসরি Firestore-এর একটামাত্র ডকুমেন্টে (users/{uid}) সেভ হয়, যেটার সাইজ লিমিট ~1MB।
+// তাই আসল ছবি না রেখে, ক্যানভাসে এঁকে ছোট (max ৮০০px) ও কম্প্রেসড JPEG বানিয়ে base64 হিসেবে সেভ করা হয় —
+// এতে একটা ছবি সাধারণত ৩০-১৫০KB-র মধ্যে থাকে, পুরো নোট ডকুমেন্ট ফুলে যায় না
+function compressImageToDataUrl(file, maxDim = 800, quality = 0.6) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error || new Error("read failed"));
+    reader.onload = () => {
+      const img = new window.Image();
+      img.onerror = () => reject(new Error("decode failed"));
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) { height = Math.round((height * maxDim) / width); width = maxDim; }
+          else { width = Math.round((width * maxDim) / height); height = maxDim; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        try {
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        } catch (err) {
+          reject(err);
+        }
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg, cardBorder, textMain, textMuted2, accent, dark, isDesktop, bg }) {
   const [editing, setEditing] = useState(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [category, setCategory] = useState("General");
   const [checklist, setChecklist] = useState([]);
+  const [images, setImages] = useState([]); // নোটে যোগ করা ছবি — কম্প্রেসড base64 JPEG স্ট্রিং-এর অ্যারে (Firestore-এই সেভ হয়, তাই ছোট রাখা জরুরি)
+  const [imageBusy, setImageBusy] = useState(false); // ছবি কম্প্রেস হওয়ার সময় বাটনে ছোট লোডিং দেখানোর জন্য
+  const noteFileInputRef = useRef(null); // লুকানো <input type="file"> — Image আইকনে ট্যাপ করলে এটাই ক্লিক হয়
+  const MAX_NOTE_IMAGES = 4; // একটা নোটে সর্বোচ্চ কয়টা ছবি — Firestore ডকুমেন্টের সাইজ লিমিটের মধ্যে রাখতে
   const checklistInputRefs = useRef({}); // চেকলিস্টের প্রতিটা আইটেমের input DOM এলিমেন্ট — Enter/Backspace চাপার পর ঠিক জায়গায় ফোকাস আনতে ব্যবহার হয়
   const [focusChecklistId, setFocusChecklistId] = useState(null); // নতুন/মার্জ হওয়া আইটেমে অটো-ফোকাস করতে
   const focusCaretPosRef = useRef(null); // ফোকাস করার সময় কার্সার ঠিক কোন জায়গায় বসবে (null মানে টেক্সটের শেষে)
@@ -6974,6 +7226,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     setFontSize(14.5);
     setActiveFontSize(14.5);
     setNoteColor(null);
+    setImages([]);
     setOpenMenu(null);
     setFabOpen(false);
     setPinnedDraft(false);
@@ -6997,6 +7250,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     setFontSize(note.fontSize || 14.5);
     setActiveFontSize(note.fontSize || 14.5);
     setNoteColor(note.color || null);
+    setImages(Array.isArray(note.images) ? note.images : []);
     setOpenMenu(null);
     setPinnedDraft(!!note.pinned);
     setSensitiveDraft(!!note.sensitive);
@@ -7014,7 +7268,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     // সেটা আবার save() ডাকলেও যেন দ্বিতীয় একটা ডুপ্লিকেট নোট তৈরি না হয়
     if (savedRef.current) { closeEditor(); return; }
     const bodyIsEmpty = !stripHtmlToText(body);
-    if (!title.trim() && bodyIsEmpty && checklist.length === 0) { closeEditor(); return; }
+    if (!title.trim() && bodyIsEmpty && checklist.length === 0 && images.length === 0) { closeEditor(); return; }
     const now = new Date().toISOString();
     const cleanChecklist = checklist
       .map(x => ({
@@ -7027,7 +7281,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     const cleanBody = bodyIsEmpty ? "" : body;
     if (editing?.id) {
       setNotes(prev => prev.map(n => n.id === editing.id
-        ? { ...n, title: title.trim() || "Untitled", body: cleanBody, category, checklist: cleanChecklist, pinned: pinnedDraft, sensitive: sensitiveDraft, fontSize, color: noteColor, updatedAt: now }
+        ? { ...n, title: title.trim() || "Untitled", body: cleanBody, category, checklist: cleanChecklist, pinned: pinnedDraft, sensitive: sensitiveDraft, fontSize, color: noteColor, images, updatedAt: now }
         : n
       ));
     } else {
@@ -7041,6 +7295,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         sensitive: sensitiveDraft,
         fontSize,
         color: noteColor,
+        images,
         createdAt: now,
         updatedAt: now,
         order: Date.now()
@@ -7093,6 +7348,35 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   const togglePin = (id) => {
     setNotes(prev => prev.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
     setOpenMenu(null);
+  };
+
+  // Image আইকনে ট্যাপ করলে লুকানো file input-টা ক্লিক হয় (গ্যালারি/ক্যামেরা খোলে)
+  const handlePickNoteImage = () => {
+    if (images.length >= MAX_NOTE_IMAGES) {
+      window.alert(lang === "bn" ? `একটা নোটে সর্বোচ্চ ${MAX_NOTE_IMAGES}টা ছবি রাখা যায়।` : `You can add up to ${MAX_NOTE_IMAGES} images per note.`);
+      return;
+    }
+    noteFileInputRef.current && noteFileInputRef.current.click();
+  };
+
+  // ফাইল বাছাই হওয়ার পর ছবিটা কম্প্রেস করে (ছোট size + কমানো quality) base64 হিসেবে images-এ যোগ করা
+  const handleNoteImageChange = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = ""; // একই ফাইল আবার বাছাই করলেও onChange যেন ঠিকমতো ট্রিগার হয়
+    if (!file) return;
+    setImageBusy(true);
+    try {
+      const dataUrl = await compressImageToDataUrl(file, 800, 0.6);
+      setImages(prev => [...prev, dataUrl]);
+    } catch (err) {
+      window.alert(lang === "bn" ? "ছবি যোগ করা গেল না।" : "Couldn't add the image.");
+    } finally {
+      setImageBusy(false);
+    }
+  };
+
+  const removeNoteImage = (index) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const addCategory = () => {
@@ -7563,6 +7847,15 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                 );
               })()}
 
+              {Array.isArray(note.images) && note.images.length > 0 && (
+                <div style={{position:"relative",marginTop:6,width: isList?44:"100%",height: isList?44:88, ...(note.sensitive ? {filter:"blur(6px)", userSelect:"none"} : {})}}>
+                  <img src={note.images[0]} alt="" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:10,display:"block"}}/>
+                  {note.images.length > 1 && (
+                    <span style={{position:"absolute",top:4,right:4,fontSize:9.5,fontWeight:800,color:"#fff",background:"rgba(0,0,0,0.6)",borderRadius:8,padding:"1px 6px"}}>+{note.images.length - 1}</span>
+                  )}
+                </div>
+              )}
+
               {looksLikeHtml(note.body) ? (
                 <div className="fg-note-body" style={{fontSize:12,color:coverText,opacity:0.85,lineHeight:1.5,marginTop:6,display:"-webkit-box",WebkitLineClamp:isList?2:5,WebkitBoxOrient:"vertical",overflow:"hidden", ...(note.sensitive ? {filter:"blur(5px)", userSelect:"none"} : {})}} dangerouslySetInnerHTML={{__html: note.body || "—"}}/>
               ) : (
@@ -7758,6 +8051,22 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               />
             </div>
 
+            {/* ছবি — কম্প্রেসড thumbnail হিসেবে দেখানো, প্রতিটার উপরে ছোট X বাটনে ট্যাপ করলে বাদ যায় */}
+            <input ref={noteFileInputRef} type="file" accept="image/*" onChange={handleNoteImageChange} style={{display:"none"}}/>
+            {images.length > 0 && (
+              <div onClick={e=>e.stopPropagation()} style={{display:"flex",flexWrap:"wrap",gap:8,paddingBottom:8}}>
+                {images.map((src, idx) => (
+                  <div key={idx} style={{position:"relative",width:78,height:78,borderRadius:10,overflow:"hidden",border:`1px solid ${paperBorder}`,flexShrink:0}}>
+                    <img src={src} alt="" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
+                    <button onClick={()=>removeNoteImage(idx)} title={lang==="bn"?"ছবি বাদ দিন":"Remove image"}
+                      style={{position:"absolute",top:3,right:3,width:18,height:18,borderRadius:"50%",border:"none",background:"rgba(0,0,0,0.55)",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
+                      <X size={11}/>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Category পিকার — বটম টুলবারের Tag আইকন দিয়ে টগল হয়, নাম-সহ চিপ যাতে বোঝা যায় কোনটা সিলেক্ট করা আছে; চেপে ধরলে Rename/Delete */}
             {showColorPicker && (
               <div onClick={e=>e.stopPropagation()} style={{display:"flex",flexWrap:"wrap",gap:7,paddingTop:6,paddingBottom:2}}>
@@ -7877,6 +8186,10 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
             <button onClick={()=>{setShowBgColorPicker(v=>!v);setShowChecklist(false);setShowColorPicker(false);}} title={lang==="bn"?"নোটের রঙ":"Note color"}
               style={{border:"none",background:showBgColorPicker?toolbarActiveBg:"transparent",color:iconColor,cursor:"pointer",padding:9,borderRadius:"50%",display:"flex"}}>
               <Palette size={19}/>
+            </button>
+            <button onClick={handlePickNoteImage} disabled={imageBusy} title={lang==="bn"?"ছবি যোগ করুন":"Add image"}
+              style={{border:"none",background:"transparent",color:iconColor,opacity:imageBusy?0.5:1,cursor:imageBusy?"default":"pointer",padding:9,borderRadius:"50%",display:"flex"}}>
+              <ImageIcon size={19}/>
             </button>
             <div style={{display:"flex",alignItems:"center",gap:1,marginLeft:2}}>
               <button onMouseDown={e=>e.preventDefault()} onClick={()=>applyFontSizeDelta(-FONT_STEP)} disabled={activeFontSize<=FONT_MIN}
