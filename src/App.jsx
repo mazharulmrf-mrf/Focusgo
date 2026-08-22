@@ -4,6 +4,7 @@ import { NavigationBar } from "@capgo/capacitor-navigation-bar";
 import { Capacitor } from "@capacitor/core";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Geolocation } from "@capacitor/geolocation";
+import { LocalNotifications } from "@capacitor/local-notifications";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, FolderOpen, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Lightbulb, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Image as ImageIcon } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
@@ -955,6 +956,17 @@ const _darctan2 = (y, x) => Math.atan2(y, x) * _R2D;
 const _darccot = (x) => Math.atan(1 / x) * _R2D;
 const _fixHour = (a) => { a = a - 24 * Math.floor(a / 24); return a < 0 ? a + 24 : a; };
 const _fixAngle = (a) => { a = a - 360 * Math.floor(a / 360); return a < 0 ? a + 360 : a; };
+// exam.id (যেমন "1735000000000_ab3f9") থেকে একটা স্থিতিশীল পজিটিভ integer বানানো হয় —
+// @capacitor/local-notifications-এর notification id অবশ্যই integer হতে হয়, string চলে না।
+// একই exam.id সবসময় একই নাম্বার দেবে (djb2-স্টাইল হ্যাশ), তাই বারবার schedule/cancel মিলিয়ে করা যায়।
+function examIdToNotifId(examId) {
+  let hash = 5381;
+  for (let i = 0; i < examId.length; i++) {
+    hash = ((hash << 5) + hash + examId.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash) % 2147483647 || 1; // 0 হলে সমস্যা করতে পারে তাই fallback 1
+}
+
 function _julianDate(y, m, d) {
   if (m <= 2) { y -= 1; m += 12; }
   const A = Math.floor(y / 100);
@@ -3422,6 +3434,52 @@ export default function FocusGo() {
       setupNotifications().catch(() => {});
     }
   }, []);
+
+  // Local Notifications-এর জন্য আলাদা পারমিশন — উপরেরটা (setupNotifications) সম্ভবত রিমোট/পুশ নোটিফিকেশনের জন্য,
+  // কিন্তু "কালকে পরীক্ষা" রিমাইন্ডারটা ফোনেই শিডিউল হয়ে থাকা লোকাল নোটিফিকেশন, তাই এর পারমিশন আলাদাভাবে চাওয়া দরকার
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      LocalNotifications.requestPermissions().catch(() => {});
+    }
+  }, []);
+
+  // এক্সাম শিডিউল বদলালেই (যোগ/এডিট/ডিলিট) — আগে শিডিউল করা সব "পরীক্ষার আগের রাতের রিমাইন্ডার" ক্যানসেল করে,
+  // বর্তমান examSchedule অনুযায়ী নতুন করে শিডিউল করা হয়। এভাবে সবসময় ডেটার সাথে নোটিফিকেশন সিঙ্কে থাকে।
+  const scheduledExamNotifIdsRef = useRef([]); // আগের রানে কোন কোন notification id শিডিউল করা হয়েছিল, তার হিসাব
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform() || !loaded) return;
+    const REMINDER_HOUR = 20; // রাত ৮টা — এক্সামের আগের সন্ধ্যায় রিমাইন্ডার আসবে
+    (async () => {
+      try {
+        // আগের সব এক্সাম-রিমাইন্ডার ক্যানসেল করা, যাতে ডিলিট/এডিট হওয়া এক্সামের পুরনো নোটিফিকেশন থেকে না যায়
+        if (scheduledExamNotifIdsRef.current.length > 0) {
+          await LocalNotifications.cancel({ notifications: scheduledExamNotifIdsRef.current.map(id => ({ id })) });
+        }
+        const newIds = [];
+        const toSchedule = [];
+        examSchedule.forEach(ex => {
+          if (!ex.date) return;
+          const examDate = new Date(ex.date + "T00:00:00");
+          const reminderAt = new Date(examDate);
+          reminderAt.setDate(reminderAt.getDate() - 1);
+          reminderAt.setHours(REMINDER_HOUR, 0, 0, 0);
+          if (reminderAt.getTime() <= Date.now()) return; // সময় চলে গেলে আর শিডিউল করার দরকার নেই
+          const id = examIdToNotifId(ex.id);
+          newIds.push(id);
+          toSchedule.push({
+            id,
+            title: lang === "bn" ? "📚 রিভিশন রিমাইন্ডার" : "📚 Revision Reminder",
+            body: lang === "bn" ? `আগামীকাল পরীক্ষা: ${ex.subject} — রিভিশন শেষ করেছ?` : `Tomorrow's exam: ${ex.subject} — finished revising?`,
+            schedule: { at: reminderAt },
+          });
+        });
+        if (toSchedule.length > 0) {
+          await LocalNotifications.schedule({ notifications: toSchedule });
+        }
+        scheduledExamNotifIdsRef.current = newIds;
+      } catch (e) { /* নেটিভ প্লাগইন না থাকলে (যেমন ব্রাউজারে) চুপচাপ ইগনোর করা হয় */ }
+    })();
+  }, [examSchedule, lang, loaded]);
 
 
   // Firebase এখনো auth স্টেট জানায়নি — একটা ছোট লোডিং স্ক্রিন
