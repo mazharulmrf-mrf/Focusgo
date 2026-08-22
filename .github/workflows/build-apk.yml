@@ -38,6 +38,15 @@ jobs:
       - name: ওয়েব অ্যাসেট বিল্ড করা
         run: npm run build
 
+      # রিপোতে android/ ফোল্ডারটা এখনো তৈরি না থাকলে (যেমন এই প্রথমবার বা ফোল্ডারটা .gitignore-এ থাকলে),
+      # "cap sync" এর আগে "cap add android" চালিয়ে প্ল্যাটফর্মটা বানিয়ে নেওয়া হচ্ছে —
+      # নাহলে "android platform has not been added yet" এরর দিয়ে বিল্ড ফেইল করে।
+      - name: Android প্ল্যাটফর্ম আছে কিনা চেক করে, না থাকলে যোগ করা
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+
       - name: Capacitor Android সিঙ্ক
         run: npx cap sync android
 
