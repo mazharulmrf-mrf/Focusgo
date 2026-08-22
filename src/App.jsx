@@ -4241,12 +4241,14 @@ export default function FocusGo() {
             ["overdue", t.taskFilterOverdue, CalendarClock],
           ];
 
+          const overdueCount = tasks.filter(x => !x.done && bucketOf(x) === "overdue").length;
+
           let filteredTasks;
           if (taskFilter === "done") filteredTasks = tasks.filter(x => x.done);
-          else if (taskFilter === "today") filteredTasks = tasks.filter(x => bucketOf(x) === "today");
-          else if (taskFilter === "upcoming") filteredTasks = tasks.filter(x => bucketOf(x) === "upcoming");
-          else if (taskFilter === "overdue") filteredTasks = tasks.filter(x => bucketOf(x) === "overdue");
-          else filteredTasks = tasks;
+          else if (taskFilter === "today") filteredTasks = tasks.filter(x => !x.done && bucketOf(x) === "today");
+          else if (taskFilter === "upcoming") filteredTasks = tasks.filter(x => !x.done && bucketOf(x) === "upcoming");
+          else if (taskFilter === "overdue") filteredTasks = tasks.filter(x => !x.done && bucketOf(x) === "overdue");
+          else filteredTasks = tasks.filter(x => !x.done && bucketOf(x) !== "overdue");
 
           // ---- টাস্ক রো: কম্প্যাক্ট, প্রায়োরিটি অনুযায়ী রঙিন (বাঁ পাশের বর্ডার + হালকা টিন্ট) ----
           // ক্যাটাগরি/প্রায়োরিটি/ডিউ-ডেট ব্যাজ এখানে দেখানো হয় না — রো-এর রংই প্রায়োরিটি বোঝায়, বাকি ডিটেইল ট্যাপ করলে দেখা যায়
@@ -4465,11 +4467,17 @@ export default function FocusGo() {
                     {filterChips.map(([key,label,Icon]) => (
                       <button key={key} onClick={()=>{vibrate(); setTaskFilter(key);}} style={{
                         display:"flex", alignItems:"center", gap:4, padding:"6px 10px", borderRadius:20, cursor:"pointer", flexShrink:0,
-                        border:`1px solid ${taskFilter===key ? accent : cardBorder}`,
+                        border:`1px solid ${taskFilter===key ? accent : (key==="overdue" && overdueCount>0 ? "#C0392B55" : cardBorder)}`,
                         background: taskFilter===key ? accent : "transparent",
                         color: taskFilter===key ? "#fff" : textMuted2, fontWeight:700, fontSize:10.5, whiteSpace:"nowrap",
                       }}>
                         <Icon size={10}/> {label}
+                        {key==="overdue" && overdueCount>0 && (
+                          <span style={{marginLeft:2, minWidth:15, height:15, borderRadius:8, padding:"0 4px", fontSize:9.5, fontWeight:800, display:"inline-flex", alignItems:"center", justifyContent:"center",
+                            background: taskFilter===key ? "rgba(255,255,255,0.3)" : "#C0392B", color:"#fff"}}>
+                            <Num>{nf(overdueCount)}</Num>
+                          </span>
+                        )}
                       </button>
                     ))}
                   </div>
@@ -4482,18 +4490,11 @@ export default function FocusGo() {
                   )}
 
                   {filteredTasks.length > 0 && taskFilter === "all" ? (() => {
-                    const overdueBucket = filteredTasks.filter(x => bucketOf(x) === "overdue");
                     const todayBucket = filteredTasks.filter(x => bucketOf(x) === "today");
                     const upcomingBucket = filteredTasks.filter(x => bucketOf(x) === "upcoming");
                     const nodateBucket = filteredTasks.filter(x => bucketOf(x) === "nodate");
                     return (
                       <>
-                        {overdueBucket.length > 0 && (
-                          <div style={{marginBottom: (todayBucket.length || upcomingBucket.length || nodateBucket.length) ? 18 : 0}}>
-                            <div style={{fontSize:11, fontWeight:700, letterSpacing:ls(1), color:"#C0392B", opacity:0.95, marginBottom:9}}>{t.taskOverdue}</div>
-                            <div style={{display:"flex", flexDirection:"column", gap:9}}>{overdueBucket.map(renderTask)}</div>
-                          </div>
-                        )}
                         {todayBucket.length > 0 && (
                           <div style={{marginBottom: (upcomingBucket.length || nodateBucket.length) ? 18 : 0}}>
                             <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionToday}</div>
