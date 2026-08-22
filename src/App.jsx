@@ -966,6 +966,9 @@ function examIdToNotifId(examId) {
   }
   return Math.abs(hash) % 2147483647 || 1; // 0 হলে সমস্যা করতে পারে তাই fallback 1
 }
+// উপরের হ্যাশ ফাংশনটা exam ছাড়াও যেকোনো string key (timer, streak, goal ইত্যাদি notification flagKey)
+// থেকে stable integer notification-id বানাতে ব্যবহার করা হয় — তাই একটা generic নামেও রাখা হলো।
+const strToNotifId = examIdToNotifId;
 
 function _julianDate(y, m, d) {
   if (m <= 2) { y -= 1; m += 12; }
@@ -1980,13 +1983,24 @@ export default function FocusGo() {
   const saveNotifiedFlags = () => {
     try { window.localStorage.setItem("focusgo_notif_flags", JSON.stringify(notifiedFlagsRef.current)); } catch (e) {}
   };
-  const pushNotification = (title, body, flagKey) => {
+  // skipNative: Focus Timer-এর session/break/topic-done ইভেন্টগুলোর জন্য OS notification
+  // আগে থেকেই scheduleTimerEndNotif দিয়ে শিডিউল করা থাকে, তাই এখানে আবার একই নোটিফিকেশন
+  // পাঠালে ডুপ্লিকেট হয়ে যাবে — সেসব কল-সাইট থেকে skipNative=true পাঠানো হয়।
+  const pushNotification = (title, body, flagKey, skipNative) => {
     if (flagKey) {
       if (notifiedFlagsRef.current[flagKey]) return;
       notifiedFlagsRef.current[flagKey] = true;
       saveNotifiedFlags();
     }
     setNotifications(prev => [{ id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, title, body, time: new Date().toISOString(), read: false }, ...prev].slice(0, 50));
+    // in-app bell-এর পাশাপাশি একটা আসল OS (system tray) notification-ও পাঠানো হচ্ছে,
+    // যাতে অ্যাপ ব্যাকগ্রাউন্ডে/মিনিমাইজড থাকলেও ইউজার নোটিফিকেশনটা দেখতে পায়।
+    if (!skipNative && Capacitor.isNativePlatform()) {
+      const nid = strToNotifId(flagKey || `${title}_${Date.now()}`);
+      LocalNotifications.schedule({
+        notifications: [{ id: nid, title, body, schedule: { at: new Date(Date.now() + 500) } }],
+      }).catch(() => {});
+    }
   };
   const [examMonth, setExamMonth] = useState(new Date());
   const [showExams, setShowExams] = useState(false);
@@ -2520,6 +2534,23 @@ export default function FocusGo() {
     return () => clearInterval(id);
   }, []);
 
+  // Focus Timer শেষ হওয়ার exact সময়টা আগে থেকেই OS-এ একটা LocalNotification হিসেবে
+  // শিডিউল করে রাখা হয় (ঠিক exam reminder-এর প্যাটার্নে) — তাই timer চলাকালীন অ্যাপ থেকে
+  // বের হয়ে গেলে বা অ্যাপ পুরোপুরি বন্ধ/মিনিমাইজড থাকলেও নির্দিষ্ট সময়ে system notification আসবে।
+  const timerNotifIdRef = useRef(strToNotifId("focusgo_timer_end"));
+  const scheduleTimerEndNotif = (atMs, kind) => {
+    if (!Capacitor.isNativePlatform()) return;
+    const title = kind === "break" ? t.notifBreakDoneTitle : t.notifSessionDoneTitle;
+    const body = kind === "break" ? t.notifBreakDoneBody : t.notifSessionDoneBody;
+    LocalNotifications.schedule({
+      notifications: [{ id: timerNotifIdRef.current, title, body, schedule: { at: new Date(atMs) } }],
+    }).catch(() => {});
+  };
+  const cancelTimerEndNotif = () => {
+    if (!Capacitor.isNativePlatform()) return;
+    LocalNotifications.cancel({ notifications: [{ id: timerNotifIdRef.current }] }).catch(() => {});
+  };
+
   // timer tick
   // মোবাইলে অ্যাপ থেকে বের হয়ে (ব্যাকগ্রাউন্ডে) থাকলে ব্রাউজার setInterval-কে
   // থ্রটল/পজ করে দেয়, তাই আগের কোডে (প্রতি টিকে -1 করে) ফিরে এসে ঘড়ি "থেমে/আটকে"
@@ -2528,6 +2559,7 @@ export default function FocusGo() {
   useEffect(() => {
     if (timerRunning) {
       timerEndAtRef.current = Date.now() + Math.max(0, timerSeconds) * 1000;
+      scheduleTimerEndNotif(timerEndAtRef.current, sessionTypeRef.current);
       const tick = () => {
         const remaining = Math.max(0, Math.round((timerEndAtRef.current - Date.now()) / 1000));
         setTimerSeconds(remaining);
@@ -2547,17 +2579,17 @@ export default function FocusGo() {
                 setTimerTargetMinutes(null);
                 setShowBreakPrompt(false);
                 if (timerTopicIdRef.current) markTopicDoneFor(todayKey, timerTopicIdRef.current);
-                pushNotification(t.notifTopicDoneTitle, t.notifTopicDoneBody);
+                pushNotification(t.notifTopicDoneTitle, t.notifTopicDoneBody, null, true);
                 return;
               }
               setTimerElapsedMinutes(newElapsed);
             }
             setShowBreakPrompt(true);
-            pushNotification(t.notifSessionDoneTitle, t.notifSessionDoneBody);
+            pushNotification(t.notifSessionDoneTitle, t.notifSessionDoneBody, null, true);
           } else {
             // Break শেষ — পরের Focus session সাথে সাথে শুরু হয়ে যাবে, timer running-ই থাকবে (তাই interval restart লাগবে না)
             vibrate();
-            pushNotification(t.notifBreakDoneTitle, t.notifBreakDoneBody);
+            pushNotification(t.notifBreakDoneTitle, t.notifBreakDoneBody, null, true);
             const totalSessions = pomodoroTotalSessionsRef.current;
             const nextSession = pomodoroSessionRef.current >= totalSessions ? 1 : pomodoroSessionRef.current + 1;
             setPomodoroSession(nextSession);
@@ -2569,6 +2601,7 @@ export default function FocusGo() {
             setTimerTotal(newTotal);
             setTimerSeconds(newTotal);
             timerEndAtRef.current = Date.now() + newTotal * 1000;
+            scheduleTimerEndNotif(timerEndAtRef.current, "focus");
             setFocusFullscreen(true);
           }
         }
@@ -2581,6 +2614,7 @@ export default function FocusGo() {
         clearInterval(timerRef.current);
         document.removeEventListener("visibilitychange", onVisible);
         window.removeEventListener("focus", onVisible);
+        cancelTimerEndNotif(); // pause/reset হলে আগে শিডিউল করা timer-end notification ক্যানসেল হয়ে যাবে
       };
     } else if (timerRef.current) {
       clearInterval(timerRef.current);
