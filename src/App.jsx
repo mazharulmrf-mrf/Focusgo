@@ -3843,54 +3843,54 @@ export default function FocusGo() {
                   {lang==="bn" ? "স্ট্যাটস" : "Stats"}
                 </button>
               </div>
-              <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
-                border:"none",
-                background:"transparent",
-                borderRadius:"50%",
-                width:30,
-                height:30,
-                marginBottom:6,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                cursor:"pointer",
-                flexShrink:0,
-                position:"relative",
-              }}>
-                <CalendarDays size={20} color={accent} strokeWidth={2}/>
-                {examDateKeys.has(todayKey) && (
-                  <span style={{
-                    position:"absolute", top:2, right:2,
-                    width:7, height:7, borderRadius:"50%",
-                    background:"#C0392B",
-                    border:`1.5px solid ${cardBg}`,
-                  }}/>
-                )}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Exams কার্ড — Exam Schedule ম্যানেজার খোলে; কাছের পরীক্ষা থাকলে সেটার নাম+তারিখ দেখায়, নাহলে "যোগ করুন" */}
-        {tab === "study" && studySection === "plan" && (
-          <button
-            onClick={()=>{ vibrate(); setShowExamSchedule(true); }}
-            className="fg-tab-panel"
-            style={{marginTop:14, width:"100%", textAlign:"left", border:`1px solid ${cardBorder}`, cursor:"pointer", background:cardBg, borderRadius:18, padding:"13px 16px", display:"flex", alignItems:"center", gap:12, color:textMain}}
-          >
-            <div style={{width:38, height:38, borderRadius:12, background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-              <CalendarClock size={19} color={accent}/>
-            </div>
-            <div style={{flex:1, minWidth:0}}>
-              <div style={{fontSize:13.5, fontWeight:800, color:textMain}}>{lang==="bn"?"পরীক্ষার সময়সূচি":"Exam Schedule"}</div>
-              <div style={{fontSize:11.5, color:textMuted2, marginTop:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-                {nearestUpcomingExam
-                  ? `${nearestUpcomingExam.subject} · ${weekdayName(new Date(nearestUpcomingExam.date+"T00:00:00"))} ${nf(new Date(nearestUpcomingExam.date+"T00:00:00").getDate())} ${monthName(new Date(nearestUpcomingExam.date+"T00:00:00").getMonth())}`
-                  : (lang==="bn" ? "কোনো পরীক্ষা যোগ করা নেই — ট্যাপ করে যোগ করুন" : "No exams added yet — tap to add")}
+              <div style={{display:"flex", alignItems:"center", gap:2}}>
+                <button onClick={()=>{vibrate(); setShowExamSchedule(true);}} title={lang==="bn"?"পরীক্ষার সময়সূচি":"Exam Schedule"} style={{
+                  border:"none",
+                  background:"transparent",
+                  borderRadius:"50%",
+                  width:30,
+                  height:30,
+                  marginBottom:6,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  cursor:"pointer",
+                  flexShrink:0,
+                  position:"relative",
+                }}>
+                  <CalendarClock size={20} color={accent} strokeWidth={2}/>
+                  {nearestUpcomingExam && (
+                    <span style={{
+                      position:"absolute", top:2, right:2,
+                      width:7, height:7, borderRadius:"50%",
+                      background:"#C0392B",
+                      border:`1.5px solid ${cardBg}`,
+                    }}/>
+                  )}
+                </button>
+                <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
+                  border:"none",
+                  background:"transparent",
+                  borderRadius:"50%",
+                  width:30,
+                  height:30,
+                  marginBottom:6,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  cursor:"pointer",
+                  flexShrink:0,
+                  position:"relative",
+                }}>
+                  <CalendarDays size={20} color={accent} strokeWidth={2}/>
+                  {examDateKeys.has(todayKey) && (
+                    <span style={{
+                      position:"absolute", top:2, right:2,
+                      width:7, height:7, borderRadius:"50%",
+                      background:"#C0392B",
+                      border:`1.5px solid ${cardBg}`,
+                    }}/>
+                  )}
+                </button>
               </div>
             </div>
-            {examSchedule.length > 0 && (
-              <span style={{fontSize:11, fontWeight:800, color:accent, background:`${accent}1A`, borderRadius:999, padding:"3px 9px", flexShrink:0}}>{nf(examSchedule.length)}</span>
-            )}
-          </button>
+          </div>
         )}
 
         {/* Focus timer - main home of Study tab (Study Plan sub-section) */}
