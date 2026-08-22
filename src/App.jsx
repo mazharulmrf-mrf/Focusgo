@@ -1278,6 +1278,7 @@ const T = {
     timeRemainingLabel: "remaining",
     dayFocusedLabel: "focused", tasksRemainingLabel: "tasks remaining",
     confirmDeleteTopic: "Delete this topic?", confirmDelete: "Yes, delete",
+    confirmDeleteAttempt: "Delete this attempt?", confirmDeleteCombinedExam: "Delete this combined exam?",
     monthOverview: "Month Overview", back: "Back",
     todaysGoal: "Today's Goal", adjustGoal: "Adjust Goal", topics: "topics",
     doneCount: "Done", remaining: "Remaining", setGoal: "Set Goal",
@@ -1427,6 +1428,7 @@ const T = {
     timeRemainingLabel: "বাকি আছে",
     dayFocusedLabel: "ফোকাস করা হয়েছে", tasksRemainingLabel: "টি টাস্ক বাকি",
     confirmDeleteTopic: "এই টপিকটি মুছে ফেলবে?", confirmDelete: "হ্যাঁ, মুছে ফেলো",
+    confirmDeleteAttempt: "এই এন্ট্রিটি মুছে ফেলবে?", confirmDeleteCombinedExam: "এই কম্বাইন্ড এক্সামটি মুছে ফেলবে?",
     monthOverview: "মাসের সংক্ষিপ্ত দৃশ্য", back: "পেছনে",
     todaysGoal: "আজকের লক্ষ্য", adjustGoal: "লক্ষ্য পরিবর্তন করুন", topics: "টপিক",
     doneCount: "সম্পন্ন", remaining: "বাকি", setGoal: "লক্ষ্য সেট করুন",
@@ -1906,6 +1908,20 @@ export default function FocusGo() {
   const [tasks, setTasks] = useState(() => {
     try { return JSON.parse(window.localStorage.getItem("focusgo_tasks_v1") || "[]"); } catch (e) { return []; }
   }); // {id, title, category:"study"|"personal", priority:"high"|"med"|"low", done}[]
+
+  // ---- Undo toast: যেকোনো ডিলিট action-এর পর কয়েক সেকেন্ডের জন্য ফিরিয়ে আনার সুযোগ ----
+  const [undoToast, setUndoToast] = useState(null); // { message, onUndo } | null
+  const undoTimerRef = useRef(null);
+  const showUndoToast = (message, onUndo) => {
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    setUndoToast({ message, onUndo });
+    undoTimerRef.current = setTimeout(() => setUndoToast(null), 5000);
+  };
+  const dismissUndoToast = () => {
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    setUndoToast(null);
+  };
+
   const [showAddTask, setShowAddTask] = useState(false);
   const [editingTask, setEditingTask] = useState(null); // এডিট করার জন্য সিলেক্টেড টাস্ক অবজেক্ট, নাহলে null
   const [taskMenuOpenId, setTaskMenuOpenId] = useState(null); // কোন টাস্ক কার্ডের "..." মেনু খোলা আছে
@@ -1959,7 +1975,15 @@ export default function FocusGo() {
     }
     return ts.map(x => x.id === id ? { ...x, done: !x.done, doneAt: !x.done ? todayKey : null } : x);
   });
-  const deleteTask = (id) => setTasks(ts => ts.filter(x => x.id !== id));
+  const deleteTask = (id) => {
+    const removed = tasks.find(x => x.id === id);
+    setTasks(ts => ts.filter(x => x.id !== id));
+    if (removed) {
+      showUndoToast(lang === "bn" ? "টাস্ক ডিলিট হয়েছে" : "Task deleted", () => {
+        setTasks(ts => [...ts, removed]);
+      });
+    }
+  };
   const addTask = (newTask) => setTasks(ts => [newTask, ...ts]);
   const updateTask = (updated) => setTasks(ts => ts.map(x => x.id === updated.id ? { ...x, ...updated } : x));
   const [topicBank, setTopicBank] = useState({}); // subject -> [topicName, ...] — pre-added topics for Today's Study/Plan, subject-scoped (mirrors examSubjects' subject->topics shape but as a flat list, no attempts)
@@ -2723,11 +2747,17 @@ export default function FocusGo() {
   };
 
   const deleteTopicFor = (dk, id) => {
+    const removed = (entries[dk] || []).find(x => x.id === id);
     setEntries(prev => {
       const list = (prev[dk] || []).filter(x => x.id !== id);
       return { ...prev, [dk]: list };
     });
     if (timerTopicId === id) setTimerTopicId(null);
+    if (removed) {
+      showUndoToast(lang === "bn" ? "টপিক ডিলিট হয়েছে" : "Topic deleted", () => {
+        setEntries(prev => ({ ...prev, [dk]: [...(prev[dk] || []), removed] }));
+      });
+    }
   };
 
   // ---- today-tab wrappers ----
@@ -2891,6 +2921,13 @@ export default function FocusGo() {
       const list = prev[subj];
       if (!list) return prev;
       return { ...prev, [subj]: list.filter(x => x !== topicName) };
+    });
+    showUndoToast(lang === "bn" ? "টপিক মুছে ফেলা হয়েছে" : "Topic removed", () => {
+      setTopicBank(prev => {
+        const list = prev[subj] || [];
+        if (list.includes(topicName)) return prev;
+        return { ...prev, [subj]: [...list, topicName] };
+      });
     });
   };
   // টপিক rename হলে ব্যাংকের পাশাপাশি এই সাবজেক্ট+টপিকের আগের সব Today's Study/Plan এন্ট্রিতেও propagate হয়,
@@ -5158,6 +5195,24 @@ export default function FocusGo() {
           onClose={()=>setShowSettings(false)}
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
       )}
+
+      {/* Undo toast — যেকোনো ডিলিটের পর কয়েক সেকেন্ড দেখা যায়, চাপলে আগের অবস্থায় ফিরে যায় */}
+      {undoToast && (
+        <div style={{position:"fixed", left:"50%", bottom:isDesktop?24:88, transform:"translateX(-50%)", zIndex:80,
+          background: dark?"#2C2820":"#211D18", color:"#F3EFE7", borderRadius:12, padding:"11px 12px 11px 16px",
+          display:"flex", alignItems:"center", gap:14, boxShadow:"0 8px 24px rgba(0,0,0,0.28)",
+          maxWidth:"calc(100vw - 32px)", animation:"fg-fade-up .2s cubic-bezier(0.16,1,0.3,1)"}}>
+          <span style={{fontSize:12.5, fontWeight:600, whiteSpace:"nowrap"}}>{undoToast.message}</span>
+          <button onClick={()=>{ const fn = undoToast.onUndo; dismissUndoToast(); vibrate(); fn && fn(); }}
+            style={{border:"none", background:"transparent", color:accent, fontSize:12.5, fontWeight:800, cursor:"pointer", padding:"4px 4px", flexShrink:0, textTransform:"uppercase", letterSpacing:0.3}}>
+            {lang==="bn" ? "আনডু" : "Undo"}
+          </button>
+          <button onClick={dismissUndoToast} aria-label={lang==="bn"?"বন্ধ করুন":"Dismiss"}
+            style={{border:"none", background:"transparent", color:"#8A8272", cursor:"pointer", padding:2, display:"flex", flexShrink:0}}>
+            <X size={14}/>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -5396,6 +5451,68 @@ function PercentRing({ pct, size = 56, stroke = 5, accent, trackColor, textMain,
   );
 }
 
+// "..." মেনু + এডিট/ডিলিট, ডিলিটে চাপলে মেনুর ভেতরেই ইনলাইন কনফার্ম দেখায় (Tasks ও TopicsList-এ যে প্যাটার্ন আগে থেকে ছিল, সেটাই এখানে reusable করা হলো)
+// নিচে যথেষ্ট জায়গা না থাকলে (viewport-এর শেষ প্রান্তের কাছে) মেনুটা স্বয়ংক্রিয়ভাবে উপরের দিকে (flip-up) খোলে
+function DeleteMenuButton({ onEdit, onDelete, editLabel, deleteLabel, confirmText, confirmLabel, cancelLabel, cardBg, cardBorder, textMuted2, iconSize = 16 }) {
+  const [open, setOpen] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [openUp, setOpenUp] = useState(false);
+  const btnRef = useRef(null);
+  const close = () => { setOpen(false); setConfirming(false); };
+  const toggleOpen = (e) => {
+    e.stopPropagation();
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      // মেনুর আনুমানিক সর্বোচ্চ উচ্চতা ~130px (confirm state-এ সবচেয়ে লম্বা) — নিচে এর চেয়ে কম জায়গা থাকলে উপরে খুলবে
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setOpenUp(spaceBelow < 140);
+    }
+    setOpen(o => !o);
+    setConfirming(false);
+  };
+  return (
+    <div ref={btnRef} style={{position:"relative", flexShrink:0}}>
+      <button onClick={toggleOpen} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
+        <MoreVertical size={iconSize}/>
+      </button>
+      {open && (
+        <>
+          <div onClick={close} style={{position:"fixed", inset:0, zIndex:59}}/>
+          <div style={{
+            position:"absolute", right:0, zIndex:60, minWidth:180, overflow:"hidden",
+            background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10,
+            boxShadow:"0 6px 18px rgba(0,0,0,0.15)",
+            ...(openUp ? { bottom:"100%", marginBottom:4 } : { top:"100%", marginTop:4 }),
+          }}>
+            {confirming ? (
+              <>
+                <div style={{padding:"9px 12px", fontSize:11.5, color:textMuted2, fontWeight:600}}>{confirmText}</div>
+                <button onClick={()=>{ close(); onDelete(); }} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:12.5, fontWeight:700, cursor:"pointer", textAlign:"left"}}>
+                  <Trash2 size={13}/> {confirmLabel}
+                </button>
+                <button onClick={()=>setConfirming(false)} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                  {cancelLabel}
+                </button>
+              </>
+            ) : (
+              <>
+                {onEdit && (
+                  <button onClick={()=>{close(); onEdit();}} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                    <Pencil size={13}/> {editLabel}
+                  </button>
+                )}
+                <button onClick={()=>setConfirming(true)} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:12.5, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                  <Trash2 size={13}/> {deleteLabel}
+                </button>
+              </>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardBorder, textMuted2, accent, dark, onAddAttempt, onEditAttempt, onRemoveAttempt, onRenameTopic, onRemoveTopic }) {
   const ls = (px) => (lang === "bn" ? 0 : px);
   const [expanded, setExpanded] = useState(false);
@@ -5412,6 +5529,7 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
   const [editObtained, setEditObtained] = useState("");
   const [editTotal, setEditTotal] = useState("");
   const [editDate, setEditDate] = useState("");
+  const [confirmingDeleteTopic, setConfirmingDeleteTopic] = useState(false);
 
   const avgPct = attempts.length
     ? Math.round(attempts.reduce((sum, s) => sum + (s.total ? (s.obtained / s.total) * 100 : 0), 0) / attempts.length)
@@ -5512,14 +5630,13 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
                       <Num>{nf(a.obtained)}</Num> / <Num>{nf(a.total)}</Num>
                       <span style={{color:textMuted2, fontWeight:500}}> (<Num>{nf(a.total ? Math.round((a.obtained/a.total)*100) : 0)}</Num>%)</span>
                     </span>
-                    <div style={{display:"flex", gap:10}}>
-                      <button onClick={()=>startEditAttempt(a)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex"}}>
-                        <Pencil size={13}/>
-                      </button>
-                      <button onClick={()=>onRemoveAttempt(a.id)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex"}}>
-                        <Trash2 size={13}/>
-                      </button>
-                    </div>
+                    <DeleteMenuButton
+                      onEdit={()=>startEditAttempt(a)}
+                      onDelete={()=>onRemoveAttempt(a.id)}
+                      editLabel={t.edit} deleteLabel={t.deleteTopic}
+                      confirmText={t.confirmDeleteAttempt} confirmLabel={t.confirmDelete} cancelLabel={t.cancel}
+                      cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} iconSize={14}
+                    />
                   </div>
                 )
               ))}
@@ -5539,14 +5656,22 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
             </div>
           </div>
 
-          <div style={{display:"flex", gap:14}}>
-            <button onClick={startRename} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:11, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
-              <Pencil size={12}/> {t.edit}
-            </button>
-            <button onClick={onRemoveTopic} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0553F", fontSize:11, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
-              <Trash2 size={12}/> {t.deleteTopic}
-            </button>
-          </div>
+          {confirmingDeleteTopic ? (
+            <div style={{display:"flex", alignItems:"center", gap:10, flexWrap:"wrap"}}>
+              <span style={{fontSize:11, fontWeight:600, color:textMuted2}}>{t.confirmDeleteTopic}</span>
+              <button onClick={onRemoveTopic} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0392B", fontSize:11, fontWeight:700, padding:0}}>{t.confirmDelete}</button>
+              <button onClick={()=>setConfirmingDeleteTopic(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:11, fontWeight:700, padding:0}}>{t.cancel}</button>
+            </div>
+          ) : (
+            <div style={{display:"flex", gap:14}}>
+              <button onClick={startRename} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:11, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
+                <Pencil size={12}/> {t.edit}
+              </button>
+              <button onClick={()=>setConfirmingDeleteTopic(true)} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0553F", fontSize:11, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
+                <Trash2 size={12}/> {t.deleteTopic}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -5593,6 +5718,7 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
   const [editObtained, setEditObtained] = useState("");
   const [editTotal, setEditTotal] = useState("");
   const [editDate, setEditDate] = useState("");
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
 
   const { name, type, subjects, attempts = [] } = combinedExam;
   const typeLabel = type === "daily" ? t.typeDaily : type === "monthly" ? t.typeMonthly : t.typeWeekly;
@@ -5671,14 +5797,13 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
                       <Num>{nf(a.obtained)}</Num> / <Num>{nf(a.total)}</Num>
                       <span style={{color:textMuted2, fontWeight:500}}> (<Num>{nf(a.total ? Math.round((a.obtained/a.total)*100) : 0)}</Num>%)</span>
                     </span>
-                    <div style={{display:"flex", gap:10}}>
-                      <button onClick={()=>startEditAttempt(a)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex"}}>
-                        <Pencil size={13}/>
-                      </button>
-                      <button onClick={()=>onRemoveAttempt(a.id)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex"}}>
-                        <Trash2 size={13}/>
-                      </button>
-                    </div>
+                    <DeleteMenuButton
+                      onEdit={()=>startEditAttempt(a)}
+                      onDelete={()=>onRemoveAttempt(a.id)}
+                      editLabel={t.edit} deleteLabel={t.deleteTopic}
+                      confirmText={t.confirmDeleteAttempt} confirmLabel={t.confirmDelete} cancelLabel={t.cancel}
+                      cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} iconSize={14}
+                    />
                   </div>
                 )
               ))}
@@ -5698,14 +5823,22 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
             </div>
           </div>
 
-          <div style={{display:"flex", gap:14}}>
-            <button onClick={onEdit} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:11, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
-              <Pencil size={12}/> {t.edit}
-            </button>
-            <button onClick={onRemove} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0553F", fontSize:11, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
-              <Trash2 size={12}/> {t.deleteCombinedExam}
-            </button>
-          </div>
+          {confirmingRemove ? (
+            <div style={{display:"flex", alignItems:"center", gap:10, flexWrap:"wrap"}}>
+              <span style={{fontSize:11, fontWeight:600, color:textMuted2}}>{t.confirmDeleteCombinedExam}</span>
+              <button onClick={onRemove} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0392B", fontSize:11, fontWeight:700, padding:0}}>{t.confirmDelete}</button>
+              <button onClick={()=>setConfirmingRemove(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:11, fontWeight:700, padding:0}}>{t.cancel}</button>
+            </div>
+          ) : (
+            <div style={{display:"flex", gap:14}}>
+              <button onClick={onEdit} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:11, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
+                <Pencil size={12}/> {t.edit}
+              </button>
+              <button onClick={()=>setConfirmingRemove(true)} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0553F", fontSize:11, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
+                <Trash2 size={12}/> {t.deleteCombinedExam}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -6712,10 +6845,13 @@ function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onR
             ) : (
               <>
                 <span style={{fontSize:11.5, fontWeight:600, wordBreak:"break-word"}}>{tp}</span>
-                <div style={{display:"flex", gap:10, alignItems:"center", flexShrink:0}}>
-                  <button onClick={()=>startEdit(tp)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><Pencil size={12.5}/></button>
-                  <button onClick={()=>onRemoveTopic(subject, tp)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><Trash2 size={13}/></button>
-                </div>
+                <DeleteMenuButton
+                  onEdit={()=>startEdit(tp)}
+                  onDelete={()=>onRemoveTopic(subject, tp)}
+                  editLabel={t.edit} deleteLabel={t.deleteTopic}
+                  confirmText={t.confirmDeleteTopic} confirmLabel={t.confirmDelete} cancelLabel={t.cancel}
+                  cardBg={dark?"#1A1814":"#FFFFFF"} cardBorder={cardBorder} textMuted2={textMuted2} iconSize={14}
+                />
               </>
             )}
           </div>
