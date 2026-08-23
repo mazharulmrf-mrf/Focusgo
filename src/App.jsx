@@ -4289,28 +4289,6 @@ export default function FocusGo() {
                     }}/>
                   )}
                 </button>
-                <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{
-                  border:"none",
-                  background:"transparent",
-                  borderRadius:"50%",
-                  width:30,
-                  height:30,
-                  marginBottom:6,
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  cursor:"pointer",
-                  flexShrink:0,
-                  position:"relative",
-                }}>
-                  <CalendarDays size={20} color={accent} strokeWidth={2}/>
-                  {examDateKeys.has(todayKey) && (
-                    <span style={{
-                      position:"absolute", top:2, right:2,
-                      width:7, height:7, borderRadius:"50%",
-                      background:"#C0392B",
-                      border:`1.5px solid ${cardBg}`,
-                    }}/>
-                  )}
-                </button>
               </div>
             </div>
           </div>
