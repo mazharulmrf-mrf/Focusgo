@@ -4001,7 +4001,7 @@ export default function FocusGo() {
                 noon:      { grad: dark ? "linear-gradient(135deg, rgba(76,143,166,0.16), rgba(76,143,166,0.02))" : "linear-gradient(135deg, #4C8FA61A, #4C8FA603)", Icon: Sun,  iconColor: "#4C8FA6" },
                 afternoon: { grad: dark ? "linear-gradient(135deg, rgba(217,119,87,0.16), rgba(217,119,87,0.02))" : "linear-gradient(135deg, #D977571A, #D9775703)", Icon: Sun,  iconColor: accent },
                 evening:   { grad: dark ? "linear-gradient(135deg, rgba(155,107,158,0.18), rgba(155,107,158,0.02))" : "linear-gradient(135deg, #9B6B9E1A, #9B6B9E03)", Icon: Moon, iconColor: "#9B6B9E" },
-                night:     { grad: dark ? "linear-gradient(135deg, rgba(75,90,150,0.20), rgba(75,90,150,0.02))" : "linear-gradient(135deg, #4B5A961A, #4B5A9603)", Icon: Moon, iconColor: "#4B5A96" },
+                night:     { grad: dark ? "linear-gradient(135deg, rgba(75,90,150,0.20), rgba(75,90,150,0.02))" : "linear-gradient(135deg, #4B5A961A, #4B5A9603)", Icon: Moon, iconColor: dark ? "#8FA0E0" : "#4B5A96" },
               }[greetKey];
 
               return (
@@ -4010,7 +4010,7 @@ export default function FocusGo() {
                     <div style={{minWidth:0, flex:1}}>
                       <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2, marginBottom:3, display:"flex", alignItems:"center", gap:5}}>
                         {lang === "bn" ? greetingBn : greetingEn}
-                        <greetTheme.Icon size={14} color={greetTheme.iconColor} strokeWidth={2.2}/>
+                        <greetTheme.Icon size={15} color={greetTheme.iconColor} strokeWidth={2.3} fill={greetKey==="night" ? `${greetTheme.iconColor}33` : "none"}/>
                       </div>
                       <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
                         <div style={{fontSize:24,fontWeight:800,letterSpacing:-0.4,color:textMain}}>
@@ -4525,8 +4525,8 @@ export default function FocusGo() {
         <div className="fg-tab-panel" style={{marginTop:14}}>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
             <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
-            <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} style={{display:"flex",alignItems:"center",gap:4, background: accent, color: "#FFFFFF", border:"none", borderRadius:12, padding:"8px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
-              <Plus size={13}/> {t.addTopic}
+            <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} style={{display:"flex",alignItems:"center",gap:3, background: "transparent", color: accent, border:"none", padding:"4px 2px", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
+              <Plus size={14}/> {t.addTopic}
             </button>
           </div>
 
@@ -4554,8 +4554,8 @@ export default function FocusGo() {
               <div style={{fontSize:18,fontWeight:800,letterSpacing:-0.3,color:textMain}}>
                 {lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}
               </div>
-              <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}} style={{display:"flex",alignItems:"center",gap:4, background: accent, color: "#FFFFFF", border:"none", borderRadius:12, padding:"8px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
-                <Plus size={13}/> {t.taskAddBtn}
+              <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}} style={{display:"flex",alignItems:"center",gap:3, background: "transparent", color: accent, border:"none", padding:"4px 2px", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
+                <Plus size={14}/> {t.taskAddBtn}
               </button>
             </div>
             {homeTodayTasks.length === 0 ? (
@@ -4672,7 +4672,7 @@ export default function FocusGo() {
                 <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3}}>
                   {isPlanToday ? t.todaysStudy : <>{weekdayName(planDate)}, <Num>{nf(planDate.getDate())}</Num> {monthName(planDate.getMonth())}</>}
                 </div>
-                <button onClick={()=>{setAddTargetKey(planKey); setShowAdd(true);}} style={{display:"flex",alignItems:"center",gap:4, background: accent, color: "#FFFFFF", border:"none", borderRadius:12, padding:"9px 13px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+                <button onClick={()=>{setAddTargetKey(planKey); setShowAdd(true);}} style={{display:"flex",alignItems:"center",gap:3, background: "transparent", color: accent, border:"none", padding:"4px 2px", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
                   <Plus size={14}/> {t.addTopic}
                 </button>
               </div>
@@ -5050,11 +5050,11 @@ export default function FocusGo() {
                 Calendar view-এ থাকলে ও কোনো দিন সিলেক্ট করা থাকলে সেই দিনটাই নতুন টাস্কের due date হিসেবে prefill হয়ে যাবে */}
             <button onClick={()=>{vibrate(); setTaskAddDefaultDate(taskViewMode === "calendar" ? (taskCalSelectedDay || todayKey) : null); setShowAddTask(true);}} title={t.taskAdd} style={{
               position:"fixed", right:20, bottom: isDesktop ? 28 : 96, zIndex:41,
-              width:46, height:46, borderRadius:"50%", border:"none", background:accent, color:"#fff",
+              width:40, height:40, borderRadius:12, border:"none", background:accent, color:"#fff",
               display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
-              boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.28)" : "0 6px 16px rgba(217,119,87,0.28)",
+              boxShadow: dark ? "0 2px 6px rgba(0,0,0,0.2)" : "0 2px 6px rgba(217,119,87,0.2)",
             }}>
-              <Plus size={21} strokeWidth={2.5}/>
+              <Plus size={17} strokeWidth={2.4}/>
             </button>
           </>
           );
@@ -5118,8 +5118,8 @@ export default function FocusGo() {
                 </div>
               </div>
               {/* সাবজেক্ট ম্যানেজ করার শর্টকাট — আগে টেক্সট বাটন হিসেবে নিচে আলাদা লাইনে ছিল, এখন হেডিং-এর পাশেই ছোট + আইকন হিসেবে হাইলাইট করা */}
-              <button onClick={()=>{vibrate(); setShowSubjects(true);}} title={t.manageSubjects} style={{width:32, height:32, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", border:"none", borderRadius:"50%", background:accent, color:"#fff", cursor:"pointer", boxShadow: dark ? "0 3px 10px rgba(0,0,0,0.22)" : "0 3px 10px rgba(217,119,87,0.22)"}}>
-                <Plus size={16} strokeWidth={2.5}/>
+              <button onClick={()=>{vibrate(); setShowSubjects(true);}} title={t.manageSubjects} style={{width:32, height:32, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", border:"none", background:"transparent", color:accent, cursor:"pointer"}}>
+                <Plus size={19} strokeWidth={2.3}/>
               </button>
             </div>
 
@@ -8409,7 +8409,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
             {activeFolder === "Trash" ? <Trash2 size={23} color={dark?"#C9C0AC":"#6B6353"}/> : <FileText size={23} color={dark?"#C9C0AC":"#6B6353"}/>}
           </div>
           <div style={{fontSize:14,fontWeight:800,color:textMain}}>{activeFolder === "Trash" ? (lang==="bn"?"ট্র্যাশ খালি":"Trash is empty") : t.notesEmpty}</div>
-          <div style={{fontSize:12,color:textMuted2,marginTop:5}}>{activeFolder === "Trash" ? (lang==="bn"?"ডিলিট করা নোট এখানে দেখা যাবে।":"Deleted notes will show up here.") : (lang==="bn"?"নিচের + বাটনে ট্যাপ করে একটা নোট বা চেকলিস্ট শুরু করুন।":"Tap the + button below to start a note or checklist.")}</div>
+          <div style={{fontSize:12,color:textMuted2,marginTop:5}}>{activeFolder === "Trash" ? (lang==="bn"?"ডিলিট করা নোট এখানে দেখা যাবে।":"Deleted notes will show up here.") : (lang==="bn"?"নিচের + বাটনে ট্যাপ করে একটা নোট বা লিস্ট শুরু করুন।":"Tap the + button below to start a note or list.")}</div>
         </div>
       ) : (
         <div style={ viewMode==="list" ? {display:"flex",flexDirection:"column",gap:8} : {display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:10} }>
@@ -8537,7 +8537,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         {fabOpen && (
           <div onClick={e=>e.stopPropagation()} style={{display:"flex", flexDirection:"column", gap:8, alignItems:"flex-end"}}>
             <button onClick={()=>{vibrate(); openNew(true);}} style={{display:"flex",alignItems:"center",gap:8,border:`1px solid ${cardBorder}`,background:cardBg,color:textMain,borderRadius:999,padding:"9px 14px 9px 12px",fontSize:13,fontWeight:700,cursor:"pointer",boxShadow: dark ? "0 4px 12px rgba(0,0,0,0.25)" : "0 4px 12px rgba(0,0,0,0.10)"}}>
-              <ListChecks size={16} color={accent}/> {lang==="bn"?"চেকলিস্ট":"Checklist"}
+              <ListChecks size={16} color={accent}/> {lang==="bn"?"লিস্ট":"List"}
             </button>
             <button onClick={()=>{vibrate(); openNew(false);}} style={{display:"flex",alignItems:"center",gap:8,border:`1px solid ${cardBorder}`,background:cardBg,color:textMain,borderRadius:999,padding:"9px 14px 9px 12px",fontSize:13,fontWeight:700,cursor:"pointer",boxShadow: dark ? "0 4px 12px rgba(0,0,0,0.25)" : "0 4px 12px rgba(0,0,0,0.10)"}}>
               <FileText size={16} color={accent}/> {lang==="bn"?"নোট":"Note"}
@@ -8545,12 +8545,12 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           </div>
         )}
         <button onClick={(e)=>{e.stopPropagation();vibrate();setFabOpen(v=>!v);}} title={t.notesNew} style={{
-          width:52, height:52, borderRadius:17, border:"none", background:accent, color:"#fff",
+          width:40, height:40, borderRadius:12, border:"none", background:accent, color:"#fff",
           display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
-          boxShadow: dark ? "0 8px 18px rgba(0,0,0,0.32)" : "0 8px 18px rgba(217,119,87,0.35)",
+          boxShadow: dark ? "0 2px 6px rgba(0,0,0,0.2)" : "0 2px 6px rgba(217,119,87,0.2)",
           transform: fabOpen ? "rotate(45deg)" : "none", transition:"transform .15s",
         }}>
-          <Plus size={21} strokeWidth={2.5}/>
+          <Plus size={17} strokeWidth={2.4}/>
         </button>
       </div>
 
@@ -8818,7 +8818,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
           {/* Bottom icon toolbar — পেজ ব্যাকগ্রাউন্ডের উপর, উপরের বর্ডার দিয়ে paper card থেকে আলাদা করা */}
           <div onClick={e=>e.stopPropagation()} style={{display:"flex",alignItems:"center",gap:2,padding:"10px 14px",borderTop:`1px solid ${cardBorder}`,flexShrink:0}}>
-            <button onClick={()=>{setShowChecklist(v=>!v);setShowColorPicker(false);setShowBgColorPicker(false);}} title={lang==="bn"?"চেকলিস্ট":"Checklist"}
+            <button onClick={()=>{setShowChecklist(v=>!v);setShowColorPicker(false);setShowBgColorPicker(false);}} title={lang==="bn"?"লিস্ট":"List"}
               style={{border:"none",background:showChecklist?toolbarActiveBg:"transparent",color:iconColor,cursor:"pointer",padding:8,borderRadius:"50%",display:"flex"}}>
               <ListChecks size={19}/>
             </button>
