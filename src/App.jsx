@@ -5282,6 +5282,7 @@ export default function FocusGo() {
             onClose={()=>setTaskDetailId(null)}
             onToggleDone={()=>{vibrate(); toggleTask(x.id);}}
             onEdit={()=>{setTaskDetailId(null); setEditingTask(x);}}
+            onDelete={()=>{ setTaskDetailId(null); vibrate(); deleteTask(x.id); }}
             cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark} bg={bg}/>
         );
       })()}
@@ -8736,7 +8737,10 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 }
 
 // টাস্ক রো-তে ট্যাপ করলে খোলা রিড-অনলি ডিটেইল শিট — ফুল টাইটেল, প্রায়োরিটি, ক্যাটাগরি/ডিউ-ডেট, নোট দেখায়; এডিট করতে পেন্সিল আইকনে চাপলে AddTaskModal খোলে
-function TaskDetailSheet({ task, categoryLabel, priorityLabel, priorityColor, lang, nf, onClose, onToggleDone, onEdit, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
+function TaskDetailSheet({ task, categoryLabel, priorityLabel, priorityColor, lang, nf, onClose, onToggleDone, onEdit, onDelete, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const closeMenu = () => { setMenuOpen(false); setConfirmDelete(false); };
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:"80vh", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"22px 22px 0 0", padding:"18px 20px 26px", color:textMain}}>
@@ -8745,9 +8749,38 @@ function TaskDetailSheet({ task, categoryLabel, priorityLabel, priorityColor, la
           <div style={{flex:1, fontSize:16, fontWeight:700, lineHeight:1.35, wordBreak:"break-word", opacity: task.done?0.6:1}}>
             {task.title}
           </div>
-          <button onClick={onEdit} title={lang==="bn"?"এডিট":"Edit"} style={{border:"none", background:bg, color:textMuted2, width:30, height:30, borderRadius:"50%", cursor:"pointer", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
-            <Pencil size={14}/>
-          </button>
+          <div style={{position:"relative", flexShrink:0}}>
+            <button onClick={()=>{ setMenuOpen(v=>!v); setConfirmDelete(false); }} title={lang==="bn"?"আরও অপশন":"More options"} style={{border:"none", background:bg, color:textMuted2, width:30, height:30, borderRadius:"50%", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center"}}>
+              <MoreVertical size={16}/>
+            </button>
+            {menuOpen && (
+              <>
+                <div onClick={closeMenu} style={{position:"fixed", inset:0, zIndex:59}}/>
+                <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 4px 12px rgba(0,0,0,0.08)", zIndex:60, minWidth:150, overflow:"hidden"}}>
+                  {confirmDelete ? (
+                    <>
+                      <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:600}}>{lang==="bn"?"টাস্কটি ডিলিট করবেন?":"Delete this task?"}</div>
+                      <button onClick={()=>{ closeMenu(); onDelete(); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:700, cursor:"pointer", textAlign:"left"}}>
+                        <Trash2 size={13}/> {lang==="bn"?"ডিলিট নিশ্চিত করুন":"Confirm delete"}
+                      </button>
+                      <button onClick={()=>setConfirmDelete(false)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                        {lang==="bn"?"বাতিল":"Cancel"}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button onClick={()=>{ closeMenu(); onEdit(); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                        <Pencil size={13}/> {lang==="bn"?"এডিট":"Edit"}
+                      </button>
+                      <button onClick={()=>setConfirmDelete(true)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                        <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
           <button onClick={onClose} style={{border:"none", background:bg, color:textMuted2, width:30, height:30, borderRadius:"50%", cursor:"pointer", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
             <X size={16}/>
           </button>
