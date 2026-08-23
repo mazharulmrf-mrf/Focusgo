@@ -8985,6 +8985,7 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
   const [dueDate, setDueDate] = useState(initialTask?.dueDate || defaultDueDate || "");
   const [repeat, setRepeat] = useState(initialTask?.repeat || "none"); // "none" | "daily" | "weekly" | "monthly"
   const [reminderTime, setReminderTime] = useState(initialTask?.reminderTime || "");
+  const [note, setNote] = useState(initialTask?.note || "");
   const [addingCategory, setAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   // ডিফল্টে শুধু Title + Date দেখানো হয় (দ্রুত টাস্ক যোগ করার জন্য) — Category/Priority/Repeat "More options"-এর নিচে লুকানো,
