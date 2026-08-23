@@ -3694,7 +3694,7 @@ export default function FocusGo() {
         .fg-chip-row::-webkit-scrollbar { display: none; }
 
         /* ---- micro-interactions: timer / task completion / progress ---- */
-        @keyframes fg-pulse-soft { 0%, 100% { opacity:1; } 50% { opacity:0.82; } }
+        @keyframes fg-pulse-soft { 0%, 100% { opacity:1; text-shadow: 0 0 0 rgba(217,119,87,0); } 50% { opacity:0.82; text-shadow: 0 0 22px rgba(217,119,87,0.35); } }
         .fg-timer-running { animation: fg-pulse-soft 2.2s ease-in-out infinite; }
         @keyframes fg-check-pop { 0% { transform:scale(0.6); } 60% { transform:scale(1.15); } 100% { transform:scale(1); } }
         .fg-check-pop { animation: fg-check-pop .28s cubic-bezier(0.34,1.56,0.64,1); }
@@ -3784,19 +3784,34 @@ export default function FocusGo() {
               const greetKey = hr < 5 ? "night" : hr < 12 ? "morning" : hr < 14 ? "noon" : hr < 17 ? "afternoon" : hr < 21 ? "evening" : "night";
               const greetingEn = { morning: "Good Morning", noon: "Good Noon", afternoon: "Good Afternoon", evening: "Good Evening", night: "Good Night" }[greetKey];
               const greetingBn = { morning: "শুভ সকাল", noon: "শুভ দুপুর", afternoon: "শুভ বিকেল", evening: "শুভ সন্ধ্যা", night: "শুভ রাত্রি" }[greetKey];
+              // সময়ভিত্তিক subtle gradient + icon — greeting card-টাকে আরেকটু জীবন্ত করতে
+              const greetTheme = {
+                morning:   { grad: dark ? "linear-gradient(135deg, rgba(224,168,58,0.16), rgba(224,168,58,0.02))" : "linear-gradient(135deg, #E0A83A1A, #E0A83A03)", Icon: Sun,  iconColor: "#E0A83A" },
+                noon:      { grad: dark ? "linear-gradient(135deg, rgba(76,143,166,0.16), rgba(76,143,166,0.02))" : "linear-gradient(135deg, #4C8FA61A, #4C8FA603)", Icon: Sun,  iconColor: "#4C8FA6" },
+                afternoon: { grad: dark ? "linear-gradient(135deg, rgba(217,119,87,0.16), rgba(217,119,87,0.02))" : "linear-gradient(135deg, #D977571A, #D9775703)", Icon: Sun,  iconColor: accent },
+                evening:   { grad: dark ? "linear-gradient(135deg, rgba(155,107,158,0.18), rgba(155,107,158,0.02))" : "linear-gradient(135deg, #9B6B9E1A, #9B6B9E03)", Icon: Moon, iconColor: "#9B6B9E" },
+                night:     { grad: dark ? "linear-gradient(135deg, rgba(75,90,150,0.20), rgba(75,90,150,0.02))" : "linear-gradient(135deg, #4B5A961A, #4B5A9603)", Icon: Moon, iconColor: "#4B5A96" },
+              }[greetKey];
 
               return (
                 <>
-                  <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2, marginBottom:3}}>
-                    {lang === "bn" ? greetingBn : greetingEn}
-                  </div>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
-                    <div style={{fontSize:24,fontWeight:800,letterSpacing:-0.4,color:textMain}}>
-                      {firstName}
+                  <div style={{background: greetTheme.grad, borderRadius:16, padding:"12px 14px", marginBottom:2, display:"flex", alignItems:"flex-start", gap:10}}>
+                    <div style={{width:32, height:32, borderRadius:10, background: dark ? `${greetTheme.iconColor}2E` : `${greetTheme.iconColor}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1}}>
+                      <greetTheme.Icon size={16} color={greetTheme.iconColor}/>
                     </div>
-                  </div>
-                  <div style={{fontSize:12,color:textMuted2,marginTop:5,lineHeight:1.4}}>
-                    {line}
+                    <div style={{minWidth:0, flex:1}}>
+                      <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2, marginBottom:3}}>
+                        {lang === "bn" ? greetingBn : greetingEn}
+                      </div>
+                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
+                        <div style={{fontSize:24,fontWeight:800,letterSpacing:-0.4,color:textMain}}>
+                          {firstName}
+                        </div>
+                      </div>
+                      <div style={{fontSize:12,color:textMuted2,marginTop:5,lineHeight:1.4}}>
+                        {line}
+                      </div>
+                    </div>
                   </div>
                   <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8, position:"relative"}} ref={salahMenuRef}>
                     <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
@@ -4056,17 +4071,24 @@ export default function FocusGo() {
 
           {focusMode === "timer" ? (
             <>
-              {/* Session Type dropdown: Focus নাকি Break এখন সেট করা হচ্ছে */}
-              <div style={{display:"flex", justifyContent:"center", marginTop:6}}>
-                <select
-                  value={sessionType}
-                  disabled={timerRunning}
-                  onChange={(e)=>changeSessionType(e.target.value)}
-                  title={t.sessionTypeLabel}
-                  style={{border:`1px solid ${cardBorder}`, borderRadius:10, padding:"4px 22px 4px 10px", fontSize:11, fontWeight:700, background: dark?"#121110":"#fff", color:textMain, cursor: timerRunning?"default":"pointer", outline:"none", appearance:"auto"}}>
-                  <option value="focus">{t.focusOption}</option>
-                  <option value="break">{t.breakOption}</option>
-                </select>
+              {/* Session Type: Focus/Break — উপরের Timer/Stopwatch পিলের সাথে জগাখিচুড়ি লাগছিল বলে
+                  এখন বক্স/বর্ডার ছাড়া হালকা টেক্সট-টগল, সাব-লেবেলের মতো লাগবে, দুটো কন্ট্রোল আলাদা করে বোঝা যাবে */}
+              <div style={{display:"flex", justifyContent:"center", alignItems:"center", gap:8, marginTop:8}}>
+                <button onClick={()=>changeSessionType("focus")} disabled={timerRunning} title={t.sessionTypeLabel} style={{
+                  border:"none", background:"transparent", padding:0, fontSize:12, fontWeight: sessionType==="focus" ? 800 : 600,
+                  cursor: timerRunning ? "default" : "pointer",
+                  color: sessionType==="focus" ? accent : textMuted2,
+                  opacity: sessionType==="focus" ? 1 : 0.65,
+                  transition:"color .15s ease, opacity .15s ease"
+                }}>{t.focusOption}</button>
+                <span style={{width:3, height:3, borderRadius:"50%", background:textMuted2, opacity:0.4}}/>
+                <button onClick={()=>changeSessionType("break")} disabled={timerRunning} title={t.sessionTypeLabel} style={{
+                  border:"none", background:"transparent", padding:0, fontSize:12, fontWeight: sessionType==="break" ? 800 : 600,
+                  cursor: timerRunning ? "default" : "pointer",
+                  color: sessionType==="break" ? accent : textMuted2,
+                  opacity: sessionType==="break" ? 1 : 0.65,
+                  transition:"color .15s ease, opacity .15s ease"
+                }}>{t.breakOption}</button>
               </div>
               <div style={{textAlign:"center", margin: timerRunning ? "4px 0 2px" : "3px 0 1px", transition:"margin .25s ease"}}>
                 {editingDuration ? (
@@ -4349,16 +4371,17 @@ export default function FocusGo() {
         {/* STUDY planning section */}
         {tab === "study" && studySection === "plan" && (
           <div key="plan" className="fg-tab-panel" style={{marginTop:20}}>
-            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8, marginBottom:10}}>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8, marginBottom:14}}>
               <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>
                 {lang === "bn" ? `পরের ${nf(planRange)} দিন` : `Next ${nf(planRange)} Days`}
               </div>
-              {/* range selector: 7/15/30/60/90 দিনের মধ্যে বেছে নেওয়া যায়, পছন্দ মনে থাকে */}
-              <div style={{display:"flex", gap:4, background: dark?"#211E19":"#F0EBDF", borderRadius:16, padding:4, flexShrink:0}}>
+              {/* range selector: 7/15/30/60/90 দিনের মধ্যে বেছে নেওয়া যায়, পছন্দ মনে থাকে —
+                  লেবেলের একই লাইনে, ছোট compact pill, হালকা background */}
+              <div style={{display:"flex", gap:2, background: dark?"#211E19":"#F0EBDF", borderRadius:10, padding:2, flexShrink:0}}>
                 {[7,15,30,60,90].map(r => (
-                  <button key={r} onClick={()=>setPlanRange(r)} style={{
+                  <button key={r} onClick={()=>{vibrate(); setPlanRange(r);}} style={{
                     border:"none", cursor:"pointer", fontFamily:"inherit", fontWeight:700, fontSize:11,
-                    padding:"5px 8px", borderRadius:12,
+                    padding:"4px 9px", borderRadius:8,
                     background: planRange===r ? accent : "transparent",
                     color: planRange===r ? "#FFFFFF" : textMuted2,
                     transition:"background .15s ease, color .15s ease"
@@ -4486,6 +4509,7 @@ export default function FocusGo() {
               <div key={x.id} className="fg-card" onClick={()=>setTaskDetailId(x.id)} style={{
                 background: cardBg,
                 border: `1px solid ${cardBorder}`,
+                borderLeft: `3px solid ${borderColor}`,
                 borderRadius:12, padding:"9px 10px", display:"flex", alignItems:"center", gap:8, position:"relative", cursor:"pointer",
                 transition:"background .15s ease",
               }}>
