@@ -6,7 +6,7 @@ import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Geolocation } from "@capacitor/geolocation";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, Mars, Venus, KeyRound, AtSign, Link2, Cake, Loader2 } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
 import { setupNotifications } from "./notifications";
 import {
@@ -25,6 +25,8 @@ import {
   signInWithCredential,
 } from "firebase/auth";
 import { doc, setDoc, onSnapshot } from "firebase/firestore";
+import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
+import { storage } from "./firebase"; // firebase.js -তে: export const storage = getStorage(app);
 
 // ---------- সোশ্যাল আইকন (lucide-react-এ brand logo নেই, তাই ছোট inline SVG) ----------
 const FacebookIcon = ({ size = 18 }) => (
@@ -568,6 +570,7 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
 // ---------- Settings modal: Language, Theme, About Us ----------
 function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const [showAbout, setShowAbout] = useState(false);
+  const [showTheme, setShowTheme] = useState(false);
   const [legalDoc, setLegalDoc] = useState(null); // null | "privacy" | "terms"
   const isBn = lang === "bn";
 
@@ -610,6 +613,43 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, car
                 ))}
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (showTheme) {
+    const themeOptions = [
+      { key: "system", label: t.themeSystem, Icon: Contrast },
+      { key: "light", label: t.themeLight, Icon: Sun },
+      { key: "dark", label: t.themeDark, Icon: Moon },
+    ];
+    return (
+      <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
+        <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain}}>
+          <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:14}}>
+            <button onClick={()=>setShowTheme(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
+              <ChevronLeft size={20}/>
+            </button>
+            <div style={{fontSize:18, fontWeight:800, flex:1}}>{t.theme}</div>
+            <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
+          </div>
+          <div style={{display:"flex", flexDirection:"column", gap:8}}>
+            {themeOptions.map(({key, label, Icon}) => {
+              const selected = themeMode === key;
+              return (
+                <button key={key} onClick={()=>setThemeMode(key)} style={{
+                  display:"flex", alignItems:"center", gap:10, width:"100%",
+                  border:`1px solid ${selected ? accent : cardBorder}`, background: selected ? `${accent}12` : "transparent",
+                  borderRadius:14, padding:"13px 14px", cursor:"pointer", color:textMain, textAlign:"left"
+                }}>
+                  <span style={iconWrapStyle}><Icon size={15}/></span>
+                  <span style={{fontSize:14, fontWeight:700, flex:1}}>{label}</span>
+                  {selected && <Check size={16} color={accent} strokeWidth={3}/>}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -686,6 +726,20 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, car
           </button>
         </div>
 
+        {/* Theme — sub-page (System / Light / Dark) */}
+        <button onClick={()=>setShowTheme(true)} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", padding:0}}>
+          <div style={rowStyle}>
+            <div style={labelStyle}>
+              <span style={iconWrapStyle}>{themeMode==="system" ? <Contrast size={15}/> : themeMode==="light" ? <Sun size={15}/> : <Moon size={15}/>}</span>
+              {t.theme}
+            </div>
+            <div style={{display:"flex", alignItems:"center", gap:6, color:textMuted2}}>
+              <span style={{fontSize:12, fontWeight:600}}>{themeMode==="system" ? t.themeSystem : themeMode==="light" ? t.themeLight : t.themeDark}</span>
+              {isBn ? <ChevronLeft size={16}/> : <ChevronRight size={16}/>}
+            </div>
+          </div>
+        </button>
+
         {/* Haptic feedback on/off */}
         <div style={rowStyle}>
           <div style={labelStyle}><span style={iconWrapStyle}><span style={{fontSize:16}}>📳</span></span>{t.hapticFeedback}</div>
@@ -760,15 +814,23 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
   const hasPassword = Array.isArray(user.providerData) && user.providerData.some(p => p.providerId === "password");
   const fileInputRef = useRef(null);
 
-  const [editMode, setEditMode] = useState(false);
+  // মূল ভিউ-তে মেনু লিস্ট (Personal Info / Email / Password / Social Links) — কোনটায় ক্লিক করা
+  // হয়েছে সেটা এখানে ট্র্যাক হয়, null মানে মেইন মেনু দেখানো হচ্ছে
+  const [section, setSection] = useState(null); // null | "personal" | "email" | "password" | "social"
+
   const [name, setName] = useState(user.displayName || "");
+  const [gender, setGender] = useState(user.gender || "");
+  const [dob, setDob] = useState(user.dob || "");
+  const [personalBusy, setPersonalBusy] = useState(false);
+  const [personalError, setPersonalError] = useState("");
+  const [personalInfo, setPersonalInfoMsg] = useState("");
+
   const [email, setEmail] = useState(user.email || "");
   const [confirmPw, setConfirmPw] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
 
-  const [pwOpen, setPwOpen] = useState(false);
   const [curPw, setCurPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [newPw2, setNewPw2] = useState("");
@@ -776,20 +838,37 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
   const [pwError, setPwError] = useState("");
   const [pwInfo, setPwInfo] = useState("");
 
+  const [links, setLinks] = useState({
+    facebook: (user.socialLinks && user.socialLinks.facebook) || "",
+    instagram: (user.socialLinks && user.socialLinks.instagram) || "",
+    linkedin: (user.socialLinks && user.socialLinks.linkedin) || "",
+    website: (user.socialLinks && user.socialLinks.website) || "",
+  });
+  const [linksBusy, setLinksBusy] = useState(false);
+  const [linksInfo, setLinksInfo] = useState("");
+
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoError, setPhotoError] = useState("");
 
   const L = {
     nameLabel: isBn ? "নাম" : "Name",
     emailLabel: isBn ? "ইমেইল" : "Email",
+    genderLabel: isBn ? "জেন্ডার" : "Gender",
+    male: isBn ? "পুরুষ" : "Male",
+    female: isBn ? "মহিলা" : "Female",
+    dobLabel: isBn ? "জন্ম তারিখ" : "Date of Birth",
     currentPasswordLabel: isBn ? "বর্তমান পাসওয়ার্ড" : "Current Password",
     newPasswordLabel: isBn ? "নতুন পাসওয়ার্ড" : "New Password",
     confirmPasswordLabel: isBn ? "নতুন পাসওয়ার্ড আবার লিখুন" : "Confirm new password",
+    personalInfo: isBn ? "ব্যক্তিগত তথ্য" : "Personal Info",
+    changeEmail: isBn ? "ইমেইল পরিবর্তন" : "Change Email",
     changePassword: isBn ? "পাসওয়ার্ড পরিবর্তন করুন" : "Change Password",
+    socialLinks: isBn ? "সোশ্যাল মিডিয়া লিংক" : "Social Media Links",
     saveChanges: isBn ? "সংরক্ষণ করুন" : "Save Changes",
     changePhoto: isBn ? "ছবি পরিবর্তন" : "Change Photo",
     profileUpdated: isBn ? "প্রোফাইল আপডেট হয়েছে।" : "Profile updated.",
     passwordUpdated: isBn ? "পাসওয়ার্ড পরিবর্তন হয়েছে।" : "Password updated.",
+    linksUpdated: isBn ? "লিংক সংরক্ষণ হয়েছে।" : "Links saved.",
     needCurrentPw: isBn ? "ইমেইল পরিবর্তন করতে বর্তমান পাসওয়ার্ড দিন।" : "Enter your current password to change email.",
     wrongPassword: isBn ? "বর্তমান পাসওয়ার্ড ভুল।" : "Current password is incorrect.",
     pwMismatch: isBn ? "নতুন পাসওয়ার্ড দুটো মিলছে না।" : "New passwords don't match.",
@@ -802,18 +881,26 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
     genericErr: isBn ? "কিছু একটা সমস্যা হয়েছে, আবার চেষ্টা করুন।" : "Something went wrong. Please try again.",
     noPasswordAccount: isBn ? "Google একাউন্টের জন্য পাসওয়ার্ড পরিবর্তন করা যায় না।" : "Password can't be changed for Google-linked accounts.",
     photoTooLarge: isBn ? "ছবির সাইজ খুব বড়, ২MB-এর কম ছবি দিন।" : "Image too large — please pick one under 2MB.",
+    photoUploadErr: isBn ? "ছবি আপলোড করা যায়নি, আবার চেষ্টা করুন।" : "Couldn't upload the photo — please try again.",
   };
 
   const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const labelStyle = { fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6 };
+  const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:`1px solid ${cardBorder}`, cursor:"pointer" };
+  const menuLabelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14, fontWeight:700, color:textMain };
+  const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#C9C0AC" : "#6B6353" };
 
   const emailChanged = email.trim() !== (user.email || "");
 
-  const startEdit = () => {
-    setName(user.displayName || ""); setEmail(user.email || ""); setConfirmPw("");
-    setError(""); setInfo(""); setEditMode(true);
+  const openSection = (key) => {
+    setName(user.displayName || ""); setGender(user.gender || ""); setDob(user.dob || "");
+    setEmail(user.email || ""); setConfirmPw("");
+    setError(""); setInfo(""); setPersonalError(""); setPersonalInfoMsg("");
+    setCurPw(""); setNewPw(""); setNewPw2(""); setPwError(""); setPwInfo("");
+    setLinksInfo("");
+    setSection(key);
   };
-  const cancelEdit = () => { setEditMode(false); setError(""); setInfo(""); };
+  const closeSection = () => setSection(null);
 
   const handleSignOut = async () => {
     setBusy(true);
@@ -822,26 +909,39 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
     onClose();
   };
 
-  const handleSaveProfile = async () => {
-    setError(""); setInfo("");
+  // নাম, জেন্ডার, জন্ম তারিখ — নাম Firebase Auth-এ, বাকিদুটো Firestore-এ (Auth এই ফিল্ডগুলো সাপোর্ট করে না)
+  const handleSavePersonal = async () => {
+    setPersonalError(""); setPersonalInfoMsg("");
     const trimmedName = name.trim();
-    const trimmedEmail = email.trim();
-    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) { setError(L.invalidEmail); return; }
-    if (emailChanged && hasPassword && !confirmPw) { setError(L.needCurrentPw); return; }
-    setBusy(true);
+    setPersonalBusy(true);
     try {
-      if (emailChanged) {
-        if (hasPassword) {
-          await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, confirmPw));
-        }
-        await updateEmail(user, trimmedEmail);
-      }
       if (trimmedName !== (user.displayName || "")) {
         await updateProfile(user, { displayName: trimmedName });
       }
-      onUserUpdate({ displayName: trimmedName, email: trimmedEmail });
+      await setDoc(doc(db, "users", user.uid), { gender, dob }, { merge: true });
+      onUserUpdate({ displayName: trimmedName, gender, dob });
+      setPersonalInfoMsg(L.profileUpdated);
+    } catch (err) {
+      setPersonalError(L.genericErr);
+    } finally {
+      setPersonalBusy(false);
+    }
+  };
+
+  const handleSaveEmail = async () => {
+    setError(""); setInfo("");
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) { setError(L.invalidEmail); return; }
+    if (emailChanged && hasPassword && !confirmPw) { setError(L.needCurrentPw); return; }
+    if (!emailChanged) { return; }
+    setBusy(true);
+    try {
+      if (hasPassword) {
+        await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, confirmPw));
+      }
+      await updateEmail(user, trimmedEmail);
+      onUserUpdate({ email: trimmedEmail });
       setInfo(L.profileUpdated);
-      setEditMode(false);
       setConfirmPw("");
     } catch (err) {
       if (err.code === "auth/wrong-password") setError(L.wrongPassword);
@@ -866,13 +966,26 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
       await updatePassword(user, newPw);
       setPwInfo(L.passwordUpdated);
       setCurPw(""); setNewPw(""); setNewPw2("");
-      setTimeout(() => setPwOpen(false), 900);
     } catch (err) {
       if (err.code === "auth/wrong-password") setPwError(L.wrongPassword);
       else if (err.code === "auth/weak-password") setPwError(L.weakPassword);
       else setPwError(L.genericErr);
     } finally {
       setPwBusy(false);
+    }
+  };
+
+  const handleSaveLinks = async () => {
+    setLinksInfo("");
+    setLinksBusy(true);
+    try {
+      await setDoc(doc(db, "users", user.uid), { socialLinks: links }, { merge: true });
+      onUserUpdate({ socialLinks: links });
+      setLinksInfo(L.linksUpdated);
+    } catch (err) {
+      setLinksInfo("");
+    } finally {
+      setLinksBusy(false);
     }
   };
 
@@ -887,11 +1000,17 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
     const reader = new FileReader();
     reader.onload = async () => {
       try {
-        // Profile photo is stored in Firebase Auth as a data URL for now.
-        await updateProfile(user, { photoURL: reader.result });
-        onUserUpdate({ photoURL: reader.result });
+        // ছবিটা Firebase Storage-এ আপলোড হয়ে সেখান থেকে একটা ছোট download URL পাওয়া যায়, আর সেটাই
+        // Firebase Auth-এর photoURL ফিল্ডে সেভ হয়। আগে সরাসরি base64 ডেটা photoURL-এ সেভ করার
+        // চেষ্টা হতো — কিন্তু Auth-এর photoURL ফিল্ডে ~2048 ক্যারেক্টারের লিমিট থাকায় বড় ছবি
+        // সাইলেন্টলি ফেইল হতো, এটাই "ছবি বদলাচ্ছে না" বাগের কারণ ছিল।
+        const imgRef = storageRef(storage, `avatars/${user.uid}`);
+        await uploadString(imgRef, reader.result, "data_url");
+        const downloadUrl = await getDownloadURL(imgRef);
+        await updateProfile(user, { photoURL: downloadUrl });
+        onUserUpdate({ photoURL: downloadUrl });
       } catch (err) {
-        setPhotoError(L.genericErr);
+        setPhotoError(L.photoUploadErr);
       } finally {
         setPhotoBusy(false);
       }
@@ -900,54 +1019,81 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
     reader.readAsDataURL(file);
   };
 
-  return (
-    <div style={overlayStyle} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:sheetRadius, padding:"20px 20px 28px", color:textMain, maxHeight:"88vh", overflowY:"auto"}}>
-        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18}}>
-          <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.profile}</div>
-          <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
-        </div>
+  const AvatarCircle = ({ size }) => (
+    <div style={{width:size, height:size, borderRadius:"50%", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", flexShrink:0}}>
+      {user.photoURL ? (
+        <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
+      ) : user.gender === "female" ? (
+        <Venus size={Math.round(size*0.43)} color={dark ? "#C9C0AC" : "#6B6353"}/>
+      ) : user.gender === "male" ? (
+        <Mars size={Math.round(size*0.43)} color={dark ? "#C9C0AC" : "#6B6353"}/>
+      ) : (
+        <User size={Math.round(size*0.43)} color={dark ? "#C9C0AC" : "#6B6353"}/>
+      )}
+    </div>
+  );
 
-        {/* Avatar */}
-        <div style={{display:"flex", alignItems:"center", gap:16, marginBottom:20}}>
-          <div style={{position:"relative", flexShrink:0}}>
-            <div style={{width:56, height:56, borderRadius:"50%", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden"}}>
-              {user.photoURL ? (
-                <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
-              ) : (
-                <User size={24} color={dark ? "#C9C0AC" : "#6B6353"}/>
-              )}
-            </div>
-            <button onClick={handlePickPhoto} disabled={photoBusy} title={L.changePhoto} style={{
-              position:"absolute", right:-2, bottom:-2, width:22, height:22, borderRadius:"50%",
-              border:`2px solid ${cardBg}`, background:accent, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center",
-              cursor: photoBusy ? "default" : "pointer", opacity: photoBusy ? 0.6 : 1,
-            }}>
-              <Pencil size={11}/>
-            </button>
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{display:"none"}}/>
-          </div>
-          {!editMode && (
-            <div style={{minWidth:0, flex:1}}>
-              <div style={{fontSize:16, fontWeight:700, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{user.displayName || (user.email ? user.email.split("@")[0] : "Account")}</div>
-              {user.email && <div style={{fontSize:12, color:textMuted2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{user.email}</div>}
-            </div>
-          )}
-          {!editMode && (
-            <button onClick={startEdit} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, borderRadius:10, padding:"7px 9px", fontSize:11, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", gap:4, flexShrink:0}}>
-              <Pencil size={12}/> {t.edit}
-            </button>
-          )}
-        </div>
-        {photoError && <div style={{fontSize:12, color:"#C0553F", fontWeight:600, marginTop:-10, marginBottom:14}}>{photoError}</div>}
+  const SubHeader = ({ title }) => (
+    <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:18}}>
+      <button onClick={closeSection} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
+        <ChevronLeft size={20}/>
+      </button>
+      <div style={{fontSize:18, fontWeight:800, flex:1}}>{title}</div>
+      <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
+    </div>
+  );
 
-        {/* Name + Email edit form */}
-        {editMode && (
-          <div style={{display:"flex", flexDirection:"column", gap:10, marginBottom:18}}>
+  // ---------- Personal Info sub-page ----------
+  if (section === "personal") {
+    return (
+      <div style={overlayStyle} onClick={onClose}>
+        <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:sheetRadius, padding:"20px 20px 28px", color:textMain, maxHeight:"88vh", overflowY:"auto"}}>
+          <SubHeader title={L.personalInfo}/>
+          <div style={{display:"flex", flexDirection:"column", gap:14}}>
             <div>
               <div style={labelStyle}>{L.nameLabel}</div>
               <input style={inputStyle} value={name} onChange={e=>setName(e.target.value)} />
             </div>
+            <div>
+              <div style={labelStyle}>{L.genderLabel}</div>
+              <div style={{display:"flex", gap:8}}>
+                {[{key:"male", label:L.male, Icon:Mars}, {key:"female", label:L.female, Icon:Venus}].map(({key,label,Icon}) => {
+                  const selected = gender === key;
+                  return (
+                    <button key={key} onClick={()=>setGender(key)} style={{
+                      flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+                      border:`1px solid ${selected ? accent : cardBorder}`, background: selected ? `${accent}12` : "transparent",
+                      borderRadius:12, padding:"11px 0", cursor:"pointer", color:textMain
+                    }}>
+                      <Icon size={15} color={selected ? accent : textMuted2}/>
+                      <span style={{fontSize:13, fontWeight:700}}>{label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div>
+              <div style={labelStyle}>{L.dobLabel}</div>
+              <input type="date" style={inputStyle} value={dob} onChange={e=>setDob(e.target.value)} max={new Date().toISOString().slice(0,10)} />
+            </div>
+            {personalError && <div style={{fontSize:12, color:"#C0553F", fontWeight:600}}>{personalError}</div>}
+            {personalInfo && <div style={{fontSize:12, color:"#6E8B5E", fontWeight:600}}>{personalInfo}</div>}
+            <button onClick={handleSavePersonal} disabled={personalBusy} style={{border:"none", borderRadius:12, padding:"12px 0", fontSize:14, fontWeight:800, background:accent, color:"#fff", cursor: personalBusy?"default":"pointer", opacity: personalBusy?0.7:1}}>
+              {personalBusy ? "..." : L.saveChanges}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- Change Email sub-page ----------
+  if (section === "email") {
+    return (
+      <div style={overlayStyle} onClick={onClose}>
+        <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:sheetRadius, padding:"20px 20px 28px", color:textMain, maxHeight:"88vh", overflowY:"auto"}}>
+          <SubHeader title={L.changeEmail}/>
+          <div style={{display:"flex", flexDirection:"column", gap:14}}>
             <div>
               <div style={labelStyle}>{L.emailLabel}</div>
               <input type="email" style={inputStyle} value={email} onChange={e=>setEmail(e.target.value)} />
@@ -960,23 +1106,25 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
             )}
             {error && <div style={{fontSize:12, color:"#C0553F", fontWeight:600}}>{error}</div>}
             {info && <div style={{fontSize:12, color:"#6E8B5E", fontWeight:600}}>{info}</div>}
-            <div style={{display:"flex", gap:8, marginTop:2}}>
-              <button onClick={cancelEdit} disabled={busy} style={{flex:1, border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, borderRadius:12, padding:"11px 0", fontSize:13, fontWeight:700, cursor:"pointer"}}>{t.cancel}</button>
-              <button onClick={handleSaveProfile} disabled={busy} style={{flex:1, border:"none", borderRadius:12, padding:"11px 0", fontSize:13, fontWeight:800, background:accent, color:"#fff", cursor: busy?"default":"pointer", opacity: busy?0.7:1}}>{busy ? "..." : L.saveChanges}</button>
-            </div>
+            <button onClick={handleSaveEmail} disabled={busy || !emailChanged} style={{border:"none", borderRadius:12, padding:"12px 0", fontSize:14, fontWeight:800, background:accent, color:"#fff", cursor: (busy||!emailChanged)?"default":"pointer", opacity: (busy||!emailChanged)?0.6:1}}>
+              {busy ? "..." : L.saveChanges}
+            </button>
           </div>
-        )}
-        {!editMode && info && <div style={{fontSize:12, color:"#6E8B5E", fontWeight:600, marginBottom:14}}>{info}</div>}
+        </div>
+      </div>
+    );
+  }
 
-        {/* Change password */}
-        <div style={{border:`1px solid ${cardBorder}`, borderRadius:16, overflow:"hidden", marginBottom:18}}>
-          <button onClick={()=>{ if (!hasPassword) { setPwOpen(false); setPwError(L.noPasswordAccount); return; } setPwOpen(o=>!o); setPwError(""); setPwInfo(""); }}
-            style={{width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", border:"none", background:"transparent", color:textMain, padding:"12px 14px", fontSize:13, fontWeight:700, cursor:"pointer"}}>
-            {L.changePassword}
-            <ChevronDown size={16} style={{transform: pwOpen ? "rotate(180deg)" : "none", transition:"transform 0.15s", color:textMuted2}}/>
-          </button>
-          {pwOpen && hasPassword && (
-            <div style={{padding:"0 14px 14px", display:"flex", flexDirection:"column", gap:10}}>
+  // ---------- Change Password sub-page ----------
+  if (section === "password") {
+    return (
+      <div style={overlayStyle} onClick={onClose}>
+        <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:sheetRadius, padding:"20px 20px 28px", color:textMain, maxHeight:"88vh", overflowY:"auto"}}>
+          <SubHeader title={L.changePassword}/>
+          {!hasPassword ? (
+            <div style={{fontSize:13, color:textMuted2, lineHeight:1.6}}>{L.noPasswordAccount}</div>
+          ) : (
+            <div style={{display:"flex", flexDirection:"column", gap:14}}>
               <div>
                 <div style={labelStyle}>{L.currentPasswordLabel}</div>
                 <PasswordField style={inputStyle} value={curPw} onChange={e=>setCurPw(e.target.value)} textMuted2={textMuted2} autoComplete="current-password" />
@@ -992,12 +1140,93 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
               </div>
               {pwError && <div style={{fontSize:12, color:"#C0553F", fontWeight:600}}>{pwError}</div>}
               {pwInfo && <div style={{fontSize:12, color:"#6E8B5E", fontWeight:600}}>{pwInfo}</div>}
-              <button onClick={handleChangePassword} disabled={pwBusy} style={{border:"none", borderRadius:12, padding:"11px 0", fontSize:13, fontWeight:800, background:accent, color:"#fff", cursor: pwBusy?"default":"pointer", opacity: pwBusy?0.7:1}}>
+              <button onClick={handleChangePassword} disabled={pwBusy} style={{border:"none", borderRadius:12, padding:"12px 0", fontSize:14, fontWeight:800, background:accent, color:"#fff", cursor: pwBusy?"default":"pointer", opacity: pwBusy?0.7:1}}>
                 {pwBusy ? "..." : L.saveChanges}
               </button>
             </div>
           )}
-          {pwError && !pwOpen && <div style={{padding:"0 14px 12px", fontSize:12, color:"#C0553F", fontWeight:600}}>{pwError}</div>}
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- Social Links sub-page ----------
+  if (section === "social") {
+    const fields = [
+      { key:"facebook", label:"Facebook", Icon:FacebookIcon, placeholder:"https://facebook.com/..." },
+      { key:"instagram", label:"Instagram", Icon:InstagramIcon, placeholder:"https://instagram.com/..." },
+      { key:"linkedin", label:"LinkedIn", Icon:LinkedinIcon, placeholder:"https://linkedin.com/in/..." },
+      { key:"website", label: isBn ? "ওয়েবসাইট / অন্যান্য" : "Website / Other", Icon:Link2, placeholder:"https://..." },
+    ];
+    return (
+      <div style={overlayStyle} onClick={onClose}>
+        <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:sheetRadius, padding:"20px 20px 28px", color:textMain, maxHeight:"88vh", overflowY:"auto"}}>
+          <SubHeader title={L.socialLinks}/>
+          <div style={{display:"flex", flexDirection:"column", gap:14}}>
+            {fields.map(({key, label, Icon, placeholder}) => (
+              <div key={key}>
+                <div style={{...labelStyle, display:"flex", alignItems:"center", gap:6}}><Icon size={13}/> {label}</div>
+                <input style={inputStyle} value={links[key]} placeholder={placeholder}
+                  onChange={e=>setLinks(l=>({...l, [key]: e.target.value}))} />
+              </div>
+            ))}
+            {linksInfo && <div style={{fontSize:12, color:"#6E8B5E", fontWeight:600}}>{linksInfo}</div>}
+            <button onClick={handleSaveLinks} disabled={linksBusy} style={{border:"none", borderRadius:12, padding:"12px 0", fontSize:14, fontWeight:800, background:accent, color:"#fff", cursor: linksBusy?"default":"pointer", opacity: linksBusy?0.7:1}}>
+              {linksBusy ? "..." : L.saveChanges}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- মূল মেনু ----------
+  return (
+    <div style={overlayStyle} onClick={onClose}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:sheetRadius, padding:"20px 20px 28px", color:textMain, maxHeight:"88vh", overflowY:"auto"}}>
+        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18}}>
+          <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.profile}</div>
+          <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
+        </div>
+
+        {/* Avatar */}
+        <div style={{display:"flex", alignItems:"center", gap:16, marginBottom:8}}>
+          <div style={{position:"relative", flexShrink:0}}>
+            <AvatarCircle size={56}/>
+            <button onClick={handlePickPhoto} disabled={photoBusy} title={L.changePhoto} style={{
+              position:"absolute", right:-2, bottom:-2, width:22, height:22, borderRadius:"50%",
+              border:`2px solid ${cardBg}`, background:accent, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center",
+              cursor: photoBusy ? "default" : "pointer", opacity: photoBusy ? 0.6 : 1,
+            }}>
+              {photoBusy ? <Loader2 size={11} style={{animation:"spin 0.8s linear infinite"}}/> : <Pencil size={11}/>}
+            </button>
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{display:"none"}}/>
+          </div>
+          <div style={{minWidth:0, flex:1}}>
+            <div style={{fontSize:16, fontWeight:700, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{user.displayName || (user.email ? user.email.split("@")[0] : "Account")}</div>
+            {user.email && <div style={{fontSize:12, color:textMuted2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{user.email}</div>}
+          </div>
+        </div>
+        {photoError && <div style={{fontSize:12, color:"#C0553F", fontWeight:600, marginBottom:10}}>{photoError}</div>}
+
+        {/* মেনু লিস্ট */}
+        <div style={{marginTop:10, marginBottom:18}}>
+          <div onClick={()=>openSection("personal")} style={rowStyle}>
+            <div style={menuLabelStyle}><span style={iconWrapStyle}><User size={15}/></span>{L.personalInfo}</div>
+            {isBn ? <ChevronLeft size={16} color={textMuted2}/> : <ChevronRight size={16} color={textMuted2}/>}
+          </div>
+          <div onClick={()=>openSection("email")} style={rowStyle}>
+            <div style={menuLabelStyle}><span style={iconWrapStyle}><AtSign size={15}/></span>{L.changeEmail}</div>
+            {isBn ? <ChevronLeft size={16} color={textMuted2}/> : <ChevronRight size={16} color={textMuted2}/>}
+          </div>
+          <div onClick={()=>openSection("password")} style={rowStyle}>
+            <div style={menuLabelStyle}><span style={iconWrapStyle}><KeyRound size={15}/></span>{L.changePassword}</div>
+            {isBn ? <ChevronLeft size={16} color={textMuted2}/> : <ChevronRight size={16} color={textMuted2}/>}
+          </div>
+          <div onClick={()=>openSection("social")} style={{...rowStyle, borderBottom:"none"}}>
+            <div style={menuLabelStyle}><span style={iconWrapStyle}><Link2 size={15}/></span>{L.socialLinks}</div>
+            {isBn ? <ChevronLeft size={16} color={textMuted2}/> : <ChevronRight size={16} color={textMuted2}/>}
+          </div>
         </div>
 
         <button
@@ -2644,6 +2873,10 @@ export default function FocusGo() {
               if (data.notes) setNotes(data.notes);
               if (data.lang) setLang(data.lang);
               if (data.themeMode && !themeLoadedOnceRef.current) { setThemeMode(data.themeMode); themeLoadedOnceRef.current = true; }
+              // প্রোফাইল এক্সট্রা ফিল্ড (Auth-এ রাখা যায় না বলে Firestore-এ সেভ হয়) — gender, জন্মতারিখ, সোশ্যাল লিংক
+              if (data.gender !== undefined || data.dob !== undefined || data.socialLinks !== undefined) {
+                setUser(u => u ? ({ ...u, gender: data.gender, dob: data.dob, socialLinks: data.socialLinks || {} }) : u);
+              }
             }
           }
         } finally {
@@ -3976,10 +4209,10 @@ export default function FocusGo() {
                 <WifiOff size={12}/> {t.offlineBadge}
               </div>
             )}
-            <button onClick={()=>{vibrate(); setThemeMode(themeMode==="system" ? "light" : themeMode==="light" ? "dark" : "system");}}
-              title={themeMode==="system" ? t.themeSystem : themeMode==="light" ? t.themeLight : t.themeDark}
+            <button onClick={()=>{vibrate(); setShowSettings(true);}}
+              title={t.settings}
               style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
-              {themeMode==="system" ? <Contrast size={14}/> : themeMode==="light" ? <Sun size={14}/> : <Moon size={14}/>}
+              <Settings size={14}/>
             </button>
             <NotificationBell
               t={t} lang={lang} notifications={notifications}
@@ -3987,12 +4220,19 @@ export default function FocusGo() {
               onClear={()=>setNotifications([])}
               cardBorder={cardBorder} cardBg={cardBg} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}
             />
-            <UserMenu
-              onOpenProfile={()=>{vibrate(); setShowProfile(true);}}
-              onOpenSettings={()=>{vibrate(); setShowSettings(true);}}
-              cardBorder={cardBorder} cardBg={cardBg} textMain={textMain} textMuted2={textMuted2}
-              user={user} profileLabel={t.profile} settingsLabel={t.settings}
-            />
+            <button onClick={()=>{vibrate(); setShowProfile(true);}}
+              title={t.profile}
+              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, overflow:"hidden", padding:0}}>
+              {user && user.photoURL ? (
+                <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
+              ) : user && user.gender === "female" ? (
+                <Venus size={14}/>
+              ) : user && user.gender === "male" ? (
+                <Mars size={14}/>
+              ) : (
+                <User size={14}/>
+              )}
+            </button>
           </div>
         </div>
 
