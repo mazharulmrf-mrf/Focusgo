@@ -25,8 +25,6 @@ import {
   signInWithCredential,
 } from "firebase/auth";
 import { doc, setDoc, onSnapshot } from "firebase/firestore";
-import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
-import { storage } from "./firebase"; // firebase.js -তে: export const storage = getStorage(app);
 
 // ---------- সোশ্যাল আইকন (lucide-react-এ brand logo নেই, তাই ছোট inline SVG) ----------
 const FacebookIcon = ({ size = 18 }) => (
@@ -70,6 +68,31 @@ function PasswordField({ value, onChange, placeholder, style, minLength, require
       </button>
     </div>
   );
+}
+
+// ব্রাউজারেই (client-side) ছবি resize + compress করে একটা compact JPEG data URL বানানো হয় —
+// Firebase Storage/Blaze প্ল্যান ছাড়াই ছোট ছবি সরাসরি Firestore ডকুমেন্টে সেভ করা যায় বলে
+function resizeImageToDataUrl(file, maxDim = 320, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > height) {
+        if (width > maxDim) { height = Math.round(height * (maxDim / width)); width = maxDim; }
+      } else {
+        if (height > maxDim) { width = Math.round(width * (maxDim / height)); height = maxDim; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("image load failed")); };
+    img.src = url;
+  });
 }
 
 // ---------- Onboarding — নতুন ইউজারের জন্য ৩ স্লাইডের সংক্ষিপ্ত পরিচিতি ----------
@@ -880,7 +903,7 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
     invalidEmail: isBn ? "সঠিক ইমেইল লিখুন।" : "Enter a valid email.",
     genericErr: isBn ? "কিছু একটা সমস্যা হয়েছে, আবার চেষ্টা করুন।" : "Something went wrong. Please try again.",
     noPasswordAccount: isBn ? "Google একাউন্টের জন্য পাসওয়ার্ড পরিবর্তন করা যায় না।" : "Password can't be changed for Google-linked accounts.",
-    photoTooLarge: isBn ? "ছবির সাইজ খুব বড়, ২MB-এর কম ছবি দিন।" : "Image too large — please pick one under 2MB.",
+    photoTooLarge: isBn ? "ছবির সাইজ খুব বড়, ১০MB-এর কম ছবি দিন।" : "Image too large — please pick one under 10MB.",
     photoUploadErr: isBn ? "ছবি আপলোড করা যায়নি, আবার চেষ্টা করুন।" : "Couldn't upload the photo — please try again.",
   };
 
@@ -995,28 +1018,26 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
     e.target.value = "";
     if (!file) return;
     setPhotoError("");
-    if (file.size > 2 * 1024 * 1024) { setPhotoError(L.photoTooLarge); return; }
+    if (file.size > 10 * 1024 * 1024) { setPhotoError(L.photoTooLarge); return; }
     setPhotoBusy(true);
-    const reader = new FileReader();
-    reader.onload = async () => {
-      try {
-        // ছবিটা Firebase Storage-এ আপলোড হয়ে সেখান থেকে একটা ছোট download URL পাওয়া যায়, আর সেটাই
-        // Firebase Auth-এর photoURL ফিল্ডে সেভ হয়। আগে সরাসরি base64 ডেটা photoURL-এ সেভ করার
-        // চেষ্টা হতো — কিন্তু Auth-এর photoURL ফিল্ডে ~2048 ক্যারেক্টারের লিমিট থাকায় বড় ছবি
-        // সাইলেন্টলি ফেইল হতো, এটাই "ছবি বদলাচ্ছে না" বাগের কারণ ছিল।
-        const imgRef = storageRef(storage, `avatars/${user.uid}`);
-        await uploadString(imgRef, reader.result, "data_url");
-        const downloadUrl = await getDownloadURL(imgRef);
-        await updateProfile(user, { photoURL: downloadUrl });
-        onUserUpdate({ photoURL: downloadUrl });
-      } catch (err) {
-        setPhotoError(L.photoUploadErr);
-      } finally {
-        setPhotoBusy(false);
-      }
-    };
-    reader.onerror = () => { setPhotoBusy(false); setPhotoError(L.genericErr); };
-    reader.readAsDataURL(file);
+    // ছবিটা প্রথমে ব্রাউজারেই ছোট (resize) ও কমপ্রেস করে একটা compact base64 বানানো হয়, তারপর
+    // Firestore-এর users/{uid} ডকুমেন্টে সেভ হয় (Firebase Storage ব্যবহার হয়নি — সেটার জন্য
+    // Blaze/পেইড প্ল্যান লাগে, Spark ফ্রি প্ল্যানে নেই)। Firestore-এর প্রতি ডকুমেন্ট 1MB লিমিটের
+    // মধ্যে resize করা ছোট ছবি অনায়াসে ফিট হয়ে যায়। আগে সরাসরি বড় base64 Firebase Auth-এর
+    // photoURL ফিল্ডে সেভ করার চেষ্টা হতো — কিন্তু ওই ফিল্ডের ~2048 ক্যারেক্টার লিমিটের কারণে
+    // সাইলেন্টলি ফেইল হতো, এটাই "ছবি বদলাচ্ছে না" বাগের আসল কারণ ছিল।
+    resizeImageToDataUrl(file, 320, 0.82)
+      .then(async (dataUrl) => {
+        try {
+          await setDoc(doc(db, "users", user.uid), { photoURL: dataUrl }, { merge: true });
+          onUserUpdate({ photoURL: dataUrl });
+        } catch (err) {
+          setPhotoError(L.photoUploadErr);
+        } finally {
+          setPhotoBusy(false);
+        }
+      })
+      .catch(() => { setPhotoBusy(false); setPhotoError(L.genericErr); });
   };
 
   const AvatarCircle = ({ size }) => (
@@ -2873,9 +2894,10 @@ export default function FocusGo() {
               if (data.notes) setNotes(data.notes);
               if (data.lang) setLang(data.lang);
               if (data.themeMode && !themeLoadedOnceRef.current) { setThemeMode(data.themeMode); themeLoadedOnceRef.current = true; }
-              // প্রোফাইল এক্সট্রা ফিল্ড (Auth-এ রাখা যায় না বলে Firestore-এ সেভ হয়) — gender, জন্মতারিখ, সোশ্যাল লিংক
-              if (data.gender !== undefined || data.dob !== undefined || data.socialLinks !== undefined) {
-                setUser(u => u ? ({ ...u, gender: data.gender, dob: data.dob, socialLinks: data.socialLinks || {} }) : u);
+              // প্রোফাইল এক্সট্রা ফিল্ড (Auth-এ রাখা যায় না/সমস্যা হয় বলে Firestore-এ সেভ হয়) —
+              // gender, জন্মতারিখ, সোশ্যাল লিংক, আর প্রোফাইল ছবি (resize করা base64, Storage ছাড়াই)
+              if (data.gender !== undefined || data.dob !== undefined || data.socialLinks !== undefined || data.photoURL !== undefined) {
+                setUser(u => u ? ({ ...u, gender: data.gender, dob: data.dob, socialLinks: data.socialLinks || {}, photoURL: data.photoURL || u.photoURL }) : u);
               }
             }
           }
