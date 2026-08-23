@@ -1138,6 +1138,25 @@ function passwordErrorCode(pw) {
   return null;
 }
 const dateKey = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+// সবসময় বাংলাদেশের (Asia/Dhaka) ওয়াল-ক্লক সময় অনুযায়ী আজকের তারিখ + "HH:MM" বের করে —
+// ইউজারের ডিভাইসের টাইমজোন যাই হোক না কেন, এক্সামের তারিখ/সময় বিবেচনা করার সময় এটাই ব্যবহার হবে
+const dhakaNowParts = (d = new Date()) => {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Dhaka", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(d);
+  const get = (type) => parts.find(p => p.type === type)?.value;
+  const hh = get("hour") === "24" ? "00" : get("hour");
+  return { dateKey: `${get("year")}-${get("month")}-${get("day")}`, hhmm: `${hh}:${get("minute")}` };
+};
+// একটা এক্সাম-শিডিউল এন্ট্রি বাস্তবে সময় পার হয়ে গেছে কি না — শুধু তারিখ না, endTime (না থাকলে startTime) ধরেও হিসাব করে,
+// যাতে আজকের যে এক্সাম ইতিমধ্যে শেষ হয়ে গেছে সেটা "Upcoming" এ আটকে না থেকে "Past"-এ চলে যায়
+const isExamPast = (ex, nowParts) => {
+  if (!ex?.date) return false;
+  const { dateKey: nowKey, hhmm: nowHHMM } = nowParts || dhakaNowParts();
+  if (ex.date < nowKey) return true;
+  if (ex.date > nowKey) return false;
+  const cutoff = ex.endTime || ex.startTime;
+  if (!cutoff) return false; // সময় দেওয়া নেই — শুধু তারিখের ভিত্তিতে আজকেরটাকে এখনই "past" ধরা হবে না
+  return nowHHMM >= cutoff;
+};
 // রিপিটিং টাস্ক সম্পন্ন হলে পরবর্তী occurrence-এর due date বের করার হেল্পার
 const nextDueDateFromKey = (dk, repeat) => {
   const d = new Date(dk + "T00:00:00");
@@ -1335,7 +1354,7 @@ const T = {
     startBreakBtn: "Start Break", skipBreakBtn: "Skip",
     editTopicTitle: "Edit Topic", save: "Save", edit: "Edit",
     yourRhythm: "Your Rhythm", todaysStudy: "Today's Study", todaysProgress: "Today's Progress", addTopic: "Add Topic",
-    noTopicsToday: "No study planned",
+    noTopicsToday: "No study planned yet", noTopicsTodaySub: "Add a topic to start your study session.",
     thisWeek: "This Week",
     longView: "Long View", syllabusProgress: "Subject Progress", complete: "Complete",
     weeklySummary: "Weekly Summary", monthlySummary: "Monthly Summary",
@@ -1484,7 +1503,7 @@ const T = {
     startBreakBtn: "ব্রেক শুরু করো", skipBreakBtn: "স্কিপ",
     editTopicTitle: "টপিক এডিট করুন", save: "সেভ করো", edit: "এডিট",
     yourRhythm: "আপনার ছন্দ", todaysStudy: "আজকের পড়া", todaysProgress: "আজকের অগ্রগতি", addTopic: "টপিক যোগ করো",
-    noTopicsToday: "আজ কোনো পড়াশোনা পরিকল্পনা নেই",
+    noTopicsToday: "এখনো কোনো পড়া প্ল্যান করা নেই", noTopicsTodaySub: "পড়া শুরু করতে একটা টপিক যোগ করুন।",
     thisWeek: "এই সপ্তাহ",
     longView: "সামগ্রিক দৃশ্য", syllabusProgress: "বিষয়ভিত্তিক অগ্রগতি", complete: "সম্পন্ন",
     weeklySummary: "সাপ্তাহিক সারাংশ", monthlySummary: "মাসিক সারাংশ",
@@ -3368,7 +3387,7 @@ export default function FocusGo() {
 
   // ---- Exam Schedule sorted soonest-first, and the single nearest upcoming one (Home countdown card) ----
   const sortedExamSchedule = [...examSchedule].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
-  const nearestUpcomingExam = sortedExamSchedule.find(ex => ex.date && ex.date >= todayKey) || null;
+  const nearestUpcomingExam = sortedExamSchedule.find(ex => ex.date && !isExamPast(ex)) || null;
 
   // ---- weekly / monthly summary ----
   const rangeEntries = (days) => days.flatMap(d => (entries[dateKey(d)] || []).map(e => ({...e, _dk: dateKey(d)})));
@@ -4382,7 +4401,7 @@ export default function FocusGo() {
             activeTimerId={timerTopicId} timerRunning={timerRunning} timerSeconds={timerSeconds} onToggleRun={toggleTimerRunning}
             onEdit={(item)=>setEditTopic({...item, _dk: todayKey})} onDelete={(id)=>deleteTopicFor(todayKey, id)}
             onRename={(item, newTopic)=>saveEditFor(todayKey, {...item, topic:newTopic})}
-            emptyText={t.noTopicsToday} emptyIcon={GraduationCap}/>
+            emptyText={t.noTopicsToday} emptySubtext={t.noTopicsTodaySub} emptyIcon={GraduationCap}/>
         </div>
         )}
 
@@ -4404,21 +4423,6 @@ export default function FocusGo() {
                 <Plus size={13}/> {t.taskAddBtn}
               </button>
             </div>
-            {homeTodayTasks.length > 0 && (() => {
-              const doneCount = homeTodayTasks.filter(x => x.done).length;
-              const pct = Math.round((doneCount / homeTodayTasks.length) * 100);
-              const left = homeTodayTasks.length - doneCount;
-              return (
-                <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:12}}>
-                  <div style={{flex:1, height:6, borderRadius:8, background: dark?"#2C2820":"#EFE9DC", overflow:"hidden"}}>
-                    <div style={{width:`${pct}%`, height:"100%", borderRadius:8, background:"#6E8B5E", transition:"width .25s ease"}}/>
-                  </div>
-                  <div style={{fontSize:11, fontWeight:700, color:textMuted2, flexShrink:0, whiteSpace:"nowrap"}}>
-                    {left > 0 ? <><Num>{nf(left)}</Num> {t.taskLeftLabel}</> : t.taskAllDoneLabel}
-                  </div>
-                </div>
-              );
-            })()}
             {homeTodayTasks.length === 0 ? (
               <div style={{display:"flex", alignItems:"center", gap:8, padding:"10px 0 20px", color:textMuted2, fontSize:12.5}}>
                 <Check size={16} color={textMuted2} strokeWidth={2}/>
@@ -4431,7 +4435,7 @@ export default function FocusGo() {
                     <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:21,height:21,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
                       {x.done && <Check size={12} color="#fff" strokeWidth={3}/>}
                     </button>
-                    <div style={{flex:1,minWidth:0,fontSize:13,fontWeight:500,color:textMain,textDecoration:x.done?"line-through":"none",overflowWrap:"break-word",wordBreak:"break-word",whiteSpace:"normal",lineHeight:1.4}}>
+                    <div style={{flex:1,minWidth:0,fontSize:13,fontWeight:500,color:textMain,overflowWrap:"break-word",wordBreak:"break-word",whiteSpace:"normal",lineHeight:1.4}}>
                       {x.title}
                     </div>
                     <div style={{position:"relative", flexShrink:0}}>
@@ -4620,7 +4624,7 @@ export default function FocusGo() {
                 <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{width:20, height:20, borderRadius:"50%", flexShrink:0, cursor:"pointer", border:`2px solid ${borderColor}`, background: x.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", padding:0}}>
                   {x.done && <Check size={11} color="#fff" strokeWidth={3}/>}
                 </button>
-                <div style={{flex:1, minWidth:0, fontSize:13, fontWeight:400, color:textMain, wordBreak:"break-word", overflowWrap:"break-word", whiteSpace:"normal", lineHeight:1.4, textDecoration: x.done?"line-through":"none", opacity: x.done?0.6:1}}>
+                <div style={{flex:1, minWidth:0, fontSize:13, fontWeight:400, color:textMain, wordBreak:"break-word", overflowWrap:"break-word", whiteSpace:"normal", lineHeight:1.4, opacity: x.done?0.6:1}}>
                   {x.title}
                 </div>
                 {x.note && (
@@ -6009,26 +6013,44 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
 
 // একাধিক তারিখ-সহ পরীক্ষার সম্পূর্ণ রুটিন ম্যানেজার — সাবজেক্ট + তারিখ + সময় দিয়ে একের পর এক এন্ট্রি যোগ করা যায়,
 // তারিখ অনুযায়ী সাজানো থাকে, আসন্নগুলো উপরে হাইলাইট, চলে যাওয়া তারিখগুলো নিচে আলাদা "সম্পন্ন" সেকশনে ধূসর হয়ে থাকে
+const EXAM_TYPE_OPTIONS = [
+  { key: "quiz", en: "Quiz", bn: "কুইজ" },
+  { key: "mid", en: "Mid", bn: "মিড" },
+  { key: "final", en: "Final", bn: "ফাইনাল" },
+  { key: "assignment", en: "Assignment", bn: "অ্যাসাইনমেন্ট" },
+  { key: "presentation", en: "Presentation", bn: "প্রেজেন্টেশন" },
+  { key: "classtest", en: "Class Test", bn: "ক্লাস টেস্ট" },
+  { key: "viva", en: "Viva", bn: "ভাইভা" },
+];
+const MONTHS_ABBR_EN = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+
 function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUpdate, onRemove, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
   const [subject, setSubject] = useState("");
+  const [examType, setExamType] = useState("");
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [editingId, setEditingId] = useState(null);
-  const todayKey = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
+  const [formOpen, setFormOpen] = useState(true);
+  const [statusTab, setStatusTab] = useState("upcoming");
+  const [showAllUpcoming, setShowAllUpcoming] = useState(false);
+  const [showAllCompleted, setShowAllCompleted] = useState(false);
+  const [showAllMissed, setShowAllMissed] = useState(false);
+  const nowParts = dhakaNowParts();
   const monthName = (i) => lang === "bn" ? MONTHS_BN[i] : MONTHS_EN[i];
   const weekdayName = (d) => lang === "bn" ? WEEKDAYS_BN[d.getDay()] : WEEKDAYS_EN[d.getDay()];
+  const typeLabel = (key) => { const o = EXAM_TYPE_OPTIONS.find(x => x.key === key); return o ? (lang === "bn" ? o.bn : o.en) : ""; };
 
   const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#121110":"#F8F5EE", color: dark?"#F3EFE7":"#211D18", outline:"none", width:"100%", boxSizing:"border-box" };
 
-  const resetForm = () => { setSubject(""); setDate(""); setStartTime(""); setEndTime(""); setEditingId(null); };
+  const resetForm = () => { setSubject(""); setExamType(""); setDate(""); setStartTime(""); setEndTime(""); setEditingId(null); };
 
   const submit = () => {
     if (!subject.trim() || !date) return;
     if (editingId) {
-      onUpdate(editingId, { subject: subject.trim(), date, startTime, endTime });
+      onUpdate(editingId, { subject: subject.trim(), examType, date, startTime, endTime });
     } else {
-      onAdd({ subject: subject.trim(), date, startTime, endTime });
+      onAdd({ subject: subject.trim(), examType, date, startTime, endTime });
     }
     resetForm();
   };
@@ -6036,91 +6058,201 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
   const startEdit = (ex) => {
     setEditingId(ex.id);
     setSubject(ex.subject);
+    setExamType(ex.examType || "");
     setDate(ex.date);
     setStartTime(ex.startTime || "");
     setEndTime(ex.endTime || "");
+    setFormOpen(true);
   };
 
+  const toggleMissed = (ex) => onUpdate(ex.id, { missed: !ex.missed });
+
   const sorted = [...examSchedule].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
-  const upcoming = sorted.filter(ex => (ex.date || "") >= todayKey);
-  const past = sorted.filter(ex => (ex.date || "") < todayKey);
+  const upcoming = sorted.filter(ex => !isExamPast(ex, nowParts));
+  const pastAll = sorted.filter(ex => isExamPast(ex, nowParts)).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  const completed = pastAll.filter(ex => !ex.missed);
+  const missed = pastAll.filter(ex => ex.missed);
+  const total = examSchedule.length;
 
   const dateLabel = (dk) => {
     const d = new Date(dk + "T00:00:00");
     return `${weekdayName(d)}, ${nf(d.getDate())} ${monthName(d.getMonth())}`;
   };
 
-  const ExamRow = ({ ex, faded }) => (
-    <div style={{display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:12, opacity: faded ? 0.55 : 1}}>
-      <div style={{flex:1, minWidth:0}}>
-        <div style={{fontSize:13, fontWeight:800, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{ex.subject}</div>
-        <div style={{fontSize:11, color:textMuted2, marginTop:2}}>
-          {dateLabel(ex.date)}{ex.startTime ? ` · ${ex.startTime}${ex.endTime ? "–"+ex.endTime : ""}` : ""}
+  const ExamRow = ({ ex, kind }) => {
+    const d = new Date(ex.date + "T00:00:00");
+    const badgeColor = kind === "missed" ? "#C0392B" : kind === "completed" ? "#6E8B5E" : accent;
+    return (
+      <div style={{display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:12, opacity: kind === "missed" ? 0.75 : 1}}>
+        <div style={{flexShrink:0, width:42, height:42, borderRadius:10, background: dark ? `${badgeColor}22` : `${badgeColor}14`, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", lineHeight:1}}>
+          <div style={{fontSize:14, fontWeight:800, color:badgeColor}}><Num>{nf(d.getDate())}</Num></div>
+          <div style={{fontSize:8, fontWeight:700, color:badgeColor, letterSpacing:0.3}}>{MONTHS_ABBR_EN[d.getMonth()]}</div>
         </div>
+        <div style={{flex:1, minWidth:0}}>
+          <div style={{fontSize:13, fontWeight:800, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+            {ex.examType ? `(${typeLabel(ex.examType)}) ` : ""}{ex.subject}
+          </div>
+          <div style={{fontSize:11, color:textMuted2, marginTop:2}}>
+            {dateLabel(ex.date)}{ex.startTime ? ` · ${ex.startTime}${ex.endTime ? "–"+ex.endTime : ""}` : ""}
+          </div>
+        </div>
+        {kind === "upcoming" && ex.date === nowParts.dateKey && (
+          <div style={{flexShrink:0, fontSize:11, fontWeight:800, color:accent, background: dark?"rgba(217,119,87,0.16)":"#FBEAE0", padding:"4px 9px", borderRadius:999}}>
+            {lang==="bn"?"আজ":"Today"}
+          </div>
+        )}
+        {kind !== "upcoming" && (
+          <button onClick={()=>toggleMissed(ex)} title={kind === "missed" ? (lang==="bn"?"সম্পন্ন হিসেবে চিহ্নিত করুন":"Mark as completed") : (lang==="bn"?"মিস হিসেবে চিহ্নিত করুন":"Mark as missed")}
+            style={{border:"none", background:"transparent", cursor:"pointer", color: kind === "missed" ? "#6E8B5E" : "#C0392B", display:"flex", padding:4, flexShrink:0}}>
+            {kind === "missed" ? <Check size={14}/> : <X size={14}/>}
+          </button>
+        )}
+        <button onClick={()=>startEdit(ex)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex", padding:4, flexShrink:0}}>
+          <Pencil size={14}/>
+        </button>
+        <button onClick={()=>onRemove(ex.id)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex", padding:4, flexShrink:0}}>
+          <Trash2 size={14}/>
+        </button>
       </div>
-      <button onClick={()=>startEdit(ex)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex", padding:4, flexShrink:0}}>
-        <Pencil size={14}/>
-      </button>
-      <button onClick={()=>onRemove(ex.id)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex", padding:4, flexShrink:0}}>
-        <Trash2 size={14}/>
-      </button>
+    );
+  };
+
+  const StatCard = ({ icon: Icon, value, label, color }) => (
+    <div style={{flex:1, background: dark ? `${color}1E` : `${color}12`, borderRadius:14, padding:"10px 6px", display:"flex", flexDirection:"column", alignItems:"center", gap:4}}>
+      <Icon size={15} color={color}/>
+      <div style={{fontSize:16, fontWeight:800, color:textMain}}><Num>{nf(value)}</Num></div>
+      <div style={{fontSize:10, fontWeight:600, color:textMuted2, whiteSpace:"nowrap"}}>{label}</div>
     </div>
   );
 
+  const activeList = statusTab === "upcoming" ? upcoming : statusTab === "completed" ? completed : missed;
+  const showAll = statusTab === "upcoming" ? showAllUpcoming : statusTab === "completed" ? showAllCompleted : showAllMissed;
+  const setShowAll = statusTab === "upcoming" ? setShowAllUpcoming : statusTab === "completed" ? setShowAllCompleted : setShowAllMissed;
+  const visibleList = showAll ? activeList : activeList.slice(0, 4);
+  const emptyLabel = statusTab === "upcoming" ? (lang==="bn"?"কোনো আসন্ন পরীক্ষা নেই":"No upcoming exams")
+    : statusTab === "completed" ? (lang==="bn"?"এখনো কোনো পরীক্ষা সম্পন্ন হয়নি":"No completed exams yet")
+    : (lang==="bn"?"কোনো পরীক্ষা মিস হয়নি":"No missed exams");
+
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, maxHeight:"85vh", borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, display:"flex", flexDirection:"column", gap:16, overflow:"hidden"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, maxHeight:"88vh", borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, display:"flex", flexDirection:"column", gap:16, overflow:"hidden"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", flexShrink:0}}>
           <div style={{fontSize:16, fontWeight:800}}>{lang==="bn" ? "পরীক্ষার সময়সূচি" : "Exam Schedule"}</div>
-          <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
+          <div style={{display:"flex", alignItems:"center", gap:6}}>
+            <button onClick={()=>{ resetForm(); setFormOpen(true); }} title={lang==="bn"?"নতুন পরীক্ষা যোগ করুন":"Add an exam"} style={{position:"relative", border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:accent}}>
+              <Calendar size={15}/>
+              <span style={{position:"absolute", bottom:-2, right:-2, width:12, height:12, borderRadius:"50%", background:accent, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center"}}><Plus size={8} strokeWidth={3}/></span>
+            </button>
+            <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
+          </div>
         </div>
 
         <div style={{flex:1, minHeight:0, overflowY:"auto", display:"flex", flexDirection:"column", gap:16, WebkitOverflowScrolling:"touch"}}>
-          {/* Add / edit form */}
-          <div style={{background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:16, padding:12, display:"flex", flexDirection:"column", gap:8, flexShrink:0}}>
-            <div style={{fontSize:10, fontWeight:700, letterSpacing:0.8, color:textMuted2, opacity:0.85, textTransform:"uppercase"}}>
-              {editingId ? (lang==="bn"?"এডিট করুন":"Edit exam") : (lang==="bn"?"নতুন পরীক্ষা যোগ করুন":"Add an exam")}
-            </div>
-            <input list="fg-exam-subject-list" value={subject} onChange={e=>setSubject(e.target.value)} placeholder={lang==="bn"?"কোর্স/সাবজেক্ট (যেমন HRM 5101)":"Course / subject (e.g. HRM 5101)"} style={inputStyle}/>
-            <datalist id="fg-exam-subject-list">
-              {allSubjects.map(s => <option key={s} value={s}/>)}
-            </datalist>
-            <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={inputStyle}/>
-            <div style={{display:"flex", gap:8}}>
-              <input type="time" value={startTime} onChange={e=>setStartTime(e.target.value)} style={inputStyle}/>
-              <input type="time" value={endTime} onChange={e=>setEndTime(e.target.value)} style={inputStyle}/>
-            </div>
-            <div style={{display:"flex", gap:8}}>
-              <button onClick={submit} disabled={!subject.trim() || !date} style={{flex:1, border:"none", borderRadius:10, padding:"10px 0", background: (!subject.trim() || !date) ? (dark?"#2A261F":"#E9E2D3") : accent, color: (!subject.trim() || !date) ? textMuted2 : "#fff", fontWeight:800, fontSize:13, cursor: (!subject.trim() || !date) ? "default" : "pointer"}}>
-                {editingId ? (lang==="bn"?"সেভ করুন":"Save") : (lang==="bn"?"যোগ করুন":"Add")}
-              </button>
-              {editingId && (
-                <button onClick={resetForm} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, padding:"10px 16px", color:textMuted2, fontWeight:700, fontSize:13, cursor:"pointer"}}>
-                  {lang==="bn"?"বাতিল":"Cancel"}
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Upcoming */}
-          <div style={{display:"flex", flexDirection:"column", gap:8}}>
-            <div style={{fontSize:10, fontWeight:700, letterSpacing:0.8, color:textMuted2, opacity:0.85, textTransform:"uppercase"}}>
-              {lang==="bn"?"আসন্ন":"Upcoming"} {upcoming.length > 0 && `(${nf(upcoming.length)})`}
-            </div>
-            {upcoming.length === 0 ? (
-              <div style={{fontSize:13, color:textMuted2, textAlign:"center", padding:"14px 0"}}>{lang==="bn"?"কোনো আসন্ন পরীক্ষা নেই":"No upcoming exams"}</div>
-            ) : (
-              upcoming.map(ex => <ExamRow key={ex.id} ex={ex}/>)
+          {/* Add / edit form — collapsible */}
+          <div style={{background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:16, padding:12, display:"flex", flexDirection:"column", gap: formOpen ? 8 : 0, flexShrink:0}}>
+            <button onClick={()=>setFormOpen(v=>!v)} style={{display:"flex", alignItems:"center", justifyContent:"space-between", border:"none", background:"transparent", padding:0, cursor:"pointer", width:"100%"}}>
+              <span style={{display:"flex", alignItems:"center", gap:8, fontSize:12, fontWeight:800, color:textMain}}>
+                <CalendarDays size={14} color={accent}/>
+                {editingId ? (lang==="bn"?"এডিট করুন":"Edit Exam") : (lang==="bn"?"নতুন পরীক্ষা যোগ করুন":"Add an Exam")}
+              </span>
+              <ChevronDown size={16} color={textMuted2} style={{transform: formOpen ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+            </button>
+            {formOpen && (
+              <>
+                <input list="fg-exam-subject-list" value={subject} onChange={e=>setSubject(e.target.value)} placeholder={lang==="bn"?"কোর্স/সাবজেক্ট (যেমন HRM 5101)":"Course / subject (e.g. HRM 5101)"} style={inputStyle}/>
+                <datalist id="fg-exam-subject-list">
+                  {allSubjects.map(s => <option key={s} value={s}/>)}
+                </datalist>
+                <select value={examType} onChange={e=>setExamType(e.target.value)} style={{...inputStyle, color: examType ? (dark?"#F3EFE7":"#211D18") : textMuted2}}>
+                  <option value="">{lang==="bn"?"টাইপ বাছাই করুন":"Select type"}</option>
+                  {EXAM_TYPE_OPTIONS.map(o => <option key={o.key} value={o.key}>{lang==="bn"?o.bn:o.en}</option>)}
+                </select>
+                <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={inputStyle}/>
+                <div style={{display:"flex", gap:8}}>
+                  <input type="time" value={startTime} onChange={e=>setStartTime(e.target.value)} style={inputStyle}/>
+                  <input type="time" value={endTime} onChange={e=>setEndTime(e.target.value)} style={inputStyle}/>
+                </div>
+                <div style={{display:"flex", gap:8}}>
+                  <button onClick={submit} disabled={!subject.trim() || !date} style={{flex:1, border:"none", borderRadius:10, padding:"10px 0", background: (!subject.trim() || !date) ? (dark?"#2A261F":"#E9E2D3") : accent, color: (!subject.trim() || !date) ? textMuted2 : "#fff", fontWeight:800, fontSize:13, cursor: (!subject.trim() || !date) ? "default" : "pointer"}}>
+                    {editingId ? (lang==="bn"?"সেভ করুন":"Save") : (lang==="bn"?"যোগ করুন":"Add Exam")}
+                  </button>
+                  {editingId && (
+                    <button onClick={resetForm} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, padding:"10px 16px", color:textMuted2, fontWeight:700, fontSize:13, cursor:"pointer"}}>
+                      {lang==="bn"?"বাতিল":"Cancel"}
+                    </button>
+                  )}
+                </div>
+              </>
             )}
           </div>
 
-          {/* Past */}
-          {past.length > 0 && (
-            <div style={{display:"flex", flexDirection:"column", gap:8}}>
-              <div style={{fontSize:10, fontWeight:700, letterSpacing:0.8, color:textMuted2, opacity:0.85, textTransform:"uppercase"}}>
-                {lang==="bn"?"সম্পন্ন":"Past"} ({nf(past.length)})
+          {/* Overview */}
+          <div style={{display:"flex", flexDirection:"column", gap:8}}>
+            <div style={{fontSize:10, fontWeight:700, letterSpacing:0.8, color:textMuted2, opacity:0.85, textTransform:"uppercase"}}>
+              {lang==="bn"?"সারসংক্ষেপ":"Overview"}
+            </div>
+            <div style={{display:"flex", gap:8}}>
+              <StatCard icon={Calendar} value={total} label={lang==="bn"?"মোট":"Total"} color={accent}/>
+              <StatCard icon={Clock} value={upcoming.length} label={lang==="bn"?"আসন্ন":"Upcoming"} color="#4C8FA6"/>
+              <StatCard icon={Check} value={completed.length} label={lang==="bn"?"সম্পন্ন":"Completed"} color="#6E8B5E"/>
+              <StatCard icon={TrendingUp} value={missed.length} label={lang==="bn"?"মিস":"Missed"} color="#C0392B"/>
+            </div>
+          </div>
+
+          {/* Status tabs */}
+          <div style={{display:"flex", gap:20, borderBottom:`1px solid ${cardBorder}`, flexShrink:0}}>
+            {[
+              { key:"upcoming", label: lang==="bn"?"আসন্ন":"Upcoming", count: upcoming.length },
+              { key:"completed", label: lang==="bn"?"সম্পন্ন":"Completed", count: completed.length },
+              { key:"missed", label: lang==="bn"?"মিস":"Missed", count: missed.length },
+            ].map(tabDef => (
+              <button key={tabDef.key} onClick={()=>setStatusTab(tabDef.key)} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 9px", fontSize:13, fontWeight:800, color: statusTab===tabDef.key ? textMain : textMuted2, borderBottom: statusTab===tabDef.key ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1}}>
+                {tabDef.label} ({nf(tabDef.count)})
+              </button>
+            ))}
+          </div>
+
+          {/* Active list */}
+          {activeList.length === 0 ? (
+            statusTab === "upcoming" && total > 0 ? (
+              <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", padding:"18px 10px 4px", gap:8}}>
+                <div style={{width:60, height:60, borderRadius:"50%", background: dark?"rgba(110,139,94,0.18)":"rgba(110,139,94,0.14)", display:"flex", alignItems:"center", justifyContent:"center"}}>
+                  <Check size={28} color="#6E8B5E" strokeWidth={2.5}/>
+                </div>
+                <div style={{fontSize:15, fontWeight:800, color:textMain}}>{lang==="bn"?"সব পরীক্ষা সম্পন্ন!":"All exams completed!"}</div>
+                <div style={{fontSize:12.5, color:textMuted2, lineHeight:1.5, maxWidth:280}}>
+                  {lang==="bn"?"দারুণ! আপনার নির্ধারিত সব পরীক্ষা শেষ হয়ে গেছে।":"Great job! You've completed all your scheduled exams."}
+                </div>
+                <button onClick={()=>{ resetForm(); setFormOpen(true); }} style={{marginTop:4, border:"none", background:accent, color:"#fff", borderRadius:12, padding:"9px 16px", fontSize:12.5, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", gap:6}}>
+                  <Plus size={13}/> {lang==="bn"?"নতুন পরীক্ষা যোগ করুন":"Add New Exam"}
+                </button>
+                <div style={{marginTop:6, width:"100%", display:"flex", alignItems:"center", gap:8, background: dark?"rgba(110,139,94,0.14)":"rgba(110,139,94,0.10)", border:`1px solid ${dark?"rgba(110,139,94,0.3)":"rgba(110,139,94,0.25)"}`, borderRadius:12, padding:"10px 12px", textAlign:"left"}}>
+                  <Sparkles size={15} color="#6E8B5E" style={{flexShrink:0}}/>
+                  <span style={{fontSize:12, color:textMain, lineHeight:1.5}}>
+                    {lang==="bn"?"একটু বিশ্রাম নিন আর নিজের পরিশ্রমকে উদযাপন করুন! 🎉":"Take some time to relax and celebrate your hard work! 🎉"}
+                  </span>
+                </div>
               </div>
-              {past.map(ex => <ExamRow key={ex.id} ex={ex} faded/>)}
+            ) : (
+              <div style={{fontSize:13, color:textMuted2, textAlign:"center", padding:"14px 0"}}>{emptyLabel}</div>
+            )
+          ) : (
+            <div style={{display:"flex", flexDirection:"column", gap:8}}>
+              {visibleList.map(ex => <ExamRow key={ex.id} ex={ex} kind={statusTab}/>)}
+              {activeList.length > 4 && (
+                <button onClick={()=>setShowAll(v=>!v)} style={{border:"none", background:"transparent", cursor:"pointer", color:accent, fontSize:12, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", gap:4, padding:"4px 0"}}>
+                  {showAll ? (lang==="bn"?"কম দেখান":"Show less") : (lang==="bn"?"সব দেখুন":"View All")}
+                  <ChevronDown size={13} style={{transform: showAll ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+                </button>
+              )}
+              {statusTab === "upcoming" && (
+                <div style={{display:"flex", alignItems:"center", gap:8, background: dark?"rgba(217,119,87,0.10)":"#FBEAE0", border:`1px solid ${dark?"rgba(217,119,87,0.3)":"#F0CBB8"}`, borderRadius:12, padding:"10px 12px", marginTop:4}}>
+                  <Info size={15} color={accent} style={{flexShrink:0}}/>
+                  <span style={{fontSize:11.5, color:textMain, lineHeight:1.5}}>
+                    <b>{lang==="bn"?"টিপ:":"Tip:"}</b> {lang==="bn"?" আগেভাগে পরীক্ষা যোগ করে প্রস্তুত থাকুন। আপনি পারবেন! 💪":" Add your exams early and stay prepared. You've got this! 💪"}
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -6582,14 +6714,18 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
   const closeMenu = () => { setOpenMenuId(null); setConfirmDeleteId(null); };
   if (items.length === 0) {
     return (
-      <div style={{textAlign:"left", padding:"10px 0 20px", color:textMuted2, fontSize:13}}>
-        <div style={{display:"flex", alignItems:"center", gap:8}}>
-          {EmptyIcon && <EmptyIcon size={16} color={textMuted2} strokeWidth={1.8}/>}
-          <span style={{fontWeight:500, color:textMuted2, fontSize:12.5}}>{emptyText}</span>
+      <div style={{border:`1.5px dashed ${cardBorder}`, borderRadius:16, padding:"22px 18px", textAlign:"center", display:"flex", flexDirection:"column", alignItems:"center", gap:9}}>
+        {EmptyIcon && (
+          <div style={{width:38, height:38, borderRadius:"50%", background:"rgba(110,139,94,0.16)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+            <EmptyIcon size={18} color="#6E8B5E" strokeWidth={2}/>
+          </div>
+        )}
+        <div>
+          <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{emptyText}</div>
+          {emptySubtext && <div style={{fontSize:12, color:textMuted2, marginTop:3, lineHeight:1.5}}>{emptySubtext}</div>}
         </div>
-        {emptySubtext && <div style={{fontSize:12, opacity:0.8, marginTop:4, marginLeft:24}}>{emptySubtext}</div>}
         {onEmptyAdd && (
-          <button onClick={onEmptyAdd} style={{marginTop:12, marginLeft:24, display:"inline-flex", alignItems:"center", gap:4, border:"none", background:accent, color:"#fff", borderRadius:12, padding:"8px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+          <button onClick={onEmptyAdd} style={{marginTop:4, display:"inline-flex", alignItems:"center", gap:4, border:"none", background:accent, color:"#fff", borderRadius:12, padding:"8px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
             <Plus size={13}/> {emptyAddLabel}
           </button>
         )}
@@ -6614,7 +6750,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
             </button>
             <div style={{flex:1, minWidth:0}}>
               <span style={{display:"inline-block", fontSize:10, fontWeight:800, letterSpacing:ls(0.5), color:c.bg, background:c.bgSoft, borderRadius:8, padding:"2px 7px", marginBottom:3}}>{item.subject.toUpperCase()}</span>
-              <div style={{fontSize:14, fontWeight:600, wordBreak:"break-word", textDecoration: item.done ? "line-through" : "none", opacity: item.done ? 0.6 : 1}}>{item.topic}</div>
+              <div style={{fontSize:14, fontWeight:600, wordBreak:"break-word", opacity: item.done ? 0.6 : 1}}>{item.topic}</div>
             </div>
             <div style={{textAlign:"right", flexShrink:0}}>
               {isActiveTimer ? (
@@ -8254,7 +8390,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                   {note.checklist.slice(0,isList?2:3).map(item => (
                     <div key={item.id} style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:coverText,opacity:0.85}}>
                       <span style={{width:12,height:12,borderRadius:4,border:`1px solid ${col.text}`,background:item.done?col.text:"transparent",display:"inline-flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:10,flexShrink:0}}>{item.done?"✓":""}</span>
-                      <span style={{textDecoration:item.done?"line-through":"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.text}</span>
+                      <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.text}</span>
                     </div>
                   ))}
                   {note.checklist.length > (isList?2:3) && <span style={{fontSize:10,color:col.text,fontWeight:700}}>+{note.checklist.length - (isList?2:3)} more</span>}
@@ -8396,7 +8532,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                           }}
                           onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
                           placeholder={lang==="bn"?"লিস্টে যোগ করুন":"List item"}
-                          style={{flex:1,minWidth:0,background:"transparent",border:"none",padding:"3px 0",fontSize:13,color:paperText,textDecoration:item.done?"line-through":"none",opacity:item.done?0.6:1,outline:"none",fontFamily:"inherit"}}
+                          style={{flex:1,minWidth:0,background:"transparent",border:"none",padding:"3px 0",fontSize:13,color:paperText,opacity:item.done?0.6:1,outline:"none",fontFamily:"inherit"}}
                         />
                         <button onClick={()=>setChecklist(prev=>prev.filter((_,i)=>i!==index))} style={{border:"none",background:"transparent",color:paperText,opacity:0.6,cursor:"pointer",padding:2}}><X size={14}/></button>
                       </div>
@@ -8606,7 +8742,7 @@ function TaskDetailSheet({ task, categoryLabel, priorityLabel, priorityColor, la
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:"80vh", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"22px 22px 0 0", padding:"18px 20px 26px", color:textMain}}>
         <div style={{width:36, height:4, borderRadius:4, background:cardBorder, margin:"0 auto 14px"}}/>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10}}>
-          <div style={{flex:1, fontSize:16, fontWeight:700, lineHeight:1.35, wordBreak:"break-word", textDecoration: task.done?"line-through":"none", opacity: task.done?0.6:1}}>
+          <div style={{flex:1, fontSize:16, fontWeight:700, lineHeight:1.35, wordBreak:"break-word", opacity: task.done?0.6:1}}>
             {task.title}
           </div>
           <button onClick={onEdit} title={lang==="bn"?"এডিট":"Edit"} style={{border:"none", background:bg, color:textMuted2, width:30, height:30, borderRadius:"50%", cursor:"pointer", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
