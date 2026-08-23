@@ -1375,7 +1375,7 @@ const T = {
     taskAddCategory: "Add category", taskNewCategoryPlaceholder: "New category name",
     taskDone: "done", taskLinkHint: "You can start a \"Study\" task directly with the Focus Timer — it'll auto-complete when the session ends.",
     taskLeftLabel: "left", taskAllDoneLabel: "All done",
-    taskFilterToday: "Today", taskFilterUpcoming: "Upcoming", taskFilterDone: "Done", taskFilterOverdue: "Overdue",
+    taskFilterToday: "Today", taskFilterUpcoming: "Upcoming", taskFilterDone: "Done", taskFilterOverdue: "Due",
     notesTitle: "Notes", notesSubtitle: "Capture ideas, lessons, and things to remember", notesSearch: "Search notes...", notesNew: "New Note", notesEmpty: "No notes yet", notesEmptySub: "Save an idea, lesson, or reminder here.", notesTitlePlaceholder: "Note title", notesBodyPlaceholder: "Write your note...", notesSave: "Save Note", notesEdit: "Edit Note", notesDelete: "Delete",
     taskDueDate: "Due Date", taskDueDateOptional: "Due Date (optional)", taskNoDueDate: "No due date",
     taskDueToday: "Today", taskDueTomorrow: "Tomorrow", taskOverdue: "Overdue", taskCompleted: "Completed",
@@ -1524,7 +1524,7 @@ const T = {
     taskAddCategory: "ক্যাটাগরি যোগ করো", taskNewCategoryPlaceholder: "নতুন ক্যাটাগরির নাম",
     taskDone: "সম্পন্ন", taskLinkHint: "\"স্টাডি\" ক্যাটাগরির টাস্ক চাইলে সরাসরি Focus Timer দিয়ে শুরু করা যাবে — সেশন শেষ হলে টাস্ক অটো-সম্পন্ন হবে।",
     taskLeftLabel: "বাকি", taskAllDoneLabel: "সব সম্পন্ন",
-    taskFilterToday: "আজ", taskFilterUpcoming: "আসন্ন", taskFilterDone: "সম্পন্ন", taskFilterOverdue: "মেয়াদ শেষ",
+    taskFilterToday: "আজ", taskFilterUpcoming: "আসন্ন", taskFilterDone: "সম্পন্ন", taskFilterOverdue: "বাকি",
     notesTitle: "নোট", notesSubtitle: "আইডিয়া, পড়ার বিষয় ও দরকারি তথ্য সংরক্ষণ করো", notesSearch: "নোট খুঁজুন...", notesNew: "নতুন নোট", notesEmpty: "এখনো কোনো নোট নেই", notesEmptySub: "আইডিয়া, পড়ার বিষয় বা দরকারি কিছু এখানে রাখো।", notesTitlePlaceholder: "নোটের শিরোনাম", notesBodyPlaceholder: "নোট লিখুন...", notesSave: "নোট সেভ", notesEdit: "নোট এডিট", notesDelete: "মুছুন",
     taskDueDate: "ডিউ ডেট", taskDueDateOptional: "ডিউ ডেট (ঐচ্ছিক)", taskNoDueDate: "কোনো ডিউ ডেট নেই",
     taskDueToday: "আজ", taskDueTomorrow: "আগামীকাল", taskOverdue: "মেয়াদ শেষ", taskCompleted: "সম্পন্ন হয়েছে",
@@ -4766,8 +4766,8 @@ export default function FocusGo() {
             ["all", t.taskAll, ListChecks],
             ["today", t.taskFilterToday, Calendar],
             ["upcoming", t.taskFilterUpcoming, CalendarDays],
-            ["done", t.taskFilterDone, Check],
             ["overdue", t.taskFilterOverdue, CalendarClock],
+            ["done", t.taskFilterDone, Check],
           ];
 
           const overdueCount = tasks.filter(x => !x.done && bucketOf(x) === "overdue").length;
@@ -5016,7 +5016,7 @@ export default function FocusGo() {
 
               {taskViewMode === "list" ? (
                 <>
-                  <div className="fg-chip-row" style={{display:"flex", gap:6, marginBottom:14, overflowX:"auto"}}>
+                  <div className="fg-chip-row" style={{display:"flex", gap:6, marginBottom:14, overflowX:"auto", WebkitMaskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)", maskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)"}}>
                     {filterChips.map(([key,label,Icon]) => (
                       <button key={key} onClick={()=>{vibrate(); setTaskFilter(key);}} style={{
                         display:"flex", alignItems:"center", gap:4, padding:"6px 10px", borderRadius:20, cursor:"pointer", flexShrink:0,
@@ -8336,7 +8336,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
       {/* ক্যাটাগরি/ফোল্ডার চিপ — এখন সরাসরি স্ক্রল করা যায়, হ্যামবার্গার মেনুর ভেতর ঢুকতে হয় না।
           কোনো ক্যাটাগরি চিপ চেপে ধরে রাখলে (long-press) Rename/Delete মেনু দেখা যায়। */}
-      <div onClick={e=>e.stopPropagation()} style={{display:"flex",gap:7,overflowX:"auto",paddingBottom:4,marginBottom:14,WebkitOverflowScrolling:"touch"}} className="fg-hide-scrollbar">
+      <div onClick={e=>e.stopPropagation()} style={{display:"flex",gap:7,overflowX:"auto",paddingBottom:4,marginBottom:14,WebkitOverflowScrolling:"touch", WebkitMaskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)", maskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)"}} className="fg-hide-scrollbar">
         {[
           {key:"All Notes", label: lang==="bn"?"সব নোট":"All Notes"},
           {key:"Pinned", label: lang==="bn"?"পিন":"Pinned", icon:<Pin size={11}/>},
