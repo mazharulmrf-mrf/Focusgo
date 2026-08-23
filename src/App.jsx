@@ -4474,15 +4474,15 @@ export default function FocusGo() {
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
-                size={58} stroke={5.5} accent={accent} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain}
-                caption={t.progressLabel} captionColor={textMuted2} nf={nf}/>
+                size={58} stroke={5.5} accent={accent} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain} nf={nf}/>
               <div style={{minWidth:0}}>
                 <div style={{fontSize:14, fontWeight:800, color:textMain, marginBottom:6}}>{t.todaysProgress}</div>
-                <div style={{display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"}}>
-                  <span style={{display:"inline-flex", alignItems:"center", gap:4, color:"#6E8B5E", background: dark?"rgba(110,139,94,0.18)":"rgba(110,139,94,0.14)", padding:"4px 10px", borderRadius:20, fontSize:12, fontWeight:700}}>
+                <div style={{display:"flex", alignItems:"center", gap:7, fontSize:12.5, fontWeight:700, whiteSpace:"nowrap"}}>
+                  <span style={{display:"inline-flex", alignItems:"center", gap:3, color:"#6E8B5E"}}>
                     <Check size={12} strokeWidth={3}/> <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.progressCompletedLabel}
                   </span>
-                  <span style={{display:"inline-flex", alignItems:"center", gap:4, color:"#C08A2E", background: dark?"rgba(192,138,46,0.2)":"rgba(192,138,46,0.14)", padding:"4px 10px", borderRadius:20, fontSize:12, fontWeight:700}}>
+                  <span style={{color:cardBorder, fontWeight:400}}>|</span>
+                  <span style={{display:"inline-flex", alignItems:"center", gap:3, color:"#C08A2E"}}>
                     <Clock size={12}/> <Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}
                   </span>
                 </div>
