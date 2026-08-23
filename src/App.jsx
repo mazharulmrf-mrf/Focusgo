@@ -6,7 +6,7 @@ import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Geolocation } from "@capacitor/geolocation";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Image as ImageIcon } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon } from "lucide-react";
 import { auth, db, googleProvider } from "./firebase";
 import { setupNotifications } from "./notifications";
 import {
@@ -1066,7 +1066,7 @@ function _sunPosition(jd) {
   return { decl, eqt };
 }
 // date: JS Date (স্থানীয় দিন হিসেবে ধরা হয়), lat/lng: ডিগ্রি — রিটার্ন করে {fajr, sunrise, dhuhr, asr, maghrib, isha} প্রতিটা একটা JS Date অবজেক্ট হিসেবে
-function computeSalahTimesForDate(date, lat, lng) {
+function computeSalahTimesForDate(date, lat, lng, asrFactor = 1) {
   const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
   const tzOffset = -date.getTimezoneOffset() / 60; // ফোনের টাইমজোন থেকেই ধরে নেওয়া হয় (লোকেশনের সাথে মিলে যাবে বেশিরভাগ ক্ষেত্রে)
   const jDate = _julianDate(y, m, d) - lng / (15 * 24);
@@ -1078,7 +1078,7 @@ function computeSalahTimesForDate(date, lat, lng) {
     const T = (1 / 15) * _darccos(cosArg);
     return before ? noon - T : noon + T;
   };
-  const FAJR_ANGLE = 18, ISHA_ANGLE = 18, ASR_FACTOR = 1; // Karachi method, Shafi madhab
+  const FAJR_ANGLE = 18, ISHA_ANGLE = 18, ASR_FACTOR = asrFactor; // Karachi method; ASR_FACTOR: Hanafi=2, Shafi/Maliki/Hanbali=1
   const asrAngle = -_darccot(ASR_FACTOR + _dtan(Math.abs(lat - decl)));
   const raw = {
     fajr: timeForAngle(FAJR_ANGLE, true),
@@ -1099,6 +1099,48 @@ function computeSalahTimesForDate(date, lat, lng) {
     fajr: toDate(raw.fajr), sunrise: toDate(raw.sunrise), dhuhr: toDate(raw.dhuhr),
     asr: toDate(raw.asr), maghrib: toDate(raw.maghrib), isha: toDate(raw.isha),
   };
+}
+// গ্রেগরিয়ান তারিখ থেকে হিজরি তারিখ (Tabular Islamic calendar / Kuwaiti algorithm — নির্ভুলতা স্থানীয় চাঁদ দেখার সাপেক্ষে ±1 দিন হতে পারে)
+function gregorianToHijri(date) {
+  const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
+  const jd = Math.floor((1461 * (y + 4800 + Math.floor((m - 14) / 12))) / 4)
+    + Math.floor((367 * (m - 2 - 12 * Math.floor((m - 14) / 12))) / 12)
+    - Math.floor((3 * Math.floor((y + 4900 + Math.floor((m - 14) / 12)) / 100)) / 4)
+    + d - 32075;
+  let l = jd - 1948440 + 10632;
+  const n = Math.floor((l - 1) / 10631);
+  l = l - 10631 * n + 354;
+  const j = Math.floor((10985 - l) / 5316) * Math.floor((50 * l) / 17719) + Math.floor(l / 5670) * Math.floor((43 * l) / 15238);
+  l = l - Math.floor((30 - j) / 15) * Math.floor((17719 * j) / 50) - Math.floor(j / 16) * Math.floor((15238 * j) / 43) + 29;
+  const hMonth = Math.floor((24 * l) / 709);
+  const hDay = l - Math.floor((709 * hMonth) / 24);
+  const hYear = 30 * n + j - 30;
+  return { day: hDay, month: hMonth, year: hYear };
+}
+const HIJRI_MONTHS_EN = ["Muharram","Safar","Rabi al-Awwal","Rabi al-Thani","Jumada al-Awwal","Jumada al-Thani","Rajab","Sha'ban","Ramadan","Shawwal","Dhu al-Qi'dah","Dhu al-Hijjah"];
+const HIJRI_MONTHS_BN = ["মুহাররম","সফর","রবিউল আউয়াল","রবিউস সানি","জমাদিউল আউয়াল","জমাদিউস সানি","রজব","শাবান","রমজান","শাওয়াল","জিলক্বদ","জিলহজ"];
+// কিবলার দিক (কাবার সাপেক্ষে, উত্তর থেকে ডিগ্রি) — great-circle bearing ফর্মুলা
+function calcQiblaBearing(lat, lng) {
+  const KAABA_LAT = 21.4225, KAABA_LNG = 39.8262;
+  const toRad = (deg) => (deg * Math.PI) / 180, toDeg = (rad) => (rad * 180) / Math.PI;
+  const phiK = toRad(KAABA_LAT), lambdaK = toRad(KAABA_LNG), phi = toRad(lat), lambda = toRad(lng);
+  const psi = Math.atan2(
+    Math.sin(lambdaK - lambda),
+    Math.cos(phi) * Math.tan(phiK) - Math.sin(phi) * Math.cos(lambdaK - lambda)
+  );
+  return (toDeg(psi) + 360) % 360;
+}
+// কোঅর্ডিনেট থেকে এলাকার নাম (OpenStreetMap Nominatim — ফ্রি, API key লাগে না; শুধু লোকেশন বদলালেই একবার কল হয়, ফলাফল ক্যাশ থাকে)
+async function reverseGeocodeSalah(lat, lng) {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=10&accept-language=en`);
+    if (!res.ok) return "";
+    const data = await res.json();
+    const addr = data?.address || {};
+    const city = addr.city || addr.town || addr.village || addr.county || addr.state_district || addr.state || "";
+    const country = addr.country || "";
+    return [city, country].filter(Boolean).join(", ");
+  } catch (e) { return ""; }
 }
 const to12h = (h24) => ((h24 % 12) || 12);
 const isPm = (h24) => h24 >= 12;
@@ -1977,6 +2019,17 @@ export default function FocusGo() {
   // সালাত টাইমার সংক্রান্ত state — লাইভ লোকেশন (lat/lng) একবার পারমিশন পেলে localStorage-এ ক্যাশ থাকে, আইকনে আবার চাপলে re-select করা যায়
   const [salahCoords, setSalahCoords] = useState(() => {
     try { return JSON.parse(window.localStorage.getItem("focusgo_salah_coords") || "null"); } catch (e) { return null; }
+  });
+  // আসরের হিসাব: হানাফি (factor 2) বা শাফি/মালিকি/হাম্বলি (factor 1) — সেটিং সেভ থাকে
+  const [salahMadhab, setSalahMadhab] = useState(() => {
+    try { return window.localStorage.getItem("focusgo_salah_madhab") || "hanafi"; } catch (e) { return "hanafi"; }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("focusgo_salah_madhab", salahMadhab); } catch (e) {}
+  }, [salahMadhab]);
+  // কোঅর্ডিনেট থেকে reverse-geocode করা এলাকার নাম (যেমন "Dhaka, Bangladesh") — লোকেশন বদলালে রিফ্রেশ হয়
+  const [salahLocationName, setSalahLocationName] = useState(() => {
+    try { return window.localStorage.getItem("focusgo_salah_location_name") || ""; } catch (e) { return ""; }
   });
   const [showSalahDropdown, setShowSalahDropdown] = useState(false);
   const [salahLocLoading, setSalahLocLoading] = useState(false);
@@ -3431,6 +3484,13 @@ export default function FocusGo() {
       const coords = { lat, lng };
       setSalahCoords(coords);
       try { window.localStorage.setItem("focusgo_salah_coords", JSON.stringify(coords)); } catch (e) {}
+      // পুরনো এলাকার নাম সরিয়ে নতুন করে reverse-geocode — ব্যর্থ হলে পুরনো নামই থেকে যাবে (silently, UI-তে "লোড হচ্ছে" আটকে থাকবে না)
+      reverseGeocodeSalah(lat, lng).then((name) => {
+        if (name) {
+          setSalahLocationName(name);
+          try { window.localStorage.setItem("focusgo_salah_location_name", name); } catch (e) {}
+        }
+      });
     };
     if (Capacitor.isNativePlatform()) {
       try {
@@ -3481,10 +3541,11 @@ export default function FocusGo() {
   const salahTimes = React.useMemo(() => {
     if (!salahCoords) return null;
     try {
+      const asrFactor = salahMadhab === "hanafi" ? 2 : 1;
       const today0 = new Date();
       const tomorrow0 = new Date(today0); tomorrow0.setDate(tomorrow0.getDate() + 1);
-      const pt = computeSalahTimesForDate(today0, salahCoords.lat, salahCoords.lng);
-      const ptTomorrow = computeSalahTimesForDate(tomorrow0, salahCoords.lat, salahCoords.lng);
+      const pt = computeSalahTimesForDate(today0, salahCoords.lat, salahCoords.lng, asrFactor);
+      const ptTomorrow = computeSalahTimesForDate(tomorrow0, salahCoords.lat, salahCoords.lng, asrFactor);
       return [
         { key: "fajr", label: lang === "bn" ? "ফজর" : "Fajr", start: pt.fajr, end: pt.sunrise },
         { key: "dhuhr", label: lang === "bn" ? "যোহর" : "Dhuhr", start: pt.dhuhr, end: pt.asr },
@@ -3493,7 +3554,7 @@ export default function FocusGo() {
         { key: "isha", label: lang === "bn" ? "এশা" : "Isha", start: pt.isha, end: ptTomorrow.fajr },
       ];
     } catch (e) { return null; }
-  }, [salahCoords, lang, todayKey]);
+  }, [salahCoords, salahMadhab, lang, todayKey]);
   const fmtSalahTime = (d) => {
     if (!d) return "--:--";
     const h12 = ((d.getHours() % 12) || 12);
@@ -3505,6 +3566,40 @@ export default function FocusGo() {
     const found = salahTimes.find(w => now >= w.start && now < w.end);
     return found ? found.key : null;
   }, [salahTimes, now]);
+  // পরবর্তী নামাজের বাকি সময় (কাউন্টডাউন) — 'now' প্রতি মিনিটে আপডেট হয় বলে এটাও লাইভ থাকবে
+  const nextSalahCountdown = React.useMemo(() => {
+    if (!salahTimes || !salahCoords) return null;
+    const upcoming = salahTimes.find(w => now < w.start);
+    let label, target;
+    if (upcoming) {
+      label = upcoming.label; target = upcoming.start;
+    } else {
+      const asrFactor = salahMadhab === "hanafi" ? 2 : 1;
+      const tmr = new Date(now); tmr.setDate(tmr.getDate() + 1);
+      try {
+        const pt = computeSalahTimesForDate(tmr, salahCoords.lat, salahCoords.lng, asrFactor);
+        label = lang === "bn" ? "ফজর" : "Fajr";
+        target = pt.fajr;
+      } catch (e) { return null; }
+    }
+    const diffMin = Math.max(0, Math.round((target - now) / 60000));
+    const h = Math.floor(diffMin / 60), m = diffMin % 60;
+    const text = h > 0 ? `${nf(h)}${lang === "bn" ? "ঘ" : "h"} ${nf(m)}${lang === "bn" ? "মি" : "m"}` : `${nf(m)}${lang === "bn" ? "মি" : "m"}`;
+    return { label, text };
+  }, [salahTimes, now, salahCoords, salahMadhab, lang, nf]);
+  // কিবলার দিক — কোঅর্ডিনেট বদলালেই একবার হিসাব হয়
+  const qiblaBearing = React.useMemo(() => {
+    if (!salahCoords) return null;
+    return Math.round(calcQiblaBearing(salahCoords.lat, salahCoords.lng));
+  }, [salahCoords]);
+  // আজকের হিজরি তারিখ
+  const hijriDateLabel = React.useMemo(() => {
+    try {
+      const h = gregorianToHijri(today);
+      const mName = lang === "bn" ? HIJRI_MONTHS_BN[h.month - 1] : HIJRI_MONTHS_EN[h.month - 1];
+      return `${nf(h.day)} ${mName}, ${nf(h.year)} AH`;
+    } catch (e) { return ""; }
+  }, [today, lang, nf]);
   // আজকের যে সালাতগুলো আদায় করা হয়েছে বলে টিক দেওয়া আছে
   const todaySalahDone = salahCompleted[todayKey] || [];
   const toggleSalahDone = (key) => {
@@ -3911,13 +4006,11 @@ export default function FocusGo() {
 
               return (
                 <>
-                  <div style={{padding:"4px 2px 10px", marginBottom:2, display:"flex", alignItems:"flex-start", gap:10}}>
-                    <div style={{width:32, height:32, borderRadius:"50%", background: dark ? `${greetTheme.iconColor}2E` : `${greetTheme.iconColor}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1}}>
-                      <greetTheme.Icon size={16} color={greetTheme.iconColor}/>
-                    </div>
+                  <div style={{padding:"4px 2px 10px", marginBottom:2}}>
                     <div style={{minWidth:0, flex:1}}>
-                      <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2, marginBottom:3}}>
+                      <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2, marginBottom:3, display:"flex", alignItems:"center", gap:5}}>
                         {lang === "bn" ? greetingBn : greetingEn}
+                        <greetTheme.Icon size={14} color={greetTheme.iconColor} strokeWidth={2.2}/>
                       </div>
                       <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
                         <div style={{fontSize:24,fontWeight:800,letterSpacing:-0.4,color:textMain}}>
@@ -3984,92 +4077,147 @@ export default function FocusGo() {
                     </span>
 
                     {showSalahDropdown && (
-                      <div style={{
-                        position:"absolute", top:28, right:0, width:220, zIndex:20,
-                        background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:16,
-                        padding:10, boxShadow: dark ? "0 8px 20px rgba(0,0,0,0.30)" : "0 8px 20px rgba(0,0,0,0.08)",
-                      }}>
-                        <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", padding:"2px 4px 8px"}}>
-                          <span style={{fontSize:11, fontWeight:700, color:textMuted2, letterSpacing:0.3}}>
-                            {lang === "bn" ? "সালাতের সময়" : "Salah Times"}
-                          </span>
-                          <span style={{display:"flex", alignItems:"center", gap:6}}>
-                            {salahCoords && salahTimes && (
-                              <span style={{fontSize:11, fontWeight:800, color: todaySalahDone.length===5 ? accent : textMuted2, fontVariantNumeric:"tabular-nums"}}>
-                                {todaySalahDone.length}/5
-                              </span>
-                            )}
-                          {/* লোকেশন আইকন — সব সময় দেখা যাবে; ক্লিক করলে লাইভ লোকেশন নেয়া হবে/আপডেট হবে।
-                              লোকেশন একবার সেট হয়ে গেলে আইকনটা accent রঙে "সিলেক্টেড" দেখাবে, আবার ক্লিক করলে
-                              লোকেশন নতুন করে ফেচ হয়ে চেঞ্জ হবে (পারমিশন একবার দেয়া থাকলে আবার জিজ্ঞেস করবে না)। */}
-                          <button
-                            onClick={(e) => { e.stopPropagation(); vibrate(); requestSalahLocation(); }}
-                            disabled={salahLocLoading}
-                            title={
-                              salahLocLoading
-                                ? (lang === "bn" ? "লোকেশন খোঁজা হচ্ছে…" : "Getting location…")
-                                : salahCoords
-                                  ? (lang === "bn" ? "লোকেশন পরিবর্তন করুন" : "Change location")
-                                  : (lang === "bn" ? "লাইভ লোকেশন নিন" : "Get live location")
-                            }
-                            style={{
-                              width:24, height:24, borderRadius:"50%", flexShrink:0, border:"none", padding:0,
-                              background: salahCoords ? accent : (dark ? "#26231D" : "#F3EEE3"),
-                              display:"flex", alignItems:"center", justifyContent:"center",
-                              cursor: salahLocLoading ? "default" : "pointer",
-                              opacity: salahLocLoading ? 0.55 : 1,
-                              transition:"background .18s ease, opacity .18s ease",
-                            }}
-                          >
-                            <MapPin size={13} color={salahCoords ? "#fff" : textMuted2} strokeWidth={2.4}/>
-                          </button>
-                          </span>
-                        </div>
-                        {!salahCoords && (
-                          <div style={{padding:"0 6px 8px", fontSize:12, color:textMuted2, lineHeight:1.5}}>
-                            {salahLocLoading
-                              ? (lang === "bn" ? "লোকেশন খোঁজা হচ্ছে…" : "Getting location…")
-                              : (salahLocError || (lang === "bn" ? "লোকেশন আইকনে ক্লিক করে সেট করুন" : "Tap the location icon to set it"))}
-                          </div>
-                        )}
-                        {salahCoords && salahLocError && (
-                          <div style={{padding:"0 6px 8px", fontSize:12, color:"#C0392B", lineHeight:1.5}}>
-                            {salahLocError}
-                          </div>
-                        )}
-                        {salahCoords && salahTimes && salahTimes.map(w => {
-                          const isActive = w.key === activeSalahKey;
-                          const isDone = todaySalahDone.includes(w.key);
-                          return (
-                            <div key={w.key} style={{
-                              display:"flex", justifyContent:"space-between", alignItems:"center", gap:8,
-                              padding:"8px 8px", borderRadius:10, marginBottom:3, fontSize:13,
-                              background: isActive ? (dark ? "rgba(217,119,87,0.16)" : "#FBEAE0") : "transparent",
-                              border: isActive ? `1px solid ${dark ? "rgba(217,119,87,0.4)" : "#F0CBB8"}` : "1px solid transparent",
-                            }}>
-                              <span style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
-                                {/* সালাত আদায় হয়ে গেলে এখানে ট্যাপ করে টিক দেওয়া যায় — প্রতিদিনের হিসাব আলাদাভাবে সেভ থাকে */}
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); toggleSalahDone(w.key); }}
-                                  title={isDone ? (lang === "bn" ? "আদায় হয়েছে — বাতিল করতে ট্যাপ করুন" : "Marked done — tap to undo") : (lang === "bn" ? "আদায় হলে টিক দিন" : "Tap to mark as prayed")}
-                                  style={{
-                                    width:18, height:18, borderRadius:8, flexShrink:0, padding:0, cursor:"pointer",
-                                    border: isDone ? "none" : `1.5px solid ${isActive ? accent : cardBorder}`,
-                                    background: isDone ? accent : "transparent",
-                                    display:"flex", alignItems:"center", justifyContent:"center",
-                                    transition:"background .15s ease, border-color .15s ease",
-                                  }}
-                                >
-                                  {isDone && <Check size={12} color="#fff" strokeWidth={3}/>}
-                                </button>
-                                <span style={{color: isActive ? accent : textMain, fontWeight: isActive ? 700 : 600, opacity: isDone ? 0.7 : 1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{w.label}</span>
-                              </span>
-                              <span style={{color: isActive ? accent : textMuted2, fontWeight: isActive ? 700 : 500, fontSize:13, fontVariantNumeric:"tabular-nums", flexShrink:0, opacity: isDone ? 0.7 : 1}}>
-                                {fmtSalahTime(w.start)} – {fmtSalahTime(w.end)}
-                              </span>
+                      <div onClick={() => setShowSalahDropdown(false)} style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:70}}>
+                        <div onClick={(e) => e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:"85vh", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"22px 22px 0 0", padding:"10px 20px 26px", color:textMain}}>
+                          <div style={{width:36, height:4, borderRadius:4, background:cardBorder, margin:"2px auto 14px"}}/>
+
+                          <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10}}>
+                            <div style={{minWidth:0}}>
+                              <div style={{fontSize:16, fontWeight:800, color:textMain}}>{lang === "bn" ? "সালাতের সময়" : "Salah Times"}</div>
+                              <div style={{display:"flex", alignItems:"center", gap:5, marginTop:3, minHeight:15}}>
+                                <MapPin size={11} color={textMuted2} strokeWidth={2.4}/>
+                                <span style={{fontSize:12, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                                  {salahLocLoading
+                                    ? (lang === "bn" ? "লোকেশন খোঁজা হচ্ছে…" : "Getting location…")
+                                    : salahCoords
+                                      ? [salahLocationName, hijriDateLabel].filter(Boolean).join(" · ")
+                                      : (lang === "bn" ? "লোকেশন সেট করা নেই" : "Location not set")}
+                                </span>
+                              </div>
                             </div>
-                          );
-                        })}
+                            {/* লোকেশন আইকন — ক্লিক করলে লাইভ লোকেশন নেয়া/আপডেট হবে; সেট থাকলে accent রঙে দেখাবে */}
+                            <button
+                              onClick={(e) => { e.stopPropagation(); vibrate(); requestSalahLocation(); }}
+                              disabled={salahLocLoading}
+                              title={
+                                salahLocLoading
+                                  ? (lang === "bn" ? "লোকেশন খোঁজা হচ্ছে…" : "Getting location…")
+                                  : salahCoords
+                                    ? (lang === "bn" ? "লোকেশন পরিবর্তন করুন" : "Change location")
+                                    : (lang === "bn" ? "লাইভ লোকেশন নিন" : "Get live location")
+                              }
+                              style={{
+                                width:32, height:32, borderRadius:"50%", flexShrink:0, border:"none", padding:0,
+                                background: salahCoords ? accent : (dark ? "#26231D" : "#F3EEE3"),
+                                display:"flex", alignItems:"center", justifyContent:"center",
+                                cursor: salahLocLoading ? "default" : "pointer",
+                                opacity: salahLocLoading ? 0.55 : 1,
+                                transition:"background .18s ease, opacity .18s ease",
+                              }}
+                            >
+                              <MapPin size={15} color={salahCoords ? "#fff" : textMuted2} strokeWidth={2.4}/>
+                            </button>
+                          </div>
+
+                          {!salahCoords && !salahLocLoading && (
+                            <div style={{marginTop:12, fontSize:12.5, color:textMuted2, lineHeight:1.6}}>
+                              {salahLocError || (lang === "bn" ? "উপরের লোকেশন আইকনে ট্যাপ করে আপনার এলাকা সেট করুন।" : "Tap the location icon above to set your area.")}
+                            </div>
+                          )}
+                          {salahCoords && salahLocError && (
+                            <div style={{marginTop:10, fontSize:12.5, color:"#C0392B", lineHeight:1.5}}>{salahLocError}</div>
+                          )}
+
+                          {salahCoords && salahTimes && (
+                            <>
+                              {/* পরবর্তী নামাজের কাউন্টডাউন */}
+                              {nextSalahCountdown && (
+                                <div style={{marginTop:14, background:`linear-gradient(135deg, ${accent}, #E9633C)`, borderRadius:16, padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", color:"#fff"}}>
+                                  <div>
+                                    <div style={{fontSize:10.5, fontWeight:700, opacity:0.85, letterSpacing:0.4}}>{lang === "bn" ? "পরবর্তী" : "UP NEXT"}</div>
+                                    <div style={{fontSize:15.5, fontWeight:800, marginTop:1}}>
+                                      {lang === "bn" ? `${nextSalahCountdown.label} — বাকি ${nextSalahCountdown.text}` : `${nextSalahCountdown.label} in ${nextSalahCountdown.text}`}
+                                    </div>
+                                  </div>
+                                  <Bell size={17} strokeWidth={2.2} style={{opacity:0.9, flexShrink:0}}/>
+                                </div>
+                              )}
+
+                              {/* আসরের হিসাব: হানাফি / শাফি */}
+                              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:16, marginBottom:2}}>
+                                <span style={{fontSize:10.5, fontWeight:800, color:textMuted2, letterSpacing:0.4}}>{lang === "bn" ? "আসরের হিসাব" : "ASR CALCULATION"}</span>
+                                <div style={{display:"flex", background: dark ? "#26231D" : "#F3EEE3", borderRadius:999, padding:3}}>
+                                  {["hanafi","shafi"].map(mkey => (
+                                    <button key={mkey} onClick={() => { vibrate(); setSalahMadhab(mkey); }} style={{
+                                      border:"none", padding:"5px 12px", borderRadius:999, fontSize:11, fontWeight:800, cursor:"pointer",
+                                      background: salahMadhab === mkey ? accent : "transparent",
+                                      color: salahMadhab === mkey ? "#fff" : textMuted2,
+                                    }}>{mkey === "hanafi" ? (lang === "bn" ? "হানাফি" : "Hanafi") : (lang === "bn" ? "শাফি" : "Shafi")}</button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div style={{marginTop:8}}>
+                                {salahTimes.map(w => {
+                                  const isActive = w.key === activeSalahKey;
+                                  const isDone = todaySalahDone.includes(w.key);
+                                  return (
+                                    <div key={w.key} style={{
+                                      display:"flex", justifyContent:"space-between", alignItems:"center", gap:10,
+                                      padding:"11px 10px", borderRadius:14, marginBottom:4, transition:"background .2s ease, border-color .2s ease",
+                                      background: isDone ? (dark ? "rgba(78,144,104,0.14)" : "#EEF4EC") : isActive ? (dark ? "rgba(217,119,87,0.16)" : "#FBEAE0") : "transparent",
+                                      border: `1px solid ${isDone ? (dark ? "rgba(78,144,104,0.35)" : "#D7E6D2") : isActive ? (dark ? "rgba(217,119,87,0.4)" : "#F0CBB8") : "transparent"}`,
+                                    }}>
+                                      <span style={{display:"flex", alignItems:"center", gap:10, minWidth:0}}>
+                                        {/* সালাত আদায় হয়ে গেলে এখানে ট্যাপ করে টিক দেওয়া যায় — প্রতিদিনের হিসাব আলাদাভাবে সেভ থাকে */}
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); toggleSalahDone(w.key); }}
+                                          title={isDone ? (lang === "bn" ? "আদায় হয়েছে — বাতিল করতে ট্যাপ করুন" : "Marked done — tap to undo") : (lang === "bn" ? "আদায় হলে টিক দিন" : "Tap to mark as prayed")}
+                                          style={{
+                                            width:26, height:26, borderRadius:"50%", flexShrink:0, padding:0, cursor:"pointer",
+                                            border: isDone ? "none" : `2px solid ${isActive ? accent : cardBorder}`,
+                                            background: isDone ? "#4E9068" : "transparent",
+                                            display:"flex", alignItems:"center", justifyContent:"center",
+                                            transition:"background .18s ease, border-color .18s ease",
+                                            boxShadow: isDone ? "0 3px 8px rgba(78,144,104,0.35)" : "none",
+                                          }}
+                                        >
+                                          {isDone && <Check size={14} color="#fff" strokeWidth={3.2}/>}
+                                        </button>
+                                        <span style={{
+                                          color: isDone ? "#4E9068" : isActive ? accent : textMain,
+                                          fontWeight: isActive ? 700 : 600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                                          textDecoration: isDone ? "line-through" : "none",
+                                          textDecorationColor: dark ? "rgba(78,144,104,0.6)" : "#A9CBB4", textDecorationThickness:1.5,
+                                        }}>{w.label}</span>
+                                      </span>
+                                      <span style={{color: isDone ? "#4E9068" : isActive ? accent : textMuted2, fontWeight: isActive ? 700 : 500, fontSize:13, fontVariantNumeric:"tabular-nums", flexShrink:0, opacity: isDone ? 0.85 : 1}}>
+                                        {fmtSalahTime(w.start)} – {fmtSalahTime(w.end)}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              {/* নিচে: আজকের প্রগ্রেস ডট + কিবলার দিক */}
+                              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:14, paddingTop:12, borderTop:`1px solid ${cardBorder}`}}>
+                                <div style={{display:"flex", alignItems:"center", gap:8}}>
+                                  <div style={{display:"flex", gap:3}}>
+                                    {salahTimes.map(w => (
+                                      <div key={w.key} style={{width:7, height:7, borderRadius:"50%", background: todaySalahDone.includes(w.key) ? "#4E9068" : cardBorder}}/>
+                                    ))}
+                                  </div>
+                                  <span style={{fontSize:12, fontWeight:700, color:textMuted2}}>{nf(todaySalahDone.length)}/5 {lang === "bn" ? "আজ" : "today"}</span>
+                                </div>
+                                {qiblaBearing != null && (
+                                  <span title={lang === "bn" ? "কিবলার দিক (উত্তর থেকে)" : "Qibla direction (from North)"} style={{display:"flex", alignItems:"center", gap:5, fontSize:12.5, fontWeight:800, color:accent}}>
+                                    <Compass size={14} strokeWidth={2.3}/> {lang === "bn" ? "কিবলা" : "Qibla"} {nf(qiblaBearing)}°
+                                  </span>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
