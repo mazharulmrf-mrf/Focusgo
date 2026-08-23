@@ -4008,12 +4008,9 @@ export default function FocusGo() {
                 <>
                   <div style={{padding:"4px 2px 10px", marginBottom:2}}>
                     <div style={{minWidth:0, flex:1}}>
-                      <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2, marginBottom:3, display:"flex", alignItems:"center", gap:6}}>
+                      <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2, marginBottom:3, display:"flex", alignItems:"center", gap:5}}>
                         {lang === "bn" ? greetingBn : greetingEn}
-                        <span style={{position:"relative", display:"inline-flex", alignItems:"center", justifyContent:"center", width:30, height:30, flexShrink:0}}>
-                          <span style={{position:"absolute", width:30, height:30, borderRadius:"50%", background:`radial-gradient(circle, ${greetTheme.iconColor}70 0%, ${greetTheme.iconColor}00 70%)`}}/>
-                          <greetTheme.Icon size={21} color={greetTheme.iconColor} strokeWidth={2} style={{position:"relative"}}/>
-                        </span>
+                        <greetTheme.Icon size={14} color={greetTheme.iconColor} strokeWidth={2.2}/>
                       </div>
                       <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
                         <div style={{fontSize:24,fontWeight:800,letterSpacing:-0.4,color:textMain}}>
