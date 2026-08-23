@@ -3911,6 +3911,10 @@ export default function FocusGo() {
         .fg-check-pop { animation: fg-check-pop .28s cubic-bezier(0.34,1.56,0.64,1); }
         @keyframes fg-ring-pop { 0% { transform:scale(1); } 50% { transform:scale(1.06); } 100% { transform:scale(1); } }
         .fg-ring-pop { animation: fg-ring-pop .35s cubic-bezier(0.34,1.56,0.64,1); }
+
+        /* ---- গ্রিটিং আইকনের (সূর্য/চাঁদ) পেছনে ধীরে পালস করা halo glow ---- */
+        @keyframes fg-greet-glow { 0%, 100% { opacity:0.5; transform:scale(0.88); } 50% { opacity:1; transform:scale(1.18); } }
+        .fg-greet-glow { animation: fg-greet-glow 2.4s ease-in-out infinite; }
       `}</style>
       {isDesktop && !sidebarHidden && (
         <DesktopSidebar t={t} tab={tab} setTab={setTab} vibrate={vibrate} dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(v => !v)} onHideAll={() => setSidebarHidden(true)} />
@@ -4010,7 +4014,10 @@ export default function FocusGo() {
                     <div style={{minWidth:0, flex:1}}>
                       <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2, marginBottom:3, display:"flex", alignItems:"center", gap:5}}>
                         {lang === "bn" ? greetingBn : greetingEn}
-                        <greetTheme.Icon size={14} color={greetTheme.iconColor} strokeWidth={2.2}/>
+                        <span style={{position:"relative", display:"inline-flex", alignItems:"center", justifyContent:"center", width:20, height:20, flexShrink:0}}>
+                          <span className="fg-greet-glow" style={{position:"absolute", width:20, height:20, borderRadius:"50%", background:`radial-gradient(circle, ${greetTheme.iconColor}70 0%, ${greetTheme.iconColor}00 70%)`}}/>
+                          <greetTheme.Icon size={14} color={greetTheme.iconColor} strokeWidth={2.2} style={{position:"relative"}}/>
+                        </span>
                       </div>
                       <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
                         <div style={{fontSize:24,fontWeight:800,letterSpacing:-0.4,color:textMain}}>
