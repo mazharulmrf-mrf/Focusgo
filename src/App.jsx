@@ -3772,6 +3772,42 @@ export default function FocusGo() {
     })();
   }, [examSchedule, lang, loaded]);
 
+  // টাস্ক রিমাইন্ডার — যেসব টাস্কে due date + reminder time (ঐচ্ছিক) সেট করা আছে, সেগুলোর জন্য ঠিক সেই মুহূর্তে
+  // লোকাল নোটিফিকেশন শিডিউল হয়। tasks বদলালেই (add/edit/delete/done) আগের সব টাস্ক-রিমাইন্ডার ক্যানসেল করে
+  // নতুন করে শিডিউল করা হয়, তাই সবসময় বর্তমান ডেটার সাথে সিঙ্কে থাকে।
+  const scheduledTaskNotifIdsRef = useRef([]);
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform() || !loaded) return;
+    (async () => {
+      try {
+        if (scheduledTaskNotifIdsRef.current.length > 0) {
+          await LocalNotifications.cancel({ notifications: scheduledTaskNotifIdsRef.current.map(id => ({ id })) });
+        }
+        const newIds = [];
+        const toSchedule = [];
+        tasks.forEach(task => {
+          if (task.done || !task.dueDate || !task.reminderTime) return;
+          const [hh, mm] = task.reminderTime.split(":").map(Number);
+          const at = new Date(task.dueDate + "T00:00:00");
+          at.setHours(hh, mm, 0, 0);
+          if (at.getTime() <= Date.now()) return; // সময় চলে গেলে আর শিডিউল করার দরকার নেই
+          const id = strToNotifId(`task_${task.id}`);
+          newIds.push(id);
+          toSchedule.push({
+            id,
+            title: lang === "bn" ? "✅ টাস্ক রিমাইন্ডার" : "✅ Task Reminder",
+            body: task.title,
+            schedule: { at },
+          });
+        });
+        if (toSchedule.length > 0) {
+          await LocalNotifications.schedule({ notifications: toSchedule });
+        }
+        scheduledTaskNotifIdsRef.current = newIds;
+      } catch (e) { /* নেটিভ প্লাগইন না থাকলে (যেমন ব্রাউজারে) চুপচাপ ইগনোর করা হয় */ }
+    })();
+  }, [tasks, lang, loaded]);
+
 
   // Firebase এখনো auth স্টেট জানায়নি — একটা ছোট লোডিং স্ক্রিন
   if (!authChecked) {
@@ -4525,8 +4561,8 @@ export default function FocusGo() {
         <div className="fg-tab-panel" style={{marginTop:14}}>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
             <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
-            <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} style={{display:"flex",alignItems:"center",gap:3, background: "transparent", color: accent, border:"none", padding:"4px 2px", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
-              <Plus size={14}/> {t.addTopic}
+            <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} title={t.addTopic} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: "transparent", color: accent, border:"none", padding:0, cursor:"pointer"}}>
+              <Plus size={19}/>
             </button>
           </div>
 
@@ -4554,8 +4590,8 @@ export default function FocusGo() {
               <div style={{fontSize:18,fontWeight:800,letterSpacing:-0.3,color:textMain}}>
                 {lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}
               </div>
-              <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}} style={{display:"flex",alignItems:"center",gap:3, background: "transparent", color: accent, border:"none", padding:"4px 2px", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
-                <Plus size={14}/> {t.taskAddBtn}
+              <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}} title={t.taskAddBtn} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: "transparent", color: accent, border:"none", padding:0, cursor:"pointer"}}>
+                <Plus size={19}/>
               </button>
             </div>
             {homeTodayTasks.length === 0 ? (
@@ -4672,8 +4708,8 @@ export default function FocusGo() {
                 <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3}}>
                   {isPlanToday ? t.todaysStudy : <>{weekdayName(planDate)}, <Num>{nf(planDate.getDate())}</Num> {monthName(planDate.getMonth())}</>}
                 </div>
-                <button onClick={()=>{setAddTargetKey(planKey); setShowAdd(true);}} style={{display:"flex",alignItems:"center",gap:3, background: "transparent", color: accent, border:"none", padding:"4px 2px", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
-                  <Plus size={14}/> {t.addTopic}
+                <button onClick={()=>{setAddTargetKey(planKey); setShowAdd(true);}} title={t.addTopic} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: "transparent", color: accent, border:"none", padding:0, cursor:"pointer"}}>
+                  <Plus size={19}/>
                 </button>
               </div>
               {planTopics.length > 0 && (() => {
@@ -4765,6 +4801,11 @@ export default function FocusGo() {
                 {x.note && (
                   <span title={lang==="bn"?"নোট আছে":"Has a note"} style={{flexShrink:0, color:textMuted2, display:"flex"}}>
                     <FileText size={13}/>
+                  </span>
+                )}
+                {x.reminderTime && !x.done && (
+                  <span title={lang==="bn"?"রিমাইন্ডার সেট আছে":"Reminder set"} style={{flexShrink:0, color:textMuted2, display:"flex"}}>
+                    <Bell size={13}/>
                   </span>
                 )}
                 <div style={{position:"relative", flexShrink:0}} onClick={(e)=>e.stopPropagation()}>
@@ -8943,7 +8984,7 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
   const [priority, setPriority] = useState(initialTask?.priority || "med");
   const [dueDate, setDueDate] = useState(initialTask?.dueDate || defaultDueDate || "");
   const [repeat, setRepeat] = useState(initialTask?.repeat || "none"); // "none" | "daily" | "weekly" | "monthly"
-  const [note, setNote] = useState(initialTask?.note || "");
+  const [reminderTime, setReminderTime] = useState(initialTask?.reminderTime || "");
   const [addingCategory, setAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   // ডিফল্টে শুধু Title + Date দেখানো হয় (দ্রুত টাস্ক যোগ করার জন্য) — Category/Priority/Repeat "More options"-এর নিচে লুকানো,
@@ -8961,6 +9002,7 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
       id: initialTask?.id || `${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
       title: title.trim(), category, priority, dueDate: dueDate || null,
       repeat: repeat === "none" ? null : repeat,
+      reminderTime: (dueDate && reminderTime) ? reminderTime : null,
       note: note.trim(),
       done: initialTask?.done || false
     });
@@ -8988,18 +9030,38 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
           style={{width:"100%", boxSizing:"border-box", background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"12px 14px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit", marginBottom:14}}/>
 
         <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.taskDueDateOptional}</div>
-        <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:16}}>
+        <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:dueDate ? 14 : 16}}>
           <div style={{flex:1, display:"flex", alignItems:"center", gap:8, background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 14px"}}>
             <CalendarDays size={15} color={textMuted2} style={{flexShrink:0}}/>
             <input type="date" value={dueDate} onChange={e=>setDueDate(e.target.value)}
               style={{flex:1, minWidth:0, border:"none", background:"transparent", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit"}}/>
           </div>
           {dueDate && (
-            <button onClick={()=>setDueDate("")} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, cursor:"pointer", borderRadius:10, width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+            <button onClick={()=>{setDueDate(""); setReminderTime("");}} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, cursor:"pointer", borderRadius:10, width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
               <X size={14}/>
             </button>
           )}
         </div>
+
+        {dueDate && (
+          <>
+            <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8, display:"flex", alignItems:"center", gap:6}}>
+              <Bell size={12}/> {lang==="bn" ? "রিমাইন্ডার (ঐচ্ছিক)" : "Reminder (optional)"}
+            </div>
+            <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:16}}>
+              <div style={{flex:1, display:"flex", alignItems:"center", gap:8, background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 14px"}}>
+                <Clock size={15} color={textMuted2} style={{flexShrink:0}}/>
+                <input type="time" value={reminderTime} onChange={e=>setReminderTime(e.target.value)}
+                  style={{flex:1, minWidth:0, border:"none", background:"transparent", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit"}}/>
+              </div>
+              {reminderTime && (
+                <button onClick={()=>setReminderTime("")} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, cursor:"pointer", borderRadius:10, width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                  <X size={14}/>
+                </button>
+              )}
+            </div>
+          </>
+        )}
 
         <button onClick={()=>setShowMore(v=>!v)} style={{display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:"2px 0", fontSize:12, fontWeight:800, marginBottom: showMore ? 14 : 20}}>
           <ChevronDown size={14} style={{transform: showMore ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
