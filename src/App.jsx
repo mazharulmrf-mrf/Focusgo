@@ -4439,7 +4439,7 @@ export default function FocusGo() {
                       {x.title}
                     </div>
                     <div style={{position:"relative", flexShrink:0}}>
-                      <button onClick={(e)=>{ e.stopPropagation(); setTaskMenuOpenId(v => v===x.id ? null : x.id); setTaskDeleteConfirmId(null); }} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:4}}>
+                      <button onClick={(e)=>{ e.stopPropagation(); setTaskMenuOpenId(v => v===x.id ? null : x.id); setTaskDeleteConfirmId(null); }} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:10, margin:-6, display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation"}}>
                         <MoreVertical size={16}/>
                       </button>
                       {taskMenuOpenId === x.id && (
@@ -4633,7 +4633,7 @@ export default function FocusGo() {
                   </span>
                 )}
                 <div style={{position:"relative", flexShrink:0}} onClick={(e)=>e.stopPropagation()}>
-                  <button onClick={()=>{ setTaskMenuOpenId(v => v===x.id ? null : x.id); setTaskDeleteConfirmId(null); }} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:4}}>
+                  <button onClick={(e)=>{ e.stopPropagation(); setTaskMenuOpenId(v => v===x.id ? null : x.id); setTaskDeleteConfirmId(null); }} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:10, margin:-6, display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation"}}>
                     <MoreVertical size={16}/>
                   </button>
                   {taskMenuOpenId === x.id && (
@@ -8750,7 +8750,7 @@ function TaskDetailSheet({ task, categoryLabel, priorityLabel, priorityColor, la
             {task.title}
           </div>
           <div style={{position:"relative", flexShrink:0}}>
-            <button onClick={()=>{ setMenuOpen(v=>!v); setConfirmDelete(false); }} title={lang==="bn"?"আরও অপশন":"More options"} style={{border:"none", background:bg, color:textMuted2, width:30, height:30, borderRadius:"50%", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center"}}>
+            <button onClick={(e)=>{ e.stopPropagation(); setMenuOpen(v=>!v); setConfirmDelete(false); }} title={lang==="bn"?"আরও অপশন":"More options"} style={{border:"none", background:bg, color:textMuted2, width:34, height:34, borderRadius:"50%", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation"}}>
               <MoreVertical size={16}/>
             </button>
             {menuOpen && (
