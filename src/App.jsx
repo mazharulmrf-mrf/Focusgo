@@ -4751,7 +4751,10 @@ export default function FocusGo() {
                   {selectedKey === todayKey ? (lang==="bn" ? "আজ" : "Today") : <>{weekdayName(selectedDateObj)}, <Num>{nf(selectedDateObj.getDate())}</Num> {monthName(selectedDateObj.getMonth())}</>}
                 </div>
                 {dayTasks.length === 0 ? (
-                  <div style={{textAlign:"center", padding:"20px 0", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16, marginBottom: noDateTasks.length ? 18 : 0}}>{t.taskCalEmptyDay}</div>
+                  <div style={{display:"flex", alignItems:"center", gap:8, padding:"10px 0 20px", color:textMuted2, fontSize:12.5, marginBottom: noDateTasks.length ? 8 : 0}}>
+                    <Check size={16} color={textMuted2} strokeWidth={2}/>
+                    <span style={{fontWeight:500}}>{t.taskCalEmptyDay}</span>
+                  </div>
                 ) : (
                   <div style={{display:"flex", flexDirection:"column", gap:8, marginBottom: noDateTasks.length ? 18 : 0}}>{dayTasks.map(renderTask)}</div>
                 )}
@@ -4769,11 +4772,26 @@ export default function FocusGo() {
           return (
             <>
             <div key="task" className="fg-tab-panel" style={{marginTop:20}}>
-              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14}}>
-                <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.taskTitle}</div>
-                <div style={{display:"flex", alignItems:"center", gap:6, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:20, padding:"6px 12px"}}>
-                  <Flame size={13} color={accent}/>
-                  <span style={{fontSize:12, fontWeight:700, color:textMain}}><Num>{nf(doneCount)}</Num>/<Num>{nf(tasks.length)}</Num> {t.taskDone}</span>
+              <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:14}}>{t.taskTitle}</div>
+
+              {/* Summary card — same merged style as Home's progress card: ring + completed/remaining/overdue, consistent visual language across the app */}
+              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px", marginBottom:20, boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.18)" : "0 1px 3px rgba(0,0,0,0.04)"}}>
+                <div style={{display:"flex", alignItems:"center", gap:14}}>
+                  <PercentRing pct={pct} size={48} stroke={5} accent={accent} trackColor={dark?"#2C2820":"#EFE9DC"} textMain={textMain} nf={nf}/>
+                  <div style={{flex:1, display:"flex", justifyContent:"space-between"}}>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:15, fontWeight:800, color:"#6E8B5E", lineHeight:1.1}}><Num>{nf(doneCount)}</Num></div>
+                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8, marginTop:2}}>{lang==="bn"?"সম্পন্ন":"Done"}</div>
+                    </div>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:15, fontWeight:800, color:"#C08A2E", lineHeight:1.1}}><Num>{nf(tasks.length - doneCount)}</Num></div>
+                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8, marginTop:2}}>{lang==="bn"?"বাকি":"Left"}</div>
+                    </div>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:15, fontWeight:800, color: overdueCount > 0 ? "#C0392B" : textMain, lineHeight:1.1}}><Num>{nf(overdueCount)}</Num></div>
+                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8, marginTop:2}}>{lang==="bn"?"মেয়াদ শেষ":"Overdue"}</div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -8000,17 +8018,18 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         >
           {viewMode==="grid" ? <List size={15}/> : <LayoutGrid size={15}/>}
         </button>
-        {/* সর্ট/রিঅর্ডার — নোট কোন ক্রমে দেখাবে সেটা বাছাই করা যায় */}
+        {/* Sort + Date filter — আগে দুটো আলাদা আইকন ছিল, এখন একটা "more" মেনুতে একসাথে (টপ রো-তে আইকন-ভিড় কমাতে) */}
         <div style={{position:"relative",flexShrink:0}}>
           <button
             onClick={(e)=>{e.stopPropagation();setShowSortMenu(v=>!v);}}
-            style={{ width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",background:showSortMenu?accent:cardBg,color:showSortMenu?"#fff":textMain,border:`1px solid ${showSortMenu?accent:cardBorder}`,borderRadius:"50%",cursor:"pointer",flexShrink:0 }}
-            title={lang==="bn"?"সর্ট করুন":"Sort"}
+            style={{ width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",background:(showSortMenu||filterDate)?accent:cardBg,color:(showSortMenu||filterDate)?"#fff":textMain,border:`1px solid ${(showSortMenu||filterDate)?accent:cardBorder}`,borderRadius:"50%",cursor:"pointer",flexShrink:0 }}
+            title={lang==="bn"?"সর্ট ও তারিখ":"Sort & date"}
           >
-            <ArrowUpDown size={15}/>
+            <MoreVertical size={15}/>
           </button>
           {showSortMenu && (
-            <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:4,boxShadow:"0 6px 16px rgba(0,0,0,0.11)",zIndex:30,display:"flex",flexDirection:"column",minWidth:172}}>
+            <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:4,boxShadow:"0 6px 16px rgba(0,0,0,0.11)",zIndex:30,display:"flex",flexDirection:"column",minWidth:190}}>
+              <div style={{fontSize:10,fontWeight:800,letterSpacing:0.4,color:textMuted2,padding:"6px 9px 2px",opacity:0.8}}>{lang==="bn"?"সাজানোর ধরন":"Sort by"}</div>
               {[
                 ["updated", lang==="bn"?"সর্বশেষ এডিট":"Last edited"],
                 ["created", lang==="bn"?"তৈরির তারিখ":"Date created"],
@@ -8022,17 +8041,15 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                   {label}{sortMode===key && <Check size={13}/>}
                 </button>
               ))}
+              <div style={{height:1,background:cardBorder,margin:"4px 2px"}}/>
+              <button onClick={()=>{setShowSortMenu(false);setCalMonth(filterDate || new Date());setShowDatePicker(true);}}
+                style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12,fontWeight:700,color: filterDate ? accent : textMain,cursor:"pointer",borderRadius:8}}>
+                <Calendar size={13}/> {lang==="bn"?"তারিখ দিয়ে দেখুন":"View by date"}
+                {filterDate && <Check size={13} style={{marginLeft:"auto"}}/>}
+              </button>
             </div>
           )}
         </div>
-        {/* ক্যালেন্ডার — সবসময় রো-এর একদম শেষে */}
-        <button
-          onClick={(e)=>{e.stopPropagation();setCalMonth(filterDate || new Date());setShowDatePicker(true);}}
-          style={{ width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",background:filterDate?accent:cardBg,color:filterDate?"#fff":textMain,border:`1px solid ${filterDate?accent:cardBorder}`,borderRadius:"50%",cursor:"pointer",flexShrink:0 }}
-          title={lang==="bn"?"তারিখ দিয়ে দেখুন":"View by date"}
-        >
-          <Calendar size={15}/>
-        </button>
       </div>
 
       {/* বর্তমানে সিলেক্ট করা ক্যাটাগরি/ফোল্ডার — "সব নোট" ছাড়া অন্য কিছু হলে এখানে ছোট ট্যাগ হিসেবে দেখা যায়, চাইলে X চেপে ক্লিয়ার করা যায় */}
