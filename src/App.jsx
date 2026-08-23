@@ -1986,7 +1986,7 @@ export default function FocusGo() {
     addLink("preconnect", "https://fonts.gstatic.com", { crossOrigin: "anonymous" });
     // আসল ফন্ট stylesheet — এবার real <link>, তাই ব্রাউজার এটাকে render-blocking resource
     // হিসেবে priority দিয়ে আগেভাগে ফেচ করে, `@import`-এর মতো দেরি করে না
-    addLink("stylesheet", "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fraunces:ital,wght@0,500;0,600;0,700;1,500&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap");
+    addLink("stylesheet", "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap");
   }, []);
 
   const breakpoint = useViewport(); // "mobile" | "tablet" | "desktop"
@@ -8235,7 +8235,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         .fg-hide-scrollbar::-webkit-scrollbar{display:none;}
         .fg-hide-scrollbar{scrollbar-width:none;}
       `}</style>
-      <div style={{ fontFamily: lang==="bn" ? "'Noto Sans Bengali',sans-serif" : "'Fraunces',serif", fontWeight: lang==="bn" ? 800 : 600, fontSize:26, letterSpacing:-0.4, color:textMain, marginBottom:12 }}>{t.notesTitle}</div>
+      <div style={{ fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:12 }}>{t.notesTitle}</div>
 
       {/* সার্চ রো — squircle আইকন বাটন, তারপর সবসময়-দৃশ্যমান সার্চ পিল, Grid/List টগল, আর সর্ট/তারিখ */}
       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:11,position:"relative"}}>
@@ -8441,7 +8441,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                 <div style={{minWidth:0,flex:1}}>
                   <div style={{display:"flex",alignItems:"center",gap:4}}>
                     {note.sensitive && <EyeOff size={12} color={col.text}/>}
-                    <div style={{fontFamily: lang==="bn" ? "'Noto Sans Bengali',sans-serif" : "'Fraunces',serif",fontWeight: lang==="bn" ? 800 : 600,fontSize:14.5,color:coverText,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{note.title}</div>
+                    <div style={{fontSize:14,fontWeight:800,color:coverText,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{note.title}</div>
                   </div>
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:2,flexShrink:0}}>
@@ -8622,7 +8622,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               onChange={e=>setTitle(e.target.value)}
               onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
               placeholder={t.notesTitlePlaceholder}
-              style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",padding:"8px 0",fontSize:21,fontWeight:600,color:paperText,outline:"none",fontFamily: lang==="bn" ? "inherit" : "'Fraunces',serif",marginBottom:2}}
+              style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",padding:"8px 0",fontSize:20,fontWeight:800,color:paperText,outline:"none",fontFamily:"inherit",marginBottom:2}}
             />
 
             {/* Checklist — টাইটেলের ঠিক পরেই আসে, বটম টুলবারের checklist আইকন দিয়ে দেখানো/লুকানো যায়; Google Keep-এর মতো
