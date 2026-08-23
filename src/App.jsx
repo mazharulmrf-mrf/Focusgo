@@ -6,7 +6,19 @@ import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Geolocation } from "@capacitor/geolocation";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, Mars, Venus, KeyRound, AtSign, Link2, Cake, Loader2 } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2 } from "lucide-react";
+
+// lucide-react-এর এই ভার্সনে Mars/Venus নেই, তাই নিজে ছোট SVG icon বানানো হলো
+const Mars = ({ size = 18, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 10a5 5 0 1 1-3.5-4.77"/><path d="M14 4h6v6"/><path d="M20 4 13.5 10.5"/>
+  </svg>
+);
+const Venus = ({ size = 18, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="9" r="6"/><path d="M12 15v7"/><path d="M9 19h6"/>
+  </svg>
+);
 import { auth, db, googleProvider } from "./firebase";
 import { setupNotifications } from "./notifications";
 import {
