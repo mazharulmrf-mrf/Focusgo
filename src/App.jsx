@@ -3630,6 +3630,15 @@ export default function FocusGo() {
     }
   }, []);
 
+  // Google Sign-In (native) — GoogleAuth.signIn() ব্যবহারের আগে অবশ্যই GoogleAuth.initialize() কল করতে হয়,
+  // নাহলে native Google Sign-In SDK "DEVELOPER_ERROR" (কোড 10) ছুঁড়ে দেয়। clientId/serverClientId
+  // capacitor.config.json-এর GoogleAuth প্লাগিন কনফিগ থেকে অটোমেটিক নেওয়া হয়।
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      GoogleAuth.initialize().catch((e) => console.error("GoogleAuth.initialize failed:", e));
+    }
+  }, []);
+
   // এক্সাম শিডিউল বদলালেই (যোগ/এডিট/ডিলিট) — আগে শিডিউল করা সব "পরীক্ষার আগের রাতের রিমাইন্ডার" ক্যানসেল করে,
   // বর্তমান examSchedule অনুযায়ী নতুন করে শিডিউল করা হয়। এভাবে সবসময় ডেটার সাথে নোটিফিকেশন সিঙ্কে থাকে।
   const scheduledExamNotifIdsRef = useRef([]); // আগের রানে কোন কোন notification id শিডিউল করা হয়েছিল, তার হিসাব
