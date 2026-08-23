@@ -70,6 +70,81 @@ function PasswordField({ value, onChange, placeholder, style, minLength, require
   );
 }
 
+// ---------- Onboarding — নতুন ইউজারের জন্য ৩ স্লাইডের সংক্ষিপ্ত পরিচিতি ----------
+function OnboardingScreen({ lang, dark, cardBg, textMain, textMuted2, accent, onDone }) {
+  const [step, setStep] = useState(0);
+  const isBn = lang === "bn";
+  const bg = dark ? "#121110" : "#FAFAF8";
+  const border = dark ? "#2C2820" : "#E9E3D6";
+
+  const slides = [
+    {
+      Icon: Clock,
+      ring: "#4C8FA6",
+      title: isBn ? "পড়ার সময় ট্র্যাক করুন" : "Track your study time",
+      body: isBn
+        ? "বিষয় অনুযায়ী টাইমার চালিয়ে প্রতিদিন কতক্ষণ পড়লেন তা সহজেই দেখুন।"
+        : "Run a timer per subject and see exactly how long you studied each day.",
+    },
+    {
+      Icon: Flame,
+      ring: accent,
+      title: isBn ? "ধারাবাহিকতা ধরে রাখুন" : "Stay consistent",
+      body: isBn
+        ? "ডেইলি স্ট্রিক আর ক্যালেন্ডারে প্রতিদিনের অগ্রগতি এক নজরে দেখুন।"
+        : "See your daily streak and progress calendar at a glance.",
+    },
+    {
+      Icon: BarChart3,
+      ring: "#6E8B5E",
+      title: isBn ? "অগ্রগতি বিশ্লেষণ করুন" : "See your progress",
+      body: isBn
+        ? "সাপ্তাহিক ও মাসিক রিপোর্ট দেখে বুঝুন কোন বিষয়ে আরও সময় দরকার।"
+        : "Weekly and monthly reports show where you need to focus more.",
+    },
+  ];
+  const isLast = step === slides.length - 1;
+  const s = slides[step];
+
+  return (
+    <div style={{ minHeight: "100dvh", background: bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      <div style={{ width: "100%", maxWidth: 380, background: cardBg, borderRadius: 24, padding: "32px 24px 24px", border: `1px solid ${border}` }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", minHeight: 220, justifyContent: "center" }}>
+          <div style={{ width: 76, height: 76, borderRadius: "50%", background: `${s.ring}18`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+            <s.Icon size={32} color={s.ring} strokeWidth={2} />
+          </div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: textMain, marginBottom: 8 }}>{s.title}</div>
+          <div style={{ fontSize: 13.5, color: textMuted2, lineHeight: 1.6, padding: "0 6px" }}>{s.body}</div>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "center", gap: 6, margin: "20px 0 18px" }}>
+          {slides.map((_, i) => (
+            <span key={i} style={{
+              width: i === step ? 18 : 6, height: 6, borderRadius: 3,
+              background: i === step ? accent : border, transition: "all .2s ease",
+            }} />
+          ))}
+        </div>
+
+        <div style={{ display: "flex", gap: 10 }}>
+          <button
+            onClick={onDone}
+            style={{ flex: 1, padding: "12px", borderRadius: 12, border: `1px solid ${border}`, background: "transparent", color: textMuted2, fontSize: 13.5, fontWeight: 700, cursor: "pointer" }}
+          >
+            {isBn ? "এড়িয়ে যান" : "Skip"}
+          </button>
+          <button
+            onClick={() => (isLast ? onDone() : setStep(step + 1))}
+            style={{ flex: 1.4, padding: "12px", borderRadius: 12, border: "none", background: accent, color: "#FFF", fontSize: 13.5, fontWeight: 700, cursor: "pointer" }}
+          >
+            {isLast ? (isBn ? "শুরু করি" : "Get started") : (isBn ? "পরবর্তী" : "Next")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---------- Email/Password Auth স্ক্রিন ----------
 function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent, dark, onGuest }) {
   const breakpoint = useViewport(); // "mobile" | "tablet" | "desktop"
@@ -1906,6 +1981,13 @@ export default function FocusGo() {
   const [tab, setTab] = useState("today");
   const [user, setUser] = useState(null);
   const [isGuest, setIsGuest] = useState(false); // "Continue without an account" — data stays in-memory only, never synced
+  const [onboardingDone, setOnboardingDone] = useState(() => {
+    try { return window.localStorage.getItem("focusgo_onboarding_v1") === "1"; } catch (e) { return true; } // localStorage না থাকলে অনবোর্ডিং আটকে না রাখাই ভালো
+  });
+  const finishOnboarding = () => {
+    try { window.localStorage.setItem("focusgo_onboarding_v1", "1"); } catch (e) {}
+    setOnboardingDone(true);
+  };
   const [authChecked, setAuthChecked] = useState(false); // Firebase প্রথমবার auth স্টেট জানিয়েছে কিনা
   const [now, setNow] = useState(new Date());
   const [entries, setEntries] = useState({}); // dateKey -> [{id, subject, topic, time, endTime, duration, done}]
@@ -3624,6 +3706,12 @@ export default function FocusGo() {
       onGuest={() => { setIsGuest(true); }} />;
   }
 
+  // লগইন/গেস্ট হয়ে গেছে কিন্তু এই ডিভাইসে আগে অনবোর্ডিং দেখানো হয়নি — একবারই দেখানো হবে
+  if (!onboardingDone) {
+    return <OnboardingScreen lang={lang} dark={dark} cardBg={cardBg} textMain={textMain} textMuted2={textMuted2} accent={accent}
+      onDone={finishOnboarding} />;
+  }
+
   // লগইন হয়ে গেছে কিন্তু Firestore থেকে ডেটা এখনো আসেনি
   if (!loaded) {
     return (
@@ -3795,8 +3883,8 @@ export default function FocusGo() {
 
               return (
                 <>
-                  <div style={{background: greetTheme.grad, borderRadius:16, padding:"12px 14px", marginBottom:2, display:"flex", alignItems:"flex-start", gap:10}}>
-                    <div style={{width:32, height:32, borderRadius:10, background: dark ? `${greetTheme.iconColor}2E` : `${greetTheme.iconColor}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1}}>
+                  <div style={{padding:"4px 2px 10px", marginBottom:2, display:"flex", alignItems:"flex-start", gap:10}}>
+                    <div style={{width:32, height:32, borderRadius:"50%", background: dark ? `${greetTheme.iconColor}2E` : `${greetTheme.iconColor}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1}}>
                       <greetTheme.Icon size={16} color={greetTheme.iconColor}/>
                     </div>
                     <div style={{minWidth:0, flex:1}}>
@@ -3813,7 +3901,7 @@ export default function FocusGo() {
                       </div>
                     </div>
                   </div>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8, position:"relative"}} ref={salahMenuRef}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8, paddingBottom:14, borderBottom:`0.5px solid ${cardBorder}`, position:"relative"}} ref={salahMenuRef}>
                     <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
                       <span style={{width:30, height:30, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
                         <CalendarDays size={20} color={accent} strokeWidth={2}/>
@@ -4312,11 +4400,9 @@ export default function FocusGo() {
               );
             })()}
             {homeTodayTasks.length === 0 ? (
-              <div style={{background:cardBg,border:`1px dashed ${cardBorder}`,borderRadius:16,padding:"28px 16px",textAlign:"center",color:textMuted2,fontSize:13}}>
-                <div style={{width:40, height:40, borderRadius:"50%", background: `${accent}14`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 10px"}}>
-                  <Check size={19} color={accent} strokeWidth={2}/>
-                </div>
-                <div style={{fontWeight:500, color:textMuted2, fontSize:14}}>{t.taskEmptyTodayHome}</div>
+              <div style={{display:"flex", alignItems:"center", gap:8, padding:"10px 0 20px", color:textMuted2, fontSize:12.5}}>
+                <Check size={16} color={textMuted2} strokeWidth={2}/>
+                <span style={{fontWeight:500, color:textMuted2}}>{t.taskEmptyTodayHome}</span>
               </div>
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
@@ -4391,7 +4477,7 @@ export default function FocusGo() {
                 ))}
               </div>
             </div>
-            <div style={{display:"flex", gap:2, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"16px 8px",
+            <div style={{display:"flex", gap:2, padding:"6px 0 4px",
               overflowX: planRange > 7 ? "auto" : "visible", WebkitOverflowScrolling:"touch"}}>
               {planDays.map((d,i) => {
                 const dk = dateKey(d);
@@ -4422,13 +4508,24 @@ export default function FocusGo() {
               </div>
             )}
 
-            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:20, marginBottom:12}}>
-              <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3}}>
-                {isPlanToday ? t.todaysStudy : <>{weekdayName(planDate)}, <Num>{nf(planDate.getDate())}</Num> {monthName(planDate.getMonth())}</>}
+            <div style={{marginTop:20, marginBottom:12, paddingBottom:12, borderBottom:`0.5px solid ${cardBorder}`}}>
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8}}>
+                <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3}}>
+                  {isPlanToday ? t.todaysStudy : <>{weekdayName(planDate)}, <Num>{nf(planDate.getDate())}</Num> {monthName(planDate.getMonth())}</>}
+                </div>
+                <button onClick={()=>{setAddTargetKey(planKey); setShowAdd(true);}} style={{display:"flex",alignItems:"center",gap:4, background: accent, color: "#FFFFFF", border:"none", borderRadius:12, padding:"9px 13px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+                  <Plus size={14}/> {t.addTopic}
+                </button>
               </div>
-              <button onClick={()=>{setAddTargetKey(planKey); setShowAdd(true);}} style={{display:"flex",alignItems:"center",gap:4, background: accent, color: "#FFFFFF", border:"none", borderRadius:12, padding:"9px 13px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
-                <Plus size={14}/> {t.addTopic}
-              </button>
+              {planTopics.length > 0 && (() => {
+                const totalMin = planTopics.reduce((sum,x)=>sum+(x.duration||0), 0);
+                const h = Math.floor(totalMin/60), m = totalMin%60;
+                return (
+                  <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, marginTop:6}}>
+                    {t.totalPlannedLabel}: <span style={{color:textMain, fontWeight:800}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</span>
+                  </div>
+                );
+              })()}
             </div>
 
             <TopicsList items={planTopics} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
@@ -4440,19 +4537,6 @@ export default function FocusGo() {
               onDelete={(id)=>deleteTopicFor(planKey, id)}
               onRename={(item, newTopic)=>saveEditFor(planKey, {...item, topic:newTopic})}
               emptyText={t.noTopicsPlanned} emptySubtext={t.noTopicsPlannedSub}/>
-
-            {planTopics.length > 0 && (() => {
-              const totalMin = planTopics.reduce((sum,x)=>sum+(x.duration||0), 0);
-              const h = Math.floor(totalMin/60), m = totalMin%60;
-              return (
-                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:12, padding:"10px 14px", background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16}}>
-                  <span style={{fontSize:12, fontWeight:700, color:textMuted2}}>{t.totalPlannedLabel}</span>
-                  <span style={{fontSize:13, fontWeight:800, color:textMain}}>
-                    {h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m
-                  </span>
-                </div>
-              );
-            })()}
           </div>
         )}
 
@@ -4810,37 +4894,38 @@ export default function FocusGo() {
             {/* Study Overview — headline numbers, justifies the "Stats" name */}
             <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:12}}>{t.studyOverview}</div>
 
-            {/* Hero stat — total focused time, the headline number of the whole page */}
+            {/* Hero stat + completed/completion/streak — merged into one card, was two separate cards */}
             {(() => {
               const h = Math.floor(studyOverview.totalMin/60), m = studyOverview.totalMin%60;
               return (
-                <div style={{background: dark ? "linear-gradient(135deg, rgba(76,143,166,0.16), rgba(76,143,166,0.03))" : "linear-gradient(135deg, #4C8FA614, #4C8FA603)", border:`1px solid ${cardBorder}`, borderRadius:16, padding:"22px 18px 20px", display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:8, marginBottom:10}}>
-                  <div style={{width:44,height:44, borderRadius:12, background: dark?"rgba(76,143,166,0.22)":"#4C8FA61F", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginBottom:2}}>
-                    <Clock size={21} color="#4C8FA6"/>
+                <div style={{background: dark ? "linear-gradient(135deg, rgba(76,143,166,0.16), rgba(76,143,166,0.03))" : "linear-gradient(135deg, #4C8FA614, #4C8FA603)", border:`1px solid ${cardBorder}`, borderRadius:16, padding:"20px 16px 16px", marginBottom:20}}>
+                  <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:6, paddingBottom:16, marginBottom:14, borderBottom:`0.5px solid ${cardBorder}`}}>
+                    <div style={{width:40,height:40, borderRadius:12, background: dark?"rgba(76,143,166,0.22)":"#4C8FA61F", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginBottom:2}}>
+                      <Clock size={19} color="#4C8FA6"/>
+                    </div>
+                    <div style={{fontSize:26, fontWeight:800, letterSpacing:-0.6, color:textMain, lineHeight:1.1}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
+                    <div style={{fontSize:12, color:textMuted2, fontWeight:600, opacity:0.8}}>{t.focusedLabel}</div>
                   </div>
-                  <div style={{fontSize:28, fontWeight:800, letterSpacing:-0.6, color:textMain, lineHeight:1.1}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
-                  <div style={{fontSize:12, color:textMuted2, fontWeight:600, opacity:0.8}}>{t.focusedLabel}</div>
+                  <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:6}}>
+                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:4}}>
+                      <Check size={14} color="#6E8B5E"/>
+                      <div style={{fontSize:15, fontWeight:800, letterSpacing:-0.2, color:"#6E8B5E", lineHeight:1.1}}><Num>{nf(studyOverview.doneCount)}</Num></div>
+                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8}}>{t.topicsCompletedLabel}</div>
+                    </div>
+                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:4}}>
+                      <TrendingUp size={14} color="#4C8FA6"/>
+                      <div style={{fontSize:15, fontWeight:800, letterSpacing:-0.2, color:"#4C8FA6", lineHeight:1.1}}><Num>{nf(studyOverview.pct)}</Num>%</div>
+                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8}}>{t.completionLabel}</div>
+                    </div>
+                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:4}}>
+                      <Flame size={14} color="#C08A2E"/>
+                      <div style={{fontSize:15, fontWeight:800, letterSpacing:-0.2, color:"#C08A2E", lineHeight:1.1}}><Num>{nf(studyOverview.streak)}</Num></div>
+                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8}}>{t.streakLabel}</div>
+                    </div>
+                  </div>
                 </div>
               );
             })()}
-
-            <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:20}}>
-              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"16px 8px 14px", display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:8}}>
-                <div style={{width:30,height:30, borderRadius:8, background:`rgba(110,139,94,0.15)`, display:"flex", alignItems:"center", justifyContent:"center"}}><Check size={14} color="#6E8B5E"/></div>
-                <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.2, color:"#6E8B5E", lineHeight:1.1}}><Num>{nf(studyOverview.doneCount)}</Num></div>
-                <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8}}>{t.topicsCompletedLabel}</div>
-              </div>
-              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"16px 8px 14px", display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:8}}>
-                <div style={{width:30,height:30, borderRadius:8, background: dark?"rgba(76,143,166,0.2)":"rgba(76,143,166,0.12)", display:"flex", alignItems:"center", justifyContent:"center"}}><TrendingUp size={14} color="#4C8FA6"/></div>
-                <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.2, color:"#4C8FA6", lineHeight:1.1}}><Num>{nf(studyOverview.pct)}</Num>%</div>
-                <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8}}>{t.completionLabel}</div>
-              </div>
-              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"16px 8px 14px", display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:8}}>
-                <div style={{width:30,height:30, borderRadius:8, background: dark?"rgba(192,138,46,0.2)":"rgba(192,138,46,0.12)", display:"flex", alignItems:"center", justifyContent:"center"}}><Flame size={14} color="#C08A2E"/></div>
-                <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.2, color:"#C08A2E", lineHeight:1.1}}><Num>{nf(studyOverview.streak)}</Num></div>
-                <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8}}>{t.streakLabel}</div>
-              </div>
-            </div>
 
             {/* Subject Progress — right after Study Overview */}
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginTop:6, marginBottom:16}}>
@@ -6459,16 +6544,14 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
   const closeMenu = () => { setOpenMenuId(null); setConfirmDeleteId(null); };
   if (items.length === 0) {
     return (
-      <div style={{textAlign:"center", padding:"32px 16px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16}}>
-        {EmptyIcon && (
-          <div style={{width:40, height:40, borderRadius:"50%", background: `${accent}14`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 10px"}}>
-            <EmptyIcon size={19} color={accent} strokeWidth={1.8}/>
-          </div>
-        )}
-        <div style={{fontWeight:500, color:textMuted2, fontSize:14}}>{emptyText}</div>
-        {emptySubtext && <div style={{fontSize:12, opacity:0.8, marginTop:4}}>{emptySubtext}</div>}
+      <div style={{textAlign:"left", padding:"10px 0 20px", color:textMuted2, fontSize:13}}>
+        <div style={{display:"flex", alignItems:"center", gap:8}}>
+          {EmptyIcon && <EmptyIcon size={16} color={textMuted2} strokeWidth={1.8}/>}
+          <span style={{fontWeight:500, color:textMuted2, fontSize:12.5}}>{emptyText}</span>
+        </div>
+        {emptySubtext && <div style={{fontSize:12, opacity:0.8, marginTop:4, marginLeft:24}}>{emptySubtext}</div>}
         {onEmptyAdd && (
-          <button onClick={onEmptyAdd} style={{marginTop:14, display:"inline-flex", alignItems:"center", gap:4, border:"none", background:accent, color:"#fff", borderRadius:12, padding:"8px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+          <button onClick={onEmptyAdd} style={{marginTop:12, marginLeft:24, display:"inline-flex", alignItems:"center", gap:4, border:"none", background:accent, color:"#fff", borderRadius:12, padding:"8px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
             <Plus size={13}/> {emptyAddLabel}
           </button>
         )}
