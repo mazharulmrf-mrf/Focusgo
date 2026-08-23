@@ -4342,6 +4342,27 @@ export default function FocusGo() {
               <div style={{fontSize:10, color:textMuted2, fontWeight:600, opacity:0.85, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
             </div>
           </div>
+          {/* Today's Tasks mini-summary — merged into the progress card so the card previews task progress at a glance, matching the home page mockup */}
+          {tab === "today" && (() => {
+            const cardTodayTasks = tasks.filter(x => x.dueDate === todayKey);
+            if (cardTodayTasks.length === 0) return null;
+            const cardDone = cardTodayTasks.filter(x => x.done).length;
+            const cardPct = Math.round((cardDone / cardTodayTasks.length) * 100);
+            const cardLeft = cardTodayTasks.length - cardDone;
+            return (
+              <div style={{marginTop:12, paddingTop:12, borderTop:`1px solid ${cardBorder}`}}>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
+                  <div style={{fontSize:13, fontWeight:800, color:textMain}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
+                  <div style={{fontSize:11, fontWeight:700, color:textMuted2, whiteSpace:"nowrap"}}>
+                    {cardLeft > 0 ? (lang==="bn" ? `${nf(cardLeft)}টা বাকি` : `${cardLeft} left`) : t.taskAllDoneLabel}
+                  </div>
+                </div>
+                <div style={{height:6, borderRadius:8, background: dark?"#2C2820":"#EFE9DC", overflow:"hidden"}}>
+                  <div style={{width:`${cardPct}%`, height:"100%", borderRadius:8, background:"#6E8B5E", transition:"width .25s ease"}}/>
+                </div>
+              </div>
+            );
+          })()}
         </div>
         )}
 
@@ -4376,9 +4397,8 @@ export default function FocusGo() {
           return (
           <div className="fg-tab-panel" style={{marginTop:18}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,fontSize:20,fontWeight:800,letterSpacing:-0.3,color:textMain}}>
-                <ListChecks size={17} color={textMuted2}/>
-                Today's Tasks
+              <div style={{fontSize:18,fontWeight:800,letterSpacing:-0.3,color:textMain}}>
+                {lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}
               </div>
               <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}} style={{display:"flex",alignItems:"center",gap:4, background: accent, color: "#FFFFFF", border:"none", borderRadius:12, padding:"8px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
                 <Plus size={13}/> {t.taskAddBtn}
