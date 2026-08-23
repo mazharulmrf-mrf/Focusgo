@@ -1986,7 +1986,7 @@ export default function FocusGo() {
     addLink("preconnect", "https://fonts.gstatic.com", { crossOrigin: "anonymous" });
     // আসল ফন্ট stylesheet — এবার real <link>, তাই ব্রাউজার এটাকে render-blocking resource
     // হিসেবে priority দিয়ে আগেভাগে ফেচ করে, `@import`-এর মতো দেরি করে না
-    addLink("stylesheet", "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap");
+    addLink("stylesheet", "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fraunces:ital,wght@0,500;0,600;0,700;1,500&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap");
   }, []);
 
   const breakpoint = useViewport(); // "mobile" | "tablet" | "desktop"
@@ -4995,9 +4995,11 @@ export default function FocusGo() {
                   </div>
 
                   {filteredTasks.length === 0 && (
-                    <div style={{textAlign:"center", padding:"40px 0", color:textMuted2, fontSize:13}}>
-                      <Sparkles size={22} style={{marginBottom:8, opacity:0.5}}/>
-                      <div>{emptyMsg}</div>
+                    <div style={{display:"flex", alignItems:"center", gap:12, padding:"18px 4px", color:textMuted2, fontSize:13}}>
+                      <div style={{width:38, height:38, borderRadius:"50%", background:"rgba(110,139,94,0.16)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                        <Sparkles size={18} color="#6E8B5E" strokeWidth={2}/>
+                      </div>
+                      <div style={{textAlign:"left"}}>{emptyMsg}</div>
                     </div>
                   )}
 
@@ -6850,21 +6852,16 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
   const closeMenu = () => { setOpenMenuId(null); setConfirmDeleteId(null); };
   if (items.length === 0) {
     return (
-      <div style={{border:`1.5px dashed ${cardBorder}`, borderRadius:16, padding:"22px 18px", textAlign:"center", display:"flex", flexDirection:"column", alignItems:"center", gap:9}}>
+      <div style={{border:`1.5px dashed ${cardBorder}`, borderRadius:16, padding:"18px", display:"flex", alignItems:"center", gap:12}}>
         {EmptyIcon && (
           <div style={{width:38, height:38, borderRadius:"50%", background:"rgba(110,139,94,0.16)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
             <EmptyIcon size={18} color="#6E8B5E" strokeWidth={2}/>
           </div>
         )}
-        <div>
+        <div style={{textAlign:"left", minWidth:0}}>
           <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{emptyText}</div>
           {emptySubtext && <div style={{fontSize:12, color:textMuted2, marginTop:3, lineHeight:1.5}}>{emptySubtext}</div>}
         </div>
-        {onEmptyAdd && (
-          <button onClick={onEmptyAdd} style={{marginTop:4, display:"inline-flex", alignItems:"center", gap:4, border:"none", background:accent, color:"#fff", borderRadius:12, padding:"8px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
-            <Plus size={13}/> {emptyAddLabel}
-          </button>
-        )}
       </div>
     );
   }
@@ -8235,62 +8232,14 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         /* Enter চাপলে ব্রাউজার নতুন <p>/<div> বসায়, যেগুলোর নিজস্ব ডিফল্ট মার্জিন থাকে — সেটাই দুই লাইনের মাঝে
            বাড়তি ফাঁকা জায়গা তৈরি করছিল; এখানে সেই মার্জিন শূন্য করে দেওয়া হলো যাতে লাইন স্পেসিং শুধু line-height অনুযায়ী হয় */
         .fg-note-body p, .fg-note-body div{margin:0;}
+        .fg-hide-scrollbar::-webkit-scrollbar{display:none;}
+        .fg-hide-scrollbar{scrollbar-width:none;}
       `}</style>
-      <div style={{ fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:10 }}>{t.notesTitle}</div>
+      <div style={{ fontFamily: lang==="bn" ? "'Noto Sans Bengali',sans-serif" : "'Fraunces',serif", fontWeight: lang==="bn" ? 800 : 600, fontSize:26, letterSpacing:-0.4, color:textMain, marginBottom:12 }}>{t.notesTitle}</div>
 
-      {/* Keep-স্টাইল সার্চ রো — বাম দিকে হ্যামবার্গার (ক্যাটাগরি/ফোল্ডার মেনু), মাঝে সবসময়-দৃশ্যমান সার্চ পিল,
-          তারপর Grid/List টগল ও সর্ট, আর একদম শেষে ক্যালেন্ডার আইকন */}
-      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,position:"relative"}}>
-        <div style={{position:"relative",flexShrink:0}}>
-          <button
-            onClick={(e)=>{e.stopPropagation();setShowCatMenu(v=>!v);}}
-            style={{ width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",background:showCatMenu?accent:cardBg,color:showCatMenu?"#fff":textMain,border:`1px solid ${showCatMenu?accent:cardBorder}`,borderRadius:"50%",cursor:"pointer",flexShrink:0 }}
-            title={lang==="bn"?"ক্যাটাগরি":"Categories"}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-          </button>
-          {showCatMenu && (
-            <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:"calc(100% + 6px)",left:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:6,boxShadow:"0 7px 18px rgba(0,0,0,0.11)",zIndex:30,minWidth:190,maxHeight:"60vh",overflowY:"auto"}}>
-              <button onClick={()=>{setActiveFolder("All Notes");setShowCatMenu(false);}}
-                style={{display:"flex",alignItems:"center",gap:8,width:"100%",border:"none",background:activeFolder==="All Notes"?(dark?"#2B281F":"#FFF4DF"):"transparent",textAlign:"left",padding:"9px 10px",fontSize:13,fontWeight:700,color:activeFolder==="All Notes"?accent:textMain,cursor:"pointer",borderRadius:8}}>
-                {lang==="bn"?"সব নোট":"All Notes"}
-              </button>
-              <button onClick={()=>{setActiveFolder("Pinned");setShowCatMenu(false);}}
-                style={{display:"flex",alignItems:"center",gap:8,width:"100%",border:"none",background:activeFolder==="Pinned"?(dark?"#2B281F":"#FFF4DF"):"transparent",textAlign:"left",padding:"9px 10px",fontSize:13,fontWeight:700,color:activeFolder==="Pinned"?accent:textMain,cursor:"pointer",borderRadius:8}}>
-                <Pin size={12}/>{lang==="bn"?"পিন":"Pinned"}
-              </button>
-              <button onClick={()=>{setActiveFolder("Trash");setShowCatMenu(false);}}
-                style={{display:"flex",alignItems:"center",gap:8,width:"100%",border:"none",background:activeFolder==="Trash"?(dark?"#2B281F":"#FFF4DF"):"transparent",textAlign:"left",padding:"9px 10px",fontSize:13,fontWeight:700,color:activeFolder==="Trash"?accent:textMain,cursor:"pointer",borderRadius:8}}>
-                <Trash2 size={12}/>{lang==="bn"?"ট্র্যাশ":"Trash"}{trashCount>0 ? ` (${nf(trashCount)})` : ""}
-              </button>
-              <div style={{height:1,background:cardBorder,margin:"6px 2px"}}/>
-              {categories.map(cat => (
-                <div key={cat} style={{display:"flex",alignItems:"center",gap:2}}>
-                  <button onClick={()=>{setActiveFolder(cat);setShowCatMenu(false);}}
-                    style={{flex:1,minWidth:0,display:"flex",alignItems:"center",gap:8,border:"none",background:activeFolder===cat?(dark?"#2B281F":"#FFF4DF"):"transparent",textAlign:"left",padding:"9px 10px",fontSize:13,fontWeight:700,color:activeFolder===cat?accent:textMain,cursor:"pointer",borderRadius:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                    {cat}
-                  </button>
-                  <button onClick={(e)=>{e.stopPropagation();renameCategory(cat);}} title={lang==="bn"?"নাম পরিবর্তন":"Rename"}
-                    style={{flexShrink:0,border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:6,borderRadius:8,display:"flex"}}>
-                    <Pencil size={12}/>
-                  </button>
-                  {cat !== "General" && (
-                    <button onClick={(e)=>{e.stopPropagation();deleteCategory(cat);}} title={lang==="bn"?"ডিলিট":"Delete"}
-                      style={{flexShrink:0,border:"none",background:"transparent",color:"#C54B4B",cursor:"pointer",padding:6,borderRadius:8,display:"flex"}}>
-                      <Trash2 size={12}/>
-                    </button>
-                  )}
-                </div>
-              ))}
-              <button onClick={(e)=>{e.stopPropagation();addCategory();}}
-                style={{display:"flex",alignItems:"center",gap:8,width:"100%",border:"none",background:"transparent",textAlign:"left",padding:"9px 10px",fontSize:13,fontWeight:800,color:accent,cursor:"pointer",borderRadius:8}}>
-                + {lang==="bn"?"নতুন ক্যাটাগরি":"Add category"}
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div onClick={e=>e.stopPropagation()} style={{flex:1,minWidth:0,display:"flex",alignItems:"center",gap:8,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:999,padding:"9px 14px"}}>
+      {/* সার্চ রো — squircle আইকন বাটন, তারপর সবসময়-দৃশ্যমান সার্চ পিল, Grid/List টগল, আর সর্ট/তারিখ */}
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:11,position:"relative"}}>
+        <div onClick={e=>e.stopPropagation()} style={{flex:1,minWidth:0,display:"flex",alignItems:"center",gap:8,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:"9px 14px"}}>
           <Search size={15} color={textMuted2} style={{flexShrink:0}}/>
           <input
             ref={searchRef}
@@ -8305,22 +8254,22 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         {/* Grid/List ভিউ টগল */}
         <button
           onClick={(e)=>{e.stopPropagation();vibrate();setViewMode(v=>v==="grid"?"list":"grid");}}
-          style={{ width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",background:cardBg,color:textMain,border:`1px solid ${cardBorder}`,borderRadius:"50%",cursor:"pointer",flexShrink:0 }}
+          style={{ width:38,height:38,display:"flex",alignItems:"center",justifyContent:"center",background:cardBg,color:textMain,border:`1px solid ${cardBorder}`,borderRadius:12,cursor:"pointer",flexShrink:0 }}
           title={viewMode==="grid" ? (lang==="bn"?"লিস্ট ভিউ":"List view") : (lang==="bn"?"গ্রিড ভিউ":"Grid view")}
         >
           {viewMode==="grid" ? <List size={15}/> : <LayoutGrid size={15}/>}
         </button>
-        {/* Sort + Date filter — আগে দুটো আলাদা আইকন ছিল, এখন একটা "more" মেনুতে একসাথে (টপ রো-তে আইকন-ভিড় কমাতে) */}
+        {/* Sort + Date filter — একটা "more" মেনুতে একসাথে */}
         <div style={{position:"relative",flexShrink:0}}>
           <button
             onClick={(e)=>{e.stopPropagation();setShowSortMenu(v=>!v);}}
-            style={{ width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",background:(showSortMenu||filterDate)?accent:cardBg,color:(showSortMenu||filterDate)?"#fff":textMain,border:`1px solid ${(showSortMenu||filterDate)?accent:cardBorder}`,borderRadius:"50%",cursor:"pointer",flexShrink:0 }}
+            style={{ width:38,height:38,display:"flex",alignItems:"center",justifyContent:"center",background:(showSortMenu||filterDate)?accent:cardBg,color:(showSortMenu||filterDate)?"#fff":textMain,border:`1px solid ${(showSortMenu||filterDate)?accent:cardBorder}`,borderRadius:12,cursor:"pointer",flexShrink:0 }}
             title={lang==="bn"?"সর্ট ও তারিখ":"Sort & date"}
           >
             <MoreVertical size={15}/>
           </button>
           {showSortMenu && (
-            <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:4,boxShadow:"0 6px 16px rgba(0,0,0,0.11)",zIndex:30,display:"flex",flexDirection:"column",minWidth:190}}>
+            <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:4,boxShadow:"0 6px 16px rgba(0,0,0,0.11)",zIndex:30,display:"flex",flexDirection:"column",minWidth:190}}>
               <div style={{fontSize:10,fontWeight:800,letterSpacing:0.4,color:textMuted2,padding:"6px 9px 2px",opacity:0.8}}>{lang==="bn"?"সাজানোর ধরন":"Sort by"}</div>
               {[
                 ["updated", lang==="bn"?"সর্বশেষ এডিট":"Last edited"],
@@ -8344,15 +8293,51 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         </div>
       </div>
 
-      {/* বর্তমানে সিলেক্ট করা ক্যাটাগরি/ফোল্ডার — "সব নোট" ছাড়া অন্য কিছু হলে এখানে ছোট ট্যাগ হিসেবে দেখা যায়, চাইলে X চেপে ক্লিয়ার করা যায় */}
-      {activeFolder !== "All Notes" && (
-        <div onClick={e=>e.stopPropagation()} style={{display:"inline-flex",alignItems:"center",gap:6,background:dark?"#2B281F":"#FFF4DF",border:`1px solid ${accent}`,color:accent,fontSize:12,fontWeight:700,padding:"5px 11px",borderRadius:999,marginBottom:14}}>
-          {activeFolder==="Pinned" && <Pin size={11}/>}
-          {activeFolder==="Trash" && <Trash2 size={11}/>}
-          {activeFolder==="Pinned" ? (lang==="bn"?"পিন":"Pinned") : activeFolder==="Trash" ? (lang==="bn"?"ট্র্যাশ":"Trash") : activeFolder}
-          <button onClick={()=>setActiveFolder("All Notes")} style={{border:"none",background:"transparent",color:accent,cursor:"pointer",padding:0,display:"flex"}}><X size={12}/></button>
-        </div>
-      )}
+      {/* ক্যাটাগরি/ফোল্ডার চিপ — এখন সরাসরি স্ক্রল করা যায়, হ্যামবার্গার মেনুর ভেতর ঢুকতে হয় না।
+          কোনো ক্যাটাগরি চিপ চেপে ধরে রাখলে (long-press) Rename/Delete মেনু দেখা যায়। */}
+      <div onClick={e=>e.stopPropagation()} style={{display:"flex",gap:7,overflowX:"auto",paddingBottom:4,marginBottom:14,WebkitOverflowScrolling:"touch"}} className="fg-hide-scrollbar">
+        {[
+          {key:"All Notes", label: lang==="bn"?"সব নোট":"All Notes"},
+          {key:"Pinned", label: lang==="bn"?"পিন":"Pinned", icon:<Pin size={11}/>},
+          {key:"Trash", label: (lang==="bn"?"ট্র্যাশ":"Trash")+(trashCount>0?` (${nf(trashCount)})`:""), icon:<Trash2 size={11}/>},
+        ].map(f => (
+          <button key={f.key} onClick={()=>setActiveFolder(f.key)}
+            style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,border:`1px solid ${activeFolder===f.key?textMain:cardBorder}`,background:activeFolder===f.key?textMain:cardBg,color:activeFolder===f.key?(dark?"#121110":"#fff"):textMain,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
+            {f.icon}{f.label}
+          </button>
+        ))}
+        <div style={{width:1,alignSelf:"stretch",background:cardBorder,margin:"2px 1px",flexShrink:0}}/>
+        {categories.map(cat => {
+          const chipCol = noteColorFor(cat, categories);
+          return (
+          <div key={cat} style={{position:"relative",flexShrink:0}}>
+            <button
+              onClick={()=>{ if (justDraggedRef.current) return; setActiveFolder(cat); }}
+              onMouseDown={()=>startCatPress(cat)} onMouseUp={cancelCatPress} onMouseLeave={cancelCatPress}
+              onTouchStart={()=>startCatPress(cat)} onTouchEnd={cancelCatPress} onTouchMove={cancelCatPress}
+              style={{display:"flex",alignItems:"center",gap:6,border:`1px solid ${activeFolder===cat?textMain:cardBorder}`,background:activeFolder===cat?textMain:cardBg,color:activeFolder===cat?(dark?"#121110":"#fff"):textMain,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
+              <span style={{width:7,height:7,borderRadius:"50%",background:chipCol.text,flexShrink:0}}/>
+              {cat}
+            </button>
+            {categoryMenuFor === cat && (
+              <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:"calc(100% + 6px)",left:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:4,boxShadow:"0 6px 16px rgba(0,0,0,0.13)",zIndex:31,display:"flex",flexDirection:"column",minWidth:150}}>
+                <button onClick={()=>{renameCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12,fontWeight:700,color:textMain,cursor:"pointer",borderRadius:8}}>
+                  <Pencil size={13}/> {lang==="bn"?"নাম পরিবর্তন":"Rename"}
+                </button>
+                {cat !== "General" && (
+                  <button onClick={()=>{deleteCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12,fontWeight:700,color:"#C54B4B",cursor:"pointer",borderRadius:8}}>
+                    <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        );})}
+        <button onClick={addCategory}
+          style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,border:`1.5px dashed ${cardBorder}`,background:"transparent",color:textMuted2,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
+          + {lang==="bn"?"নতুন":"New"}
+        </button>
+      </div>
 
       {/* কোনো নির্দিষ্ট তারিখ সিলেক্ট করা থাকলে তার একটা ছোট ব্যানার — সহজে ক্লিয়ার করা যায় */}
       {filterDate && (
@@ -8446,14 +8431,17 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               onPointerUp={handleCardPointerUp}
               onPointerCancel={handleCardPointerUp}
               className="fg-card"
-              style={{position:"relative",background:coverBg,border:isDropTarget?`2px dashed ${accent}`:"none",borderRadius:16,padding: isList ? "11px 13px" : "13px 13px",cursor:"pointer",display:"flex",flexDirection:"column",boxShadow:isDragging?"0 6px 16px rgba(0,0,0,.22)":"0 1px 3px rgba(0,0,0,.10)",opacity:isDragging?0.55:1,transform:isDragging?"scale(1.03)":"scale(1)",transition:"transform .12s, box-shadow .12s",touchAction:draggingId?"none":"pan-y",zIndex:isDragging?2:1}}
+              style={{position:"relative",background:coverBg,border:isDropTarget?`2px dashed ${accent}`:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(33,29,24,0.06)"}`,borderRadius:"4px 14px 14px 14px",padding: isList ? "12px 14px 11px" : "14px 14px 12px",cursor:"pointer",display:"flex",flexDirection:"column",boxShadow:isDragging?"0 6px 16px rgba(0,0,0,.22)":"0 1px 2px rgba(33,29,24,.08)",opacity:isDragging?0.55:1,transform:isDragging?"scale(1.03)":"scale(1)",transition:"transform .12s, box-shadow .12s",touchAction:draggingId?"none":"pan-y",zIndex:isDragging?2:1}}
             >
+              {/* সিগনেচার এলিমেন্ট: ক্যাটাগরির রঙে ছোট্ট "ভাঁজ করা" ট্যাব — পুরো কার্ড রঙ না করে শুধু একটা কোণায় ইঙ্গিত */}
+              <div style={{position:"absolute",top:-1,right:12,width:22,height:11,borderRadius:"0 0 4px 4px",background:col.text,opacity:dark?0.85:1}}/>
+              {/* পিন করা নোটের বাম কিনারায় একটা পাতলা accent স্ট্রিপ */}
+              {note.pinned && <div style={{position:"absolute",top:8,left:-1,width:3,height:20,background:accent,borderRadius:"0 3px 3px 0"}}/>}
               <div style={{display:"flex",justifyContent:"space-between",gap:6,alignItems:"flex-start"}}>
                 <div style={{minWidth:0,flex:1}}>
                   <div style={{display:"flex",alignItems:"center",gap:4}}>
-                    {note.pinned && <Pin size={12} fill={col.text} color={col.text}/>}
                     {note.sensitive && <EyeOff size={12} color={col.text}/>}
-                    <div style={{fontSize:14,fontWeight:800,color:coverText,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{note.title}</div>
+                    <div style={{fontFamily: lang==="bn" ? "'Noto Sans Bengali',sans-serif" : "'Fraunces',serif",fontWeight: lang==="bn" ? 800 : 600,fontSize:14.5,color:coverText,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{note.title}</div>
                   </div>
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:2,flexShrink:0}}>
@@ -8533,9 +8521,9 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                 </div>
               )}
 
-              <div style={{marginTop: isList ? 7 : "auto",paddingTop: isList ? 0 : 9,display:"flex",alignItems:"center",justifyContent:"space-between",gap:6}}>
-                <span style={{fontSize:10,fontWeight:700,color:col.text,opacity:0.85}}>{note.category || "General"}</span>
-                <span style={{fontSize:10,color:col.text,opacity:0.65,fontWeight:600}} title={fullDateTimeLabel(note.updatedAt, lang)}>{timeAgoLabel(note.updatedAt || note.createdAt, lang)}</span>
+              <div style={{marginTop: isList ? 7 : "auto",paddingTop: isList ? 6 : 9,borderTop: isList ? "none" : `1px dashed ${dark?"rgba(255,255,255,0.14)":"rgba(33,29,24,0.14)"}`,display:"flex",alignItems:"center",justifyContent:"space-between",gap:6}}>
+                <span style={{fontSize:9.5,fontWeight:700,letterSpacing:0.3,textTransform:"uppercase",color:col.text,opacity:0.9}}>{note.category || "General"}</span>
+                <span style={{fontSize:10,color:col.text,opacity:0.6,fontWeight:600}} title={fullDateTimeLabel(note.updatedAt, lang)}>{timeAgoLabel(note.updatedAt || note.createdAt, lang)}</span>
               </div>
             </div>
           );})}
@@ -8557,9 +8545,9 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           </div>
         )}
         <button onClick={(e)=>{e.stopPropagation();vibrate();setFabOpen(v=>!v);}} title={t.notesNew} style={{
-          width:46, height:46, borderRadius:"50%", border:"none", background:accent, color:"#fff",
+          width:52, height:52, borderRadius:17, border:"none", background:accent, color:"#fff",
           display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
-          boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.28)" : "0 6px 16px rgba(217,119,87,0.28)",
+          boxShadow: dark ? "0 8px 18px rgba(0,0,0,0.32)" : "0 8px 18px rgba(217,119,87,0.35)",
           transform: fabOpen ? "rotate(45deg)" : "none", transition:"transform .15s",
         }}>
           <Plus size={21} strokeWidth={2.5}/>
@@ -8625,7 +8613,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           )}
 
           {/* Paper card — লেখার আসল জায়গা, পেজ ব্যাকগ্রাউন্ড থেকে স্পষ্ট আলাদা করে দেখানোর জন্য বর্ডার + shadow সহ কার্ড */}
-          <div style={{flex:1,minHeight:0,margin:"2px 14px 14px",background:paperBg,border:`1px solid ${paperBorder}`,borderRadius:16,boxShadow: dark ? "0 5px 16px rgba(0,0,0,0.20)" : "0 4px 12px rgba(60,40,20,0.06)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+          <div style={{flex:1,minHeight:0,margin:"2px 14px 14px",background:paperBg,border:`1px solid ${paperBorder}`,borderRadius:"6px 18px 18px 18px",boxShadow: dark ? "0 5px 16px rgba(0,0,0,0.20)" : "0 4px 12px rgba(60,40,20,0.06)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
           {/* Scrollable content: title + checklist + body */}
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"14px 18px 16px"}} onClick={e=>e.stopPropagation()}>
             <input
@@ -8634,7 +8622,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               onChange={e=>setTitle(e.target.value)}
               onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
               placeholder={t.notesTitlePlaceholder}
-              style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",padding:"8px 0",fontSize:20,fontWeight:800,color:paperText,outline:"none",fontFamily:"inherit",marginBottom:2}}
+              style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",padding:"8px 0",fontSize:21,fontWeight:600,color:paperText,outline:"none",fontFamily: lang==="bn" ? "inherit" : "'Fraunces',serif",marginBottom:2}}
             />
 
             {/* Checklist — টাইটেলের ঠিক পরেই আসে, বটম টুলবারের checklist আইকন দিয়ে দেখানো/লুকানো যায়; Google Keep-এর মতো
