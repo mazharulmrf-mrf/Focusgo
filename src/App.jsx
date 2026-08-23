@@ -6031,7 +6031,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [editingId, setEditingId] = useState(null);
-  const [formOpen, setFormOpen] = useState(true);
+  const [formOpen, setFormOpen] = useState(false);
   const [statusTab, setStatusTab] = useState("upcoming");
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
   const [showAllCompleted, setShowAllCompleted] = useState(false);
@@ -6135,7 +6135,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
 
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, maxHeight:"88vh", borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, display:"flex", flexDirection:"column", gap:16, overflow:"hidden"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, maxHeight:"min(80dvh, calc(100dvh - 24px))", borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, display:"flex", flexDirection:"column", gap:16, overflow:"hidden"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", flexShrink:0}}>
           <div style={{fontSize:16, fontWeight:800}}>{lang==="bn" ? "পরীক্ষার সময়সূচি" : "Exam Schedule"}</div>
           <div style={{display:"flex", alignItems:"center", gap:6}}>
