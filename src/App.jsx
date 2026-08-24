@@ -3217,7 +3217,7 @@ export default function FocusGo() {
   const addTopicFor = (dk, { subject, topic, time, endTime, duration }) => {
     setEntries(prev => {
       const list = prev[dk] ? [...prev[dk]] : [];
-      list.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2,7)}`, subject, topic, duration: duration || 30, done: false, time, endTime });
+      list.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2,7)}`, subject, topic, duration: duration || 0, done: false, time, endTime });
       return { ...prev, [dk]: list };
     });
   };
