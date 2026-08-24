@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { StatusBar, Style } from "@capacitor/status-bar";
+import { App as CapacitorApp } from "@capacitor/app";
 import { NavigationBar } from "@capgo/capacitor-navigation-bar";
 import { Capacitor } from "@capacitor/core";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
@@ -2315,6 +2316,10 @@ export default function FocusGo() {
   }, [showSalahDropdown]);
 
   const [tab, setTab] = useState("today");
+  // ব্যাক বাটন চাপলে "Today" ছাড়া অন্য কোনো ট্যাবে থাকলে অ্যাপ বন্ধ না হয়ে সরাসরি "Today" ট্যাবে ফিরে যাবে
+  // দেখাতে এই toast ব্যবহার হয় ("Today" ট্যাবে থেকেও একবার ব্যাক চাপলে অ্যাপ বন্ধ হবে না, দ্বিতীয়বার চাপলে বন্ধ হবে)
+  const [showExitToast, setShowExitToast] = useState(false);
+  const exitToastTimerRef = useRef(null);
   const [user, setUser] = useState(null);
   const [isGuest, setIsGuest] = useState(false); // "Continue without an account" — data stays in-memory only, never synced
   const [onboardingDone, setOnboardingDone] = useState(() => {
@@ -2522,6 +2527,53 @@ export default function FocusGo() {
   const [timerTargetMinutes, setTimerTargetMinutes] = useState(null); // টপিক-লিঙ্কড মাল্টি-সেশন চললে মোট টার্গেট মিনিট, নাহলে null (ফ্রি সেশন — পুরনো আচরণ)
   const [timerElapsedMinutes, setTimerElapsedMinutes] = useState(0); // এই টপিকের জন্য এ পর্যন্ত সম্পন্ন হওয়া ফোকাস মিনিট (target-এর বিপরীতে)
   const [showBreakPrompt, setShowBreakPrompt] = useState(false); // "Focus complete — take a break?" prompt
+
+  // ---- Android হার্ডওয়্যার ব্যাক বাটন ----
+  // ক্রম: প্রথমে যদি কোনো মোডাল/ওভারলে খোলা থাকে সেটা বন্ধ হবে; কিছু খোলা না থাকলে আর "Today" ছাড়া অন্য
+  // ট্যাবে থাকলে সরাসরি "Today" ট্যাবে ফিরে যাবে; "Today" ট্যাবে থেকেও কিছু খোলা না থাকলে একবার ব্যাক চাপলে
+  // অ্যাপ বন্ধ হবে না (শুধু টোস্ট দেখাবে), ২ সেকেন্ডের মধ্যে দ্বিতীয়বার চাপলে তবেই অ্যাপ বন্ধ হবে।
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const listenerPromise = CapacitorApp.addListener("backButton", () => {
+      if (focusFullscreen) { setFocusFullscreen(false); return; }
+      if (taskDetailId) { setTaskDetailId(null); return; }
+      if (showAddTask || editingTask) { setShowAddTask(false); setEditingTask(null); return; }
+      if (selectedDay) { setSelectedDay(null); return; }
+      if (showCombinedExamEditor) { setShowCombinedExamEditor(false); setEditingCombinedExam(null); return; }
+      if (showNextExamEditor) { setShowNextExamEditor(false); return; }
+      if (showManageTopicsFor) { setShowManageTopicsFor(null); return; }
+      if (showExamSchedule) { setShowExamSchedule(false); return; }
+      if (showExams) { setShowExams(false); return; }
+      if (showAdd) { setShowAdd(false); return; }
+      if (showSubjects) { setShowSubjects(false); return; }
+      if (showAllSubjectsProgress) { setShowAllSubjectsProgress(false); return; }
+      if (showCalendar) { setShowCalendar(false); return; }
+      if (showProfile) { setShowProfile(false); return; }
+      if (showSettings) { setShowSettings(false); return; }
+      if (showTopicPicker) { setShowTopicPicker(false); return; }
+      if (showBreakPrompt) { setShowBreakPrompt(false); return; }
+      if (tab !== "today") { setTab("today"); return; }
+      if (exitToastTimerRef.current) {
+        clearTimeout(exitToastTimerRef.current);
+        exitToastTimerRef.current = null;
+        setShowExitToast(false);
+        CapacitorApp.exitApp();
+      } else {
+        setShowExitToast(true);
+        exitToastTimerRef.current = setTimeout(() => {
+          setShowExitToast(false);
+          exitToastTimerRef.current = null;
+        }, 2000);
+      }
+    });
+    return () => { listenerPromise.then(h => h.remove()); };
+  }, [
+    tab, focusFullscreen, taskDetailId, showAddTask, editingTask, selectedDay,
+    showCombinedExamEditor, showNextExamEditor, showManageTopicsFor, showExamSchedule,
+    showExams, showAdd, showSubjects, showAllSubjectsProgress, showCalendar,
+    showProfile, showSettings, showTopicPicker, showBreakPrompt,
+  ]);
+
   const timerRef = useRef(null);
   const stopwatchRef = useRef(null);
   const timerEndAtRef = useRef(null);
@@ -5845,6 +5897,18 @@ export default function FocusGo() {
             style={{border:"none", background:"transparent", color:"#8A8272", cursor:"pointer", padding:2, display:"flex", flexShrink:0}}>
             <X size={14}/>
           </button>
+        </div>
+      )}
+
+      {/* Exit toast — "Today" ট্যাবে ব্যাক বাটন চাপলে দেখা যায়; ২ সেকেন্ডের মধ্যে আবার চাপলে অ্যাপ বন্ধ হবে */}
+      {showExitToast && (
+        <div style={{position:"fixed", left:"50%", bottom:isDesktop?24:88, transform:"translateX(-50%)", zIndex:80,
+          background: dark?"#2C2820":"#211D18", color:"#F3EFE7", borderRadius:12, padding:"11px 16px",
+          display:"flex", alignItems:"center", boxShadow:"0 5px 16px rgba(0,0,0,0.16)",
+          maxWidth:"calc(100vw - 32px)", animation:"fg-fade-up .2s cubic-bezier(0.16,1,0.3,1)"}}>
+          <span style={{fontSize:13, fontWeight:600, whiteSpace:"nowrap"}}>
+            {lang==="bn" ? "বের হতে আবার ব্যাক বাটন চাপুন" : "Press back again to exit"}
+          </span>
         </div>
       )}
     </div>
