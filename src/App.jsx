@@ -2558,6 +2558,7 @@ export default function FocusGo() {
   const lastSavedPayloadRef = useRef(null);
   const skipNextWriteRef = useRef(false); // Firestore snapshot থেকে আসা ডেটা লোকাল state-এ বসানোর পরপরই যেন সেটা আবার Firestore-এ write-back না হয় (echo/race safety)
   const hadServerDataRef = useRef(false); // এই ইউজারের Firestore-এ কখনো real (খালি নয়) ডেটা দেখা গেছে কিনা — accidental wipe আটকাতে ব্যবহার হয়
+  const pendingLocalWriteRef = useRef(false); // local এ change হয়েছে কিন্তু এখনো Firestore-এ সেভ হয়নি — এই অবস্থায় onSnapshot থেকে আসা পুরনো ডেটা যেন fresher local change (যেমন ট্র্যাশ ডিলিট) ওভাররাইট করে না দেয়, তাই এই flag থাকা অবস্থায় incoming snapshot ignore করা হয়
   // থিম/ভাষা ব্যাকগ্রাউন্ডে (Firestore/cache থেকে) শুধু সেশনের প্রথমবার লোড হবে —
   // এরপর ইউজার Settings থেকে যা বদলায় তা যেন token-refresh বা re-sync-এ চুপচাপ পুরনো
   // মান দিয়ে ওভাররাইট না হয়ে যায় (এটাই "Light সিলেক্ট করলেও Dark-ই থেকে যায়" বাগের কারণ ছিল)
@@ -2871,8 +2872,10 @@ export default function FocusGo() {
               combinedExams: data.combinedExams, nextExam: data.nextExam, examSchedule: data.examSchedule, tasks: data.tasks, notes: data.notes,
               lang: data.lang, themeMode: data.themeMode,
             });
-            // যদি এই data আমাদেরই সবশেষ write-এর echo হয়, আবার setState করে re-render/re-save লুপ তৈরি করার দরকার নেই
-            if (incomingKey !== lastSavedPayloadRef.current) {
+            // যদি এই data আমাদেরই সবশেষ write-এর echo হয়, আবার setState করে re-render/re-save লুপ তৈরি করার দরকার নেই।
+            // এছাড়াও, যদি local-এ এখনো unsaved change থাকে (pendingLocalWriteRef), তাহলে এই incoming data
+            // পুরনো (stale) হতে পারে — সেটা দিয়ে fresher local state (যেমন এইমাত্র ট্র্যাশ ডিলিট করা) ওভাররাইট করা যাবে না।
+            if (incomingKey !== lastSavedPayloadRef.current && !pendingLocalWriteRef.current) {
               // এই setState-গুলো থেকে যেই write-effect ট্রিগার হবে, সেটা যেন আবার এই একই ডেটা
               // Firestore-এ ফেরত না লেখে — নাহলে দুর্বল নেটওয়ার্ক/race অবস্থায় আসল ডেটা ওভাররাইট হয়ে যাওয়ার ঝুঁকি থাকে
               skipNextWriteRef.current = true;
@@ -2953,6 +2956,10 @@ export default function FocusGo() {
       return;
     }
 
+    // local state এখন Firestore-এর সাথে out-of-sync (নতুন change আছে যা এখনো সেভ হয়নি) —
+    // এই সময়ে onSnapshot থেকে পুরনো data এলে সেটা যেন local state ওভাররাইট না করে
+    pendingLocalWriteRef.current = true;
+
     const payload = {
       entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode,
       updatedAt: new Date().toISOString(),
@@ -2969,7 +2976,8 @@ export default function FocusGo() {
       // ফেরত পেলে বুঝবে এটা নিজেরই echo, আবার setState/re-save করবে না
       lastSavedPayloadRef.current = JSON.stringify({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode });
       setDoc(doc(db, "users", user.uid), payload, { merge: true })
-        .catch(e => console.error("Firestore save error:", e));
+        .catch(e => console.error("Firestore save error:", e))
+        .finally(() => { pendingLocalWriteRef.current = false; }); // সেভ সফল হোক বা ব্যর্থ — এখন local আবার "in sync" ধরে নেওয়া হচ্ছে, নাহলে flag চিরকাল আটকে থাকতে পারে
       // দৈনিক অটো-ব্যাকআপ — প্রতিদিন একবার (তারিখ অনুযায়ী ডকুমেন্ট আইডি, তাই বারবার ওভাররাইট হয়, জমতে থাকে না)।
       // ভবিষ্যতে কোনো bug বা ভুলবশত ডিলিট হলে এখান থেকে আগের দিনের ডেটা ফিরিয়ে আনা যাবে।
       if (!isEffectivelyEmpty) {
