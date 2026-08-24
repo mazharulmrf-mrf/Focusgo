@@ -3,7 +3,7 @@
 //
 // ⚠️ নতুন ভার্সন ডিপ্লয় করলে অবশ্যই CACHE_NAME বদলাও (যেমন v2, v3...) — নাহলে ইউজার
 // পুরনো ক্যাশড ভার্সনই দেখতে থাকবে, নতুন আপডেট পাবে না।
-const CACHE_NAME = "focusgo-shell-v2";
+const CACHE_NAME = "focusgo-shell-v3";
 
 // এই লিস্টে তোমার বিল্ড আউটপুটের আসল ফাইলনেম বসাতে হবে (Vite/CRA বিল্ড করলে
 // dist/build ফোল্ডারে hashed filename পাবে, যেমন /assets/index-a1b2c3.js) —
