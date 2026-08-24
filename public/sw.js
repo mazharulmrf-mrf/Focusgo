@@ -3,7 +3,7 @@
 //
 // ⚠️ নতুন ভার্সন ডিপ্লয় করলে অবশ্যই CACHE_NAME বদলাও (যেমন v2, v3...) — নাহলে ইউজার
 // পুরনো ক্যাশড ভার্সনই দেখতে থাকবে, নতুন আপডেট পাবে না।
-const CACHE_NAME = "focusgo-shell-v1";
+const CACHE_NAME = "focusgo-shell-v2";
 
 // এই লিস্টে তোমার বিল্ড আউটপুটের আসল ফাইলনেম বসাতে হবে (Vite/CRA বিল্ড করলে
 // dist/build ফোল্ডারে hashed filename পাবে, যেমন /assets/index-a1b2c3.js) —
@@ -29,24 +29,22 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Cache-first for same-origin static assets; network-first fallback so a fresh
-// deploy is picked up quickly once online, but offline still serves the cache.
+// Network-first for same-origin static assets: সবসময় আগে নেটওয়ার্ক থেকে সবশেষ ভার্সন আনার
+// চেষ্টা হয় (deploy করার সাথে সাথেই ইউজার আপডেট পায়, রিফ্রেশ দুইবার দিতে হয় না), শুধু
+// নেটওয়ার্ক ব্যর্থ হলে/অফলাইনে থাকলে cache থেকে সার্ভ করা হয়।
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET" || new URL(req.url).origin !== self.location.origin) return;
 
   event.respondWith(
-    caches.match(req).then((cached) => {
-      const network = fetch(req)
-        .then((res) => {
-          if (res && res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-          }
-          return res;
-        })
-        .catch(() => cached); // অফলাইন হলে ক্যাশড ভার্সন
-      return cached || network;
-    })
+    fetch(req)
+      .then((res) => {
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+        }
+        return res;
+      })
+      .catch(() => caches.match(req)) // অফলাইন হলে ক্যাশড ভার্সন
   );
 });
