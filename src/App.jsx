@@ -9437,7 +9437,16 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
             <input type="date" value={dueDate} onChange={e=>setDueDate(e.target.value)}
               style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:12.5, color:textMain, outline:"none", fontFamily:"inherit"}}/>
           </div>
-          {dueDate && (
+
+          {/* রিমাইন্ডার — ডেট ফিল্ডের ঠিক পাশে, "More options" খোলার দরকার নেই। ডেট সিলেক্ট না থাকলে নিষ্ক্রিয়/ঘোলা দেখাবে। */}
+          <div title={!dueDate ? (lang==="bn" ? "আগে তারিখ সিলেক্ট করুন" : "Select a date first") : undefined}
+            style={{flex:1, minWidth:0, display:"flex", alignItems:"center", gap:5, background:bg, border:`1px solid ${cardBorder}`, borderRadius:11, padding:"7px 9px", opacity: dueDate ? 1 : 0.45}}>
+            <Bell size={13} color={textMuted2} style={{flexShrink:0}}/>
+            <input type="time" value={reminderTime} disabled={!dueDate} onChange={e=>setReminderTime(e.target.value)}
+              style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:12.5, color:textMain, outline:"none", fontFamily:"inherit"}}/>
+          </div>
+
+          {(dueDate || reminderTime) && (
             <button onClick={()=>{setDueDate(""); setReminderTime("");}} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, cursor:"pointer", borderRadius:9, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
               <X size={12}/>
             </button>
@@ -9451,26 +9460,6 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
 
         {showMore && (
           <>
-            {dueDate && (
-              <>
-                <div style={{fontSize:10.5, fontWeight:700, color:textMuted2, marginBottom:6, display:"flex", alignItems:"center", gap:5}}>
-                  <Bell size={11}/> {lang==="bn" ? "রিমাইন্ডার (ঐচ্ছিক)" : "Reminder (optional)"}
-                </div>
-                <div style={{display:"flex", alignItems:"center", gap:6, marginBottom:12}}>
-                  <div style={{flex:1, minWidth:0, display:"flex", alignItems:"center", gap:5, background:bg, border:`1px solid ${cardBorder}`, borderRadius:11, padding:"7px 9px"}}>
-                    <Clock size={13} color={textMuted2} style={{flexShrink:0}}/>
-                    <input type="time" value={reminderTime} onChange={e=>setReminderTime(e.target.value)}
-                      style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:12.5, color:textMain, outline:"none", fontFamily:"inherit"}}/>
-                  </div>
-                  {reminderTime && (
-                    <button onClick={()=>setReminderTime("")} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, cursor:"pointer", borderRadius:9, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                      <X size={12}/>
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
-
             <div style={{fontSize:10.5, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.taskPriority}</div>
             <div style={{display:"flex", gap:6, marginBottom:12}}>
               {["high","med","low"].map(p => (
