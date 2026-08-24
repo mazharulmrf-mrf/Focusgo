@@ -9312,7 +9312,7 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
   // ডিফল্টে শুধু Title + Date দেখানো হয় (দ্রুত টাস্ক যোগ করার জন্য) — Category/Priority/Repeat "More options"-এর নিচে লুকানো,
   // এডিট করার সময় বা কেউ আগে থেকে এগুলো সেট করে থাকলে খোলাই দেখানো হয়
   const [showMore, setShowMore] = useState(
-    !!initialTask && (initialTask.priority !== "med" || !!initialTask.repeat || (categories && categories[0] && initialTask.category !== categories[0].key))
+    !!initialTask && (initialTask.priority !== "med" || !!initialTask.repeat || !!initialTask.note || (categories && categories[0] && initialTask.category !== categories[0].key))
   );
   const sheetRef = useRef(null);
   const titleInputRef = useRef(null);
@@ -9359,13 +9359,27 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
           onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
           style={{width:"100%", boxSizing:"border-box", background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"12px 14px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit", marginBottom:14}}/>
 
-        <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.taskDueDateOptional}</div>
-        <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:dueDate ? 14 : 16}}>
-          <div style={{flex:1, display:"flex", alignItems:"center", gap:8, background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 14px"}}>
+        <div style={{display:"flex", gap:14, marginBottom:8}}>
+          <div style={{flex:1, fontSize:11, fontWeight:700, color:textMuted2}}>{t.taskDueDateOptional}</div>
+          {dueDate && (
+            <div style={{flex:1, fontSize:11, fontWeight:700, color:textMuted2, display:"flex", alignItems:"center", gap:5}}>
+              <Bell size={11}/> {lang==="bn" ? "রিমাইন্ডার" : "Reminder"}
+            </div>
+          )}
+        </div>
+        <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:16}}>
+          <div style={{flex:1, minWidth:0, display:"flex", alignItems:"center", gap:6, background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 10px"}}>
             <CalendarDays size={15} color={textMuted2} style={{flexShrink:0}}/>
             <input type="date" value={dueDate} onChange={e=>setDueDate(e.target.value)}
-              style={{flex:1, minWidth:0, border:"none", background:"transparent", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit"}}/>
+              style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit"}}/>
           </div>
+          {dueDate && (
+            <div style={{flex:1, minWidth:0, display:"flex", alignItems:"center", gap:6, background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 10px"}}>
+              <Clock size={15} color={textMuted2} style={{flexShrink:0}}/>
+              <input type="time" value={reminderTime} onChange={e=>setReminderTime(e.target.value)}
+                style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit"}}/>
+            </div>
+          )}
           {dueDate && (
             <button onClick={()=>{setDueDate(""); setReminderTime("");}} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, cursor:"pointer", borderRadius:10, width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
               <X size={14}/>
@@ -9373,29 +9387,9 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
           )}
         </div>
 
-        {dueDate && (
-          <>
-            <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8, display:"flex", alignItems:"center", gap:6}}>
-              <Bell size={12}/> {lang==="bn" ? "রিমাইন্ডার (ঐচ্ছিক)" : "Reminder (optional)"}
-            </div>
-            <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:16}}>
-              <div style={{flex:1, display:"flex", alignItems:"center", gap:8, background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 14px"}}>
-                <Clock size={15} color={textMuted2} style={{flexShrink:0}}/>
-                <input type="time" value={reminderTime} onChange={e=>setReminderTime(e.target.value)}
-                  style={{flex:1, minWidth:0, border:"none", background:"transparent", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit"}}/>
-              </div>
-              {reminderTime && (
-                <button onClick={()=>setReminderTime("")} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, cursor:"pointer", borderRadius:10, width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                  <X size={14}/>
-                </button>
-              )}
-            </div>
-          </>
-        )}
-
         <button onClick={()=>setShowMore(v=>!v)} style={{display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:"2px 0", fontSize:12, fontWeight:800, marginBottom: showMore ? 14 : 20}}>
           <ChevronDown size={14} style={{transform: showMore ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
-          {showMore ? (lang==="bn" ? "কম দেখাও" : "Fewer options") : (lang==="bn" ? "আরও অপশন (ক্যাটাগরি, প্রায়োরিটি, রিপিট)" : "More options (category, priority, repeat)")}
+          {showMore ? (lang==="bn" ? "কম দেখাও" : "Fewer options") : (lang==="bn" ? "আরও অপশন (ক্যাটাগরি, প্রায়োরিটি, রিপিট, নোট)" : "More options (category, priority, repeat, note)")}
         </button>
 
         {showMore && (
@@ -9470,12 +9464,12 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
                 </button>
               ))}
             </div>
+
+            <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{lang==="bn" ? "নোট (ঐচ্ছিক)" : "Note (optional)"}</div>
+            <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder={lang==="bn" ? "কোনো নোট লিখুন..." : "Add a note..."}
+              style={{width:"100%", boxSizing:"border-box", minHeight:64, background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 12px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit", resize:"none", marginBottom:18}}/>
           </>
         )}
-
-        <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{lang==="bn" ? "নোট (ঐচ্ছিক)" : "Note (optional)"}</div>
-        <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder={lang==="bn" ? "কোনো নোট লিখুন..." : "Add a note..."}
-          style={{width:"100%", boxSizing:"border-box", minHeight:64, background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 12px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit", resize:"none", marginBottom:18}}/>
 
         <button onClick={submit} style={{width:"100%", padding:"13px 0", borderRadius:16, border:"none", background:accent, color:"#fff", fontWeight:800, fontSize:14, cursor:"pointer"}}>
           {isEditing ? (lang==="bn" ? "সেভ করুন" : "Save Changes") : t.taskAddBtn}
