@@ -4214,6 +4214,13 @@ export default function FocusGo() {
         .fg-check-pop { animation: fg-check-pop .28s cubic-bezier(0.34,1.56,0.64,1); }
         @keyframes fg-ring-pop { 0% { transform:scale(1); } 50% { transform:scale(1.06); } 100% { transform:scale(1); } }
         .fg-ring-pop { animation: fg-ring-pop .35s cubic-bezier(0.34,1.56,0.64,1); }
+
+        /* ---- bottom-sheet modals (New task, Settings, ইত্যাদি) — নিচ থেকে স্মুথলি স্লাইড করে উঠবে,
+           backdrop আলাদাভাবে ফেড হবে, যাতে "ঝাঁকুনি" না লেগে একটাই মসৃণ মোশন মনে হয় ---- */
+        @keyframes fg-sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes fg-backdrop-in { from { opacity:0; } to { opacity:1; } }
+        .fg-sheet-backdrop { animation: fg-backdrop-in .18s ease-out; }
+        .fg-sheet { animation: fg-sheet-up .26s cubic-bezier(0.16,1,0.3,1); will-change: transform; }
       `}</style>
       {isDesktop && !sidebarHidden && (
         <DesktopSidebar t={t} tab={tab} setTab={setTab} vibrate={vibrate} dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(v => !v)} onHideAll={() => setSidebarHidden(true)} />
@@ -7942,6 +7949,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   const [undo, setUndo] = useState(null); // { id, title } — সর্বশেষ ট্র্যাশে পাঠানো নোট, Undo স্ন্যাকবার দেখানোর জন্য
   const trashTimersRef = useRef({}); // প্রতিটা ডিলিটের জন্য Undo স্ন্যাকবার লুকানোর টাইমার (id ধরে ধরে)
   const TRASH_RETENTION_DAYS = 30; // ট্র্যাশে কতদিন থাকার পর নোট auto-permanent-delete হয়ে যাবে
+  const [trashConfirm, setTrashConfirm] = useState(null); // { type: "one"|"all", id? } — window.confirm() এর বদলে নিজস্ব modal (Capacitor WebView-তে window.confirm অনির্ভরযোগ্য)
   const dragRef = useRef({ id: null, startX: 0, startY: 0, dragging: false, timeout: null }); // ড্র্যাগের রানটাইম তথ্য (রি-রেন্ডার ছাড়াই দরকার)
   const justDraggedRef = useRef(false); // ড্র্যাগ শেষ হওয়ার পর একই ট্যাপে যেন নোট এডিটর খুলে না যায়
   const nf = (n) => (lang === "bn" ? toBn(n) : n); // সংখ্যা — বাংলা হলে বাংলা অংক
@@ -8305,16 +8313,22 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     setNotes(prev => prev.map(n => n.id === id ? { ...n, deletedAt: null } : n));
   };
 
-  // ট্র্যাশ থেকে একটা নোট চিরতরে মুছে ফেলা — এখানেই শুধু confirm চাওয়া হয়, কারণ এটাই আর ফেরত আসবে না
-  const deleteForever = (id) => {
-    if (!window.confirm(lang === "bn" ? "এই নোটটা চিরতরে ডিলিট হবে। নিশ্চিত?" : "This note will be permanently deleted. Are you sure?")) return;
-    setNotes(prev => prev.filter(n => n.id !== id));
-  };
+  // ট্র্যাশ থেকে একটা নোট চিরতরে মুছে ফেলা — window.confirm() না দেখিয়ে নিজস্ব modal-এ confirm চাওয়া হয়
+  // (Capacitor/Android WebView-তে window.confirm() প্রায়ই dialog না দেখিয়েই false রিটার্ন করে, ফলে ডিলিট কাজ করে না বলে মনে হয়)
+  const deleteForever = (id) => setTrashConfirm({ type: "one", id });
 
-  // পুরো ট্র্যাশ একসাথে খালি করা
-  const emptyTrash = () => {
-    if (!window.confirm(lang === "bn" ? "ট্র্যাশের সব নোট চিরতরে ডিলিট হবে। নিশ্চিত?" : "All notes in Trash will be permanently deleted. Are you sure?")) return;
-    setNotes(prev => prev.filter(n => !n.deletedAt));
+  // পুরো ট্র্যাশ একসাথে খালি করা — একই কারণে নিজস্ব modal ব্যবহার করা হচ্ছে
+  const emptyTrash = () => setTrashConfirm({ type: "all" });
+
+  // Modal-এ "নিশ্চিত" চাপলে আসল ডিলিট এখানে হয়
+  const confirmTrashAction = () => {
+    if (!trashConfirm) return;
+    if (trashConfirm.type === "one") {
+      setNotes(prev => prev.filter(n => n.id !== trashConfirm.id));
+    } else {
+      setNotes(prev => prev.filter(n => !n.deletedAt));
+    }
+    setTrashConfirm(null);
   };
 
   const togglePin = (id) => {
@@ -8881,6 +8895,31 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         </div>
       )}
 
+      {/* ট্র্যাশ থেকে "চিরতরে ডিলিট" বা "ট্র্যাশ খালি করুন" — window.confirm() এর বদলে নিজস্ব confirm modal,
+          কারণ Capacitor/Android WebView-তে window.confirm() নির্ভরযোগ্যভাবে কাজ করে না */}
+      {trashConfirm && (
+        <div onClick={()=>setTrashConfirm(null)} style={{position:"fixed", inset:0, zIndex:60, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", padding:20}}>
+          <div onClick={e=>e.stopPropagation()} style={{width:"100%", maxWidth:340, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:18, boxShadow:"0 10px 30px rgba(0,0,0,0.25)"}}>
+            <div style={{fontSize:14, fontWeight:800, color:textMain, marginBottom:6}}>
+              {lang==="bn" ? "নিশ্চিত করুন" : "Are you sure?"}
+            </div>
+            <div style={{fontSize:12.5, color:textMuted2, lineHeight:1.5, marginBottom:16}}>
+              {trashConfirm.type === "one"
+                ? (lang==="bn" ? "এই নোটটা চিরতরে ডিলিট হবে। এটা আর ফেরত আনা যাবে না।" : "This note will be permanently deleted. This cannot be undone.")
+                : (lang==="bn" ? "ট্র্যাশের সব নোট চিরতরে ডিলিট হবে। এটা আর ফেরত আনা যাবে না।" : "All notes in Trash will be permanently deleted. This cannot be undone.")}
+            </div>
+            <div style={{display:"flex", gap:8, justifyContent:"flex-end"}}>
+              <button onClick={()=>setTrashConfirm(null)} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, borderRadius:10, padding:"8px 14px", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
+                {lang==="bn" ? "বাতিল" : "Cancel"}
+              </button>
+              <button onClick={confirmTrashAction} style={{border:"none", background:"#C54B4B", color:"#fff", borderRadius:10, padding:"8px 14px", fontSize:12.5, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", gap:6}}>
+                <Trash2 size={13}/> {lang==="bn" ? "ডিলিট" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {editing && (() => {
         const noteCol = noteColorFor(category, categories);
         const editorBg = bg; // পুরো স্ক্রিনের নিরপেক্ষ পেজ ব্যাকগ্রাউন্ড — থিম অনুযায়ী বদলায়
@@ -9268,8 +9307,16 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
     !!initialTask && (initialTask.priority !== "med" || !!initialTask.repeat || (categories && categories[0] && initialTask.category !== categories[0].key))
   );
   const sheetRef = useRef(null);
+  const titleInputRef = useRef(null);
   const vh = useVisualViewportHeight(); // কিবোর্ড খোলা অবস্থায় দৃশ্যমান উচ্চতা — sheet-কে এর মধ্যেই ধরে রাখা হয়
   const isEditing = !!initialTask;
+
+  // sheet-এর slide-up animation শেষ হওয়ার পরেই input-এ focus করে কিবোর্ড খোলা হচ্ছে —
+  // নাহলে মডাল ওঠা আর কিবোর্ড খোলা একই সাথে হয়ে দুটো আলাদা "ঝাঁকুনি" মনে হয়
+  useEffect(() => {
+    const timer = setTimeout(() => titleInputRef.current?.focus(), 260);
+    return () => clearTimeout(timer);
+  }, []);
 
   const submit = () => {
     if (!title.trim()) return;
@@ -9293,14 +9340,14 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
   const prLabel = { high: t.taskPrHigh, med: t.taskPrMed, low: t.taskPrLow };
 
   return (
-    <div style={{position:"fixed", left:0, top:0, width:"100%", height:vh, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div ref={sheetRef} onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:Math.max(320, vh - 24), overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"22px 22px 0 0", padding:"20px 20px 26px", color:textMain}}>
+    <div className="fg-sheet-backdrop" style={{position:"fixed", left:0, top:0, width:"100%", height:vh, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
+      <div ref={sheetRef} className="fg-sheet" onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:Math.max(320, vh - 24), overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"22px 22px 0 0", padding:"20px 20px 26px", color:textMain}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
           <div style={{fontSize:16, fontWeight:800}}>{isEditing ? (lang==="bn" ? "টাস্ক এডিট করুন" : "Edit Task") : t.taskAdd}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer"}}><X size={20}/></button>
         </div>
 
-        <input autoFocus value={title} onChange={e=>setTitle(e.target.value)} placeholder={t.taskTitlePlaceholder}
+        <input ref={titleInputRef} value={title} onChange={e=>setTitle(e.target.value)} placeholder={t.taskTitlePlaceholder}
           onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
           style={{width:"100%", boxSizing:"border-box", background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"12px 14px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit", marginBottom:14}}/>
 
