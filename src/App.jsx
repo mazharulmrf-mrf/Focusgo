@@ -4891,11 +4891,11 @@ export default function FocusGo() {
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {homeTodayTasks.map(x => (
-                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:10,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"10px 12px",opacity:x.done?0.55:1}}>
+                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:10,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"10px 12px",height:41,boxSizing:"border-box",opacity:x.done?0.55:1}}>
                     <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:21,height:21,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
                       {x.done && <Check size={12} color="#fff" strokeWidth={3}/>}
                     </button>
-                    <div style={{flex:1,minWidth:0,fontSize:13,fontWeight:500,color:textMain,overflowWrap:"break-word",wordBreak:"break-word",whiteSpace:"normal",lineHeight:1.4}}>
+                    <div style={{flex:1,minWidth:0,fontSize:13,fontWeight:500,color:textMain,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                       {x.title}
                     </div>
                     <div style={{position:"relative", flexShrink:0}}>
@@ -8937,7 +8937,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         const iconColor = textMain; // হেডার ও বটম টুলবারের আইকন/টেক্সট — পেজ ব্যাকগ্রাউন্ডের সাথে ঠিকমতো কনট্রাস্ট থাকার জন্য
         const toolbarActiveBg = dark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.07)";
         return (
-        <div style={{position:"fixed",left:0,top:0,width:"100%",height:vh,background:editorBg,display:"flex",flexDirection:"column",zIndex:60}} onClick={()=>{setShowMoreMenu(false);setShowColorPicker(false);categoryMenuFor && setCategoryMenuFor(null);}}>
+        <div style={{position:"fixed",left:0,top:0,width:"100%",height:vh,transition:"height .18s ease",background:editorBg,display:"flex",flexDirection:"column",zIndex:60}} onClick={()=>{setShowMoreMenu(false);setShowColorPicker(false);categoryMenuFor && setCategoryMenuFor(null);}}>
 
           {/* Top bar */}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 14px",flexShrink:0}}>
@@ -9348,8 +9348,8 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
   const prLabel = { high: t.taskPrHigh, med: t.taskPrMed, low: t.taskPrLow };
 
   return (
-    <div className="fg-sheet-backdrop" style={{position:"fixed", left:0, top:0, width:"100%", height:vh, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div ref={sheetRef} className="fg-sheet" onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:Math.max(320, vh - 24), overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"22px 22px 0 0", padding:"20px 20px 26px", color:textMain}}>
+    <div className="fg-sheet-backdrop" style={{position:"fixed", left:0, top:0, width:"100%", height:vh, transition:"height .18s ease", background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
+      <div ref={sheetRef} className="fg-sheet" onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:Math.max(320, vh - 24), transition:"max-height .18s ease", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"22px 22px 0 0", padding:"20px 20px 26px", color:textMain}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
           <div style={{fontSize:16, fontWeight:800}}>{isEditing ? (lang==="bn" ? "টাস্ক এডিট করুন" : "Edit Task") : t.taskAdd}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer"}}><X size={20}/></button>
