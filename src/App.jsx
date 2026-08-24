@@ -5738,12 +5738,10 @@ export default function FocusGo() {
       {taskDetailId && (() => {
         const x = tasks.find(tk => tk.id === taskDetailId);
         if (!x) return null;
-        const cat = findTaskCategory(taskCategories, x.category);
-        const catLabel = x.category === "study" ? t.taskStudy : x.category === "personal" ? t.taskPersonal : (lang === "bn" ? (cat.labelBn || cat.label) : cat.label);
         const pr = x.priority || "med";
         return (
           <TaskDetailSheet
-            task={x} categoryLabel={catLabel} priorityLabel={{high:t.taskPrHigh, med:t.taskPrMed, low:t.taskPrLow}[pr]}
+            task={x} priorityLabel={{high:t.taskPrHigh, med:t.taskPrMed, low:t.taskPrLow}[pr]}
             priorityColor={{high:"#C0392B", med:accent, low:"#6E8B5E"}[pr]}
             lang={lang} nf={nf}
             onClose={()=>setTaskDetailId(null)}
@@ -9222,7 +9220,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 }
 
 // টাস্ক রো-তে ট্যাপ করলে খোলা রিড-অনলি ডিটেইল শিট — ফুল টাইটেল, প্রায়োরিটি, ক্যাটাগরি/ডিউ-ডেট, নোট দেখায়; এডিট করতে পেন্সিল আইকনে চাপলে AddTaskModal খোলে
-function TaskDetailSheet({ task, categoryLabel, priorityLabel, priorityColor, lang, nf, onClose, onToggleDone, onEdit, onDelete, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
+function TaskDetailSheet({ task, priorityLabel, priorityColor, lang, nf, onClose, onToggleDone, onEdit, onDelete, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const closeMenu = () => { setMenuOpen(false); setConfirmDelete(false); };
@@ -9284,10 +9282,14 @@ function TaskDetailSheet({ task, categoryLabel, priorityLabel, priorityColor, la
           {priorityLabel}
         </span>
 
-        <div style={{fontSize:10, fontWeight:700, letterSpacing:0.5, color:textMuted2, textTransform:"uppercase", marginTop:16, marginBottom:6}}>{lang==="bn"?"ক্যাটাগরি ও ডিউ ডেট":"Category & Due Date"}</div>
-        <div style={{fontSize:13, fontWeight:500, color:textMain}}>
-          {categoryLabel}{task.dueDate ? ` · ${new Date(task.dueDate+"T00:00:00").toLocaleDateString(lang==="bn"?"bn-BD":"en-US", {day:"numeric", month:"short"})}` : ""}
-        </div>
+        {task.dueDate && (
+          <>
+            <div style={{fontSize:10, fontWeight:700, letterSpacing:0.5, color:textMuted2, textTransform:"uppercase", marginTop:16, marginBottom:6}}>{lang==="bn"?"ডিউ ডেট":"Due Date"}</div>
+            <div style={{fontSize:13, fontWeight:500, color:textMain}}>
+              {new Date(task.dueDate+"T00:00:00").toLocaleDateString(lang==="bn"?"bn-BD":"en-US", {day:"numeric", month:"short", year:"numeric"})}
+            </div>
+          </>
+        )}
 
         <div style={{fontSize:10, fontWeight:700, letterSpacing:0.5, color:textMuted2, textTransform:"uppercase", marginTop:16, marginBottom:6}}>{lang==="bn"?"নোট":"Note"}</div>
         <div style={{fontSize:13, fontWeight:400, lineHeight:1.55, color: task.note ? textMain : textMuted2, background:bg, borderRadius:12, padding:"10px 12px", minHeight:20, whiteSpace:"pre-wrap", wordBreak:"break-word"}}>
@@ -9301,18 +9303,16 @@ function TaskDetailSheet({ task, categoryLabel, priorityLabel, priorityColor, la
 
 function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate, categories, onAddCategory, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
   const [title, setTitle] = useState(initialTask?.title || "");
-  const [category, setCategory] = useState(initialTask?.category || (categories && categories[0] && categories[0].key) || "study");
+  const category = initialTask?.category || (categories && categories[0] && categories[0].key) || "study"; // category picker সরিয়ে দেওয়া হয়েছে (functional filter/group ছিল না, শুধু মেটাডেটা) — ডিফল্ট ভ্যালুই সেভ হবে
   const [priority, setPriority] = useState(initialTask?.priority || "med");
   const [dueDate, setDueDate] = useState(initialTask?.dueDate || defaultDueDate || "");
   const [repeat, setRepeat] = useState(initialTask?.repeat || "none"); // "none" | "daily" | "weekly" | "monthly"
   const [reminderTime, setReminderTime] = useState(initialTask?.reminderTime || "");
   const [note, setNote] = useState(initialTask?.note || "");
-  const [addingCategory, setAddingCategory] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState("");
-  // ডিফল্টে শুধু Title + Date দেখানো হয় (দ্রুত টাস্ক যোগ করার জন্য) — Category/Priority/Repeat "More options"-এর নিচে লুকানো,
+  // ডিফল্টে শুধু Title + Date দেখানো হয় (দ্রুত টাস্ক যোগ করার জন্য) — Priority/Repeat/Note "More options"-এর নিচে লুকানো,
   // এডিট করার সময় বা কেউ আগে থেকে এগুলো সেট করে থাকলে খোলাই দেখানো হয়
   const [showMore, setShowMore] = useState(
-    !!initialTask && (initialTask.priority !== "med" || !!initialTask.repeat || !!initialTask.note || (categories && categories[0] && initialTask.category !== categories[0].key))
+    !!initialTask && (initialTask.priority !== "med" || !!initialTask.repeat || !!initialTask.note)
   );
   const sheetRef = useRef(null);
   const titleInputRef = useRef(null);
@@ -9339,139 +9339,86 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
     onClose();
   };
 
-  const confirmNewCategory = () => {
-    const cat = onAddCategory(newCategoryName);
-    if (cat) { setCategory(cat.key); setNewCategoryName(""); setAddingCategory(false); }
-  };
-
   const prColor = { high: "#C0392B", med: accent, low: "#6E8B5E" };
   const prLabel = { high: t.taskPrHigh, med: t.taskPrMed, low: t.taskPrLow };
 
   return (
     <div className="fg-sheet-backdrop" style={{position:"fixed", left:0, top:0, width:"100%", height:vh, transition:"height .18s ease", background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div ref={sheetRef} className="fg-sheet" onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:Math.max(320, vh - 24), transition:"max-height .18s ease", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"22px 22px 0 0", padding:"20px 20px 26px", color:textMain}}>
-        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
-          <div style={{fontSize:16, fontWeight:800}}>{isEditing ? (lang==="bn" ? "টাস্ক এডিট করুন" : "Edit Task") : t.taskAdd}</div>
-          <button onClick={onClose} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer"}}><X size={20}/></button>
+      <div ref={sheetRef} className="fg-sheet" onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:Math.max(320, vh - 24), transition:"max-height .18s ease", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"20px 20px 0 0", padding:"14px 16px 18px", color:textMain}}>
+        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
+          <div style={{fontSize:15, fontWeight:800}}>{isEditing ? (lang==="bn" ? "টাস্ক এডিট করুন" : "Edit Task") : t.taskAdd}</div>
+          <button onClick={onClose} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:2}}><X size={18}/></button>
         </div>
 
         <input ref={titleInputRef} value={title} onChange={e=>setTitle(e.target.value)} placeholder={t.taskTitlePlaceholder}
           onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
-          style={{width:"100%", boxSizing:"border-box", background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"12px 14px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit", marginBottom:14}}/>
+          style={{width:"100%", boxSizing:"border-box", background:bg, border:`1px solid ${cardBorder}`, borderRadius:11, padding:"9px 12px", fontSize:13.5, color:textMain, outline:"none", fontFamily:"inherit", marginBottom:9}}/>
 
-        <div style={{display:"flex", gap:14, marginBottom:8}}>
-          <div style={{flex:1, fontSize:11, fontWeight:700, color:textMuted2}}>{t.taskDueDateOptional}</div>
-          {dueDate && (
-            <div style={{flex:1, fontSize:11, fontWeight:700, color:textMuted2, display:"flex", alignItems:"center", gap:5}}>
-              <Bell size={11}/> {lang==="bn" ? "রিমাইন্ডার" : "Reminder"}
-            </div>
-          )}
-        </div>
-        <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:16}}>
-          <div style={{flex:1, minWidth:0, display:"flex", alignItems:"center", gap:6, background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 10px"}}>
-            <CalendarDays size={15} color={textMuted2} style={{flexShrink:0}}/>
+        <div style={{display:"flex", alignItems:"center", gap:6, marginBottom:9}}>
+          <div style={{flex:1, minWidth:0, display:"flex", alignItems:"center", gap:5, background:bg, border:`1px solid ${cardBorder}`, borderRadius:11, padding:"7px 9px"}}>
+            <CalendarDays size={13} color={textMuted2} style={{flexShrink:0}}/>
             <input type="date" value={dueDate} onChange={e=>setDueDate(e.target.value)}
-              style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit"}}/>
+              style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:12.5, color:textMain, outline:"none", fontFamily:"inherit"}}/>
           </div>
           {dueDate && (
-            <div style={{flex:1, minWidth:0, display:"flex", alignItems:"center", gap:6, background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 10px"}}>
-              <Clock size={15} color={textMuted2} style={{flexShrink:0}}/>
+            <div style={{flex:1, minWidth:0, display:"flex", alignItems:"center", gap:5, background:bg, border:`1px solid ${cardBorder}`, borderRadius:11, padding:"7px 9px"}}>
+              <Bell size={13} color={textMuted2} style={{flexShrink:0}}/>
               <input type="time" value={reminderTime} onChange={e=>setReminderTime(e.target.value)}
-                style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit"}}/>
+                style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:12.5, color:textMain, outline:"none", fontFamily:"inherit"}}/>
             </div>
           )}
           {dueDate && (
-            <button onClick={()=>{setDueDate(""); setReminderTime("");}} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, cursor:"pointer", borderRadius:10, width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-              <X size={14}/>
+            <button onClick={()=>{setDueDate(""); setReminderTime("");}} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, cursor:"pointer", borderRadius:9, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+              <X size={12}/>
             </button>
           )}
         </div>
 
-        <button onClick={()=>setShowMore(v=>!v)} style={{display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:"2px 0", fontSize:12, fontWeight:800, marginBottom: showMore ? 14 : 20}}>
-          <ChevronDown size={14} style={{transform: showMore ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
-          {showMore ? (lang==="bn" ? "কম দেখাও" : "Fewer options") : (lang==="bn" ? "আরও অপশন (ক্যাটাগরি, প্রায়োরিটি, রিপিট, নোট)" : "More options (category, priority, repeat, note)")}
+        <button onClick={()=>setShowMore(v=>!v)} style={{display:"flex", alignItems:"center", gap:5, border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:"2px 0", fontSize:11.5, fontWeight:800, marginBottom: showMore ? 10 : 12}}>
+          <ChevronDown size={13} style={{transform: showMore ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+          {showMore ? (lang==="bn" ? "কম দেখাও" : "Fewer options") : (lang==="bn" ? "আরও অপশন" : "More options")}
         </button>
 
         {showMore && (
           <>
-            <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.taskCategory}</div>
-            <div style={{display:"flex", gap:8, marginBottom:14, overflowX:"auto", paddingBottom:2}}>
-              {(categories || []).map(c => {
-                const Icon = taskCategoryIcon(c.icon);
-                const label = lang === "bn" ? (c.labelBn || c.label) : c.label;
-                const active = category === c.key;
-                return (
-                  <button key={c.key} onClick={()=>setCategory(c.key)} style={{
-                    flexShrink:0, padding:"9px 14px", borderRadius:12, cursor:"pointer", whiteSpace:"nowrap",
-                    border:`1.5px solid ${active ? c.color : cardBorder}`,
-                    background: active ? `${c.color}1F` : "transparent",
-                    color: active ? c.color : textMuted2, fontWeight:700, fontSize:13,
-                    display:"flex", alignItems:"center", justifyContent:"center", gap:4,
-                  }}>
-                    <Icon size={13}/>
-                    {label}
-                  </button>
-                );
-              })}
-              <button onClick={()=>setAddingCategory(v=>!v)} title={t.taskAddCategory} style={{
-                flexShrink:0, width:36, height:36, borderRadius:12, cursor:"pointer",
-                border:`1.5px dashed ${cardBorder}`, background:"transparent", color:textMuted2,
-                display:"flex", alignItems:"center", justifyContent:"center",
-              }}>
-                <Plus size={15}/>
-              </button>
-            </div>
-
-            {addingCategory && (
-              <div style={{display:"flex", gap:8, marginBottom:14}}>
-                <input autoFocus value={newCategoryName} onChange={e=>setNewCategoryName(e.target.value)}
-                  placeholder={t.taskNewCategoryPlaceholder}
-                  onKeyDown={e=>{ if (e.key === "Enter") { e.preventDefault(); confirmNewCategory(); } }}
-                  style={{flex:1, minWidth:0, boxSizing:"border-box", background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 12px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit"}}/>
-                <button onClick={confirmNewCategory} style={{border:"none", borderRadius:12, padding:"0 16px", background:accent, color:"#fff", fontWeight:800, fontSize:13, cursor:"pointer"}}>
-                  {t.add}
-                </button>
-              </div>
-            )}
-
-            <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.taskPriority}</div>
-            <div style={{display:"flex", gap:8, marginBottom:20}}>
+            <div style={{fontSize:10.5, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.taskPriority}</div>
+            <div style={{display:"flex", gap:6, marginBottom:12}}>
               {["high","med","low"].map(p => (
                 <button key={p} onClick={()=>setPriority(p)} style={{
-                  flex:1, padding:"8px 0", borderRadius:12, cursor:"pointer",
+                  flex:1, padding:"6px 0", borderRadius:10, cursor:"pointer",
                   border:`1.5px solid ${priority===p ? prColor[p] : cardBorder}`,
                   background: priority===p ? `${prColor[p]}14` : "transparent",
-                  color: priority===p ? prColor[p] : textMuted2, fontWeight:700, fontSize:13,
+                  color: priority===p ? prColor[p] : textMuted2, fontWeight:700, fontSize:12,
                 }}>
                   {prLabel[p]}
                 </button>
               ))}
             </div>
 
-            <div style={{display:"flex", alignItems:"center", gap:6, marginBottom:8}}>
-              <Repeat size={12} color={textMuted2}/>
-              <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>{t.taskRepeat}</div>
+            <div style={{display:"flex", alignItems:"center", gap:5, marginBottom:6}}>
+              <Repeat size={11} color={textMuted2}/>
+              <div style={{fontSize:10.5, fontWeight:700, color:textMuted2}}>{t.taskRepeat}</div>
             </div>
-            <div style={{display:"flex", gap:8, marginBottom:20, overflowX:"auto"}}>
+            <div style={{display:"flex", gap:6, marginBottom:12, overflowX:"auto"}}>
               {[["none", t.taskRepeatNone], ["daily", t.taskRepeatDaily], ["weekly", t.taskRepeatWeekly], ["monthly", t.taskRepeatMonthly]].map(([r,label]) => (
                 <button key={r} onClick={()=>setRepeat(r)} style={{
-                  flex:1, padding:"8px 4px", borderRadius:12, cursor:"pointer", flexShrink:0, whiteSpace:"nowrap",
+                  flex:1, padding:"6px 4px", borderRadius:10, cursor:"pointer", flexShrink:0, whiteSpace:"nowrap",
                   border:`1.5px solid ${repeat===r ? accent : cardBorder}`,
                   background: repeat===r ? "rgba(217,119,87,0.08)" : "transparent",
-                  color: repeat===r ? accent : textMuted2, fontWeight:700, fontSize:12,
+                  color: repeat===r ? accent : textMuted2, fontWeight:700, fontSize:11.5,
                 }}>
                   {label}
                 </button>
               ))}
             </div>
 
-            <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{lang==="bn" ? "নোট (ঐচ্ছিক)" : "Note (optional)"}</div>
+            <div style={{fontSize:10.5, fontWeight:700, color:textMuted2, marginBottom:6}}>{lang==="bn" ? "নোট (ঐচ্ছিক)" : "Note (optional)"}</div>
             <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder={lang==="bn" ? "কোনো নোট লিখুন..." : "Add a note..."}
-              style={{width:"100%", boxSizing:"border-box", minHeight:64, background:bg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 12px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit", resize:"none", marginBottom:18}}/>
+              style={{width:"100%", boxSizing:"border-box", minHeight:46, background:bg, border:`1px solid ${cardBorder}`, borderRadius:10, padding:"7px 10px", fontSize:12.5, color:textMain, outline:"none", fontFamily:"inherit", resize:"none", marginBottom:12}}/>
           </>
         )}
 
-        <button onClick={submit} style={{width:"100%", padding:"13px 0", borderRadius:16, border:"none", background:accent, color:"#fff", fontWeight:800, fontSize:14, cursor:"pointer"}}>
+        <button onClick={submit} style={{width:"100%", padding:"11px 0", borderRadius:14, border:"none", background:accent, color:"#fff", fontWeight:800, fontSize:13.5, cursor:"pointer"}}>
           {isEditing ? (lang==="bn" ? "সেভ করুন" : "Save Changes") : t.taskAddBtn}
         </button>
       </div>
