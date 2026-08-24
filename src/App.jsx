@@ -1668,6 +1668,7 @@ const T = {
     summaryPendingMonth: "Summary will show once this month ends.",
     addTopicTitle: "Add a topic", subjectLabel: "Subject", subjectPlaceholder: "e.g. Physics, বাংলা...",
     pickSubject: "Pick a subject, or type a new one below", newSubjectAutoSaved: "A new subject you type here is added to your subject list too.",
+    chooseFromList: "Choose from list", hideSubjectList: "Hide list",
     lightMode: "Switch to light mode", darkMode: "Switch to dark mode",
     hapticFeedback: "Haptic feedback",
     themeSystem: "System", themeLight: "Light", themeDark: "Dark",
@@ -1817,6 +1818,7 @@ const T = {
     summaryPendingMonth: "এই মাস শেষ হলে সারাংশ দেখা যাবে।",
     addTopicTitle: "টপিক যোগ করুন", subjectLabel: "সাবজেক্ট", subjectPlaceholder: "যেমন: Physics, বাংলা...",
     pickSubject: "একটা সাবজেক্ট বেছে নাও, বা নিচে নতুন লিখো", newSubjectAutoSaved: "এখানে নতুন যা লিখবে সেটাও তোমার সাবজেক্ট লিস্টে যোগ হয়ে যাবে।",
+    chooseFromList: "লিস্ট থেকে বেছে নাও", hideSubjectList: "লিস্ট লুকাও",
     lightMode: "লাইট মোডে যান", darkMode: "ডার্ক মোডে যান",
     hapticFeedback: "কম্পন (Haptic Feedback)",
     themeSystem: "সিস্টেম", themeLight: "লাইট", themeDark: "ডার্ক",
@@ -5378,7 +5380,7 @@ export default function FocusGo() {
             {/* ফ্লোটিং + বাটন — ".fg-tab-panel"-এর বাইরে (sibling হিসেবে) রাখা হয়েছে যাতে পেজ-লোড অ্যানিমেশনের transform এটাকে
                 উপর থেকে নিচে স্লাইড করিয়ে না আনে — সবসময় বটম-ন্যাভের ঠিক উপরে স্থির থাকবে;
                 Calendar view-এ থাকলে ও কোনো দিন সিলেক্ট করা থাকলে সেই দিনটাই নতুন টাস্কের due date হিসেবে prefill হয়ে যাবে */}
-            <button onClick={()=>{vibrate(); setTaskAddDefaultDate(taskViewMode === "calendar" ? (taskCalSelectedDay || todayKey) : null); setShowAddTask(true);}} title={t.taskAdd} style={{
+            <button onClick={()=>{vibrate(); setTaskAddDefaultDate(taskViewMode === "calendar" ? (taskCalSelectedDay || todayKey) : todayKey); setShowAddTask(true);}} title={t.taskAdd} style={{
               position:"fixed", right:20, bottom: isDesktop ? 28 : 96, zIndex:41,
               width:40, height:40, borderRadius:12, border:"none", background:accent, color:"#fff",
               display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
@@ -7297,6 +7299,7 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
   const [endTime, setEndTime] = useState(minutesToTime(timeToMinutes(defaultStart) + 30));
   const [useDuration, setUseDuration] = useState(false);
   const [durationInput, setDurationInput] = useState(30);
+  const [showSubjectPicker, setShowSubjectPicker] = useState(false); // সাবজেক্ট চিপ লিস্ট ডিফল্টে লুকানো থাকে (অনেকগুলো সাবজেক্ট থাকলে huge space নিত) — "Choose from list" চাপলেই খুলবে
   const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const duration = useTime ? diffMinutes(startTime, endTime) : (useDuration ? (Number(durationInput) || 0) : 0);
   const canSubmit = subject.trim() && topic.trim();
@@ -7321,12 +7324,22 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
         </div>
         <div style={{display:"flex", flexDirection:"column", gap:12}}>
           <div>
-            <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.subjectLabel}</div>
-            {subjectChips.length > 0 && (
-              <div style={{fontSize:10, fontWeight:700, color:textMuted2, opacity:0.8, marginBottom:0}}>{t.pickSubject}</div>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
+              <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>{t.subjectLabel}</div>
+              {subjectChips.length > 0 && (
+                <button type="button" onClick={()=>setShowSubjectPicker(v=>!v)} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:accent, cursor:"pointer", fontSize:11, fontWeight:700, padding:0}}>
+                  {showSubjectPicker ? t.hideSubjectList : t.chooseFromList}
+                  <ChevronDown size={12} style={{transform: showSubjectPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+                </button>
+              )}
+            </div>
+            {showSubjectPicker && subjectChips.length > 0 && (
+              <>
+                <div style={{fontSize:10, fontWeight:700, color:textMuted2, opacity:0.8, marginBottom:0}}>{t.pickSubject}</div>
+                <RecentTopicChips topics={subjectChips} onPick={(s)=>{setSubject(s); setShowSubjectPicker(false);}} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}/>
+              </>
             )}
-            <RecentTopicChips topics={subjectChips} onPick={setSubject} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}/>
-            <input style={{...inputStyle, marginTop: subjectChips.length ? 8 : 0}} value={subject} onChange={e=>setSubject(e.target.value)} placeholder={t.subjectPlaceholder}/>
+            <input style={{...inputStyle, marginTop: (showSubjectPicker && subjectChips.length) ? 8 : 0}} value={subject} onChange={e=>setSubject(e.target.value)} placeholder={t.subjectPlaceholder}/>
             <div style={{fontSize:11, color:textMuted2, opacity:0.75, marginTop:5}}>{t.newSubjectAutoSaved}</div>
           </div>
           <div>
@@ -9312,7 +9325,7 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
   // ডিফল্টে শুধু Title + Date দেখানো হয় (দ্রুত টাস্ক যোগ করার জন্য) — Priority/Repeat/Note "More options"-এর নিচে লুকানো,
   // এডিট করার সময় বা কেউ আগে থেকে এগুলো সেট করে থাকলে খোলাই দেখানো হয়
   const [showMore, setShowMore] = useState(
-    !!initialTask && (initialTask.priority !== "med" || !!initialTask.repeat || !!initialTask.note)
+    !!initialTask && (initialTask.priority !== "med" || !!initialTask.repeat || !!initialTask.note || !!initialTask.reminderTime)
   );
   const sheetRef = useRef(null);
   const titleInputRef = useRef(null);
@@ -9361,13 +9374,6 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
               style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:12.5, color:textMain, outline:"none", fontFamily:"inherit"}}/>
           </div>
           {dueDate && (
-            <div style={{flex:1, minWidth:0, display:"flex", alignItems:"center", gap:5, background:bg, border:`1px solid ${cardBorder}`, borderRadius:11, padding:"7px 9px"}}>
-              <Bell size={13} color={textMuted2} style={{flexShrink:0}}/>
-              <input type="time" value={reminderTime} onChange={e=>setReminderTime(e.target.value)}
-                style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:12.5, color:textMain, outline:"none", fontFamily:"inherit"}}/>
-            </div>
-          )}
-          {dueDate && (
             <button onClick={()=>{setDueDate(""); setReminderTime("");}} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, cursor:"pointer", borderRadius:9, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
               <X size={12}/>
             </button>
@@ -9381,6 +9387,26 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
 
         {showMore && (
           <>
+            {dueDate && (
+              <>
+                <div style={{fontSize:10.5, fontWeight:700, color:textMuted2, marginBottom:6, display:"flex", alignItems:"center", gap:5}}>
+                  <Bell size={11}/> {lang==="bn" ? "রিমাইন্ডার (ঐচ্ছিক)" : "Reminder (optional)"}
+                </div>
+                <div style={{display:"flex", alignItems:"center", gap:6, marginBottom:12}}>
+                  <div style={{flex:1, minWidth:0, display:"flex", alignItems:"center", gap:5, background:bg, border:`1px solid ${cardBorder}`, borderRadius:11, padding:"7px 9px"}}>
+                    <Clock size={13} color={textMuted2} style={{flexShrink:0}}/>
+                    <input type="time" value={reminderTime} onChange={e=>setReminderTime(e.target.value)}
+                      style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:12.5, color:textMain, outline:"none", fontFamily:"inherit"}}/>
+                  </div>
+                  {reminderTime && (
+                    <button onClick={()=>setReminderTime("")} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, cursor:"pointer", borderRadius:9, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                      <X size={12}/>
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+
             <div style={{fontSize:10.5, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.taskPriority}</div>
             <div style={{display:"flex", gap:6, marginBottom:12}}>
               {["high","med","low"].map(p => (
@@ -9418,7 +9444,7 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
           </>
         )}
 
-        <button onClick={submit} style={{width:"100%", padding:"11px 0", borderRadius:14, border:"none", background:accent, color:"#fff", fontWeight:800, fontSize:13.5, cursor:"pointer"}}>
+        <button onClick={submit} style={{width:"100%", padding:"10px 0", borderRadius:12, border:"none", background: dark ? "#3A2A22" : "#FBEAE0", color:accent, fontWeight:700, fontSize:13, cursor:"pointer"}}>
           {isEditing ? (lang==="bn" ? "সেভ করুন" : "Save Changes") : t.taskAddBtn}
         </button>
       </div>
