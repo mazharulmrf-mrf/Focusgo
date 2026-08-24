@@ -4728,9 +4728,29 @@ export default function FocusGo() {
                     <span style={{fontSize:14, fontWeight:700, color:textMuted2}}>{t.minutes}</span>
                   </div>
                 ) : (
-                  <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined} style={{fontSize: timerRunning ? 42 : 32, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
-                    <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
-                  </div>
+                  // ডিজিটের চারপাশে একটা সরু সার্কুলার প্রোগ্রেস রিং — সেশন কতটা এগিয়েছে সেটা এক নজরে বোঝা যায়,
+                  // আগে শুধু প্লেইন নাম্বার ছিল, এখন সেটাই ভিজ্যুয়ালি informative হলো
+                  (() => {
+                    const ringSize = timerRunning ? 168 : 138;
+                    const stroke = timerRunning ? 6 : 5;
+                    const r = 45;
+                    const c = 2 * Math.PI * r;
+                    const elapsedFrac = timerTotal > 0 ? Math.min(1, Math.max(0, (timerTotal - timerSeconds) / timerTotal)) : 0;
+                    const ringColor = sessionType === "focus" ? accent : "#4C8FA6";
+                    return (
+                      <div style={{position:"relative", display:"inline-flex", alignItems:"center", justifyContent:"center", width:ringSize, height:ringSize, transition:"width .25s ease, height .25s ease"}}>
+                        <svg width={ringSize} height={ringSize} viewBox="0 0 100 100" style={{position:"absolute", inset:0, transform:"rotate(-90deg)"}}>
+                          <circle cx="50" cy="50" r={r} fill="none" stroke={dark?"#2C2820":"#EFE9DC"} strokeWidth={stroke}/>
+                          <circle cx="50" cy="50" r={r} fill="none" stroke={ringColor} strokeWidth={stroke} strokeLinecap="round"
+                            strokeDasharray={c} strokeDashoffset={c * (1 - elapsedFrac)}
+                            style={{transition:"stroke-dashoffset 1s linear, stroke .2s ease"}}/>
+                        </svg>
+                        <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined} style={{position:"relative", fontSize: timerRunning ? 40 : 30, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
+                          <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
+                        </div>
+                      </div>
+                    );
+                  })()
                 )}
                 {timerTopic && (
                   !timerRunning ? (
@@ -4789,12 +4809,19 @@ export default function FocusGo() {
                 <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>
                   {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num>
                 </div>
-                <div style={{display:"flex", gap:4, flexWrap:"wrap", justifyContent:"center", maxWidth:180}}>
-                  {Array.from({length:pomodoroTotalSessions}, (_,i)=>i+1).map(i => (
-                    <span key={i} style={{fontSize:13, lineHeight:1, color: i===pomodoroSession ? textMain : textMuted2, opacity: i===pomodoroSession ? 1 : 0.45}}>
-                      {i===pomodoroSession ? "●" : "○"}
-                    </span>
-                  ))}
+                <div style={{display:"flex", alignItems:"center", gap:5, flexWrap:"wrap", justifyContent:"center", maxWidth:180}}>
+                  {Array.from({length:pomodoroTotalSessions}, (_,i)=>i+1).map(i => {
+                    const state = i < pomodoroSession ? "done" : (i === pomodoroSession ? "current" : "upcoming");
+                    return (
+                      <span key={i} style={{
+                        width: state === "current" ? 8 : 6, height: state === "current" ? 8 : 6, borderRadius:"50%",
+                        background: state === "upcoming" ? "transparent" : accent,
+                        border: state === "upcoming" ? `1.5px solid ${textMuted2}` : "none",
+                        opacity: state === "done" ? 0.55 : 1,
+                        transition:"all .2s ease"
+                      }}/>
+                    );
+                  })}
                 </div>
                 {timerTargetMinutes && (
                   <div style={{fontSize:11, color:textMuted2, fontWeight:600, opacity:0.75}}>
@@ -5457,33 +5484,33 @@ export default function FocusGo() {
             {/* Study Overview — headline numbers, justifies the "Stats" name */}
             <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:12}}>{t.studyOverview}</div>
 
-            {/* Hero stat + completed/completion/streak — merged into one card, was two separate cards */}
+            {/* Hero stat + completed/completion/streak — compact single-row layout (icon+total on the left, divider, 3 stats on the right) */}
             {(() => {
               const h = Math.floor(studyOverview.totalMin/60), m = studyOverview.totalMin%60;
               return (
-                <div style={{background: dark ? "linear-gradient(135deg, rgba(76,143,166,0.16), rgba(76,143,166,0.03))" : "linear-gradient(135deg, #4C8FA614, #4C8FA603)", border:`1px solid ${cardBorder}`, borderRadius:16, padding:"20px 16px 16px", marginBottom:20}}>
-                  <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:6, paddingBottom:16, marginBottom:14, borderBottom:`0.5px solid ${cardBorder}`}}>
-                    <div style={{width:40,height:40, borderRadius:12, background: dark?"rgba(76,143,166,0.22)":"#4C8FA61F", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginBottom:2}}>
-                      <Clock size={19} color="#4C8FA6"/>
+                <div style={{background: dark ? "linear-gradient(135deg, rgba(76,143,166,0.16), rgba(76,143,166,0.03))" : "linear-gradient(135deg, #4C8FA614, #4C8FA603)", border:`1px solid ${cardBorder}`, borderRadius:16, padding:"13px 14px", marginBottom:20, display:"flex", alignItems:"center", gap:12}}>
+                  <div style={{display:"flex", alignItems:"center", gap:9, flexShrink:0}}>
+                    <div style={{width:34,height:34, borderRadius:10, background: dark?"rgba(76,143,166,0.22)":"#4C8FA61F", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                      <Clock size={16} color="#4C8FA6"/>
                     </div>
-                    <div style={{fontSize:26, fontWeight:800, letterSpacing:-0.6, color:textMain, lineHeight:1.1}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
-                    <div style={{fontSize:12, color:textMuted2, fontWeight:600, opacity:0.8}}>{t.focusedLabel}</div>
+                    <div>
+                      <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.4, color:textMain, lineHeight:1.15, whiteSpace:"nowrap"}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
+                      <div style={{fontSize:10, color:textMuted2, fontWeight:600, opacity:0.8, whiteSpace:"nowrap"}}>{t.focusedLabel}</div>
+                    </div>
                   </div>
-                  <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:6}}>
-                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:4}}>
-                      <Check size={14} color="#6E8B5E"/>
-                      <div style={{fontSize:15, fontWeight:800, letterSpacing:-0.2, color:"#6E8B5E", lineHeight:1.1}}><Num>{nf(studyOverview.doneCount)}</Num></div>
-                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8}}>{t.topicsCompletedLabel}</div>
+                  <div style={{width:1, alignSelf:"stretch", background:cardBorder, flexShrink:0}}/>
+                  <div style={{display:"flex", flex:1, justifyContent:"space-between", gap:4, minWidth:0}}>
+                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:2}}>
+                      <div style={{fontSize:14, fontWeight:800, letterSpacing:-0.2, color:"#6E8B5E", lineHeight:1.1}}><Num>{nf(studyOverview.doneCount)}</Num></div>
+                      <div style={{fontSize:9, color:textMuted2, fontWeight:500, opacity:0.8, whiteSpace:"nowrap"}}>{t.topicsCompletedLabel}</div>
                     </div>
-                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:4}}>
-                      <TrendingUp size={14} color="#4C8FA6"/>
-                      <div style={{fontSize:15, fontWeight:800, letterSpacing:-0.2, color:"#4C8FA6", lineHeight:1.1}}><Num>{nf(studyOverview.pct)}</Num>%</div>
-                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8}}>{t.completionLabel}</div>
+                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:2}}>
+                      <div style={{fontSize:14, fontWeight:800, letterSpacing:-0.2, color:"#4C8FA6", lineHeight:1.1}}><Num>{nf(studyOverview.pct)}</Num>%</div>
+                      <div style={{fontSize:9, color:textMuted2, fontWeight:500, opacity:0.8, whiteSpace:"nowrap"}}>{t.completionLabel}</div>
                     </div>
-                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:4}}>
-                      <Flame size={14} color="#C08A2E"/>
-                      <div style={{fontSize:15, fontWeight:800, letterSpacing:-0.2, color:"#C08A2E", lineHeight:1.1}}><Num>{nf(studyOverview.streak)}</Num></div>
-                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8}}>{t.streakLabel}</div>
+                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:2}}>
+                      <div style={{fontSize:14, fontWeight:800, letterSpacing:-0.2, color:"#C08A2E", lineHeight:1.1}}><Num>{nf(studyOverview.streak)}</Num></div>
+                      <div style={{fontSize:9, color:textMuted2, fontWeight:500, opacity:0.8, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
                     </div>
                   </div>
                 </div>
@@ -7364,6 +7391,7 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
   const [useDuration, setUseDuration] = useState(false);
   const [durationInput, setDurationInput] = useState(30);
   const [showSubjectPicker, setShowSubjectPicker] = useState(false); // সাবজেক্ট চিপ লিস্ট ডিফল্টে লুকানো থাকে (অনেকগুলো সাবজেক্ট থাকলে huge space নিত) — "Choose from list" চাপলেই খুলবে
+  const [showTopicPicker, setShowTopicPicker] = useState(false); // টপিক চিপ লিস্টও এখন সাবজেক্টের মতোই ডিফল্টে লুকানো থাকে — "Choose from list" চাপলেই খুলবে
   const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#121110":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const duration = useTime ? diffMinutes(startTime, endTime) : (useDuration ? (Number(durationInput) || 0) : 0);
   const canSubmit = subject.trim() && topic.trim();
@@ -7407,12 +7435,22 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
             <div style={{fontSize:11, color:textMuted2, opacity:0.75, marginTop:5}}>{t.newSubjectAutoSaved}</div>
           </div>
           <div>
-            <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.topicLabel}</div>
-            {pickTopics.length > 0 && (
-              <div style={{fontSize:10, fontWeight:700, color:textMuted2, opacity:0.8, marginBottom:6}}>{t.pickFromBank}</div>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
+              <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>{t.topicLabel}</div>
+              {pickTopics.length > 0 && (
+                <button type="button" onClick={()=>setShowTopicPicker(v=>!v)} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:accent, cursor:"pointer", fontSize:11, fontWeight:700, padding:0}}>
+                  {showTopicPicker ? t.hideSubjectList : t.chooseFromList}
+                  <ChevronDown size={12} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+                </button>
+              )}
+            </div>
+            {showTopicPicker && pickTopics.length > 0 && (
+              <>
+                <div style={{fontSize:10, fontWeight:700, color:textMuted2, opacity:0.8, marginBottom:0}}>{t.pickFromBank}</div>
+                <RecentTopicChips topics={pickTopics} onPick={(tp)=>{setTopic(tp); setShowTopicPicker(false);}} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}/>
+              </>
             )}
-            <RecentTopicChips topics={pickTopics} onPick={setTopic} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}/>
-            <input style={{...inputStyle, marginTop: pickTopics.length ? 8 : 0}} value={topic} onChange={e=>setTopic(e.target.value)} placeholder={t.topicPlaceholder}/>
+            <input style={{...inputStyle, marginTop: (showTopicPicker && pickTopics.length) ? 8 : 0}} value={topic} onChange={e=>setTopic(e.target.value)} placeholder={t.topicPlaceholder}/>
             <div style={{fontSize:11, color:textMuted2, opacity:0.75, marginTop:5}}>{t.newTopicAutoSaved}</div>
           </div>
 
@@ -8141,9 +8179,31 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     // কার্সার যে লাইনে আছে, সেই লাইনের ব্লক-লেভেল এলিমেন্ট খুঁজে বের করা (bodyRef-এর সরাসরি চাইল্ড)
     let block = anchor;
     while (block && block !== el && block.parentNode !== el) block = block.parentNode;
-    if (!block || block === el) return; // প্রথম লাইনে এখনো কোনো wrapping div তৈরি হয়নি — স্বাভাবিক Enter চলবে
+    if (!block) return;
+    if (block === el) return; // bodyRef একদম খালি — স্বাভাবিক Enter চলবে
 
-    const lineText = block.textContent || "";
+    // নোটে যতক্ষণ একবারও Enter চাপা হয়নি, ততক্ষণ প্রথম লাইনের কনটেন্ট কোনো wrapping <div>-এর
+    // ভেতরে থাকে না — সরাসরি bodyRef-এর চাইল্ড (টেক্সট নোড/ইনলাইন এলিমেন্ট) হিসেবে থাকে। আগে এই
+    // অবস্থায় ফাংশনটা কিছু না করেই থেমে যেত (block===el ধরে নিয়ে), তাই ঠিক প্রথম লাইনেই "1." লিখে
+    // Enter চাপলে অটো-নাম্বারিং কাজ করত না। এখন সেটাকেও একটা "লাইন" হিসেবে ধরে হ্যান্ডেল করা হচ্ছে —
+    // লাইনের সীমানা হলো bodyRef-এর প্রথম <div> চাইল্ড (যেটা থাকলে বোঝায় দ্বিতীয় লাইন শুরু হয়ে গেছে),
+    // নাহলে bodyRef-এর একদম শেষ পর্যন্ত।
+    const isWrappedLine = block.nodeType === 1 && block.tagName === "DIV";
+    let lineEndNode = null;
+    if (!isWrappedLine) {
+      for (let n = el.firstChild; n; n = n.nextSibling) {
+        if (n.nodeType === 1 && n.tagName === "DIV") { lineEndNode = n; break; }
+      }
+    }
+
+    const lineText = isWrappedLine
+      ? (block.textContent || "")
+      : (() => {
+          let txt = "";
+          for (let n = el.firstChild; n && n !== lineEndNode; n = n.nextSibling) txt += n.textContent || "";
+          return txt;
+        })();
+
     const m = /^([0-9০-৯]+)([.।)])[ \u00A0]?(.*)$/.exec(lineText);
     if (!m) return; // নাম্বারড লাইন না হলে স্বাভাবিক Enter আচরণই চলবে
 
@@ -8155,12 +8215,26 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
     if (restText.trim() === "") {
       // ডাবল এন্টার — নাম্বার মুছে লাইনটা প্লেইন খালি লাইন করে দেওয়া, নতুন লাইন তৈরি না করে এখানেই থামা
-      block.innerHTML = "<br>";
-      const r = document.createRange();
-      r.setStart(block, 0);
-      r.collapse(true);
-      sel.removeAllRanges();
-      sel.addRange(r);
+      if (isWrappedLine) {
+        block.innerHTML = "<br>";
+        const r = document.createRange();
+        r.setStart(block, 0);
+        r.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(r);
+      } else {
+        const range = document.createRange();
+        range.setStart(el, 0);
+        if (lineEndNode) range.setEndBefore(lineEndNode); else range.setEndAfter(el.lastChild || el);
+        range.deleteContents();
+        const br = document.createElement("br");
+        el.insertBefore(br, el.firstChild);
+        const r = document.createRange();
+        r.setStartBefore(br);
+        r.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(r);
+      }
     } else {
       // execCommand("insertHTML")-এ নতুন <div> insert করা মোবাইল WebView-তে অনির্ভরযোগ্য — মাঝেমধ্যে
       // নতুন ব্লক তৈরি না করে ইনলাইন টেক্সট হিসেবে বসিয়ে দেয় (যেমন "1. Maruf2." একই লাইনে)।
@@ -8171,14 +8245,25 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       const range = sel.getRangeAt(0);
       const afterRange = document.createRange();
       afterRange.setStart(range.endContainer, range.endOffset);
-      afterRange.setEnd(block, block.childNodes.length);
+      if (isWrappedLine) {
+        afterRange.setEnd(block, block.childNodes.length);
+      } else {
+        if (lineEndNode) afterRange.setEndBefore(lineEndNode); else afterRange.setEndAfter(el.lastChild);
+      }
       const afterFragment = afterRange.extractContents();
 
       const newDiv = document.createElement("div");
       const prefix = document.createTextNode(`${nextNumStr}${punct}\u00A0`);
       newDiv.appendChild(prefix);
       newDiv.appendChild(afterFragment);
-      block.parentNode.insertBefore(newDiv, block.nextSibling);
+
+      if (isWrappedLine) {
+        block.parentNode.insertBefore(newDiv, block.nextSibling);
+      } else if (lineEndNode) {
+        el.insertBefore(newDiv, lineEndNode);
+      } else {
+        el.appendChild(newDiv);
+      }
 
       const newRange = document.createRange();
       newRange.setStart(newDiv, 1);
