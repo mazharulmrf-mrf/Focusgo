@@ -3950,16 +3950,16 @@ export default function FocusGo() {
 
   const fmtTime = (h, m, s) => <>{<Num>{nf(pad2(h))}</Num>}:{<Num>{nf(pad2(m))}</Num>}{s !== undefined ? <>:{<Num>{nf(pad2(s))}</Num>}</> : null}</>;
 
-  // theme tokens — Light mode recolored to the "মনসুন ইঙ্ক" (Monsoon Ink) palette: warm beige page bg, off-white cards, deep ink-green accent
-  const bg = dark ? "#121110" : "#DAD5C7";
-  const cardBg = dark ? "#1B1815" : "#F3F1E7";
-  const cardBorder = dark ? "#2C2820" : "#DDD6C2";
-  const textMain = dark ? "#F3EFE7" : "#1B211C";
-  const textMuted2 = dark ? "#B7AE9B" : "#62695E"; // dark mode: আগের #A69E8C-তে contrast কম ছিল, brighten করা হলো; light mode: মনসুন ইঙ্ক প্যালেটের সাথে মেলানো মিউটেড অলিভ-গ্রে
-  const accent = dark ? "#D97757" : "#2F6B5E";
-  const accentLight = dark ? "#3A2A22" : "#E1EAE2"; // primary light — শুধু active/selected state-এর হালকা background-এ ব্যবহার হবে
-  const neutralIconBg = dark ? "#26231D" : "#ECE7D8"; // decorative icon/avatar background
-  const neutralIconColor = dark ? "#C9C0AC" : "#62695E"; // decorative icon color
+  // theme tokens
+  const bg = dark ? "#121110" : "#FAFAF8";
+  const cardBg = dark ? "#1B1815" : "#FFFFFF";
+  const cardBorder = dark ? "#2C2820" : "#E9E3D6";
+  const textMain = dark ? "#F3EFE7" : "#211D18";
+  const textMuted2 = dark ? "#B7AE9B" : "#756D5D"; // dark mode: আগের #A69E8C-তে contrast কম ছিল, brighten করা হলো; light mode: আগের #8A8272-এ contrast ~3.8:1 ছিল (WCAG AA normal text ফেল করত), এখন ~5:1
+  const accent = "#D97757";
+  const accentLight = dark ? "#3A2A22" : "#FBEAE0"; // primary light — very light peach, শুধু active/selected state-এর হালকা background-এ ব্যবহার হবে
+  const neutralIconBg = dark ? "#26231D" : "#F3EEE3"; // decorative icon/avatar background — orange নয়, warm neutral
+  const neutralIconColor = dark ? "#C9C0AC" : "#6B6353"; // decorative icon color — warm gray, orange নয়
 
   // ডেস্কটপ (≥1024px): বাম সাইডবার নেভিগেশন থাকবে, bottom dock হাইড হবে, আর content column
   // single-column-এই থাকবে কিন্তু zoom দিয়ে গোটা কনটেন্ট একসাথে বড় দেখানো হয় (অন্য অ্যাপগুলোর মতো)
