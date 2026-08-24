@@ -8141,9 +8141,31 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     // কার্সার যে লাইনে আছে, সেই লাইনের ব্লক-লেভেল এলিমেন্ট খুঁজে বের করা (bodyRef-এর সরাসরি চাইল্ড)
     let block = anchor;
     while (block && block !== el && block.parentNode !== el) block = block.parentNode;
-    if (!block || block === el) return; // প্রথম লাইনে এখনো কোনো wrapping div তৈরি হয়নি — স্বাভাবিক Enter চলবে
+    if (!block) return;
+    if (block === el) return; // bodyRef একদম খালি — স্বাভাবিক Enter চলবে
 
-    const lineText = block.textContent || "";
+    // নোটে যতক্ষণ একবারও Enter চাপা হয়নি, ততক্ষণ প্রথম লাইনের কনটেন্ট কোনো wrapping <div>-এর
+    // ভেতরে থাকে না — সরাসরি bodyRef-এর চাইল্ড (টেক্সট নোড/ইনলাইন এলিমেন্ট) হিসেবে থাকে। আগে এই
+    // অবস্থায় ফাংশনটা কিছু না করেই থেমে যেত (block===el ধরে নিয়ে), তাই ঠিক প্রথম লাইনেই "1." লিখে
+    // Enter চাপলে অটো-নাম্বারিং কাজ করত না। এখন সেটাকেও একটা "লাইন" হিসেবে ধরে হ্যান্ডেল করা হচ্ছে —
+    // লাইনের সীমানা হলো bodyRef-এর প্রথম <div> চাইল্ড (যেটা থাকলে বোঝায় দ্বিতীয় লাইন শুরু হয়ে গেছে),
+    // নাহলে bodyRef-এর একদম শেষ পর্যন্ত।
+    const isWrappedLine = block.nodeType === 1 && block.tagName === "DIV";
+    let lineEndNode = null;
+    if (!isWrappedLine) {
+      for (let n = el.firstChild; n; n = n.nextSibling) {
+        if (n.nodeType === 1 && n.tagName === "DIV") { lineEndNode = n; break; }
+      }
+    }
+
+    const lineText = isWrappedLine
+      ? (block.textContent || "")
+      : (() => {
+          let txt = "";
+          for (let n = el.firstChild; n && n !== lineEndNode; n = n.nextSibling) txt += n.textContent || "";
+          return txt;
+        })();
+
     const m = /^([0-9০-৯]+)([.।)])[ \u00A0]?(.*)$/.exec(lineText);
     if (!m) return; // নাম্বারড লাইন না হলে স্বাভাবিক Enter আচরণই চলবে
 
@@ -8155,12 +8177,26 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
     if (restText.trim() === "") {
       // ডাবল এন্টার — নাম্বার মুছে লাইনটা প্লেইন খালি লাইন করে দেওয়া, নতুন লাইন তৈরি না করে এখানেই থামা
-      block.innerHTML = "<br>";
-      const r = document.createRange();
-      r.setStart(block, 0);
-      r.collapse(true);
-      sel.removeAllRanges();
-      sel.addRange(r);
+      if (isWrappedLine) {
+        block.innerHTML = "<br>";
+        const r = document.createRange();
+        r.setStart(block, 0);
+        r.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(r);
+      } else {
+        const range = document.createRange();
+        range.setStart(el, 0);
+        if (lineEndNode) range.setEndBefore(lineEndNode); else range.setEndAfter(el.lastChild || el);
+        range.deleteContents();
+        const br = document.createElement("br");
+        el.insertBefore(br, el.firstChild);
+        const r = document.createRange();
+        r.setStartBefore(br);
+        r.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(r);
+      }
     } else {
       // execCommand("insertHTML")-এ নতুন <div> insert করা মোবাইল WebView-তে অনির্ভরযোগ্য — মাঝেমধ্যে
       // নতুন ব্লক তৈরি না করে ইনলাইন টেক্সট হিসেবে বসিয়ে দেয় (যেমন "1. Maruf2." একই লাইনে)।
@@ -8171,14 +8207,25 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       const range = sel.getRangeAt(0);
       const afterRange = document.createRange();
       afterRange.setStart(range.endContainer, range.endOffset);
-      afterRange.setEnd(block, block.childNodes.length);
+      if (isWrappedLine) {
+        afterRange.setEnd(block, block.childNodes.length);
+      } else {
+        if (lineEndNode) afterRange.setEndBefore(lineEndNode); else afterRange.setEndAfter(el.lastChild);
+      }
       const afterFragment = afterRange.extractContents();
 
       const newDiv = document.createElement("div");
       const prefix = document.createTextNode(`${nextNumStr}${punct}\u00A0`);
       newDiv.appendChild(prefix);
       newDiv.appendChild(afterFragment);
-      block.parentNode.insertBefore(newDiv, block.nextSibling);
+
+      if (isWrappedLine) {
+        block.parentNode.insertBefore(newDiv, block.nextSibling);
+      } else if (lineEndNode) {
+        el.insertBefore(newDiv, lineEndNode);
+      } else {
+        el.appendChild(newDiv);
+      }
 
       const newRange = document.createRange();
       newRange.setStart(newDiv, 1);
