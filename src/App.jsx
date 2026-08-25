@@ -2072,6 +2072,7 @@ const topicPickList = (topicBank, entries, subject) => {
 // Tapping a chip fills the topic input; typing a new topic still works as before.
 // ---------- Accent color options — ইউজার Settings থেকে বেছে নিতে পারবে, orange ডিফল্ট/প্রথম অপশন হিসেবে থাকছে ----------
 const ACCENT_OPTIONS = [
+  { key: "orange", labelBn: "কমলা",  labelEn: "Orange", light: "#D97757", dark: "#E08B68" },
   { key: "sage",  labelBn: "সেজ",    labelEn: "Sage",  light: "#6E8B5E", dark: "#8FAF7C" },
   { key: "coral", labelBn: "কোরাল",  labelEn: "Coral", light: "#D9785C", dark: "#E5967C" },
   { key: "lilac", labelBn: "লাইলাক", labelEn: "Lilac", light: "#8E7DBE", dark: "#AC9EDB" },
@@ -2369,9 +2370,9 @@ export default function FocusGo() {
   const [accentKey, setAccentKey] = useState(() => {
     try {
       const saved = window.localStorage.getItem("focusgo_accent_key_v1");
-      return ACCENT_OPTIONS.some(a => a.key === saved) ? saved : "sage";
+      return ACCENT_OPTIONS.some(a => a.key === saved) ? saved : "orange";
     } catch (e) {
-      return "sage";
+      return "orange";
     }
   });
   useEffect(() => {
