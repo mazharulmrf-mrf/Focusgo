@@ -112,7 +112,7 @@ function resizeImageToDataUrl(file, maxDim = 320, quality = 0.82) {
 function OnboardingScreen({ lang, dark, cardBg, textMain, textMuted2, accent, onDone }) {
   const [step, setStep] = useState(0);
   const isBn = lang === "bn";
-  const bg = dark ? "#1A1625" : "#F3EEFB";
+  const bg = dark ? "#000000" : "#FFFFFF";
   const border = dark ? "#352C48" : "#E4D9F5";
 
   const slides = [
@@ -3951,7 +3951,7 @@ export default function FocusGo() {
   const fmtTime = (h, m, s) => <>{<Num>{nf(pad2(h))}</Num>}:{<Num>{nf(pad2(m))}</Num>}{s !== undefined ? <>:{<Num>{nf(pad2(s))}</Num>}</> : null}</>;
 
   // theme tokens — lavender palette
-  const bg = dark ? "#1A1625" : "#F3EEFB";
+  const bg = dark ? "#000000" : "#FFFFFF";
   const cardBg = dark ? "#241E33" : "#FDFBFF";
   const cardBorder = dark ? "#352C48" : "#E4D9F5";
   const textMain = dark ? "#F0EBFA" : "#2E2640";
