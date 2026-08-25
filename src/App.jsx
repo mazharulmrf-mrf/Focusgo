@@ -2236,6 +2236,18 @@ function accentHexFor(key, dark) {
   const found = ACCENT_OPTIONS.find(a => a.key === key) || ACCENT_OPTIONS[0];
   return dark ? found.dark : found.light;
 }
+// হেক্স রঙকে percent অনুযায়ী গাঢ়/হালকা করে — Next Exam কার্ডের মতো জায়গায় accent থেকে গ্রেডিয়েন্ট/শ্যাডো রং বানাতে ব্যবহার হয়
+function shadeColor(hex, percent) {
+  const h = hex.replace("#", "");
+  const num = parseInt(h.length === 3 ? h.split("").map(c => c + c).join("") : h, 16);
+  let r = (num >> 16) + Math.round(255 * (percent / 100));
+  let g = ((num >> 8) & 0x00FF) + Math.round(255 * (percent / 100));
+  let b = (num & 0x0000FF) + Math.round(255 * (percent / 100));
+  r = Math.max(0, Math.min(255, r));
+  g = Math.max(0, Math.min(255, g));
+  b = Math.max(0, Math.min(255, b));
+  return "#" + (0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1);
+}
 
 // ---------- Appearance themes — Light / Dark / Ivory / Graphite / Mist ----------
 // প্রতিটা থিমের নিজস্ব bg/cardBg/cardBorder/textMain/textMuted2 আছে। `dark` ফ্ল্যাগটা
@@ -4896,7 +4908,7 @@ export default function FocusGo() {
             <button
               onClick={()=>{ vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
               className="fg-tab-panel"
-              style={{marginTop:8, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: "linear-gradient(135deg, #D9773E, #C25A1F)", borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, boxShadow:"0 6px 16px rgba(194,90,31,0.35)"}}
+              style={{marginTop:8, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: `linear-gradient(135deg, ${accent}, ${shadeColor(accent,-22)})`, borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, boxShadow:`0 6px 16px ${shadeColor(accent,-22)}59`}}
             >
               <div style={{minWidth:0}}>
                 <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:"rgba(255,255,255,0.85)", textTransform:"uppercase"}}>{lang==="bn"?"পরবর্তী পরীক্ষা":"Next Exam"}</div>
@@ -4906,7 +4918,7 @@ export default function FocusGo() {
                   {nearestUpcomingExam.startTime ? ` · ${nearestUpcomingExam.startTime}${nearestUpcomingExam.endTime ? "–"+nearestUpcomingExam.endTime : ""}` : ""}
                 </div>
               </div>
-              <div style={{flexShrink:0, fontSize:13, fontWeight:800, color:"#C25A1F", background: "#fff", padding:"6px 12px", borderRadius:999, whiteSpace:"nowrap"}}>
+              <div style={{flexShrink:0, fontSize:13, fontWeight:800, color:shadeColor(accent,-22), background: "#fff", padding:"6px 12px", borderRadius:999, whiteSpace:"nowrap"}}>
                 {daysLabel}
               </div>
             </button>
@@ -4929,7 +4941,7 @@ export default function FocusGo() {
               <div style={{display:"flex", alignItems:"center", gap:2}}>
                 <button onClick={()=>{vibrate(); setShowExamSchedule(true);}} title={lang==="bn"?"পরীক্ষার সময়সূচি":"Exam Schedule"} style={{
                   border:"none",
-                  background: dark ? "rgba(217,119,55,0.22)" : "rgba(217,119,55,0.14)",
+                  background: dark ? `${accent}38` : `${accent}24`,
                   borderRadius:"50%",
                   width:30,
                   height:30,
@@ -4939,7 +4951,7 @@ export default function FocusGo() {
                   flexShrink:0,
                   position:"relative",
                 }}>
-                  <CalendarClock size={20} color="#D97737" strokeWidth={2}/>
+                  <CalendarClock size={20} color={accent} strokeWidth={2}/>
                   {nearestUpcomingExam && (
                     <span style={{
                       position:"absolute", top:2, right:2,
@@ -5215,7 +5227,7 @@ export default function FocusGo() {
               <span style={{width:26, height:26, borderRadius:9, background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                 <GraduationCap size={14} color={accent} strokeWidth={2.2}/>
               </span>
-              <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
+              <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
             </div>
             <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} title={t.addTopic} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
               <Plus size={17}/>
@@ -5247,7 +5259,7 @@ export default function FocusGo() {
                 <span style={{width:26, height:26, borderRadius:9, background: dark ? "rgba(76,143,166,0.2)" : "rgba(76,143,166,0.12)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                   <ListChecks size={14} color="#4C8FA6" strokeWidth={2.2}/>
                 </span>
-                <div style={{fontSize:18,fontWeight:800,letterSpacing:-0.3,color:textMain}}>
+                <div style={{fontSize:20,fontWeight:800,letterSpacing:-0.3,color:textMain}}>
                   {lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}
                 </div>
               </div>
@@ -5260,7 +5272,10 @@ export default function FocusGo() {
                 <div style={{width:38, height:38, borderRadius:"50%", background: dark ? "rgba(76,143,166,0.25)" : "rgba(76,143,166,0.15)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                   <Check size={18} color="#4C8FA6" strokeWidth={2}/>
                 </div>
-                <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{t.taskEmptyTodayHome}</div>
+                <div>
+                  <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{t.taskEmptyTodayHome}</div>
+                  <div style={{color:textMuted2, fontSize:12, marginTop:2}}>{lang==="bn" ? "আজকের একটা টাস্ক যোগ করুন।" : "Add a task to plan your day."}</div>
+                </div>
               </div>
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
