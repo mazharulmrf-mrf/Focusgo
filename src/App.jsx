@@ -491,7 +491,7 @@ function NotificationBell({ t, lang, notifications, onMarkAllRead, onClear, card
     <div style={{ position: "relative", flexShrink: 0 }}>
       <button
         onClick={() => { setOpen(v => !v); if (!open) onMarkAllRead(); }}
-        style={{ position: "relative", border: "none", background: accent, color: "#fff", borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
+        style={{ position: "relative", border: `1px solid ${cardBorder}`, background: cardBg, color: textMuted2, borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
         title={t.notifications}
       >
         <Bell size={14} />
@@ -4607,7 +4607,7 @@ export default function FocusGo() {
             )}
             <button onClick={()=>{vibrate(); setShowSearch(true);}}
               title={lang==="bn" ? "খুঁজুন" : "Search"}
-              style={{border:"none", background:accent, color:"#fff", borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
+              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
               <Search size={14}/>
             </button>
             <NotificationBell
@@ -4908,17 +4908,17 @@ export default function FocusGo() {
             <button
               onClick={()=>{ vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
               className="fg-tab-panel"
-              style={{marginTop:8, width:"100%", textAlign:"left", border:`1px solid rgba(255,255,255,0.10)`, cursor:"pointer", background: `linear-gradient(135deg, #2A2A2E, #0A0A0C)`, borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, boxShadow:`0 8px 20px rgba(0,0,0,0.45), 0 0 0 1px ${accent}26`}}
+              style={{marginTop:8, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: `linear-gradient(135deg, ${accent}, ${shadeColor(accent,-32)})`, borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, boxShadow:`0 6px 16px ${shadeColor(accent,-22)}59`}}
             >
               <div style={{minWidth:0}}>
-                <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:accent, textTransform:"uppercase"}}>{lang==="bn"?"পরবর্তী পরীক্ষা":"Next Exam"}</div>
+                <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:"rgba(255,255,255,0.85)", textTransform:"uppercase"}}>{lang==="bn"?"পরবর্তী পরীক্ষা":"Next Exam"}</div>
                 <div style={{fontSize:14, fontWeight:800, color:"#fff", marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{nearestUpcomingExam.subject}</div>
                 <div style={{fontSize:12, color:"rgba(255,255,255,0.8)", marginTop:2}}>
                   {weekdayName(new Date(nearestUpcomingExam.date+"T00:00:00"))}, <Num>{nf(new Date(nearestUpcomingExam.date+"T00:00:00").getDate())}</Num> {monthName(new Date(nearestUpcomingExam.date+"T00:00:00").getMonth())}
                   {nearestUpcomingExam.startTime ? ` · ${nearestUpcomingExam.startTime}${nearestUpcomingExam.endTime ? "–"+nearestUpcomingExam.endTime : ""}` : ""}
                 </div>
               </div>
-              <div style={{flexShrink:0, fontSize:13, fontWeight:800, color:"#fff", background: accent, padding:"6px 12px", borderRadius:999, whiteSpace:"nowrap"}}>
+              <div style={{flexShrink:0, fontSize:13, fontWeight:800, color:shadeColor(accent,-22), background: "#fff", padding:"6px 12px", borderRadius:999, whiteSpace:"nowrap"}}>
                 {daysLabel}
               </div>
             </button>
@@ -5173,7 +5173,7 @@ export default function FocusGo() {
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
           const secondaryColor = "#2B6F84";
           return (
-        <div className="fg-tab-panel" style={{marginTop:14, background: `linear-gradient(135deg, ${accent}, ${shadeColor(accent,-32)})`, borderRadius:16, padding:"13px 16px", position:"relative", overflow:"hidden", boxShadow:`0 6px 16px ${shadeColor(accent,-22)}59`}}>
+        <div className="fg-tab-panel" style={{marginTop:14, border:`1px solid rgba(255,255,255,0.10)`, background: `linear-gradient(135deg, #2A2A2E, #0A0A0C)`, borderRadius:16, padding:"13px 16px", position:"relative", overflow:"hidden", boxShadow:`0 8px 20px rgba(0,0,0,0.45), 0 0 0 1px ${accent}26`}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
