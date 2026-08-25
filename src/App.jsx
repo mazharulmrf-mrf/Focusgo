@@ -1835,7 +1835,7 @@ const T = {
     tagline: "Study Smarter",
     tabs: { today: "Today", study: "Study", task: "Tasks", notes: "Notes", settings: "Settings", stats: "Stats", plan: "Plan", exam: "Exam" },
     planViewStudy: "Study Plan", planViewExam: "Exam",
-    taskTitle: "Tasks", taskSubtitle: "Today's to-do list", taskAdd: "New task", taskEmpty: "No tasks in this list",
+    taskTitle: "Tasks", taskSubtitle: "All your tasks, in one place", taskAdd: "New task", taskEmpty: "No tasks in this list",
     taskStudy: "Study", taskPersonal: "Personal", taskAll: "All",
     taskPrHigh: "High", taskPrMed: "Medium", taskPrLow: "Low",
     taskTitlePlaceholder: "What needs to be done?", taskCategory: "Category", taskPriority: "Priority", taskAddBtn: "Add task",
@@ -1848,6 +1848,7 @@ const T = {
     taskDueToday: "Today", taskDueTomorrow: "Tomorrow", taskOverdue: "Overdue", taskCompleted: "Completed",
     taskSectionToday: "Today", taskSectionUpcoming: "Upcoming", taskSectionNoDate: "No Due Date", taskSectionCompletedToday: "Completed today",
     taskEmptyToday: "Nothing due today", taskEmptyUpcoming: "Nothing upcoming", taskEmptyDone: "No completed tasks yet", taskEmptyOverdue: "No overdue tasks",
+    taskEmptySub: "Add your first task to start planning your day.", taskEmptyTodaySub: "You're all caught up for today.", taskEmptyUpcomingSub: "Nothing scheduled ahead — enjoy the calm.", taskEmptyDoneSub: "Complete a task and it'll show up here.", taskEmptyOverdueSub: "Nice! Nothing slipped through the cracks.",
     taskEmptyTodayHome: "No tasks today", taskAddBtn: "Add Task",
     taskViewList: "List", taskViewCalendar: "Calendar",
     taskViewListHint: "All your tasks, grouped by due date", taskViewCalendarHint: "Tap a day on the calendar to see its tasks",
@@ -1987,7 +1988,7 @@ const T = {
     tagline: "নিজের গতিতে পড়ো",
     tabs: { today: "আজ", study: "স্টাডি", task: "টাস্ক", notes: "নোট", settings: "সেটিংস", stats: "স্ট্যাটস", plan: "প্ল্যান", exam: "এক্সাম" },
     planViewStudy: "স্টাডি প্ল্যান", planViewExam: "এক্সাম",
-    taskTitle: "টাস্ক", taskSubtitle: "আজকের করণীয় তালিকা", taskAdd: "নতুন টাস্ক", taskEmpty: "এই তালিকায় কোনো টাস্ক নেই",
+    taskTitle: "টাস্ক", taskSubtitle: "সব কাজ, এক জায়গায়", taskAdd: "নতুন টাস্ক", taskEmpty: "এই তালিকায় কোনো টাস্ক নেই",
     taskStudy: "স্টাডি", taskPersonal: "পার্সোনাল", taskAll: "সব",
     taskPrHigh: "জরুরি", taskPrMed: "মিডিয়াম", taskPrLow: "কম",
     taskTitlePlaceholder: "কী করতে হবে?", taskCategory: "ক্যাটাগরি", taskPriority: "প্রায়োরিটি", taskAddBtn: "যোগ করো",
@@ -2000,6 +2001,7 @@ const T = {
     taskDueToday: "আজ", taskDueTomorrow: "আগামীকাল", taskOverdue: "মেয়াদ শেষ", taskCompleted: "সম্পন্ন হয়েছে",
     taskSectionToday: "আজ", taskSectionUpcoming: "আসন্ন", taskSectionNoDate: "ডিউ ডেট নেই", taskSectionCompletedToday: "আজ সম্পন্ন হয়েছে",
     taskEmptyToday: "আজ কিছু বাকি নেই", taskEmptyUpcoming: "আসন্ন কিছু নেই", taskEmptyDone: "এখনো কোনো টাস্ক সম্পন্ন হয়নি", taskEmptyOverdue: "মেয়াদ-শেষ কোনো টাস্ক নেই",
+    taskEmptySub: "প্রথম টাস্কটা যোগ করে আজকের দিন সাজিয়ে ফেলুন।", taskEmptyTodaySub: "আজকের সব কাজ শেষ, দারুণ!", taskEmptyUpcomingSub: "আসন্ন কোনো কাজ নেই — নিশ্চিন্তে থাকুন।", taskEmptyDoneSub: "কোনো টাস্ক সম্পন্ন করলে এখানে দেখা যাবে।", taskEmptyOverdueSub: "চমৎকার! মেয়াদ-শেষ কোনো কাজ নেই।",
     taskEmptyTodayHome: "আজ কোনো টাস্ক নেই", taskAddBtn: "টাস্ক যোগ করুন",
     taskViewList: "লিস্ট", taskViewCalendar: "ক্যালেন্ডার",
     taskViewListHint: "তোমার সব টাস্ক, ডিউ ডেট অনুযায়ী সাজানো", taskViewCalendarHint: "ক্যালেন্ডারে কোনো দিনে ট্যাপ করে সেদিনের টাস্ক দেখো",
@@ -4590,26 +4592,29 @@ export default function FocusGo() {
       )}
       <div style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, ...(isDesktop ? { zoom: desktopZoom } : {})}}>
       <div style={styles.container}>
-        {/* Header row: logo | clock | toggles */}
-        <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
-          <div style={{display:"flex", alignItems:"center", gap:10}}>
+        {/* Header row: logo | universal search (centered) | bell + profile —
+            grid দিয়ে সাজানো হয়েছে যাতে search bar সত্যিকার অর্থে মাঝখানে থাকে, লোগো/ডান পাশের আইকনের প্রস্থ যাই হোক না কেন */}
+        <div style={{display:"grid", gridTemplateColumns:"1fr auto 1fr", alignItems:"center", gap:8}}>
+          <div style={{display:"flex", alignItems:"center", gap:10, justifySelf:"start"}}>
             <button onClick={()=>{vibrate(); setTab("today");}} title={t.tabs.today}
               style={{display:"flex", alignItems:"center", gap:10, border:"none", background:"transparent", cursor:"pointer", padding:0}}>
               <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt="FocusGo" style={{height:26, width:"auto", objectFit:"contain"}}/>
             </button>
           </div>
 
-          <div style={{display:"flex", alignItems:"center", gap:6}}>
+          <button onClick={()=>{vibrate(); setShowSearch(true);}}
+            title={lang==="bn" ? "খুঁজুন" : "Search"}
+            style={{justifySelf:"center", border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:20, height:32, width:"min(220px, 46vw)", padding:"0 16px", display:"flex", alignItems:"center", justifyContent:"center", gap:7, cursor:"pointer", flexShrink:0}}>
+            <Search size={16}/>
+            <span style={{fontSize:12.5, fontWeight:600, opacity:0.75, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{lang==="bn" ? "খুঁজুন" : "Search"}</span>
+          </button>
+
+          <div style={{display:"flex", alignItems:"center", gap:6, justifySelf:"end"}}>
             {!isOnline && (
               <div title={t.offlineNote} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#2C2B33":"#F8F5EE", color:textMuted2, borderRadius:20, padding:"5px 9px 5px 8px", fontSize:11, fontWeight:700, flexShrink:0}}>
                 <WifiOff size={12}/> {t.offlineBadge}
               </div>
             )}
-            <button onClick={()=>{vibrate(); setShowSearch(true);}}
-              title={lang==="bn" ? "খুঁজুন" : "Search"}
-              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:20, height:28, minWidth:72, padding:"0 16px", display:"flex", alignItems:"center", justifyContent:"center", gap:6, cursor:"pointer", flexShrink:0}}>
-              <Search size={17}/>
-            </button>
             <NotificationBell
               t={t} lang={lang} notifications={notifications}
               onMarkAllRead={()=>setNotifications(prev => prev.map(n => ({...n, read:true})))}
@@ -5529,6 +5534,7 @@ export default function FocusGo() {
 
 
           const emptyMsg = taskFilter === "today" ? t.taskEmptyToday : taskFilter === "upcoming" ? t.taskEmptyUpcoming : taskFilter === "done" ? t.taskEmptyDone : taskFilter === "overdue" ? t.taskEmptyOverdue : t.taskEmpty;
+          const emptySub = taskFilter === "today" ? t.taskEmptyTodaySub : taskFilter === "upcoming" ? t.taskEmptyUpcomingSub : taskFilter === "done" ? t.taskEmptyDoneSub : taskFilter === "overdue" ? t.taskEmptyOverdueSub : t.taskEmptySub;
 
           // ---- Calendar view: Stats ট্যাবের InlineMonthCalendar-এর মতোই একই ভিজ্যুয়াল স্টাইল (গ্রিড + legend), শুধু ডট রঙ টাস্ক অনুযায়ী (completed/pending/overdue) ----
           const renderTaskCalendarView = () => {
@@ -5655,7 +5661,8 @@ export default function FocusGo() {
           return (
             <>
             <div key="task" className="fg-tab-panel" style={{marginTop:14}}>
-              <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:14}}>{t.taskTitle}</div>
+              <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:3}}>{t.taskTitle}</div>
+              <div style={{fontSize:12, color:textMuted2, marginBottom:16}}>{t.taskSubtitle}</div>
 
               {/* List / Calendar ভিউ টগল — Study Plan/Stats-এর মতো একই underline-tab স্টাইল */}
               <div style={{display:"flex", gap:24, marginBottom:14, borderBottom:`1px solid ${cardBorder}`}}>
@@ -5704,11 +5711,17 @@ export default function FocusGo() {
                   </div>
 
                   {filteredTasks.length === 0 && (
-                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:12, padding:"28px 16px"}}>
-                      <div style={{width:44, height:44, borderRadius:"50%", background:"rgba(110,139,94,0.16)", display:"flex", alignItems:"center", justifyContent:"center"}}>
-                        <Sparkles size={20} color="#6E8B5E" strokeWidth={2}/>
+                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:14, padding:"46px 24px 34px"}}>
+                      <div style={{position:"relative", width:78, height:78, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                        <div style={{position:"absolute", inset:0, borderRadius:"50%", background: dark ? "radial-gradient(circle, rgba(110,139,94,0.28) 0%, rgba(110,139,94,0.05) 68%, transparent 100%)" : "radial-gradient(circle, rgba(110,139,94,0.22) 0%, rgba(110,139,94,0.04) 68%, transparent 100%)"}}/>
+                        <div style={{width:52, height:52, borderRadius:"50%", background: dark ? "rgba(110,139,94,0.22)" : "rgba(110,139,94,0.14)", border:`1px solid rgba(110,139,94,0.32)`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                          <Sparkles size={22} color="#6E8B5E" strokeWidth={2}/>
+                        </div>
                       </div>
-                      <div style={{color:textMuted2, fontSize:13}}>{emptyMsg}</div>
+                      <div>
+                        <div style={{fontWeight:800, color:textMain, fontSize:15}}>{emptyMsg}</div>
+                        <div style={{color:textMuted2, fontSize:12.5, lineHeight:1.5, marginTop:5, maxWidth:230}}>{emptySub}</div>
+                      </div>
                     </div>
                   )}
 
