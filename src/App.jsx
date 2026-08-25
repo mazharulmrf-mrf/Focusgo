@@ -4607,8 +4607,8 @@ export default function FocusGo() {
             )}
             <button onClick={()=>{vibrate(); setShowSearch(true);}}
               title={lang==="bn" ? "খুঁজুন" : "Search"}
-              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, padding:0}}>
-              <Search size={14}/>
+              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:20, height:32, minWidth:60, padding:"0 14px", display:"flex", alignItems:"center", justifyContent:"center", gap:6, cursor:"pointer", flexShrink:0}}>
+              <Search size={15}/>
             </button>
             <NotificationBell
               t={t} lang={lang} notifications={notifications}
@@ -6067,7 +6067,7 @@ export default function FocusGo() {
               transform: tab===k ? "translateY(-1px)" : "none",
               transition:"background .2s ease, color .2s ease, transform .2s cubic-bezier(0.16,1,0.3,1)"
             }}>
-              <Icon size={20} strokeWidth={tab===k?2.3:2} style={{transition:"stroke-width .15s ease"}}/>
+              <Icon size={18} strokeWidth={tab===k?2.3:2} style={{transition:"stroke-width .15s ease"}}/>
               {t.tabs[k]}
             </button>
           ))}
