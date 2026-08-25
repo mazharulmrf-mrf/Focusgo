@@ -4607,8 +4607,8 @@ export default function FocusGo() {
             )}
             <button onClick={()=>{vibrate(); setShowSearch(true);}}
               title={lang==="bn" ? "খুঁজুন" : "Search"}
-              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:20, height:32, minWidth:60, padding:"0 14px", display:"flex", alignItems:"center", justifyContent:"center", gap:6, cursor:"pointer", flexShrink:0}}>
-              <Search size={15}/>
+              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:20, height:28, minWidth:72, padding:"0 16px", display:"flex", alignItems:"center", justifyContent:"center", gap:6, cursor:"pointer", flexShrink:0}}>
+              <Search size={17}/>
             </button>
             <NotificationBell
               t={t} lang={lang} notifications={notifications}
@@ -5171,9 +5171,9 @@ export default function FocusGo() {
             secondaryColor (calm teal) ব্যবহার করা হচ্ছে accent-এর বদলে, যাতে Exam কার্ড (যেটা accent দিয়ে হাইলাইট করা) থেকে
             আলাদা লাগে এবং দুটো কার্ডের মধ্যে visual rhythm তৈরি হয় */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
-          const secondaryColor = "#4C8FA6";
+          const secondaryColor = "#2B6F84";
           return (
-        <div className="fg-tab-panel" style={{marginTop:14, background: dark ? "#152025" : `linear-gradient(135deg, ${secondaryColor}14, ${secondaryColor}03)`, border: `1px solid ${secondaryColor}40`, borderRadius:16, padding:"12px 14px", position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:14, background: dark ? "#152025" : `linear-gradient(135deg, ${secondaryColor}22, ${secondaryColor}06)`, border: `1px solid ${secondaryColor}55`, borderRadius:16, padding:"12px 14px", position:"relative", overflow:"hidden"}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
@@ -5285,11 +5285,11 @@ export default function FocusGo() {
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {homeTodayTasks.map(x => (
-                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:10,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"10px 12px",height:41,boxSizing:"border-box",opacity:x.done?0.55:1}}>
+                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:10,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"10px 12px",height:41,boxSizing:"border-box"}}>
                     <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:21,height:21,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
                       {x.done && <Check size={12} color="#fff" strokeWidth={3}/>}
                     </button>
-                    <div style={{flex:1,minWidth:0,fontSize:13,fontWeight:500,color:textMain,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                    <div style={{flex:1,minWidth:0,fontSize:13,fontWeight:500,color:x.done?"#6E8B5E":textMain,textDecoration:x.done?"line-through":"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                       {x.title}
                     </div>
                     <div style={{position:"relative", flexShrink:0}}>
@@ -5478,7 +5478,7 @@ export default function FocusGo() {
                 <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{width:20, height:20, borderRadius:"50%", flexShrink:0, cursor:"pointer", border:`2px solid ${borderColor}`, background: x.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", padding:0}}>
                   {x.done && <Check size={11} color="#fff" strokeWidth={3}/>}
                 </button>
-                <div style={{flex:1, minWidth:0, fontSize:13, fontWeight:400, color:textMain, wordBreak:"break-word", overflowWrap:"break-word", whiteSpace:"normal", lineHeight:1.4, opacity: x.done?0.6:1}}>
+                <div style={{flex:1, minWidth:0, fontSize:13, fontWeight:400, color: x.done ? "#6E8B5E" : textMain, textDecoration: x.done ? "line-through" : "none", wordBreak:"break-word", overflowWrap:"break-word", whiteSpace:"normal", lineHeight:1.4}}>
                   {x.title}
                 </div>
                 {x.note && (
