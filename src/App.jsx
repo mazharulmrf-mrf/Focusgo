@@ -5247,7 +5247,7 @@ export default function FocusGo() {
                   </div>
                 </div>
                 <div style={{height:6, borderRadius:8, background: "rgba(255,255,255,0.22)", overflow:"hidden"}}>
-                  <div style={{width: hasTasks ? `${cardPct}%` : "0%", height:"100%", borderRadius:8, background:"#C9EFC2", transition:"width .25s ease"}}/>
+                  <div style={{width: hasTasks ? `${cardPct}%` : "0%", height:"100%", borderRadius:8, background:accent, transition:"width .25s ease"}}/>
                 </div>
               </div>
             );
