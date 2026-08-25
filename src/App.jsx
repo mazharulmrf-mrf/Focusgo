@@ -4666,9 +4666,9 @@ export default function FocusGo() {
 
               return (
                 <>
-                  <div style={{padding:"2px 2px 8px", marginBottom:0}}>
+                  <div style={{padding:"2px 2px 4px", marginBottom:0}}>
                     <div style={{minWidth:0, flex:1}}>
-                      <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2, marginBottom:3, display:"flex", alignItems:"center", gap:5}}>
+                      <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2, marginBottom:2, display:"flex", alignItems:"center", gap:5}}>
                         {lang === "bn" ? greetingBn : greetingEn}
                         <greetTheme.Icon size={15} color={greetTheme.iconColor} strokeWidth={2.3} fill={greetKey==="night" ? `${greetTheme.iconColor}33` : "none"}/>
                       </div>
@@ -4677,12 +4677,12 @@ export default function FocusGo() {
                           {firstName}
                         </div>
                       </div>
-                      <div style={{fontSize:12,color:textMuted2,marginTop:5,lineHeight:1.4}}>
+                      <div style={{fontSize:12,color:textMuted2,marginTop:3,lineHeight:1.4}}>
                         {line}
                       </div>
                     </div>
                   </div>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8, paddingBottom:10, borderBottom:`0.5px solid ${cardBorder}`, position:"relative"}} ref={salahMenuRef}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:12, paddingBottom:10, borderBottom:`0.5px solid ${cardBorder}`, position:"relative"}} ref={salahMenuRef}>
                     <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
                       <span style={{width:30, height:30, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
                         <CalendarDays size={20} color={accent} strokeWidth={2}/>
@@ -4896,17 +4896,17 @@ export default function FocusGo() {
             <button
               onClick={()=>{ vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
               className="fg-tab-panel"
-              style={{marginTop:8, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: dark ? "rgba(217,119,55,0.16)" : "rgba(217,119,55,0.10)", borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}
+              style={{marginTop:8, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: "linear-gradient(135deg, #D9773E, #C25A1F)", borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, boxShadow:"0 6px 16px rgba(194,90,31,0.35)"}}
             >
               <div style={{minWidth:0}}>
-                <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:"#D97737", textTransform:"uppercase"}}>{lang==="bn"?"পরবর্তী পরীক্ষা":"Next Exam"}</div>
-                <div style={{fontSize:14, fontWeight:800, color:textMain, marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{nearestUpcomingExam.subject}</div>
-                <div style={{fontSize:12, color:textMuted2, marginTop:2}}>
+                <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:"rgba(255,255,255,0.85)", textTransform:"uppercase"}}>{lang==="bn"?"পরবর্তী পরীক্ষা":"Next Exam"}</div>
+                <div style={{fontSize:14, fontWeight:800, color:"#fff", marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{nearestUpcomingExam.subject}</div>
+                <div style={{fontSize:12, color:"rgba(255,255,255,0.8)", marginTop:2}}>
                   {weekdayName(new Date(nearestUpcomingExam.date+"T00:00:00"))}, <Num>{nf(new Date(nearestUpcomingExam.date+"T00:00:00").getDate())}</Num> {monthName(new Date(nearestUpcomingExam.date+"T00:00:00").getMonth())}
                   {nearestUpcomingExam.startTime ? ` · ${nearestUpcomingExam.startTime}${nearestUpcomingExam.endTime ? "–"+nearestUpcomingExam.endTime : ""}` : ""}
                 </div>
               </div>
-              <div style={{flexShrink:0, fontSize:13, fontWeight:800, color:"#D97737", background: dark ? "rgba(0,0,0,0.25)" : "#fff", padding:"6px 12px", borderRadius:999, whiteSpace:"nowrap"}}>
+              <div style={{flexShrink:0, fontSize:13, fontWeight:800, color:"#C25A1F", background: "#fff", padding:"6px 12px", borderRadius:999, whiteSpace:"nowrap"}}>
                 {daysLabel}
               </div>
             </button>
@@ -5635,37 +5635,7 @@ export default function FocusGo() {
           return (
             <>
             <div key="task" className="fg-tab-panel" style={{marginTop:14}}>
-              <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:10}}>{t.taskTitle}</div>
-
-              {/* Summary card — same merged style as Home's progress card: ring + completed/remaining/overdue, consistent visual language across the app */}
-              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px", marginBottom:20, boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.18)" : "0 1px 3px rgba(0,0,0,0.04)"}}>
-                <div style={{display:"flex", alignItems:"center", gap:14}}>
-                  <PercentRing pct={pct} size={48} stroke={5} accent={accent} trackColor={dark?"#2C2B33":"#E7E5ED"} textMain={textMain} nf={nf}/>
-                  <div style={{flex:1, display:"flex", justifyContent:"space-between"}}>
-                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4}}>
-                      <div style={{width:22, height:22, borderRadius:"50%", background:"rgba(110,139,94,0.16)", display:"flex", alignItems:"center", justifyContent:"center"}}>
-                        <Check size={12} strokeWidth={3} color="#6E8B5E"/>
-                      </div>
-                      <div style={{fontSize:15, fontWeight:800, color:"#6E8B5E", lineHeight:1.1}}><Num>{nf(doneCount)}</Num></div>
-                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8}}>{lang==="bn"?"সম্পন্ন":"Done"}</div>
-                    </div>
-                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4}}>
-                      <div style={{width:22, height:22, borderRadius:"50%", background:"rgba(192,138,46,0.16)", display:"flex", alignItems:"center", justifyContent:"center"}}>
-                        <Clock size={12} color="#C08A2E"/>
-                      </div>
-                      <div style={{fontSize:15, fontWeight:800, color:"#C08A2E", lineHeight:1.1}}><Num>{nf(tasks.length - doneCount)}</Num></div>
-                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8}}>{lang==="bn"?"বাকি":"Left"}</div>
-                    </div>
-                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4}}>
-                      <div style={{width:22, height:22, borderRadius:"50%", background: overdueCount > 0 ? "rgba(214,73,58,0.16)" : (dark?"#2C2B33":"#E7E5ED"), display:"flex", alignItems:"center", justifyContent:"center"}}>
-                        <CalendarClock size={12} color={overdueCount > 0 ? "#D6493A" : textMuted2}/>
-                      </div>
-                      <div style={{fontSize:15, fontWeight:800, color: overdueCount > 0 ? "#D6493A" : textMain, lineHeight:1.1}}><Num>{nf(overdueCount)}</Num></div>
-                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8}}>{lang==="bn"?"মেয়াদ শেষ":"Overdue"}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:14}}>{t.taskTitle}</div>
 
               {/* List / Calendar ভিউ টগল — Study Plan/Stats-এর মতো একই underline-tab স্টাইল */}
               <div style={{display:"flex", gap:24, marginBottom:14, borderBottom:`1px solid ${cardBorder}`}}>
@@ -5719,12 +5689,6 @@ export default function FocusGo() {
                         <Sparkles size={20} color="#6E8B5E" strokeWidth={2}/>
                       </div>
                       <div style={{color:textMuted2, fontSize:13}}>{emptyMsg}</div>
-                      <button onClick={()=>{vibrate(); setTaskAddDefaultDate(taskFilter==="today" ? todayKey : null); setShowAddTask(true);}} style={{
-                        display:"flex", alignItems:"center", gap:6, border:"none", background:accent, color:"#fff",
-                        borderRadius:12, padding:"9px 16px", fontSize:13, fontWeight:800, cursor:"pointer",
-                      }}>
-                        <Plus size={15}/> {t.taskAddBtn}
-                      </button>
                     </div>
                   )}
 
