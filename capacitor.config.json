@@ -13,6 +13,7 @@
     },
     "GoogleAuth": {
       "scopes": ["profile", "email"],
+      "clientId": "448849450957-hgopm56u06j2uhougldvm52rdbnntvrg.apps.googleusercontent.com",
       "serverClientId": "448849450957-hgopm56u06j2uhougldvm52rdbnntvrg.apps.googleusercontent.com",
       "forceCodeForRefreshToken": true
     }
