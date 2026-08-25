@@ -2228,7 +2228,7 @@ const topicPickList = (topicBank, entries, subject) => {
 // Tapping a chip fills the topic input; typing a new topic still works as before.
 // ---------- Accent color options — ইউজার Settings থেকে বেছে নিতে পারবে, orange ডিফল্ট/প্রথম অপশন হিসেবে থাকছে ----------
 const ACCENT_OPTIONS = [
-  { key: "orange", labelBn: "কমলা",  labelEn: "Orange", light: "#D97757", dark: "#E08B68" },
+  { key: "orange", labelBn: "কমলা",  labelEn: "Orange", light: "#D97757", dark: "#F0713D" },
   { key: "lilac", labelBn: "লাইলাক", labelEn: "Lilac", light: "#8E7DBE", dark: "#AC9EDB" },
   { key: "moss",  labelBn: "মস",     labelEn: "Moss",  light: "#4C7A52", dark: "#6FA377" },
 ];
@@ -2255,7 +2255,7 @@ function shadeColor(hex, percent) {
 // Dark ও Graphite এই দুইটা "dark" গ্রুপে, বাকি তিনটা "light" গ্রুপে পড়ে।
 const THEME_PALETTES = {
   light:    { key:"light",    labelBn:"লাইট",     labelEn:"Light",    dark:false, bg:"#F7F6FA", cardBg:"#FFFFFF", cardBorder:"#E7E5ED", textMain:"#262433", textMuted2:"#79768A", subtleBg:"#F8F5EE" },
-  dark:     { key:"dark",     labelBn:"ডার্ক",     labelEn:"Dark",     dark:true,  bg:"#17151C", cardBg:"#201F26", cardBorder:"#2C2B33", textMain:"#EDECF2", textMuted2:"#A6A3B3", subtleBg:"#17151C" },
+  dark:     { key:"dark",     labelBn:"ডার্ক",     labelEn:"Dark",     dark:true,  bg:"#17151C", cardBg:"#201F26", cardBorder:"#3A3944", textMain:"#EDECF2", textMuted2:"#A6A3B3", subtleBg:"#17151C" },
   ivory:    { key:"ivory",    labelBn:"আইভরি",    labelEn:"Ivory",    dark:false, bg:"#FBF6EA", cardBg:"#FFFDF7", cardBorder:"#EDE6D6", textMain:"#2E2A22", textMuted2:"#8A8270", subtleBg:"#FAF3E4" },
   graphite: { key:"graphite", labelBn:"গ্র্যাফাইট", labelEn:"Graphite", dark:true,  bg:"#1D1E22", cardBg:"#24262B", cardBorder:"#34363C", textMain:"#ECEDEF", textMuted2:"#A0A3AA", subtleBg:"#1A1B1F" },
   mist:     { key:"mist",     labelBn:"মিস্ট",     labelEn:"Mist",     dark:false, bg:"#EFF4F6", cardBg:"#F5F8FA", cardBorder:"#DCE4E8", textMain:"#26333A", textMuted2:"#74858D", subtleBg:"#EDF3F5" },
