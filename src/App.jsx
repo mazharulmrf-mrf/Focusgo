@@ -5174,7 +5174,7 @@ export default function FocusGo() {
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
           const secondaryColor = "#2B6F84";
           return (
-        <div className="fg-tab-panel" style={{marginTop:14, background: `linear-gradient(135deg, ${accent}, ${shadeColor(accent,-32)})`, borderRadius:16, padding:"13px 16px", position:"relative", overflow:"hidden", boxShadow:`0 6px 16px ${shadeColor(accent,-22)}59`}}>
+        <div className="fg-tab-panel" style={{marginTop:14, background: `linear-gradient(135deg, ${secondaryColor}, ${shadeColor(secondaryColor,-32)})`, borderRadius:16, padding:"13px 16px", position:"relative", overflow:"hidden", boxShadow:`0 6px 16px ${shadeColor(secondaryColor,-22)}59`}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
@@ -5274,7 +5274,7 @@ export default function FocusGo() {
               </button>
             </div>
             {homeTodayTasks.length === 0 ? (
-              <div style={{padding:"4px 2px"}}>
+              <div style={{border:`1px solid ${cardBorder}`, borderRadius:16, padding:"16px"}}>
                 <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{t.taskEmptyTodayHome}</div>
                 <div style={{color:textMuted2, fontSize:12, marginTop:2}}>{lang==="bn" ? "আজকের একটা টাস্ক যোগ করুন।" : "Add a task to plan your day."}</div>
               </div>
@@ -7590,7 +7590,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
   const closeMenu = () => { setOpenMenuId(null); setConfirmDeleteId(null); };
   if (items.length === 0) {
     return (
-      <div style={{padding:"4px 2px", textAlign:"left"}}>
+      <div style={{border:`1px solid ${cardBorder}`, borderRadius:16, padding:"16px", textAlign:"left"}}>
         <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{emptyText}</div>
         {emptySubtext && <div style={{fontSize:12, color:textMuted2, marginTop:3, lineHeight:1.5}}>{emptySubtext}</div>}
       </div>
