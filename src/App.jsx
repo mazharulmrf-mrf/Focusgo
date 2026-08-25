@@ -543,6 +543,7 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
     { k: "study", Icon: GraduationCap },
     { k: "task", Icon: ListChecks },
     { k: "notes", Icon: FileText },
+    { k: "settings", Icon: Settings },
   ];
   return (
     <div style={{
@@ -604,10 +605,9 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
 }
 
 // ---------- Settings modal: Language, Theme, About Us ----------
-function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, setAccentKey, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
+function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, setAccentKey, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage }) {
   const [showAbout, setShowAbout] = useState(false);
-  const [showTheme, setShowTheme] = useState(false);
-  const [showAccent, setShowAccent] = useState(false);
+  const [showAppearance, setShowAppearance] = useState(false);
   const [legalDoc, setLegalDoc] = useState(null); // null | "privacy" | "terms"
   const isBn = lang === "bn";
 
@@ -631,14 +631,14 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
     const sections = legalDoc === "privacy" ? t.privacySections : t.termsSections;
     const title = legalDoc === "privacy" ? t.privacyPolicy : t.termsOfUse;
     return (
-      <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
+      <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={()=>setLegalDoc(null)}>
         <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"85vh", display:"flex", flexDirection:"column"}}>
           <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:6, flexShrink:0}}>
             <button onClick={()=>setLegalDoc(null)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
               <ChevronLeft size={20}/>
             </button>
             <div style={{fontSize:18, fontWeight:800, flex:1}}>{title}</div>
-            <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
+            <button onClick={()=>setLegalDoc(null)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
           </div>
           <div style={{fontSize:11, color:textMuted2, fontWeight:600, marginBottom:14, paddingLeft:32}}>{t.lastUpdated}: {t.effectiveDate}</div>
           <div style={{overflowY:"auto", paddingRight:2}}>
@@ -656,68 +656,61 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
     );
   }
 
-  if (showTheme) {
-    const themeOptions = [
-      { key: "system", label: t.themeSystem, Icon: Contrast },
-      { key: "light", label: t.themeLight, Icon: Sun },
-      { key: "dark", label: t.themeDark, Icon: Moon },
-    ];
+  if (showAppearance) {
+    const themeOptions = THEME_ORDER.map(key => ({
+      key,
+      label: key === "light" ? t.themeLight : key === "dark" ? t.themeDark
+           : key === "ivory" ? t.themeIvory : key === "graphite" ? t.themeGraphite : t.themeMist,
+    }));
+    // pill বাটন — নির্বাচিত হলে accent রঙে ভরাট থাকবে, স্ক্রিনশটের মতো
+    const pillBase = { border:"1px solid transparent", borderRadius:999, padding:"9px 16px", fontSize:13.5, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" };
     return (
-      <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
+      <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={()=>setShowAppearance(false)}>
         <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain}}>
-          <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:14}}>
-            <button onClick={()=>setShowTheme(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
+          <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:16}}>
+            <button onClick={()=>setShowAppearance(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
               <ChevronLeft size={20}/>
             </button>
-            <div style={{fontSize:18, fontWeight:800, flex:1}}>{t.theme}</div>
-            <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
+            <div style={{fontSize:18, fontWeight:800, flex:1}}>{t.appearance}</div>
+            <button onClick={()=>setShowAppearance(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
           </div>
-          <div style={{display:"flex", flexDirection:"column", gap:8}}>
-            {themeOptions.map(({key, label, Icon}) => {
+
+          <div style={{fontSize:12, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:10}}>{t.theme}</div>
+          <div style={{display:"flex", flexWrap:"wrap", gap:8, marginBottom:20}}>
+            {themeOptions.map(({key, label}) => {
               const selected = themeMode === key;
+              const previewBg = themeFor(key).cardBg;
               return (
                 <button key={key} onClick={()=>setThemeMode(key)} style={{
-                  display:"flex", alignItems:"center", gap:10, width:"100%",
-                  border:`1px solid ${selected ? accent : cardBorder}`, background: selected ? `${accent}12` : "transparent",
-                  borderRadius:14, padding:"13px 14px", cursor:"pointer", color:textMain, textAlign:"left"
+                  ...pillBase,
+                  display:"flex", alignItems:"center", gap:7,
+                  border: `1px solid ${selected ? accent : cardBorder}`,
+                  background: selected ? accent : "transparent",
+                  color: selected ? "#fff" : textMain,
                 }}>
-                  <span style={iconWrapStyle}><Icon size={15}/></span>
-                  <span style={{fontSize:14, fontWeight:700, flex:1}}>{label}</span>
-                  {selected && <Check size={16} color={accent} strokeWidth={3}/>}
+                  <span style={{width:12, height:12, borderRadius:"50%", background:previewBg, border:`1px solid ${selected ? "rgba(255,255,255,0.6)" : cardBorder}`, flexShrink:0}}/>
+                  {label}
                 </button>
               );
             })}
           </div>
-        </div>
-      </div>
-    );
-  }
 
-  if (showAccent) {
-    return (
-      <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-        <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain}}>
-          <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:14}}>
-            <button onClick={()=>setShowAccent(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
-              <ChevronLeft size={20}/>
-            </button>
-            <div style={{fontSize:18, fontWeight:800, flex:1}}>{lang==="bn" ? "অ্যাকসেন্ট রং" : "Accent Color"}</div>
-            <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
-          </div>
-          <div style={{display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:10}}>
+          <div style={{fontSize:12, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:10}}>{t.accentColor}</div>
+          <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
             {ACCENT_OPTIONS.map(({key, labelBn, labelEn}) => {
               const hex = accentHexFor(key, dark);
               const selected = accentKey === key;
               return (
                 <button key={key} onClick={()=>setAccentKey(key)} style={{
-                  display:"flex", flexDirection:"column", alignItems:"center", gap:8,
-                  border:`1.5px solid ${selected ? hex : cardBorder}`, background: selected ? `${hex}12` : "transparent",
-                  borderRadius:14, padding:"14px 8px", cursor:"pointer",
+                  ...pillBase,
+                  display:"flex", alignItems:"center", gap:7,
+                  border: `1px solid ${selected ? hex : cardBorder}`,
+                  background: selected ? `${hex}1A` : "transparent",
+                  color: textMain,
                 }}>
-                  <span style={{width:30, height:30, borderRadius:"50%", background:hex, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                    {selected && <Check size={15} color="#fff" strokeWidth={3}/>}
-                  </span>
-                  <span style={{fontSize:12, fontWeight:700, color:textMain}}>{lang==="bn" ? labelBn : labelEn}</span>
+                  <span style={{width:12, height:12, borderRadius:"50%", background:hex, flexShrink:0}}/>
+                  {lang==="bn" ? labelBn : labelEn}
+                  {selected && <Check size={13} color={hex} strokeWidth={3}/>}
                 </button>
               );
             })}
@@ -729,14 +722,14 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
   if (showAbout) {
     return (
-      <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
+      <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={()=>setShowAbout(false)}>
         <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain}}>
           <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:14}}>
             <button onClick={()=>setShowAbout(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
               <ChevronLeft size={20}/>
             </button>
             <div style={{fontSize:18, fontWeight:800, flex:1}}>{t.aboutUs}</div>
-            <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
+            <button onClick={()=>setShowAbout(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
           </div>
           <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", padding:"8px 0 20px"}}>
             <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt={t.appName} style={{height:34, width:"auto", objectFit:"contain", marginBottom:16}}/>
@@ -781,6 +774,73 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
     );
   }
 
+  const settingsRows = (
+    <>
+      {/* Language */}
+      <div style={rowStyle}>
+        <div style={labelStyle}><span style={iconWrapStyle}><span style={{fontSize:13, fontWeight:800}}>{lang==="bn"?"বাং":"EN"}</span></span>{t.language}</div>
+        <button onClick={()=>setLang(l=>l==="bn"?"en":"bn")} style={{border:`1px solid ${cardBorder}`, background: dark?"#17151C":"#F8F5EE", color:textMain, borderRadius:10, padding:"7px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+          {lang==="bn" ? "English" : "বাংলা"}
+        </button>
+      </div>
+
+      {/* Appearance — combined sub-page (Theme swatches + Accent color, pill style) */}
+      <button onClick={()=>setShowAppearance(true)} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", padding:0}}>
+        <div style={rowStyle}>
+          <div style={labelStyle}>
+            <span style={{...iconWrapStyle, background:"transparent", border:"none"}}>
+              <span style={{width:20, height:20, borderRadius:"50%", background:accent, border:`1px solid ${cardBorder}`, display:"block"}}/>
+            </span>
+            {t.appearance}
+          </div>
+          <div style={{display:"flex", alignItems:"center", gap:6, color:textMuted2}}>
+            <span style={{fontSize:12, fontWeight:600}}>
+              {themeMode==="light" ? t.themeLight : themeMode==="dark" ? t.themeDark : themeMode==="ivory" ? t.themeIvory : themeMode==="graphite" ? t.themeGraphite : t.themeMist}
+              {" · "}
+              {lang==="bn" ? (ACCENT_OPTIONS.find(a=>a.key===accentKey)||ACCENT_OPTIONS[0]).labelBn : (ACCENT_OPTIONS.find(a=>a.key===accentKey)||ACCENT_OPTIONS[0]).labelEn}
+            </span>
+            {isBn ? <ChevronLeft size={16}/> : <ChevronRight size={16}/>}
+          </div>
+        </div>
+      </button>
+
+      {/* Haptic feedback on/off */}
+      <div style={rowStyle}>
+        <div style={labelStyle}><span style={iconWrapStyle}><span style={{fontSize:16}}>📳</span></span>{t.hapticFeedback}</div>
+        <button onClick={toggleHaptics} aria-pressed={hapticsEnabled} style={{
+            width:44, height:26, borderRadius:12, border:"none", cursor:"pointer", padding:0,
+            background: hapticsEnabled ? accent : (dark ? "#3A362E" : "#DCD5C4"),
+            position:"relative", transition:"background 0.15s"
+          }}>
+          <span style={{
+            position:"absolute", top:3, left: hapticsEnabled ? 21 : 3,
+            width:20, height:20, borderRadius:"50%", background:"#fff",
+            transition:"left 0.15s", boxShadow:"0 1px 2px rgba(0,0,0,0.25)"
+          }}/>
+        </button>
+      </div>
+
+      {/* About Us */}
+      <button onClick={()=>setShowAbout(true)} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", padding:0}}>
+        <div style={{...rowStyle, borderBottom:"none"}}>
+          <div style={labelStyle}><span style={iconWrapStyle}><Info size={15}/></span>{t.aboutUs}</div>
+          {isBn ? <ChevronLeft size={16} color={textMuted2}/> : <ChevronRight size={16} color={textMuted2}/>}
+        </div>
+      </button>
+    </>
+  );
+
+  // asPage=true: বাকি ট্যাবগুলোর (Today/Study/Task/Notes) মতোই সরাসরি কন্টেন্ট এরিয়ায় বসবে —
+  // fixed overlay/backdrop/X-close কিছুই থাকবে না, শুধু একটা হেডিং
+  if (asPage) {
+    return (
+      <div>
+        <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, marginBottom:10, color:textMain}}>{t.settings}</div>
+        {settingsRows}
+      </div>
+    );
+  }
+
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain}}>
@@ -788,68 +848,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
           <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.settings}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
-
-        {/* Language */}
-        <div style={rowStyle}>
-          <div style={labelStyle}><span style={iconWrapStyle}><span style={{fontSize:13, fontWeight:800}}>{lang==="bn"?"বাং":"EN"}</span></span>{t.language}</div>
-          <button onClick={()=>setLang(l=>l==="bn"?"en":"bn")} style={{border:`1px solid ${cardBorder}`, background: dark?"#17151C":"#F8F5EE", color:textMain, borderRadius:10, padding:"7px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
-            {lang==="bn" ? "English" : "বাংলা"}
-          </button>
-        </div>
-
-        {/* Theme — sub-page (System / Light / Dark) */}
-        <button onClick={()=>setShowTheme(true)} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", padding:0}}>
-          <div style={rowStyle}>
-            <div style={labelStyle}>
-              <span style={iconWrapStyle}>{themeMode==="system" ? <Contrast size={15}/> : themeMode==="light" ? <Sun size={15}/> : <Moon size={15}/>}</span>
-              {t.theme}
-            </div>
-            <div style={{display:"flex", alignItems:"center", gap:6, color:textMuted2}}>
-              <span style={{fontSize:12, fontWeight:600}}>{themeMode==="system" ? t.themeSystem : themeMode==="light" ? t.themeLight : t.themeDark}</span>
-              {isBn ? <ChevronLeft size={16}/> : <ChevronRight size={16}/>}
-            </div>
-          </div>
-        </button>
-
-        {/* Accent Color — sub-page (color swatches, orange ডিফল্ট) */}
-        <button onClick={()=>setShowAccent(true)} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", padding:0}}>
-          <div style={rowStyle}>
-            <div style={labelStyle}>
-              <span style={{...iconWrapStyle, background:"transparent", border:"none"}}>
-                <span style={{width:20, height:20, borderRadius:"50%", background:accent, border:`1px solid ${cardBorder}`, display:"block"}}/>
-              </span>
-              {lang==="bn" ? "অ্যাকসেন্ট রং" : "Accent Color"}
-            </div>
-            <div style={{display:"flex", alignItems:"center", gap:6, color:textMuted2}}>
-              <span style={{fontSize:12, fontWeight:600}}>{lang==="bn" ? (ACCENT_OPTIONS.find(a=>a.key===accentKey)||ACCENT_OPTIONS[0]).labelBn : (ACCENT_OPTIONS.find(a=>a.key===accentKey)||ACCENT_OPTIONS[0]).labelEn}</span>
-              {isBn ? <ChevronLeft size={16}/> : <ChevronRight size={16}/>}
-            </div>
-          </div>
-        </button>
-
-        {/* Haptic feedback on/off */}
-        <div style={rowStyle}>
-          <div style={labelStyle}><span style={iconWrapStyle}><span style={{fontSize:16}}>📳</span></span>{t.hapticFeedback}</div>
-          <button onClick={toggleHaptics} aria-pressed={hapticsEnabled} style={{
-              width:44, height:26, borderRadius:12, border:"none", cursor:"pointer", padding:0,
-              background: hapticsEnabled ? accent : (dark ? "#3A362E" : "#DCD5C4"),
-              position:"relative", transition:"background 0.15s"
-            }}>
-            <span style={{
-              position:"absolute", top:3, left: hapticsEnabled ? 21 : 3,
-              width:20, height:20, borderRadius:"50%", background:"#fff",
-              transition:"left 0.15s", boxShadow:"0 1px 2px rgba(0,0,0,0.25)"
-            }}/>
-          </button>
-        </div>
-
-        {/* About Us */}
-        <button onClick={()=>setShowAbout(true)} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", padding:0}}>
-          <div style={{...rowStyle, borderBottom:"none"}}>
-            <div style={labelStyle}><span style={iconWrapStyle}><Info size={15}/></span>{t.aboutUs}</div>
-            {isBn ? <ChevronLeft size={16} color={textMuted2}/> : <ChevronRight size={16} color={textMuted2}/>}
-          </div>
-        </button>
+        {settingsRows}
       </div>
     </div>
   );
@@ -1680,7 +1679,7 @@ const MONTHS_BN = ["জানুয়ারি","ফেব্রুয়ার
 const T = {
   en: {
     tagline: "Study Smarter",
-    tabs: { today: "Today", study: "Study", task: "Tasks", notes: "Notes", stats: "Stats", plan: "Plan", exam: "Exam" },
+    tabs: { today: "Today", study: "Study", task: "Tasks", notes: "Notes", settings: "Settings", stats: "Stats", plan: "Plan", exam: "Exam" },
     planViewStudy: "Study Plan", planViewExam: "Exam",
     taskTitle: "Tasks", taskSubtitle: "Today's to-do list", taskAdd: "New task", taskEmpty: "No tasks in this list",
     taskStudy: "Study", taskPersonal: "Personal", taskAll: "All",
@@ -1769,6 +1768,8 @@ const T = {
     signIn: "Sign In", signOut: "Sign Out", syncing: "Syncing…", profile: "Profile",
     nameExists: "This name is already used.",
     themeSystem: "System", themeLight: "Light", themeDark: "Dark",
+    themeIvory: "Ivory", themeGraphite: "Graphite", themeMist: "Mist",
+    appearance: "Appearance", accentColor: "Accent Color",
     settings: "Settings", language: "Language", theme: "Theme",
     aboutUs: "About Us", appName: "FocusGo", version: "Version",
     aboutTagline: "Make every day count.",
@@ -1830,7 +1831,7 @@ const T = {
   },
   bn: {
     tagline: "নিজের গতিতে পড়ো",
-    tabs: { today: "আজ", study: "স্টাডি", task: "টাস্ক", notes: "নোট", stats: "স্ট্যাটস", plan: "প্ল্যান", exam: "এক্সাম" },
+    tabs: { today: "আজ", study: "স্টাডি", task: "টাস্ক", notes: "নোট", settings: "সেটিংস", stats: "স্ট্যাটস", plan: "প্ল্যান", exam: "এক্সাম" },
     planViewStudy: "স্টাডি প্ল্যান", planViewExam: "এক্সাম",
     taskTitle: "টাস্ক", taskSubtitle: "আজকের করণীয় তালিকা", taskAdd: "নতুন টাস্ক", taskEmpty: "এই তালিকায় কোনো টাস্ক নেই",
     taskStudy: "স্টাডি", taskPersonal: "পার্সোনাল", taskAll: "সব",
@@ -1919,6 +1920,8 @@ const T = {
     signIn: "সাইন ইন", signOut: "সাইন আউট", syncing: "সিঙ্ক হচ্ছে…", profile: "প্রোফাইল",
     nameExists: "এই নামটি আগে থেকেই আছে।",
     themeSystem: "সিস্টেম", themeLight: "লাইট", themeDark: "ডার্ক",
+    themeIvory: "আইভরি", themeGraphite: "গ্র্যাফাইট", themeMist: "মিস্ট",
+    appearance: "অ্যাপিয়ারেন্স", accentColor: "অ্যাকসেন্ট রং",
     settings: "সেটিংস", language: "ভাষা", theme: "থিম",
     aboutUs: "আমাদের সম্পর্কে", appName: "FocusGo", version: "ভার্সন",
     aboutTagline: "Make every day count.",
@@ -2069,15 +2072,37 @@ const topicPickList = (topicBank, entries, subject) => {
 // Tapping a chip fills the topic input; typing a new topic still works as before.
 // ---------- Accent color options — ইউজার Settings থেকে বেছে নিতে পারবে, orange ডিফল্ট/প্রথম অপশন হিসেবে থাকছে ----------
 const ACCENT_OPTIONS = [
-  { key: "orange", labelBn: "কমলা",  labelEn: "Orange", light: "#D97757", dark: "#E08B68" },
-  { key: "purple", labelBn: "বেগুনি", labelEn: "Purple", light: "#8B6FC4", dark: "#A98FDB" },
-  { key: "teal",   labelBn: "টিল",   labelEn: "Teal",   light: "#3E8E85", dark: "#5FB3A9" },
-  { key: "rose",   labelBn: "গোলাপি", labelEn: "Rose",   light: "#C0587A", dark: "#E285A8" },
-  { key: "blue",   labelBn: "নীল",   labelEn: "Blue",   light: "#3E76B8", dark: "#7FA8E0" },
+  { key: "sage",  labelBn: "সেজ",    labelEn: "Sage",  light: "#6E8B5E", dark: "#8FAF7C" },
+  { key: "coral", labelBn: "কোরাল",  labelEn: "Coral", light: "#D9785C", dark: "#E5967C" },
+  { key: "lilac", labelBn: "লাইলাক", labelEn: "Lilac", light: "#8E7DBE", dark: "#AC9EDB" },
+  { key: "moss",  labelBn: "মস",     labelEn: "Moss",  light: "#4C7A52", dark: "#6FA377" },
 ];
 function accentHexFor(key, dark) {
   const found = ACCENT_OPTIONS.find(a => a.key === key) || ACCENT_OPTIONS[0];
   return dark ? found.dark : found.light;
+}
+
+// ---------- Appearance themes — Light / Dark / Ivory / Graphite / Mist ----------
+// প্রতিটা থিমের নিজস্ব bg/cardBg/cardBorder/textMain/textMuted2 আছে। `dark` ফ্ল্যাগটা
+// অ্যাপ জুড়ে ছড়িয়ে থাকা ছোটখাটো `dark ? A : B` (icon/shadow/ওভারলে) সিদ্ধান্তগুলোর জন্য —
+// Dark ও Graphite এই দুইটা "dark" গ্রুপে, বাকি তিনটা "light" গ্রুপে পড়ে।
+const THEME_PALETTES = {
+  light:    { key:"light",    labelBn:"লাইট",     labelEn:"Light",    dark:false, bg:"#F7F6FA", cardBg:"#FFFFFF", cardBorder:"#E7E5ED", textMain:"#262433", textMuted2:"#79768A", subtleBg:"#F8F5EE" },
+  dark:     { key:"dark",     labelBn:"ডার্ক",     labelEn:"Dark",     dark:true,  bg:"#17151C", cardBg:"#201F26", cardBorder:"#2C2B33", textMain:"#EDECF2", textMuted2:"#A6A3B3", subtleBg:"#17151C" },
+  ivory:    { key:"ivory",    labelBn:"আইভরি",    labelEn:"Ivory",    dark:false, bg:"#FBF6EA", cardBg:"#FFFDF7", cardBorder:"#EDE6D6", textMain:"#2E2A22", textMuted2:"#8A8270", subtleBg:"#FAF3E4" },
+  graphite: { key:"graphite", labelBn:"গ্র্যাফাইট", labelEn:"Graphite", dark:true,  bg:"#1D1E22", cardBg:"#24262B", cardBorder:"#34363C", textMain:"#ECEDEF", textMuted2:"#A0A3AA", subtleBg:"#1A1B1F" },
+  mist:     { key:"mist",     labelBn:"মিস্ট",     labelEn:"Mist",     dark:false, bg:"#EFF4F6", cardBg:"#F5F8FA", cardBorder:"#DCE4E8", textMain:"#26333A", textMuted2:"#74858D", subtleBg:"#EDF3F5" },
+};
+const THEME_ORDER = ["light", "dark", "ivory", "graphite", "mist"];
+function themeFor(mode) {
+  return THEME_PALETTES[mode] || THEME_PALETTES.light;
+}
+function normalizeThemeMode(mode) {
+  if (THEME_ORDER.includes(mode)) return mode;
+  if (mode === "system") {
+    try { return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } catch (e) { return "light"; }
+  }
+  return "light";
 }
 
 function RecentTopicChips({ topics, onPick, accent, cardBorder, textMuted2, dark }) {
@@ -2324,11 +2349,17 @@ export default function FocusGo() {
   const [themeMode, setThemeMode] = useState(() => {
     try {
       const saved = window.localStorage.getItem("focusgo_theme_mode_v2");
-      return saved === "light" || saved === "dark" || saved === "system" ? saved : "system";
+      if (THEME_ORDER.includes(saved)) return saved;
+      // পুরনো ইউজারদের সেভ করা "system" ভ্যালু মাইগ্রেট করে ডিভাইসের তখনকার
+      // prefers-color-scheme অনুযায়ী light/dark-এ বসিয়ে দেয়া হয়
+      if (saved === "system") {
+        try { return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } catch (e) { return "light"; }
+      }
+      return "light";
     } catch (e) {
-      return "system";
+      return "light";
     }
-  }); // "system" | "light" | "dark"
+  }); // "light" | "dark" | "ivory" | "graphite" | "mist"
 
   // Keep the selected theme across browser refreshes without waiting for Firestore.
   useEffect(() => {
@@ -2338,9 +2369,9 @@ export default function FocusGo() {
   const [accentKey, setAccentKey] = useState(() => {
     try {
       const saved = window.localStorage.getItem("focusgo_accent_key_v1");
-      return ACCENT_OPTIONS.some(a => a.key === saved) ? saved : "orange";
+      return ACCENT_OPTIONS.some(a => a.key === saved) ? saved : "sage";
     } catch (e) {
-      return "orange";
+      return "sage";
     }
   });
   useEffect(() => {
@@ -2356,7 +2387,7 @@ export default function FocusGo() {
     if (mq.addEventListener) mq.addEventListener("change", handler); else mq.addListener(handler);
     return () => { if (mq.removeEventListener) mq.removeEventListener("change", handler); else mq.removeListener(handler); };
   }, []);
-  const dark = themeMode === "system" ? systemPrefersDark : themeMode === "dark";
+  const dark = themeFor(themeMode).dark;
   // সালাত টাইমার সংক্রান্ত state — লাইভ লোকেশন (lat/lng) একবার পারমিশন পেলে localStorage-এ ক্যাশ থাকে, আইকনে আবার চাপলে re-select করা যায়
   const [salahCoords, setSalahCoords] = useState(() => {
     try { return JSON.parse(window.localStorage.getItem("focusgo_salah_coords") || "null"); } catch (e) { return null; }
@@ -2553,7 +2584,6 @@ export default function FocusGo() {
   }, [planRange]);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   // ডেস্কটপ সাইডবার collapse/expand করা যায় কিনা — চাইলে ইউজার লুকিয়ে রাখতে পারবে,
   // পছন্দটা localStorage-এ থেকে যায় (রিফ্রেশ করলেও মনে থাকবে)।
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -2625,7 +2655,6 @@ export default function FocusGo() {
       if (showAllSubjectsProgress) { setShowAllSubjectsProgress(false); return; }
       if (showCalendar) { setShowCalendar(false); return; }
       if (showProfile) { setShowProfile(false); return; }
-      if (showSettings) { setShowSettings(false); return; }
       if (showTopicPicker) { setShowTopicPicker(false); return; }
       if (showBreakPrompt) { setShowBreakPrompt(false); return; }
       if (tab !== "today") { setTab("today"); return; }
@@ -2647,7 +2676,7 @@ export default function FocusGo() {
     tab, focusFullscreen, taskDetailId, showAddTask, editingTask, selectedDay,
     showCombinedExamEditor, showNextExamEditor, showManageTopicsFor, showExamSchedule,
     showExams, showAdd, showSubjects, showAllSubjectsProgress, showCalendar,
-    showProfile, showSettings, showTopicPicker, showBreakPrompt,
+    showProfile, showTopicPicker, showBreakPrompt,
   ]);
 
   const timerRef = useRef(null);
@@ -2921,7 +2950,7 @@ export default function FocusGo() {
               if (cached.tasks) setTasks(cached.tasks);
               if (cached.notes) setNotes(cached.notes);
               if (cached.lang) setLang(cached.lang);
-              if (cached.themeMode && !themeLoadedOnceRef.current) { setThemeMode(cached.themeMode); themeLoadedOnceRef.current = true; }
+              if (cached.themeMode && !themeLoadedOnceRef.current) { setThemeMode(normalizeThemeMode(cached.themeMode)); themeLoadedOnceRef.current = true; }
               if (cached.accentKey && ACCENT_OPTIONS.some(a => a.key === cached.accentKey)) { setAccentKey(cached.accentKey); }
               setLoaded(true);
             }
@@ -2959,7 +2988,7 @@ export default function FocusGo() {
           if (saved.tasks) setTasks(saved.tasks);
           if (saved.notes) setNotes(saved.notes);
           if (saved.lang) setLang(saved.lang);
-          if (saved.themeMode && !themeLoadedOnceRef.current) { setThemeMode(saved.themeMode); themeLoadedOnceRef.current = true; }
+          if (saved.themeMode && !themeLoadedOnceRef.current) { setThemeMode(normalizeThemeMode(saved.themeMode)); themeLoadedOnceRef.current = true; }
           if (saved.accentKey && ACCENT_OPTIONS.some(a => a.key === saved.accentKey)) { setAccentKey(saved.accentKey); }
         }
       }
@@ -3040,7 +3069,7 @@ export default function FocusGo() {
               if (data.tasks) setTasks(data.tasks);
               if (data.notes) setNotes(data.notes);
               if (data.lang) setLang(data.lang);
-              if (data.themeMode && !themeLoadedOnceRef.current) { setThemeMode(data.themeMode); themeLoadedOnceRef.current = true; }
+              if (data.themeMode && !themeLoadedOnceRef.current) { setThemeMode(normalizeThemeMode(data.themeMode)); themeLoadedOnceRef.current = true; }
               if (data.accentKey && ACCENT_OPTIONS.some(a => a.key === data.accentKey)) { setAccentKey(data.accentKey); }
               // প্রোফাইল এক্সট্রা ফিল্ড (Auth-এ রাখা যায় না/সমস্যা হয় বলে Firestore-এ সেভ হয়) —
               // gender, জন্মতারিখ, সোশ্যাল লিংক, আর প্রোফাইল ছবি (resize করা base64, Storage ছাড়াই)
@@ -4029,12 +4058,13 @@ export default function FocusGo() {
 
   const fmtTime = (h, m, s) => <>{<Num>{nf(pad2(h))}</Num>}:{<Num>{nf(pad2(m))}</Num>}{s !== undefined ? <>:{<Num>{nf(pad2(s))}</Num>}</> : null}</>;
 
-  // theme tokens — lavender palette
-  const bg = dark ? "#17151C" : "#F7F6FA";
-  const cardBg = dark ? "#201F26" : "#FFFFFF";
-  const cardBorder = dark ? "#2C2B33" : "#E7E5ED";
-  const textMain = dark ? "#EDECF2" : "#262433";
-  const textMuted2 = dark ? "#A6A3B3" : "#79768A"; // dark mode: brighter muted purple-gray for contrast; light mode: ~5:1 contrast muted purple
+  // theme tokens — active appearance theme (Light / Dark / Ivory / Graphite / Mist)
+  const activeTheme = themeFor(themeMode);
+  const bg = activeTheme.bg;
+  const cardBg = activeTheme.cardBg;
+  const cardBorder = activeTheme.cardBorder;
+  const textMain = activeTheme.textMain;
+  const textMuted2 = activeTheme.textMuted2;
   const accent = accentHexFor(accentKey, dark);
   const accentLight = dark ? `${accent}22` : `${accent}14`; // primary light — নির্বাচিত accent-এর হালকা tint, active/selected state-এর background-এ ব্যবহার হবে
   const neutralIconBg = dark ? "#242229" : "#F0EEF5"; // decorative icon/avatar background — purple নয়, neutral lavender-gray
@@ -4391,11 +4421,6 @@ export default function FocusGo() {
                 <WifiOff size={12}/> {t.offlineBadge}
               </div>
             )}
-            <button onClick={()=>{vibrate(); setShowSettings(true);}}
-              title={t.settings}
-              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
-              <Settings size={14}/>
-            </button>
             <NotificationBell
               t={t} lang={lang} notifications={notifications}
               onMarkAllRead={()=>setNotifications(prev => prev.map(n => ({...n, read:true})))}
@@ -5557,6 +5582,13 @@ export default function FocusGo() {
             textMuted2={textMuted2} accent={accent} dark={dark} isDesktop={isDesktop}/>
         )}
 
+        {/* SETTINGS tab — অন্য ট্যাবগুলোর মতোই সরাসরি পেজ হিসেবে (আগে বটম-শিট মোডাল ছিল) */}
+        {tab === "settings" && (
+          <SettingsModal t={t} lang={lang} setLang={setLang} themeMode={themeMode} setThemeMode={setThemeMode}
+            accentKey={accentKey} setAccentKey={setAccentKey} asPage
+            cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
+        )}
+
         {/* STATS sub-section (inside Study tab) - week + subjects + month, one shared day-detail card at the bottom */}
         {tab === "study" && studySection === "stats" && (
           <div key="stats" className="fg-tab-panel" style={{marginTop:22}}>
@@ -5836,6 +5868,7 @@ export default function FocusGo() {
             {k:"study", Icon: GraduationCap},
             {k:"task", Icon: ListChecks},
             {k:"notes", Icon: FileText},
+            {k:"settings", Icon: Settings},
           ].map(({k, Icon}) => (
             <button key={k} onClick={()=>{vibrate(); setTab(k);}} style={{
               flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:2, border:"none", borderRadius:12, padding:"7px 4px", fontSize:10, fontWeight:700, cursor:"pointer",
@@ -5978,14 +6011,6 @@ export default function FocusGo() {
         <ProfileModal t={t} lang={lang} user={user} isGuest={isGuest} onClose={()=>setShowProfile(false)}
           onExitGuest={() => { clearGuestData(); setIsGuest(false); setShowProfile(false); }}
           onUserUpdate={(patch)=>setUser(u=>({...u, ...patch}))}
-          cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
-      )}
-
-      {/* Settings — Language, Theme, About Us */}
-      {showSettings && (
-        <SettingsModal t={t} lang={lang} setLang={setLang} themeMode={themeMode} setThemeMode={setThemeMode}
-          accentKey={accentKey} setAccentKey={setAccentKey}
-          onClose={()=>setShowSettings(false)}
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
       )}
 
