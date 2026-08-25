@@ -4592,29 +4592,26 @@ export default function FocusGo() {
       )}
       <div style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, ...(isDesktop ? { zoom: desktopZoom } : {})}}>
       <div style={styles.container}>
-        {/* Header row: logo | universal search (centered) | bell + profile —
-            grid দিয়ে সাজানো হয়েছে যাতে search bar সত্যিকার অর্থে মাঝখানে থাকে, লোগো/ডান পাশের আইকনের প্রস্থ যাই হোক না কেন */}
-        <div style={{display:"grid", gridTemplateColumns:"1fr auto 1fr", alignItems:"center", gap:8}}>
-          <div style={{display:"flex", alignItems:"center", gap:10, justifySelf:"start"}}>
+        {/* Header row: logo | toggles (search circular icon next to bell, like before) */}
+        <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
+          <div style={{display:"flex", alignItems:"center", gap:10}}>
             <button onClick={()=>{vibrate(); setTab("today");}} title={t.tabs.today}
               style={{display:"flex", alignItems:"center", gap:10, border:"none", background:"transparent", cursor:"pointer", padding:0}}>
               <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt="FocusGo" style={{height:26, width:"auto", objectFit:"contain"}}/>
             </button>
           </div>
 
-          <button onClick={()=>{vibrate(); setShowSearch(true);}}
-            title={lang==="bn" ? "খুঁজুন" : "Search"}
-            style={{justifySelf:"center", border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:20, height:32, width:"min(220px, 46vw)", padding:"0 16px", display:"flex", alignItems:"center", justifyContent:"center", gap:7, cursor:"pointer", flexShrink:0}}>
-            <Search size={16}/>
-            <span style={{fontSize:12.5, fontWeight:600, opacity:0.75, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{lang==="bn" ? "খুঁজুন" : "Search"}</span>
-          </button>
-
-          <div style={{display:"flex", alignItems:"center", gap:6, justifySelf:"end"}}>
+          <div style={{display:"flex", alignItems:"center", gap:6}}>
             {!isOnline && (
               <div title={t.offlineNote} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#2C2B33":"#F8F5EE", color:textMuted2, borderRadius:20, padding:"5px 9px 5px 8px", fontSize:11, fontWeight:700, flexShrink:0}}>
                 <WifiOff size={12}/> {t.offlineBadge}
               </div>
             )}
+            <button onClick={()=>{vibrate(); setShowSearch(true);}}
+              title={lang==="bn" ? "খুঁজুন" : "Search"}
+              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
+              <Search size={14}/>
+            </button>
             <NotificationBell
               t={t} lang={lang} notifications={notifications}
               onMarkAllRead={()=>setNotifications(prev => prev.map(n => ({...n, read:true})))}
@@ -5178,7 +5175,7 @@ export default function FocusGo() {
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
           const secondaryColor = "#2B6F84";
           return (
-        <div className="fg-tab-panel" style={{marginTop:14, background: dark ? "#152025" : `linear-gradient(135deg, ${secondaryColor}22, ${secondaryColor}06)`, border: `1px solid ${secondaryColor}55`, borderRadius:16, padding:"12px 14px", position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:14, background: dark ? `linear-gradient(135deg, ${secondaryColor}30, ${secondaryColor}0A)` : `linear-gradient(135deg, ${secondaryColor}22, ${secondaryColor}06)`, border: `1px solid ${secondaryColor}${dark ? "70" : "55"}`, borderRadius:16, padding:"12px 14px", position:"relative", overflow:"hidden"}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
@@ -5278,9 +5275,9 @@ export default function FocusGo() {
               </button>
             </div>
             {homeTodayTasks.length === 0 ? (
-              <div style={{border:`1.5px solid ${dark ? "rgba(76,143,166,0.35)" : "rgba(76,143,166,0.25)"}`, background: dark ? "rgba(76,143,166,0.08)" : "rgba(76,143,166,0.06)", borderRadius:16, padding:"18px", display:"flex", alignItems:"center", gap:12}}>
-                <div style={{width:38, height:38, borderRadius:"50%", background: dark ? "rgba(76,143,166,0.25)" : "rgba(76,143,166,0.15)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                  <Check size={18} color="#4C8FA6" strokeWidth={2}/>
+              <div style={{border:`1.5px solid rgba(110,139,94,0.28)`, background:"rgba(110,139,94,0.07)", borderRadius:16, padding:"18px", display:"flex", alignItems:"center", gap:12}}>
+                <div style={{width:38, height:38, borderRadius:"50%", background:"rgba(110,139,94,0.16)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                  <Check size={18} color="#6E8B5E" strokeWidth={2}/>
                 </div>
                 <div>
                   <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{t.taskEmptyTodayHome}</div>
@@ -7619,8 +7616,8 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
         const isActiveTimer = activeTimerId && activeTimerId === item.id;
         return (
           <div key={item.id} style={{
-            background: item.done ? "rgba(110,139,94,0.07)" : (isActiveTimer ? `${c.bg}0F` : cardBg),
-            border: `1px solid ${item.done ? "rgba(110,139,94,0.35)" : (isActiveTimer ? c.bg : cardBorder)}`,
+            background: isActiveTimer ? `${c.bg}0F` : cardBg,
+            border: `1px solid ${isActiveTimer ? c.bg : cardBorder}`,
             borderRadius:16, padding:"12px 14px", display:"flex", alignItems:"center", gap:12, position:"relative",
             transition:"background .15s ease, border-color .15s ease",
           }}>
