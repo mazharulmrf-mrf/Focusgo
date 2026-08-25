@@ -7,7 +7,7 @@ import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Geolocation } from "@capacitor/geolocation";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2 } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate } from "lucide-react";
 
 // lucide-react-এর এই ভার্সনে Mars/Venus নেই, তাই নিজে ছোট SVG icon বানানো হলো
 const Mars = ({ size = 18, color = "currentColor" }) => (
@@ -960,7 +960,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
       {/* Haptic feedback on/off */}
       <div style={rowStyle}>
-        <div style={labelStyle}><span style={iconWrapStyle}><span style={{fontSize:16}}>📳</span></span>{t.hapticFeedback}</div>
+        <div style={labelStyle}><span style={iconWrapStyle}><Vibrate size={15}/></span>{t.hapticFeedback}</div>
         <button onClick={toggleHaptics} aria-pressed={hapticsEnabled} style={{
             width:44, height:26, borderRadius:12, border:"none", cursor:"pointer", padding:0,
             background: hapticsEnabled ? accent : (dark ? "#3A362E" : "#DCD5C4"),
@@ -2230,7 +2230,6 @@ const topicPickList = (topicBank, entries, subject) => {
 const ACCENT_OPTIONS = [
   { key: "orange", labelBn: "কমলা",  labelEn: "Orange", light: "#D97757", dark: "#E08B68" },
   { key: "sage",  labelBn: "সেজ",    labelEn: "Sage",  light: "#6E8B5E", dark: "#8FAF7C" },
-  { key: "coral", labelBn: "কোরাল",  labelEn: "Coral", light: "#D9785C", dark: "#E5967C" },
   { key: "lilac", labelBn: "লাইলাক", labelEn: "Lilac", light: "#8E7DBE", dark: "#AC9EDB" },
   { key: "moss",  labelBn: "মস",     labelEn: "Moss",  light: "#4C7A52", dark: "#6FA377" },
 ];
@@ -4609,7 +4608,7 @@ export default function FocusGo() {
             )}
             <button onClick={()=>{vibrate(); setShowSearch(true);}}
               title={lang==="bn" ? "খুঁজুন" : "Search"}
-              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
+              style={{border:"none", background:accent, color:"#fff", borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
               <Search size={14}/>
             </button>
             <NotificationBell
@@ -4910,7 +4909,7 @@ export default function FocusGo() {
             <button
               onClick={()=>{ vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
               className="fg-tab-panel"
-              style={{marginTop:8, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: `linear-gradient(135deg, ${accent}, ${shadeColor(accent,-22)})`, borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, boxShadow:`0 6px 16px ${shadeColor(accent,-22)}59`}}
+              style={{marginTop:8, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: `linear-gradient(135deg, ${accent}, ${shadeColor(accent,-32)})`, borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, boxShadow:`0 6px 16px ${shadeColor(accent,-22)}59`}}
             >
               <div style={{minWidth:0}}>
                 <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:"rgba(255,255,255,0.85)", textTransform:"uppercase"}}>{lang==="bn"?"পরবর্তী পরীক্ষা":"Next Exam"}</div>
@@ -5175,30 +5174,30 @@ export default function FocusGo() {
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
           const secondaryColor = "#2B6F84";
           return (
-        <div className="fg-tab-panel" style={{marginTop:14, background: dark ? `linear-gradient(135deg, ${secondaryColor}45, ${secondaryColor}18)` : `linear-gradient(135deg, ${secondaryColor}38, ${secondaryColor}14)`, border: `1px solid ${secondaryColor}${dark ? "85" : "70"}`, borderRadius:16, padding:"12px 14px", position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:14, background: `linear-gradient(135deg, ${accent}, ${shadeColor(accent,-32)})`, borderRadius:16, padding:"13px 16px", position:"relative", overflow:"hidden", boxShadow:`0 6px 16px ${shadeColor(accent,-22)}59`}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
-                size={58} stroke={5.5} accent={secondaryColor} trackColor={dark?`${secondaryColor}40`:"#FFFFFF"} textMain={textMain} nf={nf}/>
+                size={58} stroke={5.5} accent="#FFFFFF" trackColor="rgba(255,255,255,0.28)" textMain="#FFFFFF" nf={nf}/>
               <div style={{minWidth:0}}>
-                <div style={{fontSize:14, fontWeight:800, color:textMain, marginBottom:6}}>{t.todaysProgress}</div>
+                <div style={{fontSize:14, fontWeight:800, color:"#fff", marginBottom:6}}>{t.todaysProgress}</div>
                 <div style={{display:"flex", alignItems:"center", gap:7, fontSize:12.5, fontWeight:700, whiteSpace:"nowrap"}}>
-                  <span style={{display:"inline-flex", alignItems:"center", gap:3, color:"#6E8B5E"}}>
+                  <span style={{display:"inline-flex", alignItems:"center", gap:3, color:"#C9EFC2"}}>
                     <Check size={12} strokeWidth={3}/> <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.progressCompletedLabel}
                   </span>
-                  <span style={{color:cardBorder, fontWeight:400}}>|</span>
-                  <span style={{display:"inline-flex", alignItems:"center", gap:3, color:"#C08A2E"}}>
+                  <span style={{color:"rgba(255,255,255,0.35)", fontWeight:400}}>|</span>
+                  <span style={{display:"inline-flex", alignItems:"center", gap:3, color:"#FFD89B"}}>
                     <Clock size={12}/> <Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}
                   </span>
                 </div>
               </div>
             </div>
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:2, paddingLeft:12, borderLeft: `1px solid ${cardBorder}`}}>
-              <div style={{width:26, height:26, borderRadius:"50%", background: dark?"rgba(192,138,46,0.2)":"rgba(192,138,46,0.12)", display:"flex", alignItems:"center", justifyContent:"center"}}>
-                <Flame size={14} color="#C08A2E" fill="#C08A2E55"/>
+            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:2, paddingLeft:12, borderLeft: `1px solid rgba(255,255,255,0.25)`}}>
+              <div style={{width:26, height:26, borderRadius:"50%", background: "rgba(255,255,255,0.18)", display:"flex", alignItems:"center", justifyContent:"center"}}>
+                <Flame size={14} color="#FFD89B" fill="#FFD89B55"/>
               </div>
-              <div style={{fontSize:14, fontWeight:800, color:"#C08A2E", lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
-              <div style={{fontSize:10, color:textMuted2, fontWeight:600, opacity:0.85, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
+              <div style={{fontSize:14, fontWeight:800, color:"#FFD89B", lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
+              <div style={{fontSize:10, color:"rgba(255,255,255,0.8)", fontWeight:600, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
             </div>
           </div>
           {/* Today's Tasks mini-summary — merged into the progress card so the card previews task progress at a glance, matching the home page mockup */}
@@ -5209,15 +5208,15 @@ export default function FocusGo() {
             const cardPct = hasTasks ? Math.round((cardDone / cardTodayTasks.length) * 100) : 0;
             const cardLeft = cardTodayTasks.length - cardDone;
             return (
-              <div style={{marginTop:12, paddingTop:12, borderTop:`1px solid ${cardBorder}`}}>
+              <div style={{marginTop:12, paddingTop:12, borderTop:`1px solid rgba(255,255,255,0.25)`}}>
                 <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
-                  <div style={{fontSize:13, fontWeight:800, color:textMain}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
-                  <div style={{fontSize:11, fontWeight:700, color:textMuted2, whiteSpace:"nowrap"}}>
+                  <div style={{fontSize:13, fontWeight:800, color:"#fff"}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
+                  <div style={{fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.8)", whiteSpace:"nowrap"}}>
                     {!hasTasks ? (lang==="bn" ? "কোনো টাস্ক নেই" : "No tasks today") : cardLeft > 0 ? (lang==="bn" ? `${nf(cardLeft)}টা বাকি` : `${cardLeft} left`) : t.taskAllDoneLabel}
                   </div>
                 </div>
-                <div style={{height:6, borderRadius:8, background: dark?"#2C2B33":"#E7E5ED", overflow:"hidden"}}>
-                  <div style={{width: hasTasks ? `${cardPct}%` : "0%", height:"100%", borderRadius:8, background:"#6E8B5E", transition:"width .25s ease"}}/>
+                <div style={{height:6, borderRadius:8, background: "rgba(255,255,255,0.22)", overflow:"hidden"}}>
+                  <div style={{width: hasTasks ? `${cardPct}%` : "0%", height:"100%", borderRadius:8, background:"#C9EFC2", transition:"width .25s ease"}}/>
                 </div>
               </div>
             );
@@ -5275,14 +5274,9 @@ export default function FocusGo() {
               </button>
             </div>
             {homeTodayTasks.length === 0 ? (
-              <div style={{border:`1.5px solid rgba(110,139,94,0.28)`, background:"rgba(110,139,94,0.07)", borderRadius:16, padding:"18px", display:"flex", alignItems:"center", gap:12}}>
-                <div style={{width:38, height:38, borderRadius:"50%", background:"rgba(110,139,94,0.16)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                  <Check size={18} color="#6E8B5E" strokeWidth={2}/>
-                </div>
-                <div>
-                  <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{t.taskEmptyTodayHome}</div>
-                  <div style={{color:textMuted2, fontSize:12, marginTop:2}}>{lang==="bn" ? "আজকের একটা টাস্ক যোগ করুন।" : "Add a task to plan your day."}</div>
-                </div>
+              <div style={{padding:"4px 2px"}}>
+                <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{t.taskEmptyTodayHome}</div>
+                <div style={{color:textMuted2, fontSize:12, marginTop:2}}>{lang==="bn" ? "আজকের একটা টাস্ক যোগ করুন।" : "Add a task to plan your day."}</div>
               </div>
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
@@ -7596,16 +7590,9 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
   const closeMenu = () => { setOpenMenuId(null); setConfirmDeleteId(null); };
   if (items.length === 0) {
     return (
-      <div style={{border:`1.5px solid rgba(110,139,94,0.28)`, background:"rgba(110,139,94,0.07)", borderRadius:16, padding:"18px", display:"flex", alignItems:"center", gap:12}}>
-        {EmptyIcon && (
-          <div style={{width:38, height:38, borderRadius:"50%", background:"rgba(110,139,94,0.16)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-            <EmptyIcon size={18} color="#6E8B5E" strokeWidth={2}/>
-          </div>
-        )}
-        <div style={{textAlign:"left", minWidth:0}}>
-          <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{emptyText}</div>
-          {emptySubtext && <div style={{fontSize:12, color:textMuted2, marginTop:3, lineHeight:1.5}}>{emptySubtext}</div>}
-        </div>
+      <div style={{padding:"4px 2px", textAlign:"left"}}>
+        <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{emptyText}</div>
+        {emptySubtext && <div style={{fontSize:12, color:textMuted2, marginTop:3, lineHeight:1.5}}>{emptySubtext}</div>}
       </div>
     );
   }
