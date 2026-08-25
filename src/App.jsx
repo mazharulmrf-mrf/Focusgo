@@ -6,7 +6,7 @@ import { Capacitor } from "@capacitor/core";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Geolocation } from "@capacitor/geolocation";
 import { LocalNotifications } from "@capacitor/local-notifications";
-import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
+import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate } from "lucide-react";
 
 // lucide-react-এর এই ভার্সনে Mars/Venus নেই, তাই নিজে ছোট SVG icon বানানো হলো
@@ -290,8 +290,8 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
     try {
       if (Capacitor.isNativePlatform()) {
         // Native Android/iOS: সরাসরি native account picker (একদম PC/Android Studio বিল্ডের মতোই)
-        const googleUser = await GoogleAuth.signIn();
-        const idToken = googleUser?.authentication?.idToken;
+        const result = await FirebaseAuthentication.signInWithGoogle();
+        const idToken = result?.credential?.idToken;
         if (!idToken) throw new Error("no-id-token");
         const credential = GoogleAuthProvider.credential(idToken);
         await signInWithCredential(auth, credential);
@@ -4343,14 +4343,8 @@ export default function FocusGo() {
     }
   }, []);
 
-  // Google Sign-In (native) — GoogleAuth.signIn() ব্যবহারের আগে অবশ্যই GoogleAuth.initialize() কল করতে হয়,
-  // নাহলে native Google Sign-In SDK "DEVELOPER_ERROR" (কোড 10) ছুঁড়ে দেয়। clientId/serverClientId
-  // capacitor.config.json-এর GoogleAuth প্লাগিন কনফিগ থেকে অটোমেটিক নেওয়া হয়।
-  useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
-      GoogleAuth.initialize().catch((e) => console.error("GoogleAuth.initialize failed:", e));
-    }
-  }, []);
+  // Google Sign-In (native) — @capacitor-firebase/authentication google-services.json থেকে নিজে থেকেই
+  // client id নেয়, তাই আলাদা করে initialize() কল করার দরকার নেই।
 
   // এক্সাম শিডিউল বদলালেই (যোগ/এডিট/ডিলিট) — আগে শিডিউল করা সব "পরীক্ষার আগের রাতের রিমাইন্ডার" ক্যানসেল করে,
   // বর্তমান examSchedule অনুযায়ী নতুন করে শিডিউল করা হয়। এভাবে সবসময় ডেটার সাথে নোটিফিকেশন সিঙ্কে থাকে।
@@ -4940,7 +4934,7 @@ export default function FocusGo() {
             <button
               onClick={()=>{ vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
               className="fg-tab-panel"
-              style={{marginTop:8, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: accent, borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, boxShadow:`0 6px 16px ${shadeColor(accent,-22)}59`}}
+              style={{marginTop:8, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: "#152728", borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, boxShadow:`0 8px 20px rgba(0,0,0,0.45), 0 0 0 1px ${accent}26`}}
             >
               <div style={{minWidth:0}}>
                 <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:"rgba(255,255,255,0.85)", textTransform:"uppercase"}}>{lang==="bn"?"পরবর্তী পরীক্ষা":"Next Exam"}</div>
@@ -4950,7 +4944,7 @@ export default function FocusGo() {
                   {nearestUpcomingExam.startTime ? ` · ${nearestUpcomingExam.startTime}${nearestUpcomingExam.endTime ? "–"+nearestUpcomingExam.endTime : ""}` : ""}
                 </div>
               </div>
-              <div style={{flexShrink:0, fontSize:13, fontWeight:800, color:shadeColor(accent,-22), background: "#fff", padding:"6px 12px", borderRadius:999, whiteSpace:"nowrap"}}>
+              <div style={{flexShrink:0, fontSize:13, fontWeight:800, color:accent, background: "#fff", padding:"6px 12px", borderRadius:999, whiteSpace:"nowrap"}}>
                 {daysLabel}
               </div>
             </button>
@@ -5200,12 +5194,10 @@ export default function FocusGo() {
         )}
 
         {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — Option 2: circular progress, premium look
-            secondaryColor (calm teal) ব্যবহার করা হচ্ছে accent-এর বদলে, যাতে Exam কার্ড (যেটা accent দিয়ে হাইলাইট করা) থেকে
-            আলাদা লাগে এবং দুটো কার্ডের মধ্যে visual rhythm তৈরি হয় */}
+            এখন accent color ব্যবহার হচ্ছে (আগে dark teal ছিল, সেই রঙ Next Exam কার্ডে সরানো হয়েছে) */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
-          const secondaryColor = "#2B6F84";
           return (
-        <div className="fg-tab-panel" style={{marginTop:14, border:`1px solid rgba(255,255,255,0.10)`, background: "#152728", borderRadius:16, padding:"13px 16px", position:"relative", overflow:"hidden", boxShadow:`0 8px 20px rgba(0,0,0,0.45), 0 0 0 1px ${accent}26`}}>
+        <div className="fg-tab-panel" style={{marginTop:14, border:`1px solid rgba(255,255,255,0.10)`, background: accent, borderRadius:16, padding:"13px 16px", position:"relative", overflow:"hidden", boxShadow:`0 6px 16px ${shadeColor(accent,-22)}59`}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
