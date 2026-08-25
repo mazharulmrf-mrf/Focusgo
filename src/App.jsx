@@ -2228,7 +2228,7 @@ const topicPickList = (topicBank, entries, subject) => {
 // Tapping a chip fills the topic input; typing a new topic still works as before.
 // ---------- Accent color options — ইউজার Settings থেকে বেছে নিতে পারবে, orange ডিফল্ট/প্রথম অপশন হিসেবে থাকছে ----------
 const ACCENT_OPTIONS = [
-  { key: "orange", labelBn: "কমলা",  labelEn: "Orange", light: "#D97757", dark: "#F0713D" },
+  { key: "orange", labelBn: "কমলা",  labelEn: "Orange", light: "#C1592F", dark: "#CC6034" },
   { key: "lilac", labelBn: "লাইলাক", labelEn: "Lilac", light: "#8E7DBE", dark: "#AC9EDB" },
   { key: "moss",  labelBn: "মস",     labelEn: "Moss",  light: "#4C7A52", dark: "#6FA377" },
 ];
