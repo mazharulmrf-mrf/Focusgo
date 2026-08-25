@@ -4577,14 +4577,7 @@ export default function FocusGo() {
         </div>
       )}
       <div style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, ...(isDesktop ? { zoom: desktopZoom } : {})}}>
-      <div style={{...styles.container, position:"relative", zIndex:0}}>
-        {tab === "today" && (
-          <div aria-hidden="true" style={{
-            position:"absolute", top:-40, left:"50%", transform:"translateX(-50%)",
-            width:"140%", maxWidth:520, height:220, pointerEvents:"none", zIndex:-1,
-            background: `radial-gradient(closest-side, ${accent}${dark ? "26" : "1F"}, transparent 72%)`,
-          }}/>
-        )}
+      <div style={styles.container}>
         {/* Header row: logo | clock | toggles */}
         <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
           <div style={{display:"flex", alignItems:"center", gap:10}}>
@@ -4903,17 +4896,17 @@ export default function FocusGo() {
             <button
               onClick={()=>{ vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
               className="fg-tab-panel"
-              style={{marginTop:12, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: dark ? "rgba(217,119,87,0.14)" : "#EFEBF7", borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}
+              style={{marginTop:12, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: dark ? "rgba(217,119,55,0.16)" : "rgba(217,119,55,0.10)", borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}
             >
               <div style={{minWidth:0}}>
-                <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:accent, textTransform:"uppercase"}}>{lang==="bn"?"পরবর্তী পরীক্ষা":"Next Exam"}</div>
+                <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:"#D97737", textTransform:"uppercase"}}>{lang==="bn"?"পরবর্তী পরীক্ষা":"Next Exam"}</div>
                 <div style={{fontSize:14, fontWeight:800, color:textMain, marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{nearestUpcomingExam.subject}</div>
                 <div style={{fontSize:12, color:textMuted2, marginTop:2}}>
                   {weekdayName(new Date(nearestUpcomingExam.date+"T00:00:00"))}, <Num>{nf(new Date(nearestUpcomingExam.date+"T00:00:00").getDate())}</Num> {monthName(new Date(nearestUpcomingExam.date+"T00:00:00").getMonth())}
                   {nearestUpcomingExam.startTime ? ` · ${nearestUpcomingExam.startTime}${nearestUpcomingExam.endTime ? "–"+nearestUpcomingExam.endTime : ""}` : ""}
                 </div>
               </div>
-              <div style={{flexShrink:0, fontSize:13, fontWeight:800, color:accent, background: dark ? "rgba(0,0,0,0.25)" : "#fff", padding:"6px 12px", borderRadius:999, whiteSpace:"nowrap"}}>
+              <div style={{flexShrink:0, fontSize:13, fontWeight:800, color:"#D97737", background: dark ? "rgba(0,0,0,0.25)" : "#fff", padding:"6px 12px", borderRadius:999, whiteSpace:"nowrap"}}>
                 {daysLabel}
               </div>
             </button>
@@ -4936,7 +4929,7 @@ export default function FocusGo() {
               <div style={{display:"flex", alignItems:"center", gap:2}}>
                 <button onClick={()=>{vibrate(); setShowExamSchedule(true);}} title={lang==="bn"?"পরীক্ষার সময়সূচি":"Exam Schedule"} style={{
                   border:"none",
-                  background:"transparent",
+                  background: dark ? "rgba(217,119,55,0.22)" : "rgba(217,119,55,0.14)",
                   borderRadius:"50%",
                   width:30,
                   height:30,
@@ -4946,7 +4939,7 @@ export default function FocusGo() {
                   flexShrink:0,
                   position:"relative",
                 }}>
-                  <CalendarClock size={20} color={accent} strokeWidth={2}/>
+                  <CalendarClock size={20} color="#D97737" strokeWidth={2}/>
                   {nearestUpcomingExam && (
                     <span style={{
                       position:"absolute", top:2, right:2,
@@ -5193,20 +5186,20 @@ export default function FocusGo() {
           {/* Today's Tasks mini-summary — merged into the progress card so the card previews task progress at a glance, matching the home page mockup */}
           {tab === "today" && (() => {
             const cardTodayTasks = tasks.filter(x => x.dueDate === todayKey);
-            if (cardTodayTasks.length === 0) return null;
+            const hasTasks = cardTodayTasks.length > 0;
             const cardDone = cardTodayTasks.filter(x => x.done).length;
-            const cardPct = Math.round((cardDone / cardTodayTasks.length) * 100);
+            const cardPct = hasTasks ? Math.round((cardDone / cardTodayTasks.length) * 100) : 0;
             const cardLeft = cardTodayTasks.length - cardDone;
             return (
               <div style={{marginTop:12, paddingTop:12, borderTop:`1px solid ${cardBorder}`}}>
                 <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
                   <div style={{fontSize:13, fontWeight:800, color:textMain}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
                   <div style={{fontSize:11, fontWeight:700, color:textMuted2, whiteSpace:"nowrap"}}>
-                    {cardLeft > 0 ? (lang==="bn" ? `${nf(cardLeft)}টা বাকি` : `${cardLeft} left`) : t.taskAllDoneLabel}
+                    {!hasTasks ? (lang==="bn" ? "কোনো টাস্ক নেই" : "No tasks today") : cardLeft > 0 ? (lang==="bn" ? `${nf(cardLeft)}টা বাকি` : `${cardLeft} left`) : t.taskAllDoneLabel}
                   </div>
                 </div>
                 <div style={{height:6, borderRadius:8, background: dark?"#2C2B33":"#E7E5ED", overflow:"hidden"}}>
-                  <div style={{width:`${cardPct}%`, height:"100%", borderRadius:8, background:"#6E8B5E", transition:"width .25s ease"}}/>
+                  <div style={{width: hasTasks ? `${cardPct}%` : "0%", height:"100%", borderRadius:8, background:"#6E8B5E", transition:"width .25s ease"}}/>
                 </div>
               </div>
             );
@@ -5235,7 +5228,7 @@ export default function FocusGo() {
             activeTimerId={timerTopicId} timerRunning={timerRunning} timerSeconds={timerSeconds} onToggleRun={toggleTimerRunning}
             onEdit={(item)=>setEditTopic({...item, _dk: todayKey})} onDelete={(id)=>deleteTopicFor(todayKey, id)}
             onRename={(item, newTopic)=>saveEditFor(todayKey, {...item, topic:newTopic})}
-            emptyText={t.noTopicsToday} emptySubtext={t.noTopicsTodaySub} emptyIcon={GraduationCap}/>
+            emptyText={t.noTopicsToday} emptySubtext={t.noTopicsTodaySub} emptyIcon={Sparkles}/>
         </div>
         )}
 
@@ -5263,9 +5256,9 @@ export default function FocusGo() {
               </button>
             </div>
             {homeTodayTasks.length === 0 ? (
-              <div style={{border:`1.5px dashed ${cardBorder}`, borderRadius:16, padding:"18px", display:"flex", alignItems:"center", gap:12}}>
-                <div style={{width:38, height:38, borderRadius:"50%", background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                  <Check size={18} color={accent} strokeWidth={2}/>
+              <div style={{border:`1.5px solid ${dark ? "rgba(76,143,166,0.35)" : "rgba(76,143,166,0.25)"}`, background: dark ? "rgba(76,143,166,0.08)" : "rgba(76,143,166,0.06)", borderRadius:16, padding:"18px", display:"flex", alignItems:"center", gap:12}}>
+                <div style={{width:38, height:38, borderRadius:"50%", background: dark ? "rgba(76,143,166,0.25)" : "rgba(76,143,166,0.15)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                  <Check size={18} color="#4C8FA6" strokeWidth={2}/>
                 </div>
                 <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{t.taskEmptyTodayHome}</div>
               </div>
@@ -7588,7 +7581,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
   const closeMenu = () => { setOpenMenuId(null); setConfirmDeleteId(null); };
   if (items.length === 0) {
     return (
-      <div style={{border:`1.5px dashed ${cardBorder}`, borderRadius:16, padding:"18px", display:"flex", alignItems:"center", gap:12}}>
+      <div style={{border:`1.5px solid rgba(110,139,94,0.28)`, background:"rgba(110,139,94,0.07)", borderRadius:16, padding:"18px", display:"flex", alignItems:"center", gap:12}}>
         {EmptyIcon && (
           <div style={{width:38, height:38, borderRadius:"50%", background:"rgba(110,139,94,0.16)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
             <EmptyIcon size={18} color="#6E8B5E" strokeWidth={2}/>
