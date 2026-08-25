@@ -2248,7 +2248,7 @@ const THEME_PALETTES = {
   graphite: { key:"graphite", labelBn:"গ্র্যাফাইট", labelEn:"Graphite", dark:true,  bg:"#1D1E22", cardBg:"#24262B", cardBorder:"#34363C", textMain:"#ECEDEF", textMuted2:"#A0A3AA", subtleBg:"#1A1B1F" },
   mist:     { key:"mist",     labelBn:"মিস্ট",     labelEn:"Mist",     dark:false, bg:"#EFF4F6", cardBg:"#F5F8FA", cardBorder:"#DCE4E8", textMain:"#26333A", textMuted2:"#74858D", subtleBg:"#EDF3F5" },
 };
-const THEME_ORDER = ["light", "dark", "ivory", "graphite", "mist"];
+const THEME_ORDER = ["light", "dark"];
 function themeFor(mode) {
   return THEME_PALETTES[mode] || THEME_PALETTES.light;
 }
@@ -4577,7 +4577,14 @@ export default function FocusGo() {
         </div>
       )}
       <div style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, ...(isDesktop ? { zoom: desktopZoom } : {})}}>
-      <div style={styles.container}>
+      <div style={{...styles.container, position:"relative", zIndex:0}}>
+        {tab === "today" && (
+          <div aria-hidden="true" style={{
+            position:"absolute", top:-40, left:"50%", transform:"translateX(-50%)",
+            width:"140%", maxWidth:520, height:220, pointerEvents:"none", zIndex:-1,
+            background: `radial-gradient(closest-side, ${accent}${dark ? "26" : "1F"}, transparent 72%)`,
+          }}/>
+        )}
         {/* Header row: logo | clock | toggles */}
         <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
           <div style={{display:"flex", alignItems:"center", gap:10}}>
@@ -5211,7 +5218,12 @@ export default function FocusGo() {
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (
         <div className="fg-tab-panel" style={{marginTop:14}}>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
-            <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
+            <div style={{display:"flex", alignItems:"center", gap:8}}>
+              <span style={{width:26, height:26, borderRadius:9, background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                <GraduationCap size={14} color={accent} strokeWidth={2.2}/>
+              </span>
+              <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
+            </div>
             <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} title={t.addTopic} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
               <Plus size={17}/>
             </button>
@@ -5238,8 +5250,13 @@ export default function FocusGo() {
           return (
           <div className="fg-tab-panel" style={{marginTop:18}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-              <div style={{fontSize:18,fontWeight:800,letterSpacing:-0.3,color:textMain}}>
-                {lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}
+              <div style={{display:"flex", alignItems:"center", gap:8}}>
+                <span style={{width:26, height:26, borderRadius:9, background: dark ? "rgba(76,143,166,0.2)" : "rgba(76,143,166,0.12)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                  <ListChecks size={14} color="#4C8FA6" strokeWidth={2.2}/>
+                </span>
+                <div style={{fontSize:18,fontWeight:800,letterSpacing:-0.3,color:textMain}}>
+                  {lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}
+                </div>
               </div>
               <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}} title={t.taskAddBtn} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
                 <Plus size={17}/>
