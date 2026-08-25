@@ -5167,13 +5167,17 @@ export default function FocusGo() {
         </div>
         )}
 
-        {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — Option 2: circular progress, premium look */}
-        {(tab === "today" || (tab === "study" && studySection === "plan")) && (
-        <div className="fg-tab-panel" style={{marginTop:14, background: dark ? "#1E1A16" : `linear-gradient(135deg, ${accent}14, ${accent}03)`, border: `1px solid ${accent}40`, borderRadius:16, padding:"12px 14px", position:"relative", overflow:"hidden"}}>
+        {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — Option 2: circular progress, premium look
+            secondaryColor (calm teal) ব্যবহার করা হচ্ছে accent-এর বদলে, যাতে Exam কার্ড (যেটা accent দিয়ে হাইলাইট করা) থেকে
+            আলাদা লাগে এবং দুটো কার্ডের মধ্যে visual rhythm তৈরি হয় */}
+        {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
+          const secondaryColor = "#4C8FA6";
+          return (
+        <div className="fg-tab-panel" style={{marginTop:14, background: dark ? "#152025" : `linear-gradient(135deg, ${secondaryColor}14, ${secondaryColor}03)`, border: `1px solid ${secondaryColor}40`, borderRadius:16, padding:"12px 14px", position:"relative", overflow:"hidden"}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
-                size={58} stroke={5.5} accent={accent} trackColor={dark?"#2C2B33":"#E7E5ED"} textMain={textMain} nf={nf}/>
+                size={58} stroke={5.5} accent={secondaryColor} trackColor={dark?"#2C2B33":"#E7E5ED"} textMain={textMain} nf={nf}/>
               <div style={{minWidth:0}}>
                 <div style={{fontSize:14, fontWeight:800, color:textMain, marginBottom:6}}>{t.todaysProgress}</div>
                 <div style={{display:"flex", alignItems:"center", gap:7, fontSize:12.5, fontWeight:700, whiteSpace:"nowrap"}}>
@@ -5217,7 +5221,8 @@ export default function FocusGo() {
             );
           })()}
         </div>
-        )}
+          );
+        })()}
 
         {/* Today's study list - Today tab + Study tab (shown above Study Plan/Exam) */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (
@@ -5227,7 +5232,7 @@ export default function FocusGo() {
               <span style={{width:26, height:26, borderRadius:9, background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                 <GraduationCap size={14} color={accent} strokeWidth={2.2}/>
               </span>
-              <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
+              <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
             </div>
             <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} title={t.addTopic} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
               <Plus size={17}/>
@@ -5259,7 +5264,7 @@ export default function FocusGo() {
                 <span style={{width:26, height:26, borderRadius:9, background: dark ? "rgba(76,143,166,0.2)" : "rgba(76,143,166,0.12)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                   <ListChecks size={14} color="#4C8FA6" strokeWidth={2.2}/>
                 </span>
-                <div style={{fontSize:20,fontWeight:800,letterSpacing:-0.3,color:textMain}}>
+                <div style={{fontSize:16,fontWeight:800,letterSpacing:-0.3,color:textMain}}>
                   {lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}
                 </div>
               </div>
