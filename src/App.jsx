@@ -5157,7 +5157,7 @@ export default function FocusGo() {
 
         {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — Option 2: circular progress, premium look */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (
-        <div className="fg-tab-panel" style={{marginTop:14, background: dark ? "#1E1A16" : cardBg, border: dark ? `1px solid ${accent}40` : `1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px", position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:14, background: dark ? "#1E1A16" : `linear-gradient(135deg, ${accent}14, ${accent}03)`, border: `1px solid ${accent}40`, borderRadius:16, padding:"12px 14px", position:"relative", overflow:"hidden"}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
@@ -5212,8 +5212,8 @@ export default function FocusGo() {
         <div className="fg-tab-panel" style={{marginTop:14}}>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
             <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
-            <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} title={t.addTopic} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: "transparent", color: accent, border:"none", padding:0, cursor:"pointer"}}>
-              <Plus size={19}/>
+            <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} title={t.addTopic} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
+              <Plus size={17}/>
             </button>
           </div>
 
@@ -5241,14 +5241,16 @@ export default function FocusGo() {
               <div style={{fontSize:18,fontWeight:800,letterSpacing:-0.3,color:textMain}}>
                 {lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}
               </div>
-              <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}} title={t.taskAddBtn} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: "transparent", color: accent, border:"none", padding:0, cursor:"pointer"}}>
-                <Plus size={19}/>
+              <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}} title={t.taskAddBtn} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
+                <Plus size={17}/>
               </button>
             </div>
             {homeTodayTasks.length === 0 ? (
-              <div style={{display:"flex", alignItems:"center", gap:8, padding:"10px 0 20px", color:textMuted2, fontSize:12.5}}>
-                <Check size={16} color={textMuted2} strokeWidth={2}/>
-                <span style={{fontWeight:500, color:textMuted2}}>{t.taskEmptyTodayHome}</span>
+              <div style={{border:`1.5px dashed ${cardBorder}`, borderRadius:16, padding:"18px", display:"flex", alignItems:"center", gap:12}}>
+                <div style={{width:38, height:38, borderRadius:"50%", background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                  <Check size={18} color={accent} strokeWidth={2}/>
+                </div>
+                <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{t.taskEmptyTodayHome}</div>
               </div>
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
@@ -5359,8 +5361,8 @@ export default function FocusGo() {
                 <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3}}>
                   {isPlanToday ? t.todaysStudy : <>{weekdayName(planDate)}, <Num>{nf(planDate.getDate())}</Num> {monthName(planDate.getMonth())}</>}
                 </div>
-                <button onClick={()=>{setAddTargetKey(planKey); setShowAdd(true);}} title={t.addTopic} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: "transparent", color: accent, border:"none", padding:0, cursor:"pointer"}}>
-                  <Plus size={19}/>
+                <button onClick={()=>{setAddTargetKey(planKey); setShowAdd(true);}} title={t.addTopic} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
+                  <Plus size={17}/>
                 </button>
               </div>
               {planTopics.length > 0 && (() => {
