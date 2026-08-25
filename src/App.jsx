@@ -112,8 +112,8 @@ function resizeImageToDataUrl(file, maxDim = 320, quality = 0.82) {
 function OnboardingScreen({ lang, dark, cardBg, textMain, textMuted2, accent, onDone }) {
   const [step, setStep] = useState(0);
   const isBn = lang === "bn";
-  const bg = dark ? "#000000" : "#FFFFFF";
-  const border = dark ? "#352C48" : "#E4D9F5";
+  const bg = dark ? "#17151C" : "#F7F6FA";
+  const border = dark ? "#2C2B33" : "#E7E5ED";
 
   const slides = [
     {
@@ -320,7 +320,7 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
   };
 
   const inputStyle = {
-    width: "100%", boxSizing: "border-box", border: `1px solid ${cardBorder}`, background: dark ? "#2C2440" : "#FFFFFF",
+    width: "100%", boxSizing: "border-box", border: `1px solid ${cardBorder}`, background: dark ? "#242229" : "#FFFFFF",
     color: textMain, borderRadius:12, padding: "12px 14px", fontSize:14, outline: "none",
   };
 
@@ -519,7 +519,7 @@ function NotificationBell({ t, lang, notifications, onMarkAllRead, onClear, card
                 </div>
               )}
               {notifications.map(n => (
-                <div key={n.id} style={{ display: "flex", gap:8, padding: "10px 12px", borderBottom: `1px solid ${cardBorder}`, background: n.read ? "transparent" : (dark ? "#352C48" : "#F8F5EE") }}>
+                <div key={n.id} style={{ display: "flex", gap:8, padding: "10px 12px", borderBottom: `1px solid ${cardBorder}`, background: n.read ? "transparent" : (dark ? "#2C2B33" : "#F8F5EE") }}>
                   <span style={{ width: 7, height: 7, borderRadius: "50%", background: accent, flexShrink: 0, marginTop: 5, opacity: n.read ? 0 : 1 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize:12, fontWeight: 700, color: textMain }}>{n.title}</div>
@@ -604,9 +604,10 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
 }
 
 // ---------- Settings modal: Language, Theme, About Us ----------
-function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
+function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, setAccentKey, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const [showAbout, setShowAbout] = useState(false);
   const [showTheme, setShowTheme] = useState(false);
+  const [showAccent, setShowAccent] = useState(false);
   const [legalDoc, setLegalDoc] = useState(null); // null | "privacy" | "terms"
   const isBn = lang === "bn";
 
@@ -624,7 +625,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, car
 
   const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:`1px solid ${cardBorder}` };
   const labelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14, fontWeight:700, color:textMain };
-  const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#1A1625":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#B6ABCF" : "#6E6480" };
+  const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#ADA9BB" : "#6E6B7A" };
 
   if (legalDoc) {
     const sections = legalDoc === "privacy" ? t.privacySections : t.termsSections;
@@ -683,6 +684,40 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, car
                   <span style={iconWrapStyle}><Icon size={15}/></span>
                   <span style={{fontSize:14, fontWeight:700, flex:1}}>{label}</span>
                   {selected && <Check size={16} color={accent} strokeWidth={3}/>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (showAccent) {
+    return (
+      <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
+        <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain}}>
+          <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:14}}>
+            <button onClick={()=>setShowAccent(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
+              <ChevronLeft size={20}/>
+            </button>
+            <div style={{fontSize:18, fontWeight:800, flex:1}}>{lang==="bn" ? "অ্যাকসেন্ট রং" : "Accent Color"}</div>
+            <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
+          </div>
+          <div style={{display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:10}}>
+            {ACCENT_OPTIONS.map(({key, labelBn, labelEn}) => {
+              const hex = accentHexFor(key, dark);
+              const selected = accentKey === key;
+              return (
+                <button key={key} onClick={()=>setAccentKey(key)} style={{
+                  display:"flex", flexDirection:"column", alignItems:"center", gap:8,
+                  border:`1.5px solid ${selected ? hex : cardBorder}`, background: selected ? `${hex}12` : "transparent",
+                  borderRadius:14, padding:"14px 8px", cursor:"pointer",
+                }}>
+                  <span style={{width:30, height:30, borderRadius:"50%", background:hex, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                    {selected && <Check size={15} color="#fff" strokeWidth={3}/>}
+                  </span>
+                  <span style={{fontSize:12, fontWeight:700, color:textMain}}>{lang==="bn" ? labelBn : labelEn}</span>
                 </button>
               );
             })}
@@ -757,7 +792,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, car
         {/* Language */}
         <div style={rowStyle}>
           <div style={labelStyle}><span style={iconWrapStyle}><span style={{fontSize:13, fontWeight:800}}>{lang==="bn"?"বাং":"EN"}</span></span>{t.language}</div>
-          <button onClick={()=>setLang(l=>l==="bn"?"en":"bn")} style={{border:`1px solid ${cardBorder}`, background: dark?"#1A1625":"#F8F5EE", color:textMain, borderRadius:10, padding:"7px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+          <button onClick={()=>setLang(l=>l==="bn"?"en":"bn")} style={{border:`1px solid ${cardBorder}`, background: dark?"#17151C":"#F8F5EE", color:textMain, borderRadius:10, padding:"7px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
             {lang==="bn" ? "English" : "বাংলা"}
           </button>
         </div>
@@ -771,6 +806,22 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, onClose, car
             </div>
             <div style={{display:"flex", alignItems:"center", gap:6, color:textMuted2}}>
               <span style={{fontSize:12, fontWeight:600}}>{themeMode==="system" ? t.themeSystem : themeMode==="light" ? t.themeLight : t.themeDark}</span>
+              {isBn ? <ChevronLeft size={16}/> : <ChevronRight size={16}/>}
+            </div>
+          </div>
+        </button>
+
+        {/* Accent Color — sub-page (color swatches, orange ডিফল্ট) */}
+        <button onClick={()=>setShowAccent(true)} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", padding:0}}>
+          <div style={rowStyle}>
+            <div style={labelStyle}>
+              <span style={{...iconWrapStyle, background:"transparent", border:"none"}}>
+                <span style={{width:20, height:20, borderRadius:"50%", background:accent, border:`1px solid ${cardBorder}`, display:"block"}}/>
+              </span>
+              {lang==="bn" ? "অ্যাকসেন্ট রং" : "Accent Color"}
+            </div>
+            <div style={{display:"flex", alignItems:"center", gap:6, color:textMuted2}}>
+              <span style={{fontSize:12, fontWeight:600}}>{lang==="bn" ? (ACCENT_OPTIONS.find(a=>a.key===accentKey)||ACCENT_OPTIONS[0]).labelBn : (ACCENT_OPTIONS.find(a=>a.key===accentKey)||ACCENT_OPTIONS[0]).labelEn}</span>
               {isBn ? <ChevronLeft size={16}/> : <ChevronRight size={16}/>}
             </div>
           </div>
@@ -833,8 +884,8 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
             <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
           </div>
           <div style={{display:"flex", alignItems:"center", gap:16, marginBottom:16}}>
-            <div style={{width:56, height:56, borderRadius:"50%", background: dark?"#1A1625":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-              <User size={24} color={dark ? "#B6ABCF" : "#6E6480"}/>
+            <div style={{width:56, height:56, borderRadius:"50%", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+              <User size={24} color={dark ? "#ADA9BB" : "#6E6B7A"}/>
             </div>
             <div style={{fontSize:14, fontWeight:800}}>{gL.title}</div>
           </div>
@@ -920,11 +971,11 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
     photoUploadErr: isBn ? "ছবি আপলোড করা যায়নি, আবার চেষ্টা করুন।" : "Couldn't upload the photo — please try again.",
   };
 
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#1A1625":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const labelStyle = { fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6 };
   const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:`1px solid ${cardBorder}`, cursor:"pointer" };
   const menuLabelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14, fontWeight:700, color:textMain };
-  const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#1A1625":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#B6ABCF" : "#6E6480" };
+  const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#ADA9BB" : "#6E6B7A" };
 
   const emailChanged = email.trim() !== (user.email || "");
 
@@ -1054,15 +1105,15 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
   };
 
   const AvatarCircle = ({ size }) => (
-    <div style={{width:size, height:size, borderRadius:"50%", background: dark?"#1A1625":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", flexShrink:0}}>
+    <div style={{width:size, height:size, borderRadius:"50%", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", flexShrink:0}}>
       {user.photoURL ? (
         <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
       ) : user.gender === "female" ? (
-        <Venus size={Math.round(size*0.43)} color={dark ? "#B6ABCF" : "#6E6480"}/>
+        <Venus size={Math.round(size*0.43)} color={dark ? "#ADA9BB" : "#6E6B7A"}/>
       ) : user.gender === "male" ? (
-        <Mars size={Math.round(size*0.43)} color={dark ? "#B6ABCF" : "#6E6480"}/>
+        <Mars size={Math.round(size*0.43)} color={dark ? "#ADA9BB" : "#6E6B7A"}/>
       ) : (
-        <User size={Math.round(size*0.43)} color={dark ? "#B6ABCF" : "#6E6480"}/>
+        <User size={Math.round(size*0.43)} color={dark ? "#ADA9BB" : "#6E6B7A"}/>
       )}
     </div>
   );
@@ -2016,6 +2067,19 @@ const topicPickList = (topicBank, entries, subject) => {
 
 // Small reusable row of tappable "recent topic" chips shown under the Topic field.
 // Tapping a chip fills the topic input; typing a new topic still works as before.
+// ---------- Accent color options — ইউজার Settings থেকে বেছে নিতে পারবে, orange ডিফল্ট/প্রথম অপশন হিসেবে থাকছে ----------
+const ACCENT_OPTIONS = [
+  { key: "orange", labelBn: "কমলা",  labelEn: "Orange", light: "#D97757", dark: "#E08B68" },
+  { key: "purple", labelBn: "বেগুনি", labelEn: "Purple", light: "#8B6FC4", dark: "#A98FDB" },
+  { key: "teal",   labelBn: "টিল",   labelEn: "Teal",   light: "#3E8E85", dark: "#5FB3A9" },
+  { key: "rose",   labelBn: "গোলাপি", labelEn: "Rose",   light: "#C0587A", dark: "#E285A8" },
+  { key: "blue",   labelBn: "নীল",   labelEn: "Blue",   light: "#3E76B8", dark: "#7FA8E0" },
+];
+function accentHexFor(key, dark) {
+  const found = ACCENT_OPTIONS.find(a => a.key === key) || ACCENT_OPTIONS[0];
+  return dark ? found.dark : found.light;
+}
+
 function RecentTopicChips({ topics, onPick, accent, cardBorder, textMuted2, dark }) {
   if (!topics.length) return null;
   return (
@@ -2028,7 +2092,7 @@ function RecentTopicChips({ topics, onPick, accent, cardBorder, textMuted2, dark
           title={topic}
           style={{
             border: `1px solid ${cardBorder}`,
-            background: dark ? "#1A1625" : "#F8F5EE",
+            background: dark ? "#17151C" : "#F8F5EE",
             color: textMuted2,
             borderRadius:20,
             padding: "6px 12px",
@@ -2270,6 +2334,18 @@ export default function FocusGo() {
   useEffect(() => {
     try { window.localStorage.setItem("focusgo_theme_mode_v2", themeMode); } catch (e) {}
   }, [themeMode]);
+  // অ্যাকসেন্ট রং — orange ডিফল্ট, ইউজার Settings > Theme থেকে বদলাতে পারবে
+  const [accentKey, setAccentKey] = useState(() => {
+    try {
+      const saved = window.localStorage.getItem("focusgo_accent_key_v1");
+      return ACCENT_OPTIONS.some(a => a.key === saved) ? saved : "orange";
+    } catch (e) {
+      return "orange";
+    }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("focusgo_accent_key_v1", accentKey); } catch (e) {}
+  }, [accentKey]);
   const [systemPrefersDark, setSystemPrefersDark] = useState(() => {
     try { return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches; } catch (e) { return false; }
   });
@@ -2846,6 +2922,7 @@ export default function FocusGo() {
               if (cached.notes) setNotes(cached.notes);
               if (cached.lang) setLang(cached.lang);
               if (cached.themeMode && !themeLoadedOnceRef.current) { setThemeMode(cached.themeMode); themeLoadedOnceRef.current = true; }
+              if (cached.accentKey && ACCENT_OPTIONS.some(a => a.key === cached.accentKey)) { setAccentKey(cached.accentKey); }
               setLoaded(true);
             }
           }
@@ -2883,6 +2960,7 @@ export default function FocusGo() {
           if (saved.notes) setNotes(saved.notes);
           if (saved.lang) setLang(saved.lang);
           if (saved.themeMode && !themeLoadedOnceRef.current) { setThemeMode(saved.themeMode); themeLoadedOnceRef.current = true; }
+          if (saved.accentKey && ACCENT_OPTIONS.some(a => a.key === saved.accentKey)) { setAccentKey(saved.accentKey); }
         }
       }
       setLoaded(true);
@@ -2896,10 +2974,10 @@ export default function FocusGo() {
     if (!loaded || user || !isGuest) return;
     if (!isStandaloneApp()) return;
     const timer = setTimeout(() => {
-      saveGuestData({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode });
+      saveGuestData({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, accentKey });
     }, 600);
     return () => clearTimeout(timer);
-  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, loaded, user, isGuest]);
+  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, accentKey, loaded, user, isGuest]);
 
   // ইউজার লগইন করার পর Firestore-এর সাথে real-time sync (users/{uid}) —
   // getDoc দিয়ে একবার read করার বদলে onSnapshot দিয়ে live listen করা হয়, তাই অন্য কোনো
@@ -2924,7 +3002,7 @@ export default function FocusGo() {
             const incomingKey = JSON.stringify({
               entries: data.entries, subjects: data.subjects, topicBank: data.topicBank, examSubjects: data.examSubjects,
               combinedExams: data.combinedExams, nextExam: data.nextExam, examSchedule: data.examSchedule, tasks: data.tasks, notes: data.notes,
-              lang: data.lang, themeMode: data.themeMode,
+              lang: data.lang, themeMode: data.themeMode, accentKey: data.accentKey,
             });
             // যদি এই data আমাদেরই সবশেষ write-এর echo হয়, আবার setState করে re-render/re-save লুপ তৈরি করার দরকার নেই।
             // এছাড়াও, যদি local-এ এখনো unsaved change থাকে (pendingLocalWriteRef), তাহলে এই incoming data
@@ -2963,6 +3041,7 @@ export default function FocusGo() {
               if (data.notes) setNotes(data.notes);
               if (data.lang) setLang(data.lang);
               if (data.themeMode && !themeLoadedOnceRef.current) { setThemeMode(data.themeMode); themeLoadedOnceRef.current = true; }
+              if (data.accentKey && ACCENT_OPTIONS.some(a => a.key === data.accentKey)) { setAccentKey(data.accentKey); }
               // প্রোফাইল এক্সট্রা ফিল্ড (Auth-এ রাখা যায় না/সমস্যা হয় বলে Firestore-এ সেভ হয়) —
               // gender, জন্মতারিখ, সোশ্যাল লিংক, আর প্রোফাইল ছবি (resize করা base64, Storage ছাড়াই)
               if (data.gender !== undefined || data.dob !== undefined || data.socialLinks !== undefined || data.photoURL !== undefined) {
@@ -3015,7 +3094,7 @@ export default function FocusGo() {
     pendingLocalWriteRef.current = true;
 
     const payload = {
-      entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode,
+      entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, accentKey,
       updatedAt: new Date().toISOString(),
     };
 
@@ -3028,7 +3107,7 @@ export default function FocusGo() {
     const t = setTimeout(() => {
       // এই মুহূর্তে যা লিখছি তার একটা "ছাপ" রেখে দেওয়া — real-time listener পরে এই একই data
       // ফেরত পেলে বুঝবে এটা নিজেরই echo, আবার setState/re-save করবে না
-      lastSavedPayloadRef.current = JSON.stringify({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode });
+      lastSavedPayloadRef.current = JSON.stringify({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, accentKey });
       setDoc(doc(db, "users", user.uid), payload, { merge: true })
         .catch(e => console.error("Firestore save error:", e))
         .finally(() => { pendingLocalWriteRef.current = false; }); // সেভ সফল হোক বা ব্যর্থ — এখন local আবার "in sync" ধরে নেওয়া হচ্ছে, নাহলে flag চিরকাল আটকে থাকতে পারে
@@ -3041,7 +3120,7 @@ export default function FocusGo() {
       }
     }, 600); // দ্রুত একের পর এক change হলে বারবার write না করে একবারে সেভ করা
     return () => clearTimeout(t);
-  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, serverSynced, user]);
+  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, accentKey, serverSynced, user]);
 
   // clock tick — শুধু minute display-এর জন্য, তাই প্রতি সেকেন্ডে না বদলে প্রতি মিনিটে একবার বদলালেই যথেষ্ট।
   // আগে setInterval(...,1000) পুরো App কম্পোনেন্টকে (পুরো UI ট্রি) সেকেন্ডে একবার re-render করাতো,
@@ -3951,15 +4030,15 @@ export default function FocusGo() {
   const fmtTime = (h, m, s) => <>{<Num>{nf(pad2(h))}</Num>}:{<Num>{nf(pad2(m))}</Num>}{s !== undefined ? <>:{<Num>{nf(pad2(s))}</Num>}</> : null}</>;
 
   // theme tokens — lavender palette
-  const bg = dark ? "#000000" : "#FFFFFF";
-  const cardBg = dark ? "#241E33" : "#FDFBFF";
-  const cardBorder = dark ? "#352C48" : "#E4D9F5";
-  const textMain = dark ? "#F0EBFA" : "#2E2640";
-  const textMuted2 = dark ? "#A99CC4" : "#7A6F91"; // dark mode: brighter muted purple-gray for contrast; light mode: ~5:1 contrast muted purple
-  const accent = dark ? "#A98FDB" : "#8B6FC4";
-  const accentLight = dark ? "#332A4A" : "#EDE5FA"; // primary light — very light lavender, শুধু active/selected state-এর হালকা background-এ ব্যবহার হবে
-  const neutralIconBg = dark ? "#2C2440" : "#EFE9FA"; // decorative icon/avatar background — purple নয়, neutral lavender-gray
-  const neutralIconColor = dark ? "#B6ABCF" : "#6E6480"; // decorative icon color — muted purple-gray
+  const bg = dark ? "#17151C" : "#F7F6FA";
+  const cardBg = dark ? "#201F26" : "#FFFFFF";
+  const cardBorder = dark ? "#2C2B33" : "#E7E5ED";
+  const textMain = dark ? "#EDECF2" : "#262433";
+  const textMuted2 = dark ? "#A6A3B3" : "#79768A"; // dark mode: brighter muted purple-gray for contrast; light mode: ~5:1 contrast muted purple
+  const accent = accentHexFor(accentKey, dark);
+  const accentLight = dark ? `${accent}22` : `${accent}14`; // primary light — নির্বাচিত accent-এর হালকা tint, active/selected state-এর background-এ ব্যবহার হবে
+  const neutralIconBg = dark ? "#242229" : "#F0EEF5"; // decorative icon/avatar background — purple নয়, neutral lavender-gray
+  const neutralIconColor = dark ? "#ADA9BB" : "#6E6B7A"; // decorative icon color — muted purple-gray
 
   // ডেস্কটপ (≥1024px): বাম সাইডবার নেভিগেশন থাকবে, bottom dock হাইড হবে, আর content column
   // single-column-এই থাকবে কিন্তু zoom দিয়ে গোটা কনটেন্ট একসাথে বড় দেখানো হয় (অন্য অ্যাপগুলোর মতো)
@@ -4308,7 +4387,7 @@ export default function FocusGo() {
 
           <div style={{display:"flex", alignItems:"center", gap:6}}>
             {!isOnline && (
-              <div title={t.offlineNote} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#352C48":"#F8F5EE", color:textMuted2, borderRadius:20, padding:"5px 9px 5px 8px", fontSize:11, fontWeight:700, flexShrink:0}}>
+              <div title={t.offlineNote} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#2C2B33":"#F8F5EE", color:textMuted2, borderRadius:20, padding:"5px 9px 5px 8px", fontSize:11, fontWeight:700, flexShrink:0}}>
                 <WifiOff size={12}/> {t.offlineBadge}
               </div>
             )}
@@ -4378,7 +4457,7 @@ export default function FocusGo() {
               const greetTheme = {
                 morning:   { grad: dark ? "linear-gradient(135deg, rgba(224,168,58,0.16), rgba(224,168,58,0.02))" : "linear-gradient(135deg, #E0A83A1A, #E0A83A03)", Icon: Sun,  iconColor: "#E0A83A" },
                 noon:      { grad: dark ? "linear-gradient(135deg, rgba(76,143,166,0.16), rgba(76,143,166,0.02))" : "linear-gradient(135deg, #4C8FA61A, #4C8FA603)", Icon: Sun,  iconColor: "#4C8FA6" },
-                afternoon: { grad: dark ? "linear-gradient(135deg, rgba(169,143,219,0.16), rgba(169,143,219,0.02))" : "linear-gradient(135deg, #8B6FC41A, #8B6FC403)", Icon: Sun,  iconColor: accent },
+                afternoon: { grad: `linear-gradient(135deg, ${accent}${dark ? "29" : "1A"}, ${accent}${dark ? "05" : "03"})`, Icon: Sun,  iconColor: accent },
                 evening:   { grad: dark ? "linear-gradient(135deg, rgba(155,107,158,0.18), rgba(155,107,158,0.02))" : "linear-gradient(135deg, #9B6B9E1A, #9B6B9E03)", Icon: Moon, iconColor: "#9B6B9E" },
                 night:     { grad: dark ? "linear-gradient(135deg, rgba(75,90,150,0.20), rgba(75,90,150,0.02))" : "linear-gradient(135deg, #4B5A961A, #4B5A9603)", Icon: Moon, iconColor: dark ? "#8FA0E0" : "#4B5A96" },
               }[greetKey];
@@ -4487,7 +4566,7 @@ export default function FocusGo() {
                               }
                               style={{
                                 width:32, height:32, borderRadius:"50%", flexShrink:0, border:"none", padding:0,
-                                background: salahCoords ? accent : (dark ? "#2C2440" : "#EFE9FA"),
+                                background: salahCoords ? accent : (dark ? "#242229" : "#F0EEF5"),
                                 display:"flex", alignItems:"center", justifyContent:"center",
                                 cursor: salahLocLoading ? "default" : "pointer",
                                 opacity: salahLocLoading ? 0.55 : 1,
@@ -4525,7 +4604,7 @@ export default function FocusGo() {
                               {/* আসরের হিসাব: হানাফি / শাফি */}
                               <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:16, marginBottom:2}}>
                                 <span style={{fontSize:10.5, fontWeight:800, color:textMuted2, letterSpacing:0.4}}>{lang === "bn" ? "আসরের হিসাব" : "ASR CALCULATION"}</span>
-                                <div style={{display:"flex", background: dark ? "#2C2440" : "#EFE9FA", borderRadius:999, padding:3}}>
+                                <div style={{display:"flex", background: dark ? "#242229" : "#F0EEF5", borderRadius:999, padding:3}}>
                                   {["hanafi","shafi"].map(mkey => (
                                     <button key={mkey} onClick={() => { vibrate(); setSalahMadhab(mkey); }} style={{
                                       border:"none", padding:"5px 12px", borderRadius:999, fontSize:11, fontWeight:800, cursor:"pointer",
@@ -4544,7 +4623,7 @@ export default function FocusGo() {
                                     <div key={w.key} style={{
                                       display:"flex", justifyContent:"space-between", alignItems:"center", gap:10,
                                       padding:"11px 10px", borderRadius:14, marginBottom:4, transition:"background .2s ease, border-color .2s ease",
-                                      background: isDone ? (dark ? "rgba(78,144,104,0.14)" : "#EEF4EC") : isActive ? (dark ? "rgba(217,119,87,0.16)" : "#EDE5FA") : "transparent",
+                                      background: isDone ? (dark ? "rgba(78,144,104,0.14)" : "#EEF4EC") : isActive ? (dark ? "rgba(217,119,87,0.16)" : "#EFEBF7") : "transparent",
                                       border: `1px solid ${isDone ? (dark ? "rgba(78,144,104,0.35)" : "#D7E6D2") : isActive ? (dark ? "rgba(217,119,87,0.4)" : "#F0CBB8") : "transparent"}`,
                                     }}>
                                       <span style={{display:"flex", alignItems:"center", gap:10, minWidth:0}}>
@@ -4615,7 +4694,7 @@ export default function FocusGo() {
             <button
               onClick={()=>{ vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
               className="fg-tab-panel"
-              style={{marginTop:12, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: dark ? "rgba(217,119,87,0.14)" : "#EDE5FA", borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}
+              style={{marginTop:12, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: dark ? "rgba(217,119,87,0.14)" : "#EFEBF7", borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}
             >
               <div style={{minWidth:0}}>
                 <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:accent, textTransform:"uppercase"}}>{lang==="bn"?"পরবর্তী পরীক্ষা":"Next Exam"}</div>
@@ -4680,7 +4759,7 @@ export default function FocusGo() {
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", position:"relative"}}>
             <span style={{fontSize:11, letterSpacing:ls(1.5), fontWeight:800, color:textMuted2}}>{t.focusTimer}</span>
             <div style={{display:"flex", alignItems:"center", gap:6}}>
-              <div style={{display:"flex", background: dark?"#1A1625":"#fff", borderRadius:10, padding:2, gap:2}}>
+              <div style={{display:"flex", background: dark?"#17151C":"#fff", borderRadius:10, padding:2, gap:2}}>
                 <button onClick={()=>setFocusMode("timer")} style={{border:"none", borderRadius:8, padding:"3px 8px", fontSize:10, fontWeight:700, cursor:"pointer", background: focusMode==="timer" ? textMain : "transparent", color: focusMode==="timer" ? cardBg : textMuted2}}>{t.timerMode}</button>
                 <button onClick={()=>setFocusMode("stopwatch")} style={{border:"none", borderRadius:8, padding:"3px 8px", fontSize:10, fontWeight:700, cursor:"pointer", background: focusMode==="stopwatch" ? textMain : "transparent", color: focusMode==="stopwatch" ? cardBg : textMuted2}}>{t.stopwatchMode}</button>
               </div>
@@ -4740,7 +4819,7 @@ export default function FocusGo() {
                     return (
                       <div style={{position:"relative", display:"inline-flex", alignItems:"center", justifyContent:"center", width:ringSize, height:ringSize, transition:"width .25s ease, height .25s ease"}}>
                         <svg width={ringSize} height={ringSize} viewBox="0 0 100 100" style={{position:"absolute", inset:0, transform:"rotate(-90deg)"}}>
-                          <circle cx="50" cy="50" r={r} fill="none" stroke={dark?"#352C48":"#E4D9F5"} strokeWidth={stroke}/>
+                          <circle cx="50" cy="50" r={r} fill="none" stroke={dark?"#2C2B33":"#E7E5ED"} strokeWidth={stroke}/>
                           <circle cx="50" cy="50" r={r} fill="none" stroke={ringColor} strokeWidth={stroke} strokeLinecap="round"
                             strokeDasharray={c} strokeDashoffset={c * (1 - elapsedFrac)}
                             style={{transition:"stroke-dashoffset 1s linear, stroke .2s ease"}}/>
@@ -4880,7 +4959,7 @@ export default function FocusGo() {
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
-                size={58} stroke={5.5} accent={accent} trackColor={dark?"#352C48":"#E4D9F5"} textMain={textMain} nf={nf}/>
+                size={58} stroke={5.5} accent={accent} trackColor={dark?"#2C2B33":"#E7E5ED"} textMain={textMain} nf={nf}/>
               <div style={{minWidth:0}}>
                 <div style={{fontSize:14, fontWeight:800, color:textMain, marginBottom:6}}>{t.todaysProgress}</div>
                 <div style={{display:"flex", alignItems:"center", gap:7, fontSize:12.5, fontWeight:700, whiteSpace:"nowrap"}}>
@@ -4917,7 +4996,7 @@ export default function FocusGo() {
                     {cardLeft > 0 ? (lang==="bn" ? `${nf(cardLeft)}টা বাকি` : `${cardLeft} left`) : t.taskAllDoneLabel}
                   </div>
                 </div>
-                <div style={{height:6, borderRadius:8, background: dark?"#352C48":"#E4D9F5", overflow:"hidden"}}>
+                <div style={{height:6, borderRadius:8, background: dark?"#2C2B33":"#E7E5ED", overflow:"hidden"}}>
                   <div style={{width:`${cardPct}%`, height:"100%", borderRadius:8, background:"#6E8B5E", transition:"width .25s ease"}}/>
                 </div>
               </div>
@@ -5347,7 +5426,7 @@ export default function FocusGo() {
               {/* Summary card — same merged style as Home's progress card: ring + completed/remaining/overdue, consistent visual language across the app */}
               <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px", marginBottom:20, boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.18)" : "0 1px 3px rgba(0,0,0,0.04)"}}>
                 <div style={{display:"flex", alignItems:"center", gap:14}}>
-                  <PercentRing pct={pct} size={48} stroke={5} accent={accent} trackColor={dark?"#352C48":"#E4D9F5"} textMain={textMain} nf={nf}/>
+                  <PercentRing pct={pct} size={48} stroke={5} accent={accent} trackColor={dark?"#2C2B33":"#E7E5ED"} textMain={textMain} nf={nf}/>
                   <div style={{flex:1, display:"flex", justifyContent:"space-between"}}>
                     <div style={{textAlign:"center"}}>
                       <div style={{fontSize:15, fontWeight:800, color:"#6E8B5E", lineHeight:1.1}}><Num>{nf(doneCount)}</Num></div>
@@ -5520,8 +5599,8 @@ export default function FocusGo() {
             {/* Subject Progress — right after Study Overview */}
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginTop:6, marginBottom:16}}>
               <div style={{display:"flex", alignItems:"center", gap:10, minWidth:0}}>
-                <div style={{width:36,height:36, borderRadius:12, background: dark?"#2C2440":"#EFE9FA", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                  <GraduationCap size={18} color={dark ? "#B6ABCF" : "#6E6480"}/>
+                <div style={{width:36,height:36, borderRadius:12, background: dark?"#242229":"#F0EEF5", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                  <GraduationCap size={18} color={dark ? "#ADA9BB" : "#6E6B7A"}/>
                 </div>
                 <div style={{minWidth:0}}>
                   <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.2, color:textMain}}>{t.syllabusProgress}</div>
@@ -5563,7 +5642,7 @@ export default function FocusGo() {
                         }
                         return (
                           <div key={subj} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"12px", display:"flex", alignItems:"center", gap:10, minWidth:0}}>
-                            <PercentRing pct={pct} size={46} stroke={4.5} accent={c.bg} trackColor={dark?"#352C48":"#E4D9F5"} textMain={textMain} nf={nf}/>
+                            <PercentRing pct={pct} size={46} stroke={4.5} accent={c.bg} trackColor={dark?"#2C2B33":"#E7E5ED"} textMain={textMain} nf={nf}/>
                             <div style={{minWidth:0, flex:1}}>
                               <div style={{fontWeight:700, fontSize:13, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", color:textMain}}>{subj}</div>
                               <div style={{fontSize:11, color:textMuted2, fontWeight:500, opacity:0.75, marginTop:2}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num> {t.complete}</div>
@@ -5700,7 +5779,7 @@ export default function FocusGo() {
                 <span style={{width:7,height:7,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
               </span>
               <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
-                <span style={{width:7,height:7,borderRadius:"50%", background: dark ? "#F0EBFA" : "#1A1814"}}/>{t.calendarLegendExam}
+                <span style={{width:7,height:7,borderRadius:"50%", background: dark ? "#EDECF2" : "#1A1814"}}/>{t.calendarLegendExam}
               </span>
               <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
                 <span style={{width:7,height:7,borderRadius:"50%", background:"#4C8FA6"}}/>{t.calendarLegendPlanned}
@@ -5905,6 +5984,7 @@ export default function FocusGo() {
       {/* Settings — Language, Theme, About Us */}
       {showSettings && (
         <SettingsModal t={t} lang={lang} setLang={setLang} themeMode={themeMode} setThemeMode={setThemeMode}
+          accentKey={accentKey} setAccentKey={setAccentKey}
           onClose={()=>setShowSettings(false)}
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
       )}
@@ -5912,7 +5992,7 @@ export default function FocusGo() {
       {/* Undo toast — যেকোনো ডিলিটের পর কয়েক সেকেন্ড দেখা যায়, চাপলে আগের অবস্থায় ফিরে যায় */}
       {undoToast && (
         <div style={{position:"fixed", left:"50%", bottom:isDesktop?24:88, transform:"translateX(-50%)", zIndex:80,
-          background: dark?"#352C48":"#2E2640", color:"#F0EBFA", borderRadius:12, padding:"11px 12px 11px 16px",
+          background: dark?"#2C2B33":"#262433", color:"#EDECF2", borderRadius:12, padding:"11px 12px 11px 16px",
           display:"flex", alignItems:"center", gap:16, boxShadow:"0 5px 16px rgba(0,0,0,0.16)",
           maxWidth:"calc(100vw - 32px)", animation:"fg-fade-up .2s cubic-bezier(0.16,1,0.3,1)"}}>
           <span style={{fontSize:13, fontWeight:600, whiteSpace:"nowrap"}}>{undoToast.message}</span>
@@ -5930,7 +6010,7 @@ export default function FocusGo() {
       {/* Exit toast — "Today" ট্যাবে ব্যাক বাটন চাপলে দেখা যায়; ২ সেকেন্ডের মধ্যে আবার চাপলে অ্যাপ বন্ধ হবে */}
       {showExitToast && (
         <div style={{position:"fixed", left:"50%", bottom:isDesktop?24:88, transform:"translateX(-50%)", zIndex:80,
-          background: dark?"#352C48":"#2E2640", color:"#F0EBFA", borderRadius:12, padding:"11px 16px",
+          background: dark?"#2C2B33":"#262433", color:"#EDECF2", borderRadius:12, padding:"11px 16px",
           display:"flex", alignItems:"center", boxShadow:"0 5px 16px rgba(0,0,0,0.16)",
           maxWidth:"calc(100vw - 32px)", animation:"fg-fade-up .2s cubic-bezier(0.16,1,0.3,1)"}}>
           <span style={{fontSize:13, fontWeight:600, whiteSpace:"nowrap"}}>
@@ -6289,8 +6369,8 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
     setEditingAttemptId(null);
   };
 
-  const smallInput = { width:56, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#1A1625":"#F8F5EE", color: dark?"#F0EBFA":"#2E2640", outline:"none" };
-  const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#1A1625":"#F8F5EE", color: dark?"#F0EBFA":"#2E2640", outline:"none", flex:1 };
+  const smallInput = { width:56, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none" };
+  const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none", flex:1 };
 
   return (
     <div className="fg-card" style={{background: completed ? (dark?"rgba(110,139,94,0.10)":"rgba(110,139,94,0.07)") : cardBg, border: completed ? `1px solid rgba(110,139,94,0.4)` : `1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px", transition:"background .2s ease, border-color .2s ease, transform .16s cubic-bezier(0.16,1,0.3,1), box-shadow .2s ease"}}>
@@ -6300,7 +6380,7 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
             <Folder size={14} style={{color:textMuted2, flexShrink:0}}/>
             <input autoFocus value={renameValue} onChange={e=>setRenameValue(e.target.value)}
               onKeyDown={e=>{ if (e.key==="Enter") submitRename(); if (e.key==="Escape") cancelRename(); }}
-              style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:13, background: dark?"#1A1625":"#F8F5EE", color: dark?"#F0EBFA":"#2E2640", outline:"none"}}/>
+              style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:13, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none"}}/>
             <button onClick={submitRename} style={{border:"none", background:"transparent", cursor:"pointer", color:accent, flexShrink:0}}><Check size={16}/></button>
             <button onClick={cancelRename} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, flexShrink:0}}><X size={16}/></button>
           </div>
@@ -6423,7 +6503,7 @@ function AddTopicInline({ t, accent, cardBorder, textMuted2, dark, onAdd }) {
     <div style={{display:"flex", alignItems:"center", gap:6, background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:12, padding:8, animation:"fg-fade-up .18s cubic-bezier(0.16,1,0.3,1)"}}>
       <input autoFocus value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>{if(e.key==="Enter") submit(); if(e.key==="Escape"){setAdding(false); setName("");}}}
         placeholder={t.topicNamePlaceholder}
-        style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"7px 10px", fontSize:13, background: dark?"#1A1625":"#F8F5EE", color: dark?"#F0EBFA":"#2E2640", outline:"none"}}/>
+        style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"7px 10px", fontSize:13, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none"}}/>
       <button onClick={submit} style={{border:"none", borderRadius:8, width:30, height:30, background:accent, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, boxShadow:`0 3px 8px ${accent}40`}}>
         <Check size={15}/>
       </button>
@@ -6471,8 +6551,8 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
     setEditingAttemptId(null);
   };
 
-  const smallInput = { width:56, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#1A1625":"#F8F5EE", color: dark?"#F0EBFA":"#2E2640", outline:"none" };
-  const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#1A1625":"#F8F5EE", color: dark?"#F0EBFA":"#2E2640", outline:"none", flex:1 };
+  const smallInput = { width:56, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none" };
+  const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none", flex:1 };
 
   return (
     <div className="fg-card" style={{background: hasAttempts ? (dark?"rgba(110,139,94,0.10)":"rgba(110,139,94,0.07)") : cardBg, border: hasAttempts ? `1px solid rgba(110,139,94,0.4)` : `1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px", transition:"background .2s ease, border-color .2s ease"}}>
@@ -6480,7 +6560,7 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
         <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
           <GraduationCap size={14} style={{color:textMuted2, flexShrink:0}}/>
           <span style={{fontWeight:700, fontSize:14, wordBreak:"break-word"}}>{name}</span>
-          <span style={{fontSize:10, fontWeight:700, letterSpacing:ls(0.5), color:textMuted2, background: dark?"#2C2440":"#EFE9FA", padding:"2px 7px", borderRadius:20, flexShrink:0, textTransform:"uppercase"}}>{typeLabel}</span>
+          <span style={{fontSize:10, fontWeight:700, letterSpacing:ls(0.5), color:textMuted2, background: dark?"#242229":"#F0EEF5", padding:"2px 7px", borderRadius:20, flexShrink:0, textTransform:"uppercase"}}>{typeLabel}</span>
         </div>
         <ChevronDown size={15} style={{color:textMuted2, transform: expanded ? "rotate(180deg)" : "none", transition:"transform .15s", flexShrink:0}}/>
       </button>
@@ -6600,7 +6680,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
   const weekdayName = (d) => lang === "bn" ? WEEKDAYS_BN[d.getDay()] : WEEKDAYS_EN[d.getDay()];
   const typeLabel = (key) => { const o = EXAM_TYPE_OPTIONS.find(x => x.key === key); return o ? (lang === "bn" ? o.bn : o.en) : ""; };
 
-  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#1A1625":"#F8F5EE", color: dark?"#F0EBFA":"#2E2640", outline:"none", width:"100%", boxSizing:"border-box" };
+  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none", width:"100%", boxSizing:"border-box" };
 
   const resetForm = () => { setSubject(""); setExamType(""); setDate(""); setStartTime(""); setEndTime(""); setEditingId(null); };
 
@@ -6656,7 +6736,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
           </div>
         </div>
         {kind === "upcoming" && ex.date === nowParts.dateKey && (
-          <div style={{flexShrink:0, fontSize:11, fontWeight:800, color:accent, background: dark?"rgba(217,119,87,0.16)":"#EDE5FA", padding:"4px 9px", borderRadius:999}}>
+          <div style={{flexShrink:0, fontSize:11, fontWeight:800, color:accent, background: dark?"rgba(217,119,87,0.16)":"#EFEBF7", padding:"4px 9px", borderRadius:999}}>
             {lang==="bn"?"আজ":"Today"}
           </div>
         )}
@@ -6722,7 +6802,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
                 <datalist id="fg-exam-subject-list">
                   {allSubjects.map(s => <option key={s} value={s}/>)}
                 </datalist>
-                <select value={examType} onChange={e=>setExamType(e.target.value)} style={{...inputStyle, color: examType ? (dark?"#F0EBFA":"#2E2640") : textMuted2}}>
+                <select value={examType} onChange={e=>setExamType(e.target.value)} style={{...inputStyle, color: examType ? (dark?"#EDECF2":"#262433") : textMuted2}}>
                   <option value="">{lang==="bn"?"টাইপ বাছাই করুন":"Select type"}</option>
                   {EXAM_TYPE_OPTIONS.map(o => <option key={o.key} value={o.key}>{lang==="bn"?o.bn:o.en}</option>)}
                 </select>
@@ -6805,7 +6885,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
                 </button>
               )}
               {statusTab === "upcoming" && (
-                <div style={{display:"flex", alignItems:"center", gap:8, background: dark?"rgba(217,119,87,0.10)":"#EDE5FA", border:`1px solid ${dark?"rgba(217,119,87,0.3)":"#F0CBB8"}`, borderRadius:12, padding:"10px 12px", marginTop:4}}>
+                <div style={{display:"flex", alignItems:"center", gap:8, background: dark?"rgba(217,119,87,0.10)":"#EFEBF7", border:`1px solid ${dark?"rgba(217,119,87,0.3)":"#F0CBB8"}`, borderRadius:12, padding:"10px 12px", marginTop:4}}>
                   <Info size={15} color={accent} style={{flexShrink:0}}/>
                   <span style={{fontSize:11.5, color:textMain, lineHeight:1.5}}>
                     <b>{lang==="bn"?"টিপ:":"Tip:"}</b> {lang==="bn"?" আগেভাগে পরীক্ষা যোগ করে প্রস্তুত থাকুন। আপনি পারবেন! 💪":" Add your exams early and stay prepared. You've got this! 💪"}
@@ -6827,7 +6907,7 @@ function NextExamModal({ t, examSubjects, nextExam, onSave, onClose, cardBg, car
   const [date, setDate] = useState(nextExam?.date || "");
   const topicOptions = Object.keys(examSubjects[subject]?.topics || {});
 
-  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#1A1625":"#F8F5EE", color: dark?"#F0EBFA":"#2E2640", outline:"none", width:"100%" };
+  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none", width:"100%" };
 
   const submit = () => {
     if (!subject || !date) return;
@@ -6878,7 +6958,7 @@ function CombinedExamEditorModal({ t, allSubjects, editingCombinedExam, onSave, 
   const [type, setType] = useState(editingCombinedExam?.type || "weekly");
   const [picked, setPicked] = useState(editingCombinedExam?.subjects || []);
 
-  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#1A1625":"#F8F5EE", color: dark?"#F0EBFA":"#2E2640", outline:"none", width:"100%" };
+  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none", width:"100%" };
   const typeOptions = [
     { k:"daily", label:t.typeDaily }, { k:"weekly", label:t.typeWeekly }, { k:"monthly", label:t.typeMonthly },
   ];
@@ -6978,7 +7058,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
       <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
         <div style={{display:"flex", alignItems:"center", gap:8}}>
           <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.monthlySummaryExam}</div>
-          <span style={{fontSize:10, fontWeight:800, letterSpacing:0.3, padding:"2px 7px", borderRadius:10, background: dark?"#2C2440":"#EFE9FA", color: dark?"#B6ABCF":"#6E6480", flexShrink:0}}>
+          <span style={{fontSize:10, fontWeight:800, letterSpacing:0.3, padding:"2px 7px", borderRadius:10, background: dark?"#242229":"#F0EEF5", color: dark?"#ADA9BB":"#6E6B7A", flexShrink:0}}>
             {t.planViewExam}
           </span>
         </div>
@@ -7017,7 +7097,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
           <div style={{marginTop:16}}>
             <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.subjectBreakdown}</div>
             <div style={{border:`1px solid ${cardBorder}`, borderRadius:16, overflow:"hidden"}}>
-              <div style={{display:"grid", gridTemplateColumns:"1.6fr 0.8fr 0.8fr 0.8fr", padding:"8px 12px", background: dark?"#1A1625":"#F8F5EE", fontSize:11, fontWeight:700, color:textMuted2}}>
+              <div style={{display:"grid", gridTemplateColumns:"1.6fr 0.8fr 0.8fr 0.8fr", padding:"8px 12px", background: dark?"#17151C":"#F8F5EE", fontSize:11, fontWeight:700, color:textMuted2}}>
                 <span>{t.subjectLabel}</span><span style={{textAlign:"right"}}>{t.examsCol}</span><span style={{textAlign:"right"}}>{t.attemptsCol}</span><span style={{textAlign:"right"}}>{t.avgCol}</span>
               </div>
               {rows.map(([subj, d]) => {
@@ -7045,7 +7125,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
 
 function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBorder, textMuted2, accent, dark, allSubjects, mode, crossWeekResolve }) {
   const ls = (px) => (lang === "bn" ? 0 : px);
-  const textMain = dark ? "#F0EBFA" : "#2E2640";
+  const textMain = dark ? "#EDECF2" : "#262433";
   // Subject-level catch-up: if a subject has any completed entry in this range,
   // its not-yet-done entries in the same range are treated as caught up too.
   const doneSubjects = new Set(entries.filter(e => e.done).map(e => e.subject));
@@ -7059,7 +7139,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
   const totalCount = effectiveEntries.length;
   const doneCount = effectiveEntries.filter(e => e.done).length;
   const overallPct = totalCount ? Math.round((doneCount/totalCount)*100) : 0;
-  const trackColor = dark ? "#352C48" : "#E4D9F5";
+  const trackColor = dark ? "#2C2B33" : "#E7E5ED";
 
   const subjTotals = {};
   effectiveEntries.forEach(e => {
@@ -7097,7 +7177,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
             <div style={{height:"100%", width:`${overallPct}%`, background:accent, borderRadius:4, transition:"width .3s"}}/>
           </div>
         </div>
-        <PercentRing pct={overallPct} accent={accent} trackColor={trackColor} textMain={dark?"#F0EBFA":"#2E2640"} nf={nf}/>
+        <PercentRing pct={overallPct} accent={accent} trackColor={trackColor} textMain={dark?"#EDECF2":"#262433"} nf={nf}/>
       </div>
 
       {mode === "duration" ? (
@@ -7119,7 +7199,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
                     <span style={{fontWeight:700, fontSize:13}}>{subj}</span>
                     <span style={{fontSize:12, fontWeight:700, color:c.bg}}>{formatDuration(mins, lang, nf)}</span>
                   </div>
-                  <div style={{height:6, borderRadius:4, background: dark? "#352C48":"#E4D9F5", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
+                  <div style={{height:6, borderRadius:4, background: dark? "#2C2B33":"#E7E5ED", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
                     <div style={{height:"100%", width:`${pct}%`, background:c.bg, borderRadius:4, transition:"width .3s"}}/>
                   </div>
                 </div>
@@ -7144,7 +7224,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
                   <span style={{fontWeight:700, fontSize:13}}>{subj}</span>
                   <span style={{fontSize:12, fontWeight:700, color:c.bg}}><Num>{nf(pct)}</Num>%</span>
                 </div>
-                <div style={{height:6, borderRadius:4, background: dark? "#352C48":"#E4D9F5", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
+                <div style={{height:6, borderRadius:4, background: dark? "#2C2B33":"#E7E5ED", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
                   <div style={{height:"100%", width:`${pct}%`, background:c.bg, borderRadius:4, transition:"width .3s"}}/>
                 </div>
               </div>
@@ -7392,7 +7472,7 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
   const [durationInput, setDurationInput] = useState(30);
   const [showSubjectPicker, setShowSubjectPicker] = useState(false); // সাবজেক্ট চিপ লিস্ট ডিফল্টে লুকানো থাকে (অনেকগুলো সাবজেক্ট থাকলে huge space নিত) — "Choose from list" চাপলেই খুলবে
   const [showTopicPicker, setShowTopicPicker] = useState(false); // টপিক চিপ লিস্টও এখন সাবজেক্টের মতোই ডিফল্টে লুকানো থাকে — "Choose from list" চাপলেই খুলবে
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#1A1625":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const duration = useTime ? diffMinutes(startTime, endTime) : (useDuration ? (Number(durationInput) || 0) : 0);
   const canSubmit = subject.trim() && topic.trim();
   // Topic Bank quick-pick: not-yet-used topics first (still pending), then previously-used ones by recency —
@@ -7508,7 +7588,7 @@ function EditModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, item
   const [endTime, setEndTime] = useState(item.endTime || minutesToTime(timeToMinutes(item.time || "09:00") + (item.duration || 30)));
   const [useDuration, setUseDuration] = useState(!!item.duration);
   const [durationInput, setDurationInput] = useState(item.duration || 30);
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#1A1625":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const duration = useTime ? diffMinutes(startTime, endTime) : (useDuration ? (Number(durationInput) || 0) : 0);
   const pickTopics = topicPickList(topicBank, entries, subject).filter(tp => tp !== item.topic);
   const submit = () => {
@@ -7589,7 +7669,7 @@ function SubjectsModal({ t, subjects, onAdd, onRemove, onRename, onClose, topicB
   const [editingSubject, setEditingSubject] = useState(null);
   const [editValue, setEditValue] = useState("");
   const [editError, setEditError] = useState("");
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#1A1625":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const submit = () => {
     const v = name.trim();
     if (!v || subjects.includes(v)) return;
@@ -7668,7 +7748,7 @@ function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onR
   const [editingTopic, setEditingTopic] = useState(null);
   const [editValue, setEditValue] = useState("");
   const [editError, setEditError] = useState("");
-  const smallInput = { width:"100%", boxSizing:"border-box", background: dark?"#1A1625":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:10, padding:"8px 10px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit" };
+  const smallInput = { width:"100%", boxSizing:"border-box", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:10, padding:"8px 10px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit" };
   const addSingle = () => { const v = single.trim(); if (!v) return; onAddTopic(subject, v); setSingle(""); };
   const addBulk = () => { if (!bulkText.trim()) return; onAddTopicsBulk(subject, bulkText); setBulkText(""); setBulkOpen(false); };
   const startEdit = (tp) => { setEditingTopic(tp); setEditValue(tp); setEditError(""); };
@@ -7703,7 +7783,7 @@ function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onR
       <div style={{display:"flex", flexDirection:"column", gap:6}}>
         {topics.length === 0 && <div style={{fontSize:12, color:textMuted2, opacity:0.85}}>{t.noTopicsInSubject}</div>}
         {topics.map(tp => (
-          <div key={tp} style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, background: dark?"#1A1625":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:10, padding:"7px 10px"}}>
+          <div key={tp} style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:10, padding:"7px 10px"}}>
             {editingTopic === tp ? (
               <div style={{display:"flex", flexDirection:"column", gap:4, flex:1}}>
                 <div style={{display:"flex", gap:6, alignItems:"center"}}>
@@ -7736,7 +7816,7 @@ function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onR
 function ExamsModal({ t, nf, subjects, examSubjects, onAdd, onRemove, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const availableSubjects = subjects.filter(s => !examSubjects[s]);
   const [subject, setSubject] = useState(availableSubjects[0] || "");
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#1A1625":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const submit = () => {
     if (!subject) return;
     onAdd(subject);
@@ -7881,7 +7961,7 @@ function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSe
                   background: isSelected ? accent : "transparent",
                   border: isToday && !isSelected ? `1px solid ${accent}` : "none",
                   color: isSelected ? "#fff" : textMain}}>
-                  {isExam && <span style={{position:"absolute", top:-2, right:-2, width:5, height:5, borderRadius:"50%", background: dark ? "#F0EBFA" : "#1A1814"}}/>}
+                  {isExam && <span style={{position:"absolute", top:-2, right:-2, width:5, height:5, borderRadius:"50%", background: dark ? "#EDECF2" : "#1A1814"}}/>}
                   {isHoliday && <span style={{position:"absolute", top:-2, left:-2, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
                   <Num>{nf(d.getDate())}</Num>
                 </div>
@@ -7915,8 +7995,8 @@ function noteColorFor(category, allCategories) {
 // ---------- Notes: নোট কার্ডের ব্যাকগ্রাউন্ড রঙ (ঐচ্ছিক) — প্রতি নোট আলাদা রঙ করে রাখা যাবে, যাতে চোখের দেখায় দ্রুত খুঁজে পাওয়া যায় ----------
 const NOTE_BG_PALETTE = [
   { key: null,     bg: null,      bgDark: null,      labelBn: "ডিফল্ট", labelEn: "Default" },
-  { key: "white",  bg: "#FFFFFF", bgDark: "#FFFFFF", labelBn: "সাদা",   labelEn: "White", ink: "#352C48", inkDark: "#352C48" },
-  { key: "black",  bg: "#1A1814", bgDark: "#1A1814", labelBn: "কালো",   labelEn: "Black", ink: "#F0EBFA", inkDark: "#F0EBFA" },
+  { key: "white",  bg: "#FFFFFF", bgDark: "#FFFFFF", labelBn: "সাদা",   labelEn: "White", ink: "#2C2B33", inkDark: "#2C2B33" },
+  { key: "black",  bg: "#1A1814", bgDark: "#1A1814", labelBn: "কালো",   labelEn: "Black", ink: "#EDECF2", inkDark: "#EDECF2" },
   { key: "yellow", bg: "#FFF3B0", bgDark: "#3A331A", labelBn: "হলুদ",   labelEn: "Yellow" },
   { key: "orange", bg: "#FCE0C4", bgDark: "#3A2C1B", labelBn: "কমলা",   labelEn: "Orange" },
   { key: "pink",   bg: "#FBD9E5", bgDark: "#35232B", labelBn: "গোলাপি", labelEn: "Pink" },
@@ -7935,7 +8015,7 @@ function noteBgFor(colorKey, dark) {
 function noteTextFor(colorKey, dark) {
   const found = NOTE_BG_PALETTE.find(c => c.key === (colorKey || null)) || NOTE_BG_PALETTE[0];
   if (found.ink) return dark ? (found.inkDark || found.ink) : found.ink;
-  return dark ? "#F0EBFA" : NOTE_PAPER_TEXT;
+  return dark ? "#EDECF2" : NOTE_PAPER_TEXT;
 }
 
 // ---------- Notes: লেখার রঙ (টেক্সট কালার) — সিলেক্ট করা অংশে প্রয়োগ হয়, কিছু সাধারণ রঙ যথেষ্ট ----------
@@ -7983,7 +8063,7 @@ function fullDateTimeLabel(iso, lang) {
 
 // নোট নিজেই সবসময় অফ-হোয়াইট (পেপার-এর মতো) থাকবে — অ্যাপের ডার্ক মোড থিম আলাদা, এটা শুধু নোটের জন্য
 const NOTE_PAPER_BG = "#F7F1E3";
-const NOTE_PAPER_TEXT = "#352C48";
+const NOTE_PAPER_TEXT = "#2C2B33";
 const NOTE_PAPER_MUTED = "#7C7361";
 
 // নোটে যোগ করা ছবি সরাসরি Firestore-এর একটামাত্র ডকুমেন্টে (users/{uid}) সেভ হয়, যেটার সাইজ লিমিট ~1MB।
@@ -8799,7 +8879,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           {key:"Trash", label: (lang==="bn"?"ট্র্যাশ":"Trash")+(trashCount>0?` (${nf(trashCount)})`:""), icon:<Trash2 size={11}/>},
         ].map(f => (
           <button key={f.key} onClick={()=>setActiveFolder(f.key)}
-            style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,border:`1px solid ${activeFolder===f.key?textMain:cardBorder}`,background:activeFolder===f.key?textMain:cardBg,color:activeFolder===f.key?(dark?"#1A1625":"#fff"):textMain,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
+            style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,border:`1px solid ${activeFolder===f.key?textMain:cardBorder}`,background:activeFolder===f.key?textMain:cardBg,color:activeFolder===f.key?(dark?"#17151C":"#fff"):textMain,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
             {f.icon}{f.label}
           </button>
         ))}
@@ -8812,7 +8892,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               onClick={()=>{ if (justDraggedRef.current) return; setActiveFolder(cat); }}
               onMouseDown={()=>startCatPress(cat)} onMouseUp={cancelCatPress} onMouseLeave={cancelCatPress}
               onTouchStart={()=>startCatPress(cat)} onTouchEnd={cancelCatPress} onTouchMove={cancelCatPress}
-              style={{display:"flex",alignItems:"center",gap:6,border:`1px solid ${activeFolder===cat?textMain:cardBorder}`,background:activeFolder===cat?textMain:cardBg,color:activeFolder===cat?(dark?"#1A1625":"#fff"):textMain,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
+              style={{display:"flex",alignItems:"center",gap:6,border:`1px solid ${activeFolder===cat?textMain:cardBorder}`,background:activeFolder===cat?textMain:cardBg,color:activeFolder===cat?(dark?"#17151C":"#fff"):textMain,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
               <span style={{width:7,height:7,borderRadius:"50%",background:chipCol.text,flexShrink:0}}/>
               {cat}
             </button>
@@ -8881,7 +8961,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                   const hasNotes = hasNoteKeys.has(dk);
                   return (
                     <button key={i} onClick={()=>{setFilterDate(d);setShowDatePicker(false);}}
-                      style={{position:"relative", aspectRatio:"1", border: isSelected ? `1.5px solid ${accent}` : isToday ? `1px solid ${accent}` : "1px solid transparent", borderRadius:10, background: isSelected ? (dark?"#2B281F":"#FFF4DF") : (dark?"#1A1625":"#F8F5EE"), cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2, color:textMain}}>
+                      style={{position:"relative", aspectRatio:"1", border: isSelected ? `1.5px solid ${accent}` : isToday ? `1px solid ${accent}` : "1px solid transparent", borderRadius:10, background: isSelected ? (dark?"#2B281F":"#FFF4DF") : (dark?"#17151C":"#F8F5EE"), cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2, color:textMain}}>
                       <span style={{fontSize:12, fontWeight:600}}>{nf(d.getDate())}</span>
                       <span style={{width:4,height:4,borderRadius:"50%", background: hasNotes ? accent : "transparent"}}/>
                     </button>
@@ -8902,8 +8982,8 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
       {filtered.length === 0 ? (
         <div style={{textAlign:"center",padding:"40px 20px",background:cardBg,border:`1px dashed ${cardBorder}`,borderRadius:16}}>
-          <div style={{width:52,height:52,borderRadius:16,background:dark?"#2C2440":"#EFE9FA",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}>
-            {activeFolder === "Trash" ? <Trash2 size={23} color={dark?"#B6ABCF":"#6E6480"}/> : <FileText size={23} color={dark?"#B6ABCF":"#6E6480"}/>}
+          <div style={{width:52,height:52,borderRadius:16,background:dark?"#242229":"#F0EEF5",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}>
+            {activeFolder === "Trash" ? <Trash2 size={23} color={dark?"#ADA9BB":"#6E6B7A"}/> : <FileText size={23} color={dark?"#ADA9BB":"#6E6B7A"}/>}
           </div>
           <div style={{fontSize:14,fontWeight:800,color:textMain}}>{activeFolder === "Trash" ? (lang==="bn"?"ট্র্যাশ খালি":"Trash is empty") : t.notesEmpty}</div>
           <div style={{fontSize:12,color:textMuted2,marginTop:5}}>{activeFolder === "Trash" ? (lang==="bn"?"ডিলিট করা নোট এখানে দেখা যাবে।":"Deleted notes will show up here.") : (lang==="bn"?"নিচের + বাটনে ট্যাপ করে একটা নোট বা লিস্ট শুরু করুন।":"Tap the + button below to start a note or list.")}</div>
@@ -9582,7 +9662,7 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
           </>
         )}
 
-        <button onClick={submit} style={{width:"100%", padding:"10px 0", borderRadius:12, border:"none", background: dark ? "#332A4A" : "#EDE5FA", color:accent, fontWeight:700, fontSize:13, cursor:"pointer"}}>
+        <button onClick={submit} style={{width:"100%", padding:"10px 0", borderRadius:12, border:"none", background: dark ? "#2A2333" : "#EFEBF7", color:accent, fontWeight:700, fontSize:13, cursor:"pointer"}}>
           {isEditing ? (lang==="bn" ? "সেভ করুন" : "Save Changes") : t.taskAddBtn}
         </button>
       </div>
@@ -9630,8 +9710,8 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
             return (
               <button key={i} onClick={()=>onSelectDay(d)} disabled={future && !hasAny}
                 title={isHoliday ? holidayName(dk, lang) : undefined}
-                style={{position:"relative", aspectRatio:"1", border: isToday ? `1.5px solid ${accent}` : "1px solid transparent", borderRadius:10, background: dark?"#1A1625":"#F8F5EE", cursor:(future&&!hasAny)?"default":"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4, opacity: (future&&!hasAny)?0.4:1}}>
-                {isExam && <span style={{position:"absolute", top:4, right:4, width:5, height:5, borderRadius:"50%", background: dark ? "#F0EBFA" : "#1A1814"}}/>}
+                style={{position:"relative", aspectRatio:"1", border: isToday ? `1.5px solid ${accent}` : "1px solid transparent", borderRadius:10, background: dark?"#17151C":"#F8F5EE", cursor:(future&&!hasAny)?"default":"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4, opacity: (future&&!hasAny)?0.4:1}}>
+                {isExam && <span style={{position:"absolute", top:4, right:4, width:5, height:5, borderRadius:"50%", background: dark ? "#EDECF2" : "#1A1814"}}/>}
                 {isHoliday && <span style={{position:"absolute", top:4, left:4, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
                 <span style={{fontSize:12, fontWeight:600, color:textMain}}><Num>{nf(d.getDate())}</Num></span>
                 <span style={{width:5,height:5,borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : "#4C8FA6")}}/>
@@ -9645,7 +9725,7 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
             <span style={{width:6,height:6,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
           </span>
           <span style={{display:"flex", alignItems:"center", gap:4, fontSize:10, color:textMuted2, fontWeight:600}}>
-            <span style={{width:6,height:6,borderRadius:"50%", background: dark ? "#F0EBFA" : "#1A1814"}}/>{t.calendarLegendExam}
+            <span style={{width:6,height:6,borderRadius:"50%", background: dark ? "#EDECF2" : "#1A1814"}}/>{t.calendarLegendExam}
           </span>
           <span style={{display:"flex", alignItems:"center", gap:4, fontSize:10, color:textMuted2, fontWeight:600}}>
             <span style={{width:6,height:6,borderRadius:"50%", background:"#4C8FA6"}}/>{t.calendarLegendPlanned}
