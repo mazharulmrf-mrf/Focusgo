@@ -4691,7 +4691,7 @@ export default function FocusGo() {
                           {firstName}
                         </div>
                       </div>
-                      <div style={{fontSize:12,color:textMuted2,marginTop:3,lineHeight:1.4}}>
+                      <div style={{fontSize:14,color:textMuted2,marginTop:3,lineHeight:1.4}}>
                         {line}
                       </div>
                     </div>
@@ -5175,11 +5175,11 @@ export default function FocusGo() {
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
           const secondaryColor = "#2B6F84";
           return (
-        <div className="fg-tab-panel" style={{marginTop:14, background: dark ? `linear-gradient(135deg, ${secondaryColor}30, ${secondaryColor}0A)` : `linear-gradient(135deg, ${secondaryColor}22, ${secondaryColor}06)`, border: `1px solid ${secondaryColor}${dark ? "70" : "55"}`, borderRadius:16, padding:"12px 14px", position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:14, background: dark ? `linear-gradient(135deg, ${secondaryColor}45, ${secondaryColor}18)` : `linear-gradient(135deg, ${secondaryColor}38, ${secondaryColor}14)`, border: `1px solid ${secondaryColor}${dark ? "85" : "70"}`, borderRadius:16, padding:"12px 14px", position:"relative", overflow:"hidden"}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
-                size={58} stroke={5.5} accent={secondaryColor} trackColor={dark?"#2C2B33":"#E7E5ED"} textMain={textMain} nf={nf}/>
+                size={58} stroke={5.5} accent={secondaryColor} trackColor={dark?`${secondaryColor}40`:"#FFFFFF"} textMain={textMain} nf={nf}/>
               <div style={{minWidth:0}}>
                 <div style={{fontSize:14, fontWeight:800, color:textMain, marginBottom:6}}>{t.todaysProgress}</div>
                 <div style={{display:"flex", alignItems:"center", gap:7, fontSize:12.5, fontWeight:700, whiteSpace:"nowrap"}}>
