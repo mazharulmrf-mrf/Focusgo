@@ -536,6 +536,165 @@ function NotificationBell({ t, lang, notifications, onMarkAllRead, onClear, card
   );
 }
 
+// ---------- Universal Search — টাস্ক, নোট, সাবজেক্ট/টপিক, পরীক্ষা — সব একসাথে খোঁজার মডাল ----------
+function UniversalSearchModal({
+  lang, dark, cardBg, cardBorder, textMain, textMuted2, accent,
+  tasks, notes, allSubjects, topicBank, examSubjects, examSchedule,
+  onClose, onOpenTask, onOpenNote, onOpenSubject, onOpenExam,
+}) {
+  const [q, setQ] = useState("");
+  const inputRef = useRef(null);
+  const isBn = lang === "bn";
+  useEffect(() => { const id = setTimeout(() => inputRef.current && inputRef.current.focus(), 80); return () => clearTimeout(id); }, []);
+
+  const query = q.trim().toLowerCase();
+
+  const results = React.useMemo(() => {
+    if (!query) return null;
+    const out = { tasks: [], notes: [], subjects: [], topics: [], exams: [] };
+
+    (tasks || []).forEach(x => {
+      if (!x.deletedAt && (x.title || "").toLowerCase().includes(query)) out.tasks.push(x);
+    });
+
+    (notes || []).forEach(n => {
+      if (n.deletedAt) return;
+      const hay = ((n.title || "") + " " + stripHtmlToText(n.body || "")).toLowerCase();
+      if (hay.includes(query)) out.notes.push(n);
+    });
+
+    (allSubjects || []).forEach(s => {
+      if (s.toLowerCase().includes(query)) out.subjects.push(s);
+    });
+
+    const seenTopic = new Set();
+    Object.entries(topicBank || {}).forEach(([subject, list]) => {
+      (list || []).forEach(topic => {
+        const k = subject + "::" + topic;
+        if (topic.toLowerCase().includes(query) && !seenTopic.has(k)) { seenTopic.add(k); out.topics.push({ subject, topic }); }
+      });
+    });
+    Object.entries(examSubjects || {}).forEach(([subject, data]) => {
+      Object.keys((data && data.topics) || {}).forEach(topic => {
+        const k = subject + "::" + topic;
+        if (topic.toLowerCase().includes(query) && !seenTopic.has(k)) { seenTopic.add(k); out.topics.push({ subject, topic }); }
+      });
+    });
+
+    (examSchedule || []).forEach(ex => {
+      if ((ex.subject || "").toLowerCase().includes(query)) out.exams.push(ex);
+    });
+
+    return out;
+  }, [query, tasks, notes, allSubjects, topicBank, examSubjects, examSchedule]);
+
+  const totalCount = results ? Object.values(results).reduce((s, arr) => s + arr.length, 0) : 0;
+
+  const sectionLabel = { fontSize: 11, fontWeight: 800, color: textMuted2, textTransform: "uppercase", letterSpacing: 0.4, margin: "16px 2px 6px" };
+  const rowIconWrap = { width: 32, height: 32, borderRadius: 10, background: dark ? "#232129" : "#F1EEE5", display: "flex", alignItems: "center", justifyContent: "center", color: textMuted2, flexShrink: 0 };
+
+  const Row = ({ icon, title, subtitle, onClick }) => (
+    <button onClick={onClick} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, border: "none", background: "transparent", padding: "8px 4px", cursor: "pointer", textAlign: "left", borderRadius: 10 }}>
+      <span style={rowIconWrap}>{icon}</span>
+      <span style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 700, color: textMain, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{title}</div>
+        {subtitle ? <div style={{ fontSize: 11.5, color: textMuted2, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{subtitle}</div> : null}
+      </span>
+    </button>
+  );
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 70 }} className="fg-sheet-backdrop" onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} className="fg-sheet" style={{ position: "absolute", inset: 0, background: cardBg, color: textMain, display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "16px 16px 10px", flexShrink: 0 }}>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, border: `1px solid ${cardBorder}`, borderRadius: 12, padding: "9px 12px" }}>
+            <Search size={16} color={textMuted2} />
+            <input
+              ref={inputRef}
+              value={q}
+              onChange={e => setQ(e.target.value)}
+              placeholder={isBn ? "টাস্ক, নোট, সাবজেক্ট, পরীক্ষা খুঁজুন..." : "Search tasks, notes, subjects, exams..."}
+              style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", color: textMain, fontSize: 14 }}
+            />
+            {q && (
+              <button onClick={() => setQ("")} style={{ border: "none", background: "transparent", cursor: "pointer", color: textMuted2, display: "flex", padding: 0 }}><X size={14} /></button>
+            )}
+          </div>
+          <button onClick={onClose} style={{ border: "none", background: "transparent", cursor: "pointer", color: textMuted2, fontSize: 13, fontWeight: 700, padding: "6px 2px", flexShrink: 0 }}>
+            {isBn ? "বাতিল" : "Cancel"}
+          </button>
+        </div>
+
+        <div style={{ flex: 1, overflowY: "auto", padding: "0 16px 24px" }}>
+          {!query && (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "70px 20px", opacity: 0.6 }}>
+              <Search size={26} color={textMuted2} strokeWidth={1.6} />
+              <div style={{ fontSize: 12.5, color: textMuted2, marginTop: 10, textAlign: "center" }}>
+                {isBn ? "টাস্ক, নোট, সাবজেক্ট, টপিক বা পরীক্ষা খুঁজতে টাইপ করো" : "Type to search tasks, notes, subjects, topics or exams"}
+              </div>
+            </div>
+          )}
+
+          {query && totalCount === 0 && (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "70px 20px", opacity: 0.6 }}>
+              <div style={{ fontSize: 12.5, color: textMuted2, textAlign: "center" }}>{isBn ? "কোনো ফলাফল পাওয়া যায়নি" : "No results found"}</div>
+            </div>
+          )}
+
+          {query && totalCount > 0 && (
+            <div>
+              {results.tasks.length > 0 && (
+                <div>
+                  <div style={sectionLabel}>{isBn ? "টাস্ক" : "Tasks"}</div>
+                  {results.tasks.slice(0, 8).map(x => (
+                    <Row key={x.id} icon={<ListChecks size={15} />} title={x.title}
+                      subtitle={x.dueDate || (x.done ? (isBn ? "সম্পন্ন" : "Completed") : undefined)}
+                      onClick={() => onOpenTask(x)} />
+                  ))}
+                </div>
+              )}
+              {results.notes.length > 0 && (
+                <div>
+                  <div style={sectionLabel}>{isBn ? "নোট" : "Notes"}</div>
+                  {results.notes.slice(0, 8).map(n => (
+                    <Row key={n.id} icon={<FileText size={15} />} title={n.title || (isBn ? "শিরোনামহীন" : "Untitled")}
+                      subtitle={stripHtmlToText(n.body || "").slice(0, 60)}
+                      onClick={() => onOpenNote(n)} />
+                  ))}
+                </div>
+              )}
+              {results.subjects.length > 0 && (
+                <div>
+                  <div style={sectionLabel}>{isBn ? "সাবজেক্ট" : "Subjects"}</div>
+                  {results.subjects.slice(0, 8).map(s => (
+                    <Row key={s} icon={<GraduationCap size={15} />} title={s} onClick={() => onOpenSubject(s)} />
+                  ))}
+                </div>
+              )}
+              {results.topics.length > 0 && (
+                <div>
+                  <div style={sectionLabel}>{isBn ? "টপিক" : "Topics"}</div>
+                  {results.topics.slice(0, 10).map((x, i) => (
+                    <Row key={i} icon={<Folder size={15} />} title={x.topic} subtitle={x.subject} onClick={() => onOpenSubject(x.subject)} />
+                  ))}
+                </div>
+              )}
+              {results.exams.length > 0 && (
+                <div>
+                  <div style={sectionLabel}>{isBn ? "পরীক্ষা" : "Exams"}</div>
+                  {results.exams.slice(0, 8).map(ex => (
+                    <Row key={ex.id} icon={<CalendarClock size={15} />} title={ex.subject} subtitle={ex.date} onClick={() => onOpenExam(ex)} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ডেস্কটপ (≥1024px) এ bottom-nav এর বদলে বাম পাশে সাইডবার — বড় স্ক্রিনে familiar "app" লেআউট
 function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, textMuted2, accent, collapsed, onToggleCollapse, onHideAll }) {
   const items = [
@@ -2580,6 +2739,7 @@ export default function FocusGo() {
   const [showAdd, setShowAdd] = useState(false);
   const [addTargetKey, setAddTargetKey] = useState(null);
   const [showSubjects, setShowSubjects] = useState(false);
+  const [showSearch, setShowSearch] = useState(false); // Universal search — টাস্ক/নোট/সাবজেক্ট/পরীক্ষা একসাথে খোঁজার মডাল
   const [showAllSubjectsProgress, setShowAllSubjectsProgress] = useState(false); // Stats-এ Subject Progress গ্রিড — সাবজেক্ট বেশি হলে ডিফল্টে ৬টা দেখায়, "See all" চাপলে বাকিগুলো
   const [planDate, setPlanDate] = useState(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d; });
   // Plan tab-এর "Next N Days" strip কতদিন দেখাবে — 7/15/30/60/90, পছন্দ localStorage-এ মনে থাকে
@@ -2649,6 +2809,7 @@ export default function FocusGo() {
     if (!Capacitor.isNativePlatform()) return;
     const listenerPromise = CapacitorApp.addListener("backButton", () => {
       if (focusFullscreen) { setFocusFullscreen(false); return; }
+      if (showSearch) { setShowSearch(false); return; }
       if (taskDetailId) { setTaskDetailId(null); return; }
       if (showAddTask || editingTask) { setShowAddTask(false); setEditingTask(null); return; }
       if (selectedDay) { setSelectedDay(null); return; }
@@ -2683,7 +2844,7 @@ export default function FocusGo() {
     tab, focusFullscreen, taskDetailId, showAddTask, editingTask, selectedDay,
     showCombinedExamEditor, showNextExamEditor, showManageTopicsFor, showExamSchedule,
     showExams, showAdd, showSubjects, showAllSubjectsProgress, showCalendar,
-    showProfile, showTopicPicker, showBreakPrompt,
+    showProfile, showTopicPicker, showBreakPrompt, showSearch,
   ]);
 
   const timerRef = useRef(null);
@@ -4432,6 +4593,11 @@ export default function FocusGo() {
                 <WifiOff size={12}/> {t.offlineBadge}
               </div>
             )}
+            <button onClick={()=>{vibrate(); setShowSearch(true);}}
+              title={lang==="bn" ? "খুঁজুন" : "Search"}
+              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, padding:0}}>
+              <Search size={14}/>
+            </button>
             <NotificationBell
               t={t} lang={lang} notifications={notifications}
               onMarkAllRead={()=>setNotifications(prev => prev.map(n => ({...n, read:true})))}
@@ -5968,6 +6134,19 @@ export default function FocusGo() {
           topicBank={topicBank} onAddTopic={addTopicToBank} onAddTopicsBulk={addTopicsBulkToBank} onRemoveTopic={removeTopicFromBank} onRenameTopic={renameTopicInBank}
           expandedSubject={showManageTopicsFor} onToggleExpand={(s)=>setShowManageTopicsFor(prev => prev===s ? null : s)}
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
+      )}
+
+      {/* Universal search — টাস্ক/নোট/সাবজেক্ট/টপিক/পরীক্ষা সব একসাথে খোঁজার মডাল, হেডারের সার্চ আইকন থেকে খোলে */}
+      {showSearch && (
+        <UniversalSearchModal
+          lang={lang} dark={dark} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}
+          tasks={tasks} notes={notes} allSubjects={allSubjects} topicBank={topicBank} examSubjects={examSubjects} examSchedule={examSchedule}
+          onClose={()=>setShowSearch(false)}
+          onOpenTask={(x)=>{ setShowSearch(false); setTab("task"); setTaskDetailId(x.id); }}
+          onOpenNote={(n)=>{ setShowSearch(false); setTab("notes"); setNoteSearch(n.title || ""); }}
+          onOpenSubject={(s)=>{ setShowSearch(false); setTab("study"); setStudySection("plan"); setShowManageTopicsFor(s); setShowSubjects(true); }}
+          onOpenExam={()=>{ setShowSearch(false); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
+        />
       )}
 
       {/* Manage exams modal */}
