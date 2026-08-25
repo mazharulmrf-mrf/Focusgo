@@ -4430,6 +4430,39 @@ export default function FocusGo() {
     })();
   }, [tasks, lang, loaded, notificationsEnabled]);
 
+  // সালাতের সময় শুরু হলে নোটিফিকেশন — প্রতিটা ওয়াক্ত শুরুর মুহূর্তে একটা লোকাল নোটিফিকেশন শিডিউল হয়।
+  // salahTimes বদলালেই (লোকেশন/মাযহাব/দিন বদল) আগের শিডিউল করা সালাত-নোটিফিকেশন ক্যানসেল করে নতুন করে শিডিউল করা হয়।
+  const scheduledSalahNotifIdsRef = useRef([]);
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform() || !loaded) return;
+    (async () => {
+      try {
+        if (scheduledSalahNotifIdsRef.current.length > 0) {
+          await LocalNotifications.cancel({ notifications: scheduledSalahNotifIdsRef.current.map(id => ({ id })) });
+        }
+        const newIds = [];
+        const toSchedule = [];
+        if (notificationsEnabled && salahTimes) {
+          salahTimes.forEach(w => {
+            if (!w.start || w.start.getTime() <= Date.now()) return; // সময় চলে গেলে আর শিডিউল করার দরকার নেই
+            const id = strToNotifId(`salah_${w.key}_${todayKey}`);
+            newIds.push(id);
+            toSchedule.push({
+              id,
+              title: lang === "bn" ? "🕌 নামাজের সময় হয়েছে" : "🕌 Prayer Time",
+              body: lang === "bn" ? `${w.label}-এর ওয়াক্ত শুরু হয়েছে` : `It's time for ${w.label}`,
+              schedule: { at: w.start },
+            });
+          });
+        }
+        if (toSchedule.length > 0) {
+          await LocalNotifications.schedule({ notifications: toSchedule });
+        }
+        scheduledSalahNotifIdsRef.current = newIds;
+      } catch (e) { /* নেটিভ প্লাগইন না থাকলে (যেমন ব্রাউজারে) চুপচাপ ইগনোর করা হয় */ }
+    })();
+  }, [salahTimes, todayKey, lang, loaded, notificationsEnabled]);
+
 
   // Firebase এখনো auth স্টেট জানায়নি — একটা ছোট লোডিং স্ক্রিন
   if (!authChecked) {
@@ -4669,11 +4702,11 @@ export default function FocusGo() {
               const greetingBn = { morning: "শুভ সকাল", noon: "শুভ দুপুর", afternoon: "শুভ বিকেল", evening: "শুভ সন্ধ্যা", night: "শুভ রাত্রি" }[greetKey];
               // সময়ভিত্তিক subtle gradient + icon — greeting card-টাকে আরেকটু জীবন্ত করতে
               const greetTheme = {
-                morning:   { grad: dark ? "linear-gradient(135deg, rgba(224,168,58,0.16), rgba(224,168,58,0.02))" : "linear-gradient(135deg, #E0A83A1A, #E0A83A03)", Icon: Sun,  iconColor: "#E0A83A" },
-                noon:      { grad: dark ? "linear-gradient(135deg, rgba(76,143,166,0.16), rgba(76,143,166,0.02))" : "linear-gradient(135deg, #4C8FA61A, #4C8FA603)", Icon: Sun,  iconColor: "#4C8FA6" },
-                afternoon: { grad: `linear-gradient(135deg, ${accent}${dark ? "29" : "1A"}, ${accent}${dark ? "05" : "03"})`, Icon: Sun,  iconColor: accent },
-                evening:   { grad: dark ? "linear-gradient(135deg, rgba(155,107,158,0.18), rgba(155,107,158,0.02))" : "linear-gradient(135deg, #9B6B9E1A, #9B6B9E03)", Icon: Moon, iconColor: "#9B6B9E" },
-                night:     { grad: dark ? "linear-gradient(135deg, rgba(75,90,150,0.20), rgba(75,90,150,0.02))" : "linear-gradient(135deg, #4B5A961A, #4B5A9603)", Icon: Moon, iconColor: dark ? "#8FA0E0" : "#4B5A96" },
+                morning:   { grad: dark ? "rgba(224,168,58,0.10)" : "#E0A83A0F", Icon: Sun,  iconColor: "#E0A83A" },
+                noon:      { grad: dark ? "rgba(76,143,166,0.10)" : "#4C8FA60F", Icon: Sun,  iconColor: "#4C8FA6" },
+                afternoon: { grad: `${accent}${dark ? "18" : "0F"}`, Icon: Sun,  iconColor: accent },
+                evening:   { grad: dark ? "rgba(155,107,158,0.11)" : "#9B6B9E0F", Icon: Moon, iconColor: "#9B6B9E" },
+                night:     { grad: dark ? "rgba(75,90,150,0.12)" : "#4B5A960F", Icon: Moon, iconColor: dark ? "#8FA0E0" : "#4B5A96" },
               }[greetKey];
 
               return (
@@ -4750,13 +4783,13 @@ export default function FocusGo() {
 
                     {showSalahDropdown && (
                       <div onClick={() => setShowSalahDropdown(false)} style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:70}}>
-                        <div onClick={(e) => e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:"85vh", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"22px 22px 0 0", padding:"10px 20px 26px", color:textMain}}>
-                          <div style={{width:36, height:4, borderRadius:4, background:cardBorder, margin:"2px auto 14px"}}/>
+                        <div onClick={(e) => e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:"85vh", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"22px 22px 0 0", padding:"8px 16px 18px", color:textMain}}>
+                          <div style={{width:32, height:3.5, borderRadius:4, background:cardBorder, margin:"2px auto 10px"}}/>
 
                           <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10}}>
                             <div style={{minWidth:0}}>
-                              <div style={{fontSize:16, fontWeight:800, color:textMain}}>{lang === "bn" ? "সালাতের সময়" : "Salah Times"}</div>
-                              <div style={{display:"flex", alignItems:"center", gap:5, marginTop:3, minHeight:15}}>
+                              <div style={{fontSize:14.5, fontWeight:800, color:textMain}}>{lang === "bn" ? "সালাতের সময়" : "Salah Times"}</div>
+                              <div style={{display:"flex", alignItems:"center", gap:5, marginTop:2, minHeight:14}}>
                                 <MapPin size={11} color={textMuted2} strokeWidth={2.4}/>
                                 <span style={{fontSize:12, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                                   {salahLocLoading
@@ -4779,7 +4812,7 @@ export default function FocusGo() {
                                     : (lang === "bn" ? "লাইভ লোকেশন নিন" : "Get live location")
                               }
                               style={{
-                                width:32, height:32, borderRadius:"50%", flexShrink:0, border:"none", padding:0,
+                                width:28, height:28, borderRadius:"50%", flexShrink:0, border:"none", padding:0,
                                 background: salahCoords ? accent : (dark ? "#242229" : "#F0EEF5"),
                                 display:"flex", alignItems:"center", justifyContent:"center",
                                 cursor: salahLocLoading ? "default" : "pointer",
@@ -4787,12 +4820,12 @@ export default function FocusGo() {
                                 transition:"background .18s ease, opacity .18s ease",
                               }}
                             >
-                              <MapPin size={15} color={salahCoords ? "#fff" : textMuted2} strokeWidth={2.4}/>
+                              <MapPin size={13.5} color={salahCoords ? "#fff" : textMuted2} strokeWidth={2.4}/>
                             </button>
                           </div>
 
                           {!salahCoords && !salahLocLoading && (
-                            <div style={{marginTop:12, fontSize:12.5, color:textMuted2, lineHeight:1.6}}>
+                            <div style={{marginTop:10, fontSize:12, color:textMuted2, lineHeight:1.5}}>
                               {salahLocError || (lang === "bn" ? "উপরের লোকেশন আইকনে ট্যাপ করে আপনার এলাকা সেট করুন।" : "Tap the location icon above to set your area.")}
                             </div>
                           )}
@@ -4804,24 +4837,24 @@ export default function FocusGo() {
                             <>
                               {/* পরবর্তী নামাজের কাউন্টডাউন */}
                               {nextSalahCountdown && (
-                                <div style={{marginTop:14, background:`linear-gradient(135deg, ${accent}, #E9633C)`, borderRadius:16, padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", color:"#fff"}}>
+                                <div style={{marginTop:10, background: accent, borderRadius:14, padding:"9px 13px", display:"flex", alignItems:"center", justifyContent:"space-between", color:"#fff"}}>
                                   <div>
-                                    <div style={{fontSize:10.5, fontWeight:700, opacity:0.85, letterSpacing:0.4}}>{lang === "bn" ? "পরবর্তী" : "UP NEXT"}</div>
-                                    <div style={{fontSize:15.5, fontWeight:800, marginTop:1}}>
+                                    <div style={{fontSize:9.5, fontWeight:700, opacity:0.85, letterSpacing:0.4}}>{lang === "bn" ? "পরবর্তী" : "UP NEXT"}</div>
+                                    <div style={{fontSize:14, fontWeight:800, marginTop:1}}>
                                       {lang === "bn" ? `${nextSalahCountdown.label} — বাকি ${nextSalahCountdown.text}` : `${nextSalahCountdown.label} in ${nextSalahCountdown.text}`}
                                     </div>
                                   </div>
-                                  <Bell size={17} strokeWidth={2.2} style={{opacity:0.9, flexShrink:0}}/>
+                                  <Bell size={15} strokeWidth={2.2} style={{opacity:0.9, flexShrink:0}}/>
                                 </div>
                               )}
 
                               {/* আসরের হিসাব: হানাফি / শাফি */}
-                              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:16, marginBottom:2}}>
-                                <span style={{fontSize:10.5, fontWeight:800, color:textMuted2, letterSpacing:0.4}}>{lang === "bn" ? "আসরের হিসাব" : "ASR CALCULATION"}</span>
-                                <div style={{display:"flex", background: dark ? "#242229" : "#F0EEF5", borderRadius:999, padding:3}}>
+                              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:12, marginBottom:2}}>
+                                <span style={{fontSize:9.5, fontWeight:800, color:textMuted2, letterSpacing:0.4}}>{lang === "bn" ? "আসরের হিসাব" : "ASR CALCULATION"}</span>
+                                <div style={{display:"flex", background: dark ? "#242229" : "#F0EEF5", borderRadius:999, padding:2}}>
                                   {["hanafi","shafi"].map(mkey => (
                                     <button key={mkey} onClick={() => { vibrate(); setSalahMadhab(mkey); }} style={{
-                                      border:"none", padding:"5px 12px", borderRadius:999, fontSize:11, fontWeight:800, cursor:"pointer",
+                                      border:"none", padding:"4px 10px", borderRadius:999, fontSize:10, fontWeight:800, cursor:"pointer",
                                       background: salahMadhab === mkey ? accent : "transparent",
                                       color: salahMadhab === mkey ? "#fff" : textMuted2,
                                     }}>{mkey === "hanafi" ? (lang === "bn" ? "হানাফি" : "Hanafi") : (lang === "bn" ? "শাফি" : "Shafi")}</button>
@@ -4829,41 +4862,40 @@ export default function FocusGo() {
                                 </div>
                               </div>
 
-                              <div style={{marginTop:8}}>
+                              <div style={{marginTop:6}}>
                                 {salahTimes.map(w => {
                                   const isActive = w.key === activeSalahKey;
                                   const isDone = todaySalahDone.includes(w.key);
                                   return (
                                     <div key={w.key} style={{
-                                      display:"flex", justifyContent:"space-between", alignItems:"center", gap:10,
-                                      padding:"11px 10px", borderRadius:14, marginBottom:4, transition:"background .2s ease, border-color .2s ease",
+                                      display:"flex", justifyContent:"space-between", alignItems:"center", gap:8,
+                                      padding:"7px 9px", borderRadius:12, marginBottom:3, transition:"background .2s ease, border-color .2s ease",
                                       background: isDone ? (dark ? "rgba(78,144,104,0.14)" : "#EEF4EC") : isActive ? (dark ? "rgba(217,119,87,0.16)" : "#EFEBF7") : "transparent",
                                       border: `1px solid ${isDone ? (dark ? "rgba(78,144,104,0.35)" : "#D7E6D2") : isActive ? (dark ? "rgba(217,119,87,0.4)" : "#F0CBB8") : "transparent"}`,
                                     }}>
-                                      <span style={{display:"flex", alignItems:"center", gap:10, minWidth:0}}>
+                                      <span style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
                                         {/* সালাত আদায় হয়ে গেলে এখানে ট্যাপ করে টিক দেওয়া যায় — প্রতিদিনের হিসাব আলাদাভাবে সেভ থাকে */}
                                         <button
                                           onClick={(e) => { e.stopPropagation(); toggleSalahDone(w.key); }}
                                           title={isDone ? (lang === "bn" ? "আদায় হয়েছে — বাতিল করতে ট্যাপ করুন" : "Marked done — tap to undo") : (lang === "bn" ? "আদায় হলে টিক দিন" : "Tap to mark as prayed")}
                                           style={{
-                                            width:26, height:26, borderRadius:"50%", flexShrink:0, padding:0, cursor:"pointer",
+                                            width:21, height:21, borderRadius:"50%", flexShrink:0, padding:0, cursor:"pointer",
                                             border: isDone ? "none" : `2px solid ${isActive ? accent : cardBorder}`,
                                             background: isDone ? "#4E9068" : "transparent",
                                             display:"flex", alignItems:"center", justifyContent:"center",
                                             transition:"background .18s ease, border-color .18s ease",
-                                            boxShadow: isDone ? "0 3px 8px rgba(78,144,104,0.35)" : "none",
+                                            boxShadow: isDone ? "0 2px 6px rgba(78,144,104,0.35)" : "none",
                                           }}
                                         >
-                                          {isDone && <Check size={14} color="#fff" strokeWidth={3.2}/>}
+                                          {isDone && <Check size={11.5} color="#fff" strokeWidth={3.2}/>}
                                         </button>
                                         <span style={{
                                           color: isDone ? "#4E9068" : isActive ? accent : textMain,
                                           fontWeight: isActive ? 700 : 600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                                          textDecoration: isDone ? "line-through" : "none",
-                                          textDecorationColor: dark ? "rgba(78,144,104,0.6)" : "#A9CBB4", textDecorationThickness:1.5,
+                                          fontSize:13,
                                         }}>{w.label}</span>
                                       </span>
-                                      <span style={{color: isDone ? "#4E9068" : isActive ? accent : textMuted2, fontWeight: isActive ? 700 : 500, fontSize:13, fontVariantNumeric:"tabular-nums", flexShrink:0, opacity: isDone ? 0.85 : 1}}>
+                                      <span style={{color: isDone ? "#4E9068" : isActive ? accent : textMuted2, fontWeight: isActive ? 700 : 500, fontSize:11.5, fontVariantNumeric:"tabular-nums", flexShrink:0, opacity: isDone ? 0.85 : 1}}>
                                         {fmtSalahTime(w.start)} – {fmtSalahTime(w.end)}
                                       </span>
                                     </div>
@@ -4872,18 +4904,18 @@ export default function FocusGo() {
                               </div>
 
                               {/* নিচে: আজকের প্রগ্রেস ডট + কিবলার দিক */}
-                              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:14, paddingTop:12, borderTop:`1px solid ${cardBorder}`}}>
-                                <div style={{display:"flex", alignItems:"center", gap:8}}>
+                              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10, paddingTop:8, borderTop:`1px solid ${cardBorder}`}}>
+                                <div style={{display:"flex", alignItems:"center", gap:7}}>
                                   <div style={{display:"flex", gap:3}}>
                                     {salahTimes.map(w => (
-                                      <div key={w.key} style={{width:7, height:7, borderRadius:"50%", background: todaySalahDone.includes(w.key) ? "#4E9068" : cardBorder}}/>
+                                      <div key={w.key} style={{width:6, height:6, borderRadius:"50%", background: todaySalahDone.includes(w.key) ? "#4E9068" : cardBorder}}/>
                                     ))}
                                   </div>
-                                  <span style={{fontSize:12, fontWeight:700, color:textMuted2}}>{nf(todaySalahDone.length)}/5 {lang === "bn" ? "আজ" : "today"}</span>
+                                  <span style={{fontSize:11, fontWeight:700, color:textMuted2}}>{nf(todaySalahDone.length)}/5 {lang === "bn" ? "আজ" : "today"}</span>
                                 </div>
                                 {qiblaBearing != null && (
-                                  <span title={lang === "bn" ? "কিবলার দিক (উত্তর থেকে)" : "Qibla direction (from North)"} style={{display:"flex", alignItems:"center", gap:5, fontSize:12.5, fontWeight:800, color:accent}}>
-                                    <Compass size={14} strokeWidth={2.3}/> {lang === "bn" ? "কিবলা" : "Qibla"} {nf(qiblaBearing)}°
+                                  <span title={lang === "bn" ? "কিবলার দিক (উত্তর থেকে)" : "Qibla direction (from North)"} style={{display:"flex", alignItems:"center", gap:4, fontSize:11.5, fontWeight:800, color:accent}}>
+                                    <Compass size={13} strokeWidth={2.3}/> {lang === "bn" ? "কিবলা" : "Qibla"} {nf(qiblaBearing)}°
                                   </span>
                                 )}
                               </div>
@@ -4908,7 +4940,7 @@ export default function FocusGo() {
             <button
               onClick={()=>{ vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
               className="fg-tab-panel"
-              style={{marginTop:8, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: `linear-gradient(135deg, ${accent}, ${shadeColor(accent,-32)})`, borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, boxShadow:`0 6px 16px ${shadeColor(accent,-22)}59`}}
+              style={{marginTop:8, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: accent, borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, boxShadow:`0 6px 16px ${shadeColor(accent,-22)}59`}}
             >
               <div style={{minWidth:0}}>
                 <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:"rgba(255,255,255,0.85)", textTransform:"uppercase"}}>{lang==="bn"?"পরবর্তী পরীক্ষা":"Next Exam"}</div>
@@ -5173,7 +5205,7 @@ export default function FocusGo() {
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
           const secondaryColor = "#2B6F84";
           return (
-        <div className="fg-tab-panel" style={{marginTop:14, border:`1px solid rgba(255,255,255,0.10)`, background: `linear-gradient(135deg, #2A2A2E, #0A0A0C)`, borderRadius:16, padding:"13px 16px", position:"relative", overflow:"hidden", boxShadow:`0 8px 20px rgba(0,0,0,0.45), 0 0 0 1px ${accent}26`}}>
+        <div className="fg-tab-panel" style={{marginTop:14, border:`1px solid rgba(255,255,255,0.10)`, background: "#152728", borderRadius:16, padding:"13px 16px", position:"relative", overflow:"hidden", boxShadow:`0 8px 20px rgba(0,0,0,0.45), 0 0 0 1px ${accent}26`}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
@@ -5703,7 +5735,7 @@ export default function FocusGo() {
                   {filteredTasks.length === 0 && (
                     <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:14, padding:"46px 24px 34px"}}>
                       <div style={{position:"relative", width:78, height:78, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                        <div style={{position:"absolute", inset:0, borderRadius:"50%", background: dark ? "radial-gradient(circle, rgba(110,139,94,0.28) 0%, rgba(110,139,94,0.05) 68%, transparent 100%)" : "radial-gradient(circle, rgba(110,139,94,0.22) 0%, rgba(110,139,94,0.04) 68%, transparent 100%)"}}/>
+                        <div style={{position:"absolute", inset:0, borderRadius:"50%", background: dark ? "rgba(110,139,94,0.14)" : "rgba(110,139,94,0.11)"}}/>
                         <div style={{width:52, height:52, borderRadius:"50%", background: dark ? "rgba(110,139,94,0.22)" : "rgba(110,139,94,0.14)", border:`1px solid rgba(110,139,94,0.32)`, display:"flex", alignItems:"center", justifyContent:"center"}}>
                           <Sparkles size={22} color="#6E8B5E" strokeWidth={2}/>
                         </div>
@@ -5797,7 +5829,7 @@ export default function FocusGo() {
             {(() => {
               const h = Math.floor(studyOverview.totalMin/60), m = studyOverview.totalMin%60;
               return (
-                <div style={{background: dark ? "linear-gradient(135deg, rgba(76,143,166,0.16), rgba(76,143,166,0.03))" : "linear-gradient(135deg, #4C8FA614, #4C8FA603)", border:`1px solid ${cardBorder}`, borderRadius:16, padding:"13px 14px", marginBottom:20, display:"flex", alignItems:"center", gap:12}}>
+                <div style={{background: dark ? "rgba(76,143,166,0.09)" : "#4C8FA60A", border:`1px solid ${cardBorder}`, borderRadius:16, padding:"13px 14px", marginBottom:20, display:"flex", alignItems:"center", gap:12}}>
                   <div style={{display:"flex", alignItems:"center", gap:9, flexShrink:0}}>
                     <div style={{width:34,height:34, borderRadius:10, background: dark?"rgba(76,143,166,0.22)":"#4C8FA61F", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                       <Clock size={16} color="#4C8FA6"/>
@@ -6049,7 +6081,7 @@ export default function FocusGo() {
 
       {/* Bottom nav — মোবাইল/ট্যাবলেটে; ডেস্কটপে সাইডবার থাকায় এটা হাইড */}
       {!isDesktop && (
-      <div style={{position:"sticky", left:0, right:0, bottom:0, display:"flex", justifyContent:"center", padding:"10px 16px 12px", zIndex:40, background: `linear-gradient(to top, ${bg} 60%, transparent)`}}>
+      <div style={{position:"sticky", left:0, right:0, bottom:0, display:"flex", justifyContent:"center", padding:"10px 16px 12px", zIndex:40, background: bg}}>
         <div style={{
           width:"100%", maxWidth:480, display:"flex",
           background: dark ? "rgba(18,17,16,0.6)" : "rgba(255,255,255,0.55)",
