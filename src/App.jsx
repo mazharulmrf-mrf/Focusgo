@@ -607,17 +607,17 @@ function UniversalSearchModal({
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 70 }} className="fg-sheet-backdrop" onClick={onClose}>
       <div onClick={e => e.stopPropagation()} className="fg-sheet" style={{ position: "absolute", inset: 0, background: cardBg, color: textMain, display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "16px 16px 10px", flexShrink: 0 }}>
-          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, border: `1px solid ${cardBorder}`, borderRadius: 12, padding: "9px 12px" }}>
-            <Search size={16} color={textMuted2} />
+          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "13px 14px" }}>
+            <Search size={19} color={textMuted2} />
             <input
               ref={inputRef}
               value={q}
               onChange={e => setQ(e.target.value)}
               placeholder={isBn ? "টাস্ক, নোট, সাবজেক্ট, পরীক্ষা খুঁজুন..." : "Search tasks, notes, subjects, exams..."}
-              style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", color: textMain, fontSize: 14 }}
+              style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", color: textMain, fontSize: 16 }}
             />
             {q && (
-              <button onClick={() => setQ("")} style={{ border: "none", background: "transparent", cursor: "pointer", color: textMuted2, display: "flex", padding: 0 }}><X size={14} /></button>
+              <button onClick={() => setQ("")} style={{ border: "none", background: "transparent", cursor: "pointer", color: textMuted2, display: "flex", padding: 0 }}><X size={16} /></button>
             )}
           </div>
           <button onClick={onClose} style={{ border: "none", background: "transparent", cursor: "pointer", color: textMuted2, fontSize: 13, fontWeight: 700, padding: "6px 2px", flexShrink: 0 }}>
@@ -4624,7 +4624,7 @@ export default function FocusGo() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:18}}>
+        <div style={{marginTop:10}}>
           <div style={{marginBottom:2}}>
             {(() => {
               const fullName = (user?.displayName || "").trim();
@@ -4666,7 +4666,7 @@ export default function FocusGo() {
 
               return (
                 <>
-                  <div style={{padding:"4px 2px 10px", marginBottom:2}}>
+                  <div style={{padding:"2px 2px 8px", marginBottom:0}}>
                     <div style={{minWidth:0, flex:1}}>
                       <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2, marginBottom:3, display:"flex", alignItems:"center", gap:5}}>
                         {lang === "bn" ? greetingBn : greetingEn}
@@ -4682,7 +4682,7 @@ export default function FocusGo() {
                       </div>
                     </div>
                   </div>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8, paddingBottom:14, borderBottom:`0.5px solid ${cardBorder}`, position:"relative"}} ref={salahMenuRef}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8, paddingBottom:10, borderBottom:`0.5px solid ${cardBorder}`, position:"relative"}} ref={salahMenuRef}>
                     <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
                       <span style={{width:30, height:30, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
                         <CalendarDays size={20} color={accent} strokeWidth={2}/>
@@ -4896,7 +4896,7 @@ export default function FocusGo() {
             <button
               onClick={()=>{ vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
               className="fg-tab-panel"
-              style={{marginTop:12, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: dark ? "rgba(217,119,55,0.16)" : "rgba(217,119,55,0.10)", borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}
+              style={{marginTop:8, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: dark ? "rgba(217,119,55,0.16)" : "rgba(217,119,55,0.10)", borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}
             >
               <div style={{minWidth:0}}>
                 <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:"#D97737", textTransform:"uppercase"}}>{lang==="bn"?"পরবর্তী পরীক্ষা":"Next Exam"}</div>
@@ -5634,25 +5634,34 @@ export default function FocusGo() {
 
           return (
             <>
-            <div key="task" className="fg-tab-panel" style={{marginTop:20}}>
-              <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:14}}>{t.taskTitle}</div>
+            <div key="task" className="fg-tab-panel" style={{marginTop:14}}>
+              <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:10}}>{t.taskTitle}</div>
 
               {/* Summary card — same merged style as Home's progress card: ring + completed/remaining/overdue, consistent visual language across the app */}
               <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px", marginBottom:20, boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.18)" : "0 1px 3px rgba(0,0,0,0.04)"}}>
                 <div style={{display:"flex", alignItems:"center", gap:14}}>
                   <PercentRing pct={pct} size={48} stroke={5} accent={accent} trackColor={dark?"#2C2B33":"#E7E5ED"} textMain={textMain} nf={nf}/>
                   <div style={{flex:1, display:"flex", justifyContent:"space-between"}}>
-                    <div style={{textAlign:"center"}}>
+                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4}}>
+                      <div style={{width:22, height:22, borderRadius:"50%", background:"rgba(110,139,94,0.16)", display:"flex", alignItems:"center", justifyContent:"center"}}>
+                        <Check size={12} strokeWidth={3} color="#6E8B5E"/>
+                      </div>
                       <div style={{fontSize:15, fontWeight:800, color:"#6E8B5E", lineHeight:1.1}}><Num>{nf(doneCount)}</Num></div>
-                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8, marginTop:2}}>{lang==="bn"?"সম্পন্ন":"Done"}</div>
+                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8}}>{lang==="bn"?"সম্পন্ন":"Done"}</div>
                     </div>
-                    <div style={{textAlign:"center"}}>
+                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4}}>
+                      <div style={{width:22, height:22, borderRadius:"50%", background:"rgba(192,138,46,0.16)", display:"flex", alignItems:"center", justifyContent:"center"}}>
+                        <Clock size={12} color="#C08A2E"/>
+                      </div>
                       <div style={{fontSize:15, fontWeight:800, color:"#C08A2E", lineHeight:1.1}}><Num>{nf(tasks.length - doneCount)}</Num></div>
-                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8, marginTop:2}}>{lang==="bn"?"বাকি":"Left"}</div>
+                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8}}>{lang==="bn"?"বাকি":"Left"}</div>
                     </div>
-                    <div style={{textAlign:"center"}}>
-                      <div style={{fontSize:15, fontWeight:800, color: overdueCount > 0 ? "#C0392B" : textMain, lineHeight:1.1}}><Num>{nf(overdueCount)}</Num></div>
-                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8, marginTop:2}}>{lang==="bn"?"মেয়াদ শেষ":"Overdue"}</div>
+                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4}}>
+                      <div style={{width:22, height:22, borderRadius:"50%", background: overdueCount > 0 ? "rgba(214,73,58,0.16)" : (dark?"#2C2B33":"#E7E5ED"), display:"flex", alignItems:"center", justifyContent:"center"}}>
+                        <CalendarClock size={12} color={overdueCount > 0 ? "#D6493A" : textMuted2}/>
+                      </div>
+                      <div style={{fontSize:15, fontWeight:800, color: overdueCount > 0 ? "#D6493A" : textMain, lineHeight:1.1}}><Num>{nf(overdueCount)}</Num></div>
+                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8}}>{lang==="bn"?"মেয়াদ শেষ":"Overdue"}</div>
                     </div>
                   </div>
                 </div>
@@ -5679,31 +5688,43 @@ export default function FocusGo() {
 
               {taskViewMode === "list" ? (
                 <>
-                  <div className="fg-chip-row" style={{display:"flex", gap:6, marginBottom:14, overflowX:"auto", WebkitMaskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)", maskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)"}}>
-                    {filterChips.map(([key,label,Icon]) => (
-                      <button key={key} onClick={()=>{vibrate(); setTaskFilter(key);}} style={{
-                        display:"flex", alignItems:"center", gap:4, padding:"6px 10px", borderRadius:20, cursor:"pointer", flexShrink:0,
-                        border:`1px solid ${taskFilter===key ? accent : (key==="overdue" && overdueCount>0 ? "#C0392B55" : cardBorder)}`,
-                        background: taskFilter===key ? accent : "transparent",
-                        color: taskFilter===key ? "#fff" : textMuted2, fontWeight:700, fontSize:11, whiteSpace:"nowrap",
-                      }}>
-                        <Icon size={10}/> {label}
-                        {key==="overdue" && overdueCount>0 && (
-                          <span style={{marginLeft:2, minWidth:15, height:15, borderRadius:8, padding:"0 4px", fontSize:10, fontWeight:800, display:"inline-flex", alignItems:"center", justifyContent:"center",
-                            background: taskFilter===key ? "rgba(255,255,255,0.3)" : "#C0392B", color:"#fff"}}>
-                            <Num>{nf(overdueCount)}</Num>
-                          </span>
-                        )}
-                      </button>
-                    ))}
+                  <div style={{position:"relative", marginBottom:14}}>
+                    <div className="fg-chip-row" style={{display:"flex", gap:6, overflowX:"auto", WebkitMaskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)", maskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)"}}>
+                      {filterChips.map(([key,label,Icon]) => (
+                        <button key={key} onClick={()=>{vibrate(); setTaskFilter(key);}} style={{
+                          display:"flex", alignItems:"center", gap:4, padding:"6px 10px", borderRadius:20, cursor:"pointer", flexShrink:0,
+                          border:`1px solid ${taskFilter===key ? accent : (key==="overdue" && overdueCount>0 ? "#D6493A55" : cardBorder)}`,
+                          background: taskFilter===key ? accent : "transparent",
+                          color: taskFilter===key ? "#fff" : textMuted2, fontWeight:700, fontSize:11, whiteSpace:"nowrap",
+                        }}>
+                          <Icon size={10}/> {label}
+                          {key==="overdue" && overdueCount>0 && (
+                            <span style={{marginLeft:2, minWidth:15, height:15, borderRadius:8, padding:"0 4px", fontSize:10, fontWeight:800, display:"inline-flex", alignItems:"center", justifyContent:"center",
+                              background: taskFilter===key ? "rgba(255,255,255,0.3)" : "#D6493A", color:"#fff"}}>
+                              <Num>{nf(overdueCount)}</Num>
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                      <div style={{width:1, flexShrink:0}}/>
+                    </div>
+                    <div style={{position:"absolute", right:0, top:0, bottom:0, width:22, display:"flex", alignItems:"center", justifyContent:"flex-end", pointerEvents:"none"}}>
+                      <ChevronRight size={14} color={textMuted2} strokeWidth={2.5}/>
+                    </div>
                   </div>
 
                   {filteredTasks.length === 0 && (
-                    <div style={{display:"flex", alignItems:"center", gap:12, padding:"18px 4px", color:textMuted2, fontSize:13}}>
-                      <div style={{width:38, height:38, borderRadius:"50%", background:"rgba(110,139,94,0.16)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                        <Sparkles size={18} color="#6E8B5E" strokeWidth={2}/>
+                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:12, padding:"28px 16px"}}>
+                      <div style={{width:44, height:44, borderRadius:"50%", background:"rgba(110,139,94,0.16)", display:"flex", alignItems:"center", justifyContent:"center"}}>
+                        <Sparkles size={20} color="#6E8B5E" strokeWidth={2}/>
                       </div>
-                      <div style={{textAlign:"left"}}>{emptyMsg}</div>
+                      <div style={{color:textMuted2, fontSize:13}}>{emptyMsg}</div>
+                      <button onClick={()=>{vibrate(); setTaskAddDefaultDate(taskFilter==="today" ? todayKey : null); setShowAddTask(true);}} style={{
+                        display:"flex", alignItems:"center", gap:6, border:"none", background:accent, color:"#fff",
+                        borderRadius:12, padding:"9px 16px", fontSize:13, fontWeight:800, cursor:"pointer",
+                      }}>
+                        <Plus size={15}/> {t.taskAddBtn}
+                      </button>
                     </div>
                   )}
 
