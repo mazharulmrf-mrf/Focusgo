@@ -605,9 +605,8 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
 }
 
 // ---------- Settings modal: Language, Theme, About Us ----------
-function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, setAccentKey, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage }) {
+function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, setAccentKey, notificationsEnabled, setNotificationsEnabled, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage }) {
   const [showAbout, setShowAbout] = useState(false);
-  const [showAppearance, setShowAppearance] = useState(false);
   const [legalDoc, setLegalDoc] = useState(null); // null | "privacy" | "terms"
   const isBn = lang === "bn";
 
@@ -622,10 +621,19 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
       return next;
     });
   };
+  const toggleNotifications = () => setNotificationsEnabled(v => !v);
 
   const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:`1px solid ${cardBorder}` };
   const labelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14, fontWeight:700, color:textMain };
   const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#ADA9BB" : "#6E6B7A" };
+  // pill বাটন — নির্বাচিত হলে accent রঙে ভরাট থাকবে; Appearance সেকশনে (থিম ও অ্যাকসেন্ট) সরাসরি ইনলাইন ব্যবহার হয়
+  const pillBase = { border:"1px solid transparent", borderRadius:999, padding:"9px 16px", fontSize:13.5, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" };
+  // "System" সবার আগে দেখানো হয় — ডিভাইসের prefers-color-scheme অনুযায়ী লাইভ light/dark
+  const themeInlineOptions = [{ key: "system", label: t.themeSystem }, ...THEME_ORDER.map(key => ({
+    key,
+    label: key === "light" ? t.themeLight : key === "dark" ? t.themeDark
+         : key === "ivory" ? t.themeIvory : key === "graphite" ? t.themeGraphite : t.themeMist,
+  }))];
 
   if (legalDoc) {
     const sections = legalDoc === "privacy" ? t.privacySections : t.termsSections;
@@ -650,70 +658,6 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                 ))}
               </div>
             ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (showAppearance) {
-    const themeOptions = THEME_ORDER.map(key => ({
-      key,
-      label: key === "light" ? t.themeLight : key === "dark" ? t.themeDark
-           : key === "ivory" ? t.themeIvory : key === "graphite" ? t.themeGraphite : t.themeMist,
-    }));
-    // pill বাটন — নির্বাচিত হলে accent রঙে ভরাট থাকবে, স্ক্রিনশটের মতো
-    const pillBase = { border:"1px solid transparent", borderRadius:999, padding:"9px 16px", fontSize:13.5, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" };
-    return (
-      <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={()=>setShowAppearance(false)}>
-        <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain}}>
-          <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:16}}>
-            <button onClick={()=>setShowAppearance(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
-              <ChevronLeft size={20}/>
-            </button>
-            <div style={{fontSize:18, fontWeight:800, flex:1}}>{t.appearance}</div>
-            <button onClick={()=>setShowAppearance(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
-          </div>
-
-          <div style={{fontSize:12, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:10}}>{t.theme}</div>
-          <div style={{display:"flex", flexWrap:"wrap", gap:8, marginBottom:20}}>
-            {themeOptions.map(({key, label}) => {
-              const selected = themeMode === key;
-              const previewBg = themeFor(key).cardBg;
-              return (
-                <button key={key} onClick={()=>setThemeMode(key)} style={{
-                  ...pillBase,
-                  display:"flex", alignItems:"center", gap:7,
-                  border: `1px solid ${selected ? accent : cardBorder}`,
-                  background: selected ? accent : "transparent",
-                  color: selected ? "#fff" : textMain,
-                }}>
-                  <span style={{width:12, height:12, borderRadius:"50%", background:previewBg, border:`1px solid ${selected ? "rgba(255,255,255,0.6)" : cardBorder}`, flexShrink:0}}/>
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-
-          <div style={{fontSize:12, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:10}}>{t.accentColor}</div>
-          <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
-            {ACCENT_OPTIONS.map(({key, labelBn, labelEn}) => {
-              const hex = accentHexFor(key, dark);
-              const selected = accentKey === key;
-              return (
-                <button key={key} onClick={()=>setAccentKey(key)} style={{
-                  ...pillBase,
-                  display:"flex", alignItems:"center", gap:7,
-                  border: `1px solid ${selected ? hex : cardBorder}`,
-                  background: selected ? `${hex}1A` : "transparent",
-                  color: textMain,
-                }}>
-                  <span style={{width:12, height:12, borderRadius:"50%", background:hex, flexShrink:0}}/>
-                  {lang==="bn" ? labelBn : labelEn}
-                  {selected && <Check size={13} color={hex} strokeWidth={3}/>}
-                </button>
-              );
-            })}
           </div>
         </div>
       </div>
@@ -784,25 +728,76 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
         </button>
       </div>
 
-      {/* Appearance — combined sub-page (Theme swatches + Accent color, pill style) */}
-      <button onClick={()=>setShowAppearance(true)} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", padding:0}}>
-        <div style={rowStyle}>
-          <div style={labelStyle}>
-            <span style={{...iconWrapStyle, background:"transparent", border:"none"}}>
-              <span style={{width:20, height:20, borderRadius:"50%", background:accent, border:`1px solid ${cardBorder}`, display:"block"}}/>
-            </span>
-            {t.appearance}
-          </div>
-          <div style={{display:"flex", alignItems:"center", gap:6, color:textMuted2}}>
-            <span style={{fontSize:12, fontWeight:600}}>
-              {themeMode==="light" ? t.themeLight : themeMode==="dark" ? t.themeDark : themeMode==="ivory" ? t.themeIvory : themeMode==="graphite" ? t.themeGraphite : t.themeMist}
-              {" · "}
-              {lang==="bn" ? (ACCENT_OPTIONS.find(a=>a.key===accentKey)||ACCENT_OPTIONS[0]).labelBn : (ACCENT_OPTIONS.find(a=>a.key===accentKey)||ACCENT_OPTIONS[0]).labelEn}
-            </span>
-            {isBn ? <ChevronLeft size={16}/> : <ChevronRight size={16}/>}
-          </div>
+      {/* Appearance — theme & accent pills shown directly inline, no separate page to tap into */}
+      <div style={{padding:"14px 2px", borderBottom:`1px solid ${cardBorder}`}}>
+        <div style={{...labelStyle, marginBottom:14}}>
+          <span style={{...iconWrapStyle, background:"transparent", border:"none"}}>
+            <span style={{width:20, height:20, borderRadius:"50%", background:accent, border:`1px solid ${cardBorder}`, display:"block"}}/>
+          </span>
+          {t.appearance}
         </div>
-      </button>
+
+        <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:9, paddingLeft:2}}>{t.theme}</div>
+        <div style={{display:"flex", flexWrap:"wrap", gap:8, marginBottom:18}}>
+          {themeInlineOptions.map(({key, label}) => {
+            const selected = themeMode === key;
+            const isSystem = key === "system";
+            return (
+              <button key={key} onClick={()=>setThemeMode(key)} style={{
+                ...pillBase,
+                display:"flex", alignItems:"center", gap:7,
+                border: `1px solid ${selected ? accent : cardBorder}`,
+                background: selected ? accent : (dark?"#17151C":"#F8F5EE"),
+                color: selected ? "#fff" : textMain,
+              }}>
+                {isSystem ? (
+                  <Contrast size={14} style={{flexShrink:0}}/>
+                ) : (
+                  <span style={{width:12, height:12, borderRadius:"50%", background:themeFor(key).cardBg, border:`1px solid ${selected ? "rgba(255,255,255,0.6)" : cardBorder}`, flexShrink:0}}/>
+                )}
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:9, paddingLeft:2}}>{t.accentColor}</div>
+        <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
+          {ACCENT_OPTIONS.map(({key, labelBn, labelEn}) => {
+            const hex = accentHexFor(key, dark);
+            const selected = accentKey === key;
+            return (
+              <button key={key} onClick={()=>setAccentKey(key)} style={{
+                ...pillBase,
+                display:"flex", alignItems:"center", gap:7,
+                border: `1px solid ${selected ? hex : cardBorder}`,
+                background: selected ? `${hex}1A` : (dark?"#17151C":"#F8F5EE"),
+                color:textMain,
+              }}>
+                <span style={{width:12, height:12, borderRadius:"50%", background:hex, flexShrink:0}}/>
+                {lang==="bn" ? labelBn : labelEn}
+                {selected && <Check size={13} color={hex} strokeWidth={3}/>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Notifications on/off — exam/task reminders and Focus Timer end alerts */}
+      <div style={rowStyle}>
+        <div style={labelStyle}><span style={iconWrapStyle}><Bell size={15}/></span>{t.notifications}</div>
+        <button onClick={toggleNotifications} aria-pressed={notificationsEnabled} style={{
+            width:44, height:26, borderRadius:12, border:"none", cursor:"pointer", padding:0,
+            background: notificationsEnabled ? accent : (dark ? "#3A362E" : "#DCD5C4"),
+            position:"relative", transition:"background 0.15s"
+          }}>
+          <span style={{
+            position:"absolute", top:3, left: notificationsEnabled ? 21 : 3,
+            width:20, height:20, borderRadius:"50%", background:"#fff",
+            transition:"left 0.15s", boxShadow:"0 1px 2px rgba(0,0,0,0.25)"
+          }}/>
+        </button>
+      </div>
 
       {/* Haptic feedback on/off */}
       <div style={rowStyle}>
@@ -2099,11 +2094,9 @@ function themeFor(mode) {
   return THEME_PALETTES[mode] || THEME_PALETTES.light;
 }
 function normalizeThemeMode(mode) {
+  if (mode === "system") return "system";
   if (THEME_ORDER.includes(mode)) return mode;
-  if (mode === "system") {
-    try { return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } catch (e) { return "light"; }
-  }
-  return "light";
+  return "system";
 }
 
 function RecentTopicChips({ topics, onPick, accent, cardBorder, textMuted2, dark }) {
@@ -2161,6 +2154,14 @@ const vibrate = (pattern = 8) => {
       navigator.vibrate(pattern);
     }
   } catch (e) {}
+};
+
+// Settings থেকে ইউজার notification বন্ধ/চালু করতে পারে (localStorage-এ সেভ থাকে) — বন্ধ থাকলে
+// কোনো OS (system tray) notification শিডিউল/পাঠানো হবে না। ইন-অ্যাপ notification bell-এর তালিকা
+// (header-এর 🔔 আইকন) অবশ্য এর দ্বারা প্রভাবিত হয় না, কারণ ওটা অ্যাপ খোলা থাকা অবস্থাতেই দেখা যায়।
+const NOTIFICATIONS_PREF_KEY = "focusgo_notifications_enabled";
+const isNotificationsEnabled = () => {
+  try { return window.localStorage.getItem(NOTIFICATIONS_PREF_KEY) !== "0"; } catch (e) { return true; }
 };
 
 const APP_ICON = "data:image/png;base64,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";
@@ -2346,21 +2347,18 @@ export default function FocusGo() {
 
   const breakpoint = useViewport(); // "mobile" | "tablet" | "desktop"
   const [lang, setLang] = useState("en");
-  // থিম: system / light / dark — ডিফল্ট "system", ডিভাইসের prefers-color-scheme অনুযায়ী ঠিক হয়
+  // থিম: system / light / dark / ivory / graphite / mist — ডিফল্ট "system",
+  // ডিভাইসের prefers-color-scheme অনুযায়ী লাইভ ঠিক হয় (নিচে systemPrefersDark দেখুন)
   const [themeMode, setThemeMode] = useState(() => {
     try {
       const saved = window.localStorage.getItem("focusgo_theme_mode_v2");
-      if (THEME_ORDER.includes(saved)) return saved;
-      // পুরনো ইউজারদের সেভ করা "system" ভ্যালু মাইগ্রেট করে ডিভাইসের তখনকার
-      // prefers-color-scheme অনুযায়ী light/dark-এ বসিয়ে দেয়া হয়
-      if (saved === "system") {
-        try { return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } catch (e) { return "light"; }
-      }
-      return "light";
+      if (saved === "system" || THEME_ORDER.includes(saved)) return saved;
+      // একদম নতুন ইউজার (কোনো saved value নেই) — ডিফল্ট "system"
+      return "system";
     } catch (e) {
-      return "light";
+      return "system";
     }
-  }); // "light" | "dark" | "ivory" | "graphite" | "mist"
+  }); // "system" | "light" | "dark" | "ivory" | "graphite" | "mist"
 
   // Keep the selected theme across browser refreshes without waiting for Firestore.
   useEffect(() => {
@@ -2388,7 +2386,9 @@ export default function FocusGo() {
     if (mq.addEventListener) mq.addEventListener("change", handler); else mq.addListener(handler);
     return () => { if (mq.removeEventListener) mq.removeEventListener("change", handler); else mq.removeListener(handler); };
   }, []);
-  const dark = themeFor(themeMode).dark;
+  // themeMode "system" হলে ডিভাইসের লাইভ prefers-color-scheme অনুযায়ী light/dark রেজল্ভ হয়
+  const resolvedThemeKey = themeMode === "system" ? (systemPrefersDark ? "dark" : "light") : themeMode;
+  const dark = themeFor(resolvedThemeKey).dark;
   // সালাত টাইমার সংক্রান্ত state — লাইভ লোকেশন (lat/lng) একবার পারমিশন পেলে localStorage-এ ক্যাশ থাকে, আইকনে আবার চাপলে re-select করা যায়
   const [salahCoords, setSalahCoords] = useState(() => {
     try { return JSON.parse(window.localStorage.getItem("focusgo_salah_coords") || "null"); } catch (e) { return null; }
@@ -2546,6 +2546,12 @@ export default function FocusGo() {
   const saveNotifiedFlags = () => {
     try { window.localStorage.setItem("focusgo_notif_flags", JSON.stringify(notifiedFlagsRef.current)); } catch (e) {}
   };
+  // ইউজার Settings থেকে OS (system tray) notification বন্ধ/চালু করতে পারে — বন্ধ থাকলে
+  // exam/task reminder ও Focus Timer শেষের নোটিফিকেশন কোনোটাই ডিভাইসে শিডিউল হবে না।
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => isNotificationsEnabled());
+  useEffect(() => {
+    try { window.localStorage.setItem(NOTIFICATIONS_PREF_KEY, notificationsEnabled ? "1" : "0"); } catch (e) {}
+  }, [notificationsEnabled]);
   // skipNative: Focus Timer-এর session/break/topic-done ইভেন্টগুলোর জন্য OS notification
   // আগে থেকেই scheduleTimerEndNotif দিয়ে শিডিউল করা থাকে, তাই এখানে আবার একই নোটিফিকেশন
   // পাঠালে ডুপ্লিকেট হয়ে যাবে — সেসব কল-সাইট থেকে skipNative=true পাঠানো হয়।
@@ -2558,7 +2564,7 @@ export default function FocusGo() {
     setNotifications(prev => [{ id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, title, body, time: new Date().toISOString(), read: false }, ...prev].slice(0, 50));
     // in-app bell-এর পাশাপাশি একটা আসল OS (system tray) notification-ও পাঠানো হচ্ছে,
     // যাতে অ্যাপ ব্যাকগ্রাউন্ডে/মিনিমাইজড থাকলেও ইউজার নোটিফিকেশনটা দেখতে পায়।
-    if (!skipNative && Capacitor.isNativePlatform()) {
+    if (!skipNative && notificationsEnabled && Capacitor.isNativePlatform()) {
       const nid = strToNotifId(flagKey || `${title}_${Date.now()}`);
       LocalNotifications.schedule({
         notifications: [{ id: nid, title, body, schedule: { at: new Date(Date.now() + 500) } }],
@@ -3171,7 +3177,7 @@ export default function FocusGo() {
   // বের হয়ে গেলে বা অ্যাপ পুরোপুরি বন্ধ/মিনিমাইজড থাকলেও নির্দিষ্ট সময়ে system notification আসবে।
   const timerNotifIdRef = useRef(strToNotifId("focusgo_timer_end"));
   const scheduleTimerEndNotif = (atMs, kind) => {
-    if (!Capacitor.isNativePlatform()) return;
+    if (!Capacitor.isNativePlatform() || !notificationsEnabled) return;
     const title = kind === "break" ? t.notifBreakDoneTitle : t.notifSessionDoneTitle;
     const body = kind === "break" ? t.notifBreakDoneBody : t.notifSessionDoneBody;
     LocalNotifications.schedule({
@@ -4059,8 +4065,8 @@ export default function FocusGo() {
 
   const fmtTime = (h, m, s) => <>{<Num>{nf(pad2(h))}</Num>}:{<Num>{nf(pad2(m))}</Num>}{s !== undefined ? <>:{<Num>{nf(pad2(s))}</Num>}</> : null}</>;
 
-  // theme tokens — active appearance theme (Light / Dark / Ivory / Graphite / Mist)
-  const activeTheme = themeFor(themeMode);
+  // theme tokens — active appearance theme (System resolves live to Light/Dark; or Light / Dark / Ivory / Graphite / Mist)
+  const activeTheme = themeFor(resolvedThemeKey);
   const bg = activeTheme.bg;
   const cardBg = activeTheme.cardBg;
   const cardBorder = activeTheme.cardBorder;
@@ -4187,29 +4193,31 @@ export default function FocusGo() {
         }
         const newIds = [];
         const toSchedule = [];
-        examSchedule.forEach(ex => {
-          if (!ex.date) return;
-          const examDate = new Date(ex.date + "T00:00:00");
-          const reminderAt = new Date(examDate);
-          reminderAt.setDate(reminderAt.getDate() - 1);
-          reminderAt.setHours(REMINDER_HOUR, 0, 0, 0);
-          if (reminderAt.getTime() <= Date.now()) return; // সময় চলে গেলে আর শিডিউল করার দরকার নেই
-          const id = examIdToNotifId(ex.id);
-          newIds.push(id);
-          toSchedule.push({
-            id,
-            title: lang === "bn" ? "📚 রিভিশন রিমাইন্ডার" : "📚 Revision Reminder",
-            body: lang === "bn" ? `আগামীকাল পরীক্ষা: ${ex.subject} — রিভিশন শেষ করেছ?` : `Tomorrow's exam: ${ex.subject} — finished revising?`,
-            schedule: { at: reminderAt },
+        if (notificationsEnabled) {
+          examSchedule.forEach(ex => {
+            if (!ex.date) return;
+            const examDate = new Date(ex.date + "T00:00:00");
+            const reminderAt = new Date(examDate);
+            reminderAt.setDate(reminderAt.getDate() - 1);
+            reminderAt.setHours(REMINDER_HOUR, 0, 0, 0);
+            if (reminderAt.getTime() <= Date.now()) return; // সময় চলে গেলে আর শিডিউল করার দরকার নেই
+            const id = examIdToNotifId(ex.id);
+            newIds.push(id);
+            toSchedule.push({
+              id,
+              title: lang === "bn" ? "📚 রিভিশন রিমাইন্ডার" : "📚 Revision Reminder",
+              body: lang === "bn" ? `আগামীকাল পরীক্ষা: ${ex.subject} — রিভিশন শেষ করেছ?` : `Tomorrow's exam: ${ex.subject} — finished revising?`,
+              schedule: { at: reminderAt },
+            });
           });
-        });
+        }
         if (toSchedule.length > 0) {
           await LocalNotifications.schedule({ notifications: toSchedule });
         }
         scheduledExamNotifIdsRef.current = newIds;
       } catch (e) { /* নেটিভ প্লাগইন না থাকলে (যেমন ব্রাউজারে) চুপচাপ ইগনোর করা হয় */ }
     })();
-  }, [examSchedule, lang, loaded]);
+  }, [examSchedule, lang, loaded, notificationsEnabled]);
 
   // টাস্ক রিমাইন্ডার — যেসব টাস্কে due date + reminder time (ঐচ্ছিক) সেট করা আছে, সেগুলোর জন্য ঠিক সেই মুহূর্তে
   // লোকাল নোটিফিকেশন শিডিউল হয়। tasks বদলালেই (add/edit/delete/done) আগের সব টাস্ক-রিমাইন্ডার ক্যানসেল করে
@@ -4224,28 +4232,30 @@ export default function FocusGo() {
         }
         const newIds = [];
         const toSchedule = [];
-        tasks.forEach(task => {
-          if (task.done || !task.dueDate || !task.reminderTime) return;
-          const [hh, mm] = task.reminderTime.split(":").map(Number);
-          const at = new Date(task.dueDate + "T00:00:00");
-          at.setHours(hh, mm, 0, 0);
-          if (at.getTime() <= Date.now()) return; // সময় চলে গেলে আর শিডিউল করার দরকার নেই
-          const id = strToNotifId(`task_${task.id}`);
-          newIds.push(id);
-          toSchedule.push({
-            id,
-            title: lang === "bn" ? "✅ টাস্ক রিমাইন্ডার" : "✅ Task Reminder",
-            body: task.title,
-            schedule: { at },
+        if (notificationsEnabled) {
+          tasks.forEach(task => {
+            if (task.done || !task.dueDate || !task.reminderTime) return;
+            const [hh, mm] = task.reminderTime.split(":").map(Number);
+            const at = new Date(task.dueDate + "T00:00:00");
+            at.setHours(hh, mm, 0, 0);
+            if (at.getTime() <= Date.now()) return; // সময় চলে গেলে আর শিডিউল করার দরকার নেই
+            const id = strToNotifId(`task_${task.id}`);
+            newIds.push(id);
+            toSchedule.push({
+              id,
+              title: lang === "bn" ? "✅ টাস্ক রিমাইন্ডার" : "✅ Task Reminder",
+              body: task.title,
+              schedule: { at },
+            });
           });
-        });
+        }
         if (toSchedule.length > 0) {
           await LocalNotifications.schedule({ notifications: toSchedule });
         }
         scheduledTaskNotifIdsRef.current = newIds;
       } catch (e) { /* নেটিভ প্লাগইন না থাকলে (যেমন ব্রাউজারে) চুপচাপ ইগনোর করা হয় */ }
     })();
-  }, [tasks, lang, loaded]);
+  }, [tasks, lang, loaded, notificationsEnabled]);
 
 
   // Firebase এখনো auth স্টেট জানায়নি — একটা ছোট লোডিং স্ক্রিন
@@ -5586,7 +5596,8 @@ export default function FocusGo() {
         {/* SETTINGS tab — অন্য ট্যাবগুলোর মতোই সরাসরি পেজ হিসেবে (আগে বটম-শিট মোডাল ছিল) */}
         {tab === "settings" && (
           <SettingsModal t={t} lang={lang} setLang={setLang} themeMode={themeMode} setThemeMode={setThemeMode}
-            accentKey={accentKey} setAccentKey={setAccentKey} asPage
+            accentKey={accentKey} setAccentKey={setAccentKey}
+            notificationsEnabled={notificationsEnabled} setNotificationsEnabled={setNotificationsEnabled} asPage
             cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
         )}
 
