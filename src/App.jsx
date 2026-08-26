@@ -764,7 +764,10 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
 }
 
 // ---------- Settings modal: Language, Theme, About Us ----------
-function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, setAccentKey, notificationsEnabled, setNotificationsEnabled, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage }) {
+function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, setAccentKey, notificationsEnabled, setNotificationsEnabled,
+  examNotifEnabled, setExamNotifEnabled, taskNotifEnabled, setTaskNotifEnabled, salahNotifEnabled, setSalahNotifEnabled, timerNotifEnabled, setTimerNotifEnabled,
+  weekStartsMonday, setWeekStartsMonday, focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes,
+  onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage }) {
   const [showAbout, setShowAbout] = useState(false);
   const [legalDoc, setLegalDoc] = useState(null); // null | "privacy" | "terms"
   const isBn = lang === "bn";
@@ -920,30 +923,10 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
           })}
         </div>
 
-        <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:9, paddingLeft:2}}>{t.accentColor}</div>
-        <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
-          {ACCENT_OPTIONS.map(({key, labelBn, labelEn}) => {
-            const hex = accentHexFor(key, dark);
-            const selected = accentKey === key;
-            return (
-              <button key={key} onClick={()=>setAccentKey(key)} style={{
-                ...pillBase,
-                display:"flex", alignItems:"center", gap:7,
-                border: `1px solid ${selected ? hex : cardBorder}`,
-                background: selected ? `${hex}1A` : (dark?"#17151C":"#F8F5EE"),
-                color:textMain,
-              }}>
-                <span style={{width:12, height:12, borderRadius:"50%", background:hex, flexShrink:0}}/>
-                {lang==="bn" ? labelBn : labelEn}
-                {selected && <Check size={13} color={hex} strokeWidth={3}/>}
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       {/* Notifications on/off — exam/task reminders and Focus Timer end alerts */}
-      <div style={rowStyle}>
+      <div style={{...rowStyle, borderBottom: notificationsEnabled ? "none" : `1px solid ${cardBorder}`}}>
         <div style={labelStyle}><span style={iconWrapStyle}><Bell size={15}/></span>{t.notifications}</div>
         <button onClick={toggleNotifications} aria-pressed={notificationsEnabled} style={{
             width:44, height:26, borderRadius:12, border:"none", cursor:"pointer", padding:0,
@@ -956,6 +939,84 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             transition:"left 0.15s", boxShadow:"0 1px 2px rgba(0,0,0,0.25)"
           }}/>
         </button>
+      </div>
+
+      {/* Notification fine-tuning — মাস্টার টগল অন থাকলেই শুধু দেখা যায়, প্রতিটা ধরন আলাদাভাবে অন/অফ করা যায় */}
+      {notificationsEnabled && (
+        <div style={{padding:"4px 2px 14px 42px", borderBottom:`1px solid ${cardBorder}`, display:"flex", flexDirection:"column", gap:12}}>
+          {[
+            { label: t.notifExam, val: examNotifEnabled, set: setExamNotifEnabled },
+            { label: t.notifTask, val: taskNotifEnabled, set: setTaskNotifEnabled },
+            { label: t.notifSalah, val: salahNotifEnabled, set: setSalahNotifEnabled },
+            { label: t.notifTimer, val: timerNotifEnabled, set: setTimerNotifEnabled },
+          ].map(({label, val, set}) => (
+            <div key={label} style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+              <span style={{fontSize:12.5, fontWeight:600, color:textMuted2}}>{label}</span>
+              <button onClick={()=>set(v=>!v)} aria-pressed={val} style={{
+                  width:36, height:21, borderRadius:11, border:"none", cursor:"pointer", padding:0,
+                  background: val ? accent : (dark ? "#3A362E" : "#DCD5C4"),
+                  position:"relative", transition:"background 0.15s", flexShrink:0
+                }}>
+                <span style={{
+                  position:"absolute", top:2.5, left: val ? 18 : 2.5,
+                  width:16, height:16, borderRadius:"50%", background:"#fff",
+                  transition:"left 0.15s", boxShadow:"0 1px 2px rgba(0,0,0,0.25)"
+                }}/>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Week starts on — Sunday/Monday, ক্যালেন্ডার ও সাপ্তাহিক ভিউতে প্রযোজ্য */}
+      <div style={{padding:"14px 2px", borderBottom:`1px solid ${cardBorder}`}}>
+        <div style={{...labelStyle, marginBottom:12}}><span style={iconWrapStyle}><CalendarDays size={15}/></span>{t.weekStartsOn}</div>
+        <div style={{display:"flex", gap:8}}>
+          {[{key:false, label:t.weekStartSun}, {key:true, label:t.weekStartMon}].map(({key, label}) => {
+            const selected = weekStartsMonday === key;
+            return (
+              <button key={String(key)} onClick={()=>setWeekStartsMonday(key)} style={{
+                ...pillBase,
+                border: `1px solid ${selected ? accent : cardBorder}`,
+                background: selected ? accent : (dark?"#17151C":"#F8F5EE"),
+                color: selected ? "#fff" : textMain,
+              }}>{label}</button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Default Focus/Break duration — টাইমার শুরু করার সময় এই মানই ডিফল্ট হিসেবে বসবে */}
+      <div style={{padding:"14px 2px", borderBottom:`1px solid ${cardBorder}`}}>
+        <div style={{...labelStyle, marginBottom:12}}><span style={iconWrapStyle}><Clock size={15}/></span>{t.defaultTimerDuration}</div>
+        <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:9, paddingLeft:2}}>{t.focusLabel}</div>
+        <div style={{display:"flex", flexWrap:"wrap", gap:8, marginBottom:14}}>
+          {[15,20,25,30,45,60].map(mins => {
+            const selected = focusMinutes === mins;
+            return (
+              <button key={mins} onClick={()=>setFocusMinutes(mins)} style={{
+                ...pillBase, padding:"7px 13px",
+                border: `1px solid ${selected ? accent : cardBorder}`,
+                background: selected ? accent : (dark?"#17151C":"#F8F5EE"),
+                color: selected ? "#fff" : textMain,
+              }}>{mins} {t.minutes}</button>
+            );
+          })}
+        </div>
+        <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:9, paddingLeft:2}}>{t.breakLabel}</div>
+        <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
+          {[5,10,15].map(mins => {
+            const selected = breakMinutes === mins;
+            return (
+              <button key={mins} onClick={()=>setBreakMinutes(mins)} style={{
+                ...pillBase, padding:"7px 13px",
+                border: `1px solid ${selected ? accent : cardBorder}`,
+                background: selected ? accent : (dark?"#17151C":"#F8F5EE"),
+                color: selected ? "#fff" : textMain,
+              }}>{mins} {t.minutes}</button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Haptic feedback on/off */}
@@ -973,6 +1034,14 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
           }}/>
         </button>
       </div>
+
+      {/* Send feedback — সরাসরি মেইল অ্যাপ খুলে ডেভেলপারের ইমেইলে ফিডব্যাক পাঠানো যায় */}
+      <a href={`mailto:mazharul.mrf@gmail.com?subject=${encodeURIComponent(t.feedbackSubject)}`} style={{textDecoration:"none", display:"block"}}>
+        <div style={rowStyle}>
+          <div style={labelStyle}><span style={iconWrapStyle}><Mail size={15}/></span>{t.sendFeedback}</div>
+          {isBn ? <ChevronLeft size={16} color={textMuted2}/> : <ChevronRight size={16} color={textMuted2}/>}
+        </div>
+      </a>
 
       {/* About Us */}
       <button onClick={()=>setShowAbout(true)} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", padding:0}}>
@@ -1711,7 +1780,18 @@ const isHolidayKey = (dk) => Object.prototype.hasOwnProperty.call(BD_HOLIDAYS_20
 const holidayName = (dk, lang) => { const h = BD_HOLIDAYS_2026[dk]; if (!h) return ""; return lang === "bn" ? h.bn : h.en; };
 
 
-const startOfWeek = (d) => { const x = new Date(d); const day = x.getDay(); x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x; };
+// ---------- সপ্তাহ কোন দিন থেকে শুরু হবে (রবি/সোম) — Settings থেকে পাল্টানো যায়, localStorage-এ সেভ থাকে ----------
+const WEEK_START_KEY = "focusgo_week_starts_monday";
+const isWeekStartsMonday = () => { try { return window.localStorage.getItem(WEEK_START_KEY) === "1"; } catch (e) { return false; } };
+const weekStartOffset = (jsDay) => { const startsMon = isWeekStartsMonday(); return startsMon ? (jsDay === 0 ? 6 : jsDay - 1) : jsDay; };
+const weekdayShortLabels = (lang) => {
+  const bn = ["র","সো","ম","বু","বৃ","শু","শ"];
+  const en = ["S","M","T","W","T","F","S"];
+  const arr = lang === "bn" ? bn : en;
+  return isWeekStartsMonday() ? [...arr.slice(1), arr[0]] : arr;
+};
+
+const startOfWeek = (d) => { const x = new Date(d); const day = weekStartOffset(x.getDay()); x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x; };
 const stripTime = (d) => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
 
 // একগুচ্ছ ডেট-কি (YYYY-MM-DD) এর entries থেকে Subject+Topic নাম মিলিয়ে ইউনিক টপিক লিস্ট বানায়।
@@ -1927,6 +2007,10 @@ const T = {
     appearance: "Appearance", accentColor: "Accent Color",
     settings: "Settings", language: "Language", theme: "Theme",
     aboutUs: "About Us", appName: "FocusGo", version: "Version",
+    sendFeedback: "Send Feedback", feedbackSubject: "FocusGo App Feedback",
+    notifExam: "Exam reminders", notifTask: "Task reminders", notifSalah: "Prayer time alerts", notifTimer: "Timer end alerts",
+    weekStartsOn: "Week Starts On", weekStartSun: "Sunday", weekStartMon: "Monday",
+    defaultTimerDuration: "Default Timer Duration", focusLabel: "Focus", breakLabel: "Break",
     aboutTagline: "Make every day count.",
     aboutBody: "FocusGo is a study companion built to help students plan, focus, and track their progress day by day.",
     creatorLabel: "Creator",
@@ -2080,6 +2164,10 @@ const T = {
     appearance: "অ্যাপিয়ারেন্স", accentColor: "অ্যাকসেন্ট রং",
     settings: "সেটিংস", language: "ভাষা", theme: "থিম",
     aboutUs: "আমাদের সম্পর্কে", appName: "FocusGo", version: "ভার্সন",
+    sendFeedback: "ফিডব্যাক পাঠান", feedbackSubject: "FocusGo অ্যাপ ফিডব্যাক",
+    notifExam: "পরীক্ষার রিমাইন্ডার", notifTask: "টাস্ক রিমাইন্ডার", notifSalah: "নামাজের সময়ের নোটিফিকেশন", notifTimer: "টাইমার শেষের নোটিফিকেশন",
+    weekStartsOn: "সপ্তাহ শুরু হবে", weekStartSun: "রবিবার", weekStartMon: "সোমবার",
+    defaultTimerDuration: "ডিফল্ট টাইমার সময়", focusLabel: "ফোকাস", breakLabel: "বিরতি",
     aboutTagline: "Make every day count.",
     aboutBody: "FocusGo একটি স্টাডি সঙ্গী — শিক্ষার্থীদের পরিকল্পনা করতে, মনোযোগী থাকতে, এবং দিন-প্রতিদিন অগ্রগতি ট্র্যাক করতে সাহায্য করার জন্য বানানো।",
     creatorLabel: "নির্মাতা",
@@ -2228,7 +2316,7 @@ const topicPickList = (topicBank, entries, subject) => {
 // Tapping a chip fills the topic input; typing a new topic still works as before.
 // ---------- Accent color options — ইউজার Settings থেকে বেছে নিতে পারবে, orange ডিফল্ট/প্রথম অপশন হিসেবে থাকছে ----------
 const ACCENT_OPTIONS = [
-  { key: "orange", labelBn: "কমলা",  labelEn: "Orange", light: "#C1592F", dark: "#CC6034" },
+  { key: "orange", labelBn: "কমলা",  labelEn: "Orange", light: "#D37A5F", dark: "#DC957F" },
   { key: "lilac", labelBn: "লাইলাক", labelEn: "Lilac", light: "#8E7DBE", dark: "#AC9EDB" },
   { key: "moss",  labelBn: "মস",     labelEn: "Moss",  light: "#4C7A52", dark: "#6FA377" },
 ];
@@ -2723,6 +2811,18 @@ export default function FocusGo() {
   useEffect(() => {
     try { window.localStorage.setItem(NOTIFICATIONS_PREF_KEY, notificationsEnabled ? "1" : "0"); } catch (e) {}
   }, [notificationsEnabled]);
+  // নোটিফিকেশনের ধরন অনুযায়ী আলাদা অন/অফ — মাস্টার টগল অন থাকলেই শুধু এগুলো কাজ করে
+  const [examNotifEnabled, setExamNotifEnabled] = useState(() => { try { return window.localStorage.getItem("focusgo_notif_exam") !== "0"; } catch (e) { return true; } });
+  useEffect(() => { try { window.localStorage.setItem("focusgo_notif_exam", examNotifEnabled ? "1" : "0"); } catch (e) {} }, [examNotifEnabled]);
+  const [taskNotifEnabled, setTaskNotifEnabled] = useState(() => { try { return window.localStorage.getItem("focusgo_notif_task") !== "0"; } catch (e) { return true; } });
+  useEffect(() => { try { window.localStorage.setItem("focusgo_notif_task", taskNotifEnabled ? "1" : "0"); } catch (e) {} }, [taskNotifEnabled]);
+  const [salahNotifEnabled, setSalahNotifEnabled] = useState(() => { try { return window.localStorage.getItem("focusgo_notif_salah") !== "0"; } catch (e) { return true; } });
+  useEffect(() => { try { window.localStorage.setItem("focusgo_notif_salah", salahNotifEnabled ? "1" : "0"); } catch (e) {} }, [salahNotifEnabled]);
+  const [timerNotifEnabled, setTimerNotifEnabled] = useState(() => { try { return window.localStorage.getItem("focusgo_notif_timer") !== "0"; } catch (e) { return true; } });
+  useEffect(() => { try { window.localStorage.setItem("focusgo_notif_timer", timerNotifEnabled ? "1" : "0"); } catch (e) {} }, [timerNotifEnabled]);
+  // সপ্তাহ রবি নাকি সোম থেকে শুরু হবে — Settings থেকে বদলানো যায়, ক্যালেন্ডার গ্রিড ও উইকলি ভিউ সব জায়গায় প্রযোজ্য
+  const [weekStartsMonday, setWeekStartsMonday] = useState(() => isWeekStartsMonday());
+  useEffect(() => { try { window.localStorage.setItem(WEEK_START_KEY, weekStartsMonday ? "1" : "0"); } catch (e) {} }, [weekStartsMonday]);
   // skipNative: Focus Timer-এর session/break/topic-done ইভেন্টগুলোর জন্য OS notification
   // আগে থেকেই scheduleTimerEndNotif দিয়ে শিডিউল করা থাকে, তাই এখানে আবার একই নোটিফিকেশন
   // পাঠালে ডুপ্লিকেট হয়ে যাবে — সেসব কল-সাইট থেকে skipNative=true পাঠানো হয়।
@@ -2804,8 +2904,10 @@ export default function FocusGo() {
   const [editTopic, setEditTopic] = useState(null);
   // ---- Pomodoro: session type (focus/break), remembered durations, and cycle progress ----
   const [sessionType, setSessionType] = useState("focus"); // "focus" | "break"
-  const [focusMinutes, setFocusMinutes] = useState(30); // last-selected Focus duration (minutes)
-  const [breakMinutes, setBreakMinutes] = useState(5); // last-selected Break duration (minutes)
+  const [focusMinutes, setFocusMinutes] = useState(() => { try { return Number(window.localStorage.getItem("focusgo_default_focus_min")) || 30; } catch (e) { return 30; } }); // last-selected Focus duration (minutes)
+  const [breakMinutes, setBreakMinutes] = useState(() => { try { return Number(window.localStorage.getItem("focusgo_default_break_min")) || 5; } catch (e) { return 5; } }); // last-selected Break duration (minutes)
+  useEffect(() => { try { window.localStorage.setItem("focusgo_default_focus_min", String(focusMinutes)); } catch (e) {} }, [focusMinutes]);
+  useEffect(() => { try { window.localStorage.setItem("focusgo_default_break_min", String(breakMinutes)); } catch (e) {} }, [breakMinutes]);
   const [pomodoroSession, setPomodoroSession] = useState(1); // current Focus session number, 1..pomodoroTotalSessions
   const [pomodoroTotalSessions, setPomodoroTotalSessions] = useState(4); // সাধারণ ফ্রি সেশনে ৪, টপিক-লিঙ্কড মাল্টি-সেশনে dynamic (ceil(target/chunk))
   const TOPIC_SESSION_CHUNK_MIN = 30; // টপিক থেকে টাইমার শুরু করলে প্রতিটি ফোকাস সেশনের ডিফল্ট দৈর্ঘ্য (মিনিট) — ৩০ মিনিটের বেশি হলে একাধিক সেশনে ভাগ হয়ে যাবে
@@ -3350,7 +3452,7 @@ export default function FocusGo() {
   // বের হয়ে গেলে বা অ্যাপ পুরোপুরি বন্ধ/মিনিমাইজড থাকলেও নির্দিষ্ট সময়ে system notification আসবে।
   const timerNotifIdRef = useRef(strToNotifId("focusgo_timer_end"));
   const scheduleTimerEndNotif = (atMs, kind) => {
-    if (!Capacitor.isNativePlatform() || !notificationsEnabled) return;
+    if (!Capacitor.isNativePlatform() || !notificationsEnabled || !timerNotifEnabled) return;
     const title = kind === "break" ? t.notifBreakDoneTitle : t.notifSessionDoneTitle;
     const body = kind === "break" ? t.notifBreakDoneBody : t.notifSessionDoneBody;
     LocalNotifications.schedule({
@@ -4015,7 +4117,8 @@ export default function FocusGo() {
     let cur = [];
     for (let d = 1; d <= daysInMonth; d++) {
       cur.push(d);
-      const isWeekEnd = new Date(y, m, d).getDay() === 6; // Saturday closes a week (weeks start Sunday)
+      const weekEndDay = isWeekStartsMonday() ? 0 : 6; // Monday শুরু হলে সপ্তাহ শেষ হয় রবিবারে, নাহলে শনিবারে
+      const isWeekEnd = new Date(y, m, d).getDay() === weekEndDay;
       if (isWeekEnd || d === daysInMonth) { weeks.push(cur); cur = []; }
     }
     return weeks.map((wDays, i) => {
@@ -4360,8 +4463,7 @@ export default function FocusGo() {
         }
         const newIds = [];
         const toSchedule = [];
-        if (notificationsEnabled) {
-          examSchedule.forEach(ex => {
+        if (notificationsEnabled && examNotifEnabled) {
             if (!ex.date) return;
             const examDate = new Date(ex.date + "T00:00:00");
             const reminderAt = new Date(examDate);
@@ -4384,7 +4486,7 @@ export default function FocusGo() {
         scheduledExamNotifIdsRef.current = newIds;
       } catch (e) { /* নেটিভ প্লাগইন না থাকলে (যেমন ব্রাউজারে) চুপচাপ ইগনোর করা হয় */ }
     })();
-  }, [examSchedule, lang, loaded, notificationsEnabled]);
+  }, [examSchedule, lang, loaded, notificationsEnabled, examNotifEnabled]);
 
   // টাস্ক রিমাইন্ডার — যেসব টাস্কে due date + reminder time (ঐচ্ছিক) সেট করা আছে, সেগুলোর জন্য ঠিক সেই মুহূর্তে
   // লোকাল নোটিফিকেশন শিডিউল হয়। tasks বদলালেই (add/edit/delete/done) আগের সব টাস্ক-রিমাইন্ডার ক্যানসেল করে
@@ -4399,7 +4501,7 @@ export default function FocusGo() {
         }
         const newIds = [];
         const toSchedule = [];
-        if (notificationsEnabled) {
+        if (notificationsEnabled && taskNotifEnabled) {
           tasks.forEach(task => {
             if (task.done || !task.dueDate || !task.reminderTime) return;
             const [hh, mm] = task.reminderTime.split(":").map(Number);
@@ -4422,7 +4524,7 @@ export default function FocusGo() {
         scheduledTaskNotifIdsRef.current = newIds;
       } catch (e) { /* নেটিভ প্লাগইন না থাকলে (যেমন ব্রাউজারে) চুপচাপ ইগনোর করা হয় */ }
     })();
-  }, [tasks, lang, loaded, notificationsEnabled]);
+  }, [tasks, lang, loaded, notificationsEnabled, taskNotifEnabled]);
 
   // সালাতের সময় শুরু হলে নোটিফিকেশন — প্রতিটা ওয়াক্ত শুরুর মুহূর্তে একটা লোকাল নোটিফিকেশন শিডিউল হয়।
   // salahTimes বদলালেই (লোকেশন/মাযহাব/দিন বদল) আগের শিডিউল করা সালাত-নোটিফিকেশন ক্যানসেল করে নতুন করে শিডিউল করা হয়।
@@ -4436,7 +4538,7 @@ export default function FocusGo() {
         }
         const newIds = [];
         const toSchedule = [];
-        if (notificationsEnabled && salahTimes) {
+        if (notificationsEnabled && salahNotifEnabled && salahTimes) {
           salahTimes.forEach(w => {
             if (!w.start || w.start.getTime() <= Date.now()) return; // সময় চলে গেলে আর শিডিউল করার দরকার নেই
             const id = strToNotifId(`salah_${w.key}_${todayKey}`);
@@ -4455,7 +4557,7 @@ export default function FocusGo() {
         scheduledSalahNotifIdsRef.current = newIds;
       } catch (e) { /* নেটিভ প্লাগইন না থাকলে (যেমন ব্রাউজারে) চুপচাপ ইগনোর করা হয় */ }
     })();
-  }, [salahTimes, todayKey, lang, loaded, notificationsEnabled]);
+  }, [salahTimes, todayKey, lang, loaded, notificationsEnabled, salahNotifEnabled]);
 
 
   // Firebase এখনো auth স্টেট জানায়নি — একটা ছোট লোডিং স্ক্রিন
@@ -5560,12 +5662,12 @@ export default function FocusGo() {
           const renderTaskCalendarView = () => {
             const y = taskCalMonth.getFullYear(), m = taskCalMonth.getMonth();
             const firstDay = new Date(y, m, 1);
-            const startOffset = firstDay.getDay();
+            const startOffset = weekStartOffset(firstDay.getDay());
             const daysInMonth = new Date(y, m+1, 0).getDate();
             const cells = [];
             for (let i=0;i<startOffset;i++) cells.push(null);
             for (let d=1; d<=daysInMonth; d++) cells.push(new Date(y,m,d));
-            const shortDays = lang==="bn" ? ["র","সো","ম","বু","বৃ","শু","শ"] : ["S","M","T","W","T","F","S"];
+            const shortDays = weekdayShortLabels(lang);
 
             const tasksByDay = {};
             tasks.forEach(x => { if (x.dueDate) (tasksByDay[x.dueDate] = tasksByDay[x.dueDate] || []).push(x); });
@@ -5814,6 +5916,13 @@ export default function FocusGo() {
           <SettingsModal t={t} lang={lang} setLang={setLang} themeMode={themeMode} setThemeMode={setThemeMode}
             accentKey={accentKey} setAccentKey={setAccentKey}
             notificationsEnabled={notificationsEnabled} setNotificationsEnabled={setNotificationsEnabled} asPage
+            examNotifEnabled={examNotifEnabled} setExamNotifEnabled={setExamNotifEnabled}
+            taskNotifEnabled={taskNotifEnabled} setTaskNotifEnabled={setTaskNotifEnabled}
+            salahNotifEnabled={salahNotifEnabled} setSalahNotifEnabled={setSalahNotifEnabled}
+            timerNotifEnabled={timerNotifEnabled} setTimerNotifEnabled={setTimerNotifEnabled}
+            weekStartsMonday={weekStartsMonday} setWeekStartsMonday={setWeekStartsMonday}
+            focusMinutes={focusMinutes} setFocusMinutes={setFocusMinutes}
+            breakMinutes={breakMinutes} setBreakMinutes={setBreakMinutes}
             cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
         )}
 
@@ -8189,12 +8298,12 @@ function DaySelectedCard({ day, entries, allSubjects, t, nf, lang, weekdayName, 
 function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSelectDay, lang, nf, monthName, today, examDateKeys, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const y = calMonth.getFullYear(), m = calMonth.getMonth();
   const firstDay = new Date(y, m, 1);
-  const startOffset = firstDay.getDay();
+  const startOffset = weekStartOffset(firstDay.getDay());
   const daysInMonth = new Date(y, m+1, 0).getDate();
   const cells = [];
   for (let i=0;i<startOffset;i++) cells.push(null);
   for (let d=1; d<=daysInMonth; d++) cells.push(new Date(y,m,d));
-  const shortDays = lang==="bn" ? ["র","সো","ম","বু","বৃ","শু","শ"] : ["S","M","T","W","T","F","S"];
+  const shortDays = weekdayShortLabels(lang);
 
   return (
     <div>
@@ -9207,12 +9316,12 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               <button onClick={()=>setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 1))} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, width:30,height:30, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", color:textMain}}><ChevronRight size={15}/></button>
             </div>
             <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4, marginBottom:5}}>
-              {(lang==="bn" ? ["র","সো","ম","বু","বৃ","শু","শ"] : ["S","M","T","W","T","F","S"]).map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:10, fontWeight:700, color:textMuted2}}>{d}</div>))}
+              {weekdayShortLabels(lang).map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:10, fontWeight:700, color:textMuted2}}>{d}</div>))}
             </div>
             <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4}}>
               {(() => {
                 const y = calMonth.getFullYear(), m = calMonth.getMonth();
-                const startOffset = new Date(y,m,1).getDay();
+                const startOffset = weekStartOffset(new Date(y,m,1).getDay());
                 const daysInMonth = new Date(y,m+1,0).getDate();
                 const cells = [];
                 for (let i=0;i<startOffset;i++) cells.push(null);
@@ -9939,13 +10048,13 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
 function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalMonth, entries, onClose, onSelectDay, examDateKeys, cardBg, cardBorder, textMain, textMuted2, accent, dark, today }) {
   const y = calMonth.getFullYear(), m = calMonth.getMonth();
   const firstDay = new Date(y, m, 1);
-  const startOffset = firstDay.getDay();
+  const startOffset = weekStartOffset(firstDay.getDay());
   const daysInMonth = new Date(y, m+1, 0).getDate();
   const cells = [];
   for (let i=0;i<startOffset;i++) cells.push(null);
   for (let d=1; d<=daysInMonth; d++) cells.push(new Date(y,m,d));
 
-  const shortDays = lang==="bn" ? ["র","সো","ম","বু","বৃ","শু","শ"] : ["S","M","T","W","T","F","S"];
+  const shortDays = weekdayShortLabels(lang);
 
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:50, padding:16}} onClick={onClose}>
