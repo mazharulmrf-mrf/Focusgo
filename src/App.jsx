@@ -5280,7 +5280,7 @@ export default function FocusGo() {
             <button
               onClick={()=>{ vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
               className="fg-tab-panel"
-              style={{marginTop:8, width:"100%", textAlign:"left", border:`1px solid ${accent}22`, cursor:"pointer", background: "linear-gradient(155deg, #1B2F30 0%, #122122 100%)", borderRadius:18, padding:"14px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, position:"relative", overflow:"hidden"}}
+              style={{marginTop:8, width:"100%", textAlign:"left", border:`1px solid ${accent}22`, cursor:"pointer", background: "#000000", borderRadius:18, padding:"14px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, position:"relative", overflow:"hidden"}}
             >
               <div style={{position:"absolute", top:-40, right:-30, width:110, height:110, borderRadius:"50%", background:`${accent}12`, pointerEvents:"none"}}/>
               <div style={{minWidth:0, position:"relative"}}>
@@ -10362,7 +10362,7 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
           </>
         )}
 
-        <button onClick={submit} style={{width:"100%", padding:"10px 0", borderRadius:12, border:"none", background: dark ? "#2A2333" : "#EFEBF7", color:accent, fontWeight:700, fontSize:13, cursor:"pointer"}}>
+        <button onClick={submit} disabled={!isEditing && !title.trim()} style={{width:"100%", padding:"10px 0", borderRadius:12, border:"none", background:accent, color:"#fff", fontWeight:700, fontSize:13, cursor: (isEditing || title.trim()) ? "pointer" : "not-allowed", opacity: (isEditing || title.trim()) ? 1 : 0.45}}>
           {isEditing ? (lang==="bn" ? "সেভ করুন" : "Save Changes") : t.taskAddBtn}
         </button>
       </div>
