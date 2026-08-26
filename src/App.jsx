@@ -4934,17 +4934,18 @@ export default function FocusGo() {
             <button
               onClick={()=>{ vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
               className="fg-tab-panel"
-              style={{marginTop:8, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: "#152728", borderRadius:16, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, boxShadow:`0 8px 20px rgba(0,0,0,0.45), 0 0 0 1px ${accent}26`}}
+              style={{marginTop:14, width:"100%", textAlign:"left", border:`1px solid ${accent}22`, cursor:"pointer", background: "linear-gradient(155deg, #1B2F30 0%, #122122 100%)", borderRadius:18, padding:"14px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, position:"relative", overflow:"hidden"}}
             >
-              <div style={{minWidth:0}}>
-                <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:"rgba(255,255,255,0.85)", textTransform:"uppercase"}}>{lang==="bn"?"পরবর্তী পরীক্ষা":"Next Exam"}</div>
-                <div style={{fontSize:14, fontWeight:800, color:"#fff", marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{nearestUpcomingExam.subject}</div>
-                <div style={{fontSize:12, color:"rgba(255,255,255,0.8)", marginTop:2}}>
+              <div style={{position:"absolute", top:-40, right:-30, width:110, height:110, borderRadius:"50%", background:`${accent}12`, pointerEvents:"none"}}/>
+              <div style={{minWidth:0, position:"relative"}}>
+                <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:"rgba(255,255,255,0.8)", textTransform:"uppercase"}}>{lang==="bn"?"পরবর্তী পরীক্ষা":"Next Exam"}</div>
+                <div style={{fontSize:14.5, fontWeight:800, color:"#fff", marginTop:3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{nearestUpcomingExam.subject}</div>
+                <div style={{fontSize:12, color:"rgba(255,255,255,0.72)", marginTop:3}}>
                   {weekdayName(new Date(nearestUpcomingExam.date+"T00:00:00"))}, <Num>{nf(new Date(nearestUpcomingExam.date+"T00:00:00").getDate())}</Num> {monthName(new Date(nearestUpcomingExam.date+"T00:00:00").getMonth())}
                   {nearestUpcomingExam.startTime ? ` · ${nearestUpcomingExam.startTime}${nearestUpcomingExam.endTime ? "–"+nearestUpcomingExam.endTime : ""}` : ""}
                 </div>
               </div>
-              <div style={{flexShrink:0, fontSize:13, fontWeight:800, color:accent, background: "#fff", padding:"6px 12px", borderRadius:999, whiteSpace:"nowrap"}}>
+              <div style={{flexShrink:0, fontSize:13, fontWeight:800, color:accent, background: "#fff", padding:"7px 13px", borderRadius:999, whiteSpace:"nowrap", position:"relative"}}>
                 {daysLabel}
               </div>
             </button>
@@ -5197,7 +5198,7 @@ export default function FocusGo() {
             এখন accent color ব্যবহার হচ্ছে (আগে dark teal ছিল, সেই রঙ Next Exam কার্ডে সরানো হয়েছে) */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
           return (
-        <div className="fg-tab-panel" style={{marginTop:14, border:`1px solid rgba(255,255,255,0.10)`, background: accent, borderRadius:16, padding:"13px 16px", position:"relative", overflow:"hidden", boxShadow:`0 6px 16px ${shadeColor(accent,-22)}59`}}>
+        <div className="fg-tab-panel" style={{marginTop:14, border:`1px solid rgba(255,255,255,0.12)`, background: `linear-gradient(155deg, ${shadeColor(accent,8)} 0%, ${accent} 45%, ${shadeColor(accent,-10)} 100%)`, borderRadius:18, padding:"14px 16px", position:"relative", overflow:"hidden"}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
@@ -5297,9 +5298,14 @@ export default function FocusGo() {
               </button>
             </div>
             {homeTodayTasks.length === 0 ? (
-              <div style={{border:`1px solid ${cardBorder}`, borderRadius:16, padding:"16px"}}>
-                <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{t.taskEmptyTodayHome}</div>
-                <div style={{color:textMuted2, fontSize:12, marginTop:2}}>{lang==="bn" ? "আজকের একটা টাস্ক যোগ করুন।" : "Add a task to plan your day."}</div>
+              <div style={{border:"1px dashed rgba(76,143,166,0.35)", borderRadius:16, padding:"16px", background:"rgba(76,143,166,0.06)", display:"flex", alignItems:"flex-start", gap:12}}>
+                <span style={{width:36, height:36, borderRadius:"50%", background:"rgba(76,143,166,0.14)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                  <ListChecks size={17} color="#4C8FA6" strokeWidth={2}/>
+                </span>
+                <div style={{minWidth:0}}>
+                  <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{t.taskEmptyTodayHome}</div>
+                  <div style={{color:textMuted2, fontSize:12, marginTop:2}}>{lang==="bn" ? "আজকের একটা টাস্ক যোগ করুন।" : "Add a task to plan your day."}</div>
+                </div>
               </div>
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
@@ -7613,9 +7619,16 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
   const closeMenu = () => { setOpenMenuId(null); setConfirmDeleteId(null); };
   if (items.length === 0) {
     return (
-      <div style={{border:`1px solid ${cardBorder}`, borderRadius:16, padding:"16px", textAlign:"left"}}>
-        <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{emptyText}</div>
-        {emptySubtext && <div style={{fontSize:12, color:textMuted2, marginTop:3, lineHeight:1.5}}>{emptySubtext}</div>}
+      <div style={{border:`1px dashed ${cardBorder}`, borderRadius:16, padding:"16px", textAlign:"left", background: `${accent}08`, display:"flex", alignItems:"flex-start", gap:12}}>
+        {EmptyIcon && (
+          <span style={{width:36, height:36, borderRadius:"50%", background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+            <EmptyIcon size={17} color={accent} strokeWidth={2}/>
+          </span>
+        )}
+        <div style={{minWidth:0}}>
+          <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{emptyText}</div>
+          {emptySubtext && <div style={{fontSize:12, color:textMuted2, marginTop:3, lineHeight:1.5}}>{emptySubtext}</div>}
+        </div>
       </div>
     );
   }
