@@ -5014,7 +5014,7 @@ export default function FocusGo() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:16, border:`1px solid ${accent}3D`, borderBottom:"none", background: dark ? `${accent}24` : `${accent}1F`, borderRadius:"20px 20px 0 0", padding:"14px 18px 6px", boxSizing:"border-box"}}>
+        <div style={{marginTop:16, border:`1px solid ${accent}33`, borderBottom:"none", background: dark ? `${accent}26` : `${accent}17`, borderRadius:"24px 24px 0 0", padding:"18px 20px 6px", boxSizing:"border-box", boxShadow: dark ? "none" : `0 10px 28px ${accent}14`}}>
           <div style={{marginBottom:2}}>
             {(() => {
               const fullName = (user?.displayName || "").trim();
@@ -5056,18 +5056,18 @@ export default function FocusGo() {
 
               return (
                 <>
-                  <div style={{padding:"2px 2px 4px", marginBottom:0}}>
+                  <div style={{padding:"2px 2px 6px", marginBottom:0}}>
                     <div style={{minWidth:0, flex:1}}>
-                      <div style={{fontSize:13, fontWeight:700, color:textMuted2, letterSpacing:0.2, marginBottom:2, display:"flex", alignItems:"center", gap:5}}>
+                      <div style={{fontSize:13, fontWeight:800, color:accent, letterSpacing:0.2, marginBottom:4, display:"flex", alignItems:"center", gap:6}}>
                         {lang === "bn" ? greetingBn : greetingEn}
-                        <greetTheme.Icon size={15} color={greetTheme.iconColor} strokeWidth={2.3} fill={greetKey==="night" ? `${greetTheme.iconColor}33` : "none"}/>
+                        <greetTheme.Icon size={16} color={accent} strokeWidth={2.3} fill={greetKey==="night" ? `${accent}33` : "none"}/>
                       </div>
                       <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
-                        <div style={{fontSize:24,fontWeight:800,letterSpacing:-0.4,color:textMain}}>
+                        <div style={{fontSize:30,fontWeight:800,letterSpacing:-0.6,color:textMain}}>
                           {firstName}
                         </div>
                       </div>
-                      <div style={{fontSize:14,color:textMuted2,marginTop:3,lineHeight:1.4}}>
+                      <div style={{fontSize:13.5,color:textMuted2,marginTop:4,lineHeight:1.4}}>
                         {line}
                       </div>
                     </div>
@@ -5324,13 +5324,13 @@ export default function FocusGo() {
           return (
         <div className="fg-tab-panel" style={{
             marginTop: tab === "today" ? 0 : 16,
-            border:`1px solid ${accent}3D`,
-            borderTop: tab === "today" ? "none" : `1px solid ${accent}3D`,
-            background: dark ? `${accent}24` : `${accent}1F`,
-            borderRadius: tab === "today" ? "0 0 20px 20px" : 20,
-            padding: tab === "today" ? "10px 18px 16px" : "16px 18px",
+            border:`1px solid ${accent}33`,
+            borderTop: tab === "today" ? "none" : `1px solid ${accent}33`,
+            background: dark ? `${accent}26` : `${accent}17`,
+            borderRadius: tab === "today" ? "0 0 24px 24px" : 24,
+            padding: tab === "today" ? "12px 20px 18px" : "16px 18px",
             position:"relative", overflow:"hidden",
-            boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.20)" : `0 6px 16px ${accent}1F`
+            boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.22)" : `0 10px 28px ${accent}14`
           }}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
@@ -5349,11 +5349,11 @@ export default function FocusGo() {
                 </div>
               </div>
             </div>
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:2, paddingLeft:12, borderLeft: `1px solid ${accent}40`}}>
-              <div style={{width:26, height:26, borderRadius:"50%", background: `${accent}29`, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                <Flame size={14} color={inkColor} fill={`${inkColor}55`}/>
+            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:3, paddingLeft:14, borderLeft: `1px solid ${accent}30`}}>
+              <div style={{width:34, height:34, borderRadius:"50%", background: `${accent}22`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                <Flame size={17} color={accent} fill={`${accent}55`}/>
               </div>
-              <div style={{fontSize:14, fontWeight:800, color:inkColor, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
+              <div style={{fontSize:16, fontWeight:800, color:inkColor, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
               <div style={{fontSize:10, color:inkA(0.75), fontWeight:600, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
             </div>
           </div>
@@ -5724,12 +5724,19 @@ export default function FocusGo() {
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:10}}>
                 {homeTodayTasks.map(x => (
-                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:10,background:cardBg,border:`1px solid ${cardBorder}`,borderLeft:`3px solid ${x.done ? "#6E8B5E" : "#C0392B"}`,borderRadius:16,padding:"12px 14px",boxSizing:"border-box"}}>
-                    <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:21,height:21,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
-                      {x.done && <Check size={12} color="#fff" strokeWidth={3}/>}
+                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:12,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:18,padding:"12px 14px",boxSizing:"border-box",boxShadow: dark ? "none" : "0 2px 8px rgba(0,0,0,0.04)"}}>
+                    <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:26,height:26,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
+                      {x.done && <Check size={14} color="#fff" strokeWidth={3}/>}
                     </button>
-                    <div style={{flex:1,minWidth:0,fontSize:13,fontWeight:500,color:x.done?"#6E8B5E":textMain,textDecoration:x.done?"line-through":"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                      {x.title}
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:13.5,fontWeight:700,color:x.done?textMain:textMain,textDecoration:x.done?"line-through":"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                        {x.title}
+                      </div>
+                      {x.done && (
+                        <div style={{fontSize:11, fontWeight:600, color:"#6E8B5E", marginTop:2}}>
+                          {lang==="bn" ? "সম্পন্ন হয়েছে" : "Completed"}
+                        </div>
+                      )}
                     </div>
                     <div style={{position:"relative", flexShrink:0}}>
                       <button onClick={(e)=>{ e.stopPropagation(); setTaskMenuOpenId(v => v===x.id ? null : x.id); setTaskDeleteConfirmId(null); }} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:10, margin:-6, display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation"}}>
@@ -8098,8 +8105,8 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
           <div key={item.id} style={{
             background: isActiveTimer ? `${c.bg}0F` : cardBg,
             border: `1px solid ${isActiveTimer ? c.bg : cardBorder}`,
-            borderLeft: `3px solid ${c.bg}`,
-            borderRadius:16, padding:"12px 14px", display:"flex", alignItems:"center", gap:12, position:"relative",
+            borderRadius:18, padding:"12px 14px", display:"flex", alignItems:"center", gap:12, position:"relative",
+            boxShadow: isActiveTimer ? "none" : "0 2px 8px rgba(0,0,0,0.04)",
             transition:"background .15s ease, border-color .15s ease",
           }}>
             <button onClick={onToggle ? ()=>onToggle(item.id) : undefined} disabled={!onToggle}
