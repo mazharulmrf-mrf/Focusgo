@@ -491,7 +491,7 @@ function NotificationBell({ t, lang, notifications, onMarkAllRead, onClear, card
     <div style={{ position: "relative", flexShrink: 0 }}>
       <button
         onClick={() => { setOpen(v => !v); if (!open) onMarkAllRead(); }}
-        style={{ position: "relative", border: `1px solid ${cardBorder}`, background: cardBg, color: textMuted2, borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
+        style={{ position: "relative", border: `1px solid #FAC77555`, background: dark ? "#85490B22" : "#FAEEDA", color: "#854F0B", borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
         title={t.notifications}
       >
         <Bell size={14} />
@@ -4774,7 +4774,7 @@ export default function FocusGo() {
             )}
             <button onClick={()=>{vibrate(); setShowSearch(true);}}
               title={lang==="bn" ? "খুঁজুন" : "Search"}
-              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMuted2, borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
+              style={{border:`1px solid #85B7EB55`, background: dark ? "#0C447C22" : "#E6F1FB", color:"#185FA5", borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
               <Search size={14}/>
             </button>
             <NotificationBell
@@ -4785,7 +4785,7 @@ export default function FocusGo() {
             />
             <button onClick={()=>{vibrate(); setShowProfile(true);}}
               title={t.profile}
-              style={{border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, overflow:"hidden", padding:0}}>
+              style={{border:`2px solid ${accent}`, background:cardBg, color:textMain, borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, overflow:"hidden", padding:0}}>
               {user && user.photoURL ? (
                 <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
               ) : user && user.gender === "female" ? (
@@ -4861,7 +4861,7 @@ export default function FocusGo() {
                       </div>
                     </div>
                   </div>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:12, paddingBottom:10, borderBottom:`0.5px solid ${cardBorder}`, position:"relative"}} ref={salahMenuRef}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8, paddingBottom:6, borderBottom:`0.5px solid ${cardBorder}`, position:"relative"}} ref={salahMenuRef}>
                     <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
                       <span style={{width:30, height:30, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
                         <CalendarDays size={20} color={accent} strokeWidth={2}/>
@@ -5074,7 +5074,7 @@ export default function FocusGo() {
             <button
               onClick={()=>{ vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
               className="fg-tab-panel"
-              style={{marginTop:14, width:"100%", textAlign:"left", border:`1px solid ${accent}22`, cursor:"pointer", background: "linear-gradient(155deg, #1B2F30 0%, #122122 100%)", borderRadius:18, padding:"14px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, position:"relative", overflow:"hidden"}}
+              style={{marginTop:8, width:"100%", textAlign:"left", border:`1px solid ${accent}22`, cursor:"pointer", background: "linear-gradient(155deg, #1B2F30 0%, #122122 100%)", borderRadius:18, padding:"14px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, position:"relative", overflow:"hidden"}}
             >
               <div style={{position:"absolute", top:-40, right:-30, width:110, height:110, borderRadius:"50%", background:`${accent}12`, pointerEvents:"none"}}/>
               <div style={{minWidth:0, position:"relative"}}>
@@ -5132,6 +5132,61 @@ export default function FocusGo() {
             </div>
           </div>
         )}
+
+        {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — Option 2: circular progress, premium look
+            এখন accent color ব্যবহার হচ্ছে (আগে dark teal ছিল, সেই রঙ Next Exam কার্ডে সরানো হয়েছে) */}
+        {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
+          return (
+        <div className="fg-tab-panel" style={{marginTop:14, border:`1px solid ${accent}4D`, background: dark ? `${accent}3D` : `${accent}33`, borderRadius:18, padding:"14px 16px", position:"relative", overflow:"hidden"}}>
+          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
+            <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
+              <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
+                size={58} stroke={5.5} accent={accent} trackColor={`${accent}40`} textMain={inkColor} nf={nf}/>
+              <div style={{minWidth:0}}>
+                <div style={{fontSize:14, fontWeight:800, color:inkColor, marginBottom:6}}>{t.todaysProgress}</div>
+                <div style={{display:"flex", alignItems:"center", gap:7, fontSize:12.5, fontWeight:700, whiteSpace:"nowrap"}}>
+                  <span style={{display:"inline-flex", alignItems:"center", gap:3, color:inkA(0.82)}}>
+                    <Check size={12} strokeWidth={3}/> <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.progressCompletedLabel}
+                  </span>
+                  <span style={{color:inkA(0.3), fontWeight:400}}>|</span>
+                  <span style={{display:"inline-flex", alignItems:"center", gap:3, color:inkA(0.82)}}>
+                    <Clock size={12}/> <Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:2, paddingLeft:12, borderLeft: `1px solid ${accent}40`}}>
+              <div style={{width:26, height:26, borderRadius:"50%", background: `${accent}29`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                <Flame size={14} color={inkColor} fill={`${inkColor}55`}/>
+              </div>
+              <div style={{fontSize:14, fontWeight:800, color:inkColor, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
+              <div style={{fontSize:10, color:inkA(0.75), fontWeight:600, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
+            </div>
+          </div>
+          {/* Today's Tasks mini-summary — merged into the progress card so the card previews task progress at a glance, matching the home page mockup */}
+          {tab === "today" && (() => {
+            const cardTodayTasks = tasks.filter(x => x.dueDate === todayKey);
+            const hasTasks = cardTodayTasks.length > 0;
+            const cardDone = cardTodayTasks.filter(x => x.done).length;
+            const cardPct = hasTasks ? Math.round((cardDone / cardTodayTasks.length) * 100) : 0;
+            const cardLeft = cardTodayTasks.length - cardDone;
+            return (
+              <div style={{marginTop:12, paddingTop:12, borderTop:`1px solid ${accent}40`}}>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
+                  <div style={{fontSize:13, fontWeight:800, color:inkColor}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
+                  <div style={{fontSize:11, fontWeight:700, color:inkA(0.75), whiteSpace:"nowrap"}}>
+                    {!hasTasks ? (lang==="bn" ? "কোনো টাস্ক নেই" : "No tasks today") : cardLeft > 0 ? (lang==="bn" ? `${nf(cardLeft)}টা বাকি` : `${cardLeft} left`) : t.taskAllDoneLabel}
+                  </div>
+                </div>
+                <div style={{height:6, borderRadius:8, background: `${accent}33`, overflow:"hidden"}}>
+                  <div style={{width: hasTasks ? `${cardPct}%` : "0%", height:"100%", borderRadius:8, background:accent, transition:"width .25s ease"}}/>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+          );
+        })()}
 
         {/* Focus timer - main home of Study tab (Study Plan sub-section) */}
         {tab === "study" && studySection === "plan" && (
@@ -5333,61 +5388,6 @@ export default function FocusGo() {
           )}
         </div>
         )}
-
-        {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — Option 2: circular progress, premium look
-            এখন accent color ব্যবহার হচ্ছে (আগে dark teal ছিল, সেই রঙ Next Exam কার্ডে সরানো হয়েছে) */}
-        {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
-          return (
-        <div className="fg-tab-panel" style={{marginTop:14, border:`1px solid ${accent}4D`, background: dark ? `${accent}3D` : `${accent}33`, borderRadius:18, padding:"14px 16px", position:"relative", overflow:"hidden"}}>
-          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
-            <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
-              <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
-                size={58} stroke={5.5} accent={accent} trackColor={`${accent}40`} textMain={inkColor} nf={nf}/>
-              <div style={{minWidth:0}}>
-                <div style={{fontSize:14, fontWeight:800, color:inkColor, marginBottom:6}}>{t.todaysProgress}</div>
-                <div style={{display:"flex", alignItems:"center", gap:7, fontSize:12.5, fontWeight:700, whiteSpace:"nowrap"}}>
-                  <span style={{display:"inline-flex", alignItems:"center", gap:3, color:inkA(0.82)}}>
-                    <Check size={12} strokeWidth={3}/> <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.progressCompletedLabel}
-                  </span>
-                  <span style={{color:inkA(0.3), fontWeight:400}}>|</span>
-                  <span style={{display:"inline-flex", alignItems:"center", gap:3, color:inkA(0.82)}}>
-                    <Clock size={12}/> <Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:2, paddingLeft:12, borderLeft: `1px solid ${accent}40`}}>
-              <div style={{width:26, height:26, borderRadius:"50%", background: `${accent}29`, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                <Flame size={14} color={inkColor} fill={`${inkColor}55`}/>
-              </div>
-              <div style={{fontSize:14, fontWeight:800, color:inkColor, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
-              <div style={{fontSize:10, color:inkA(0.75), fontWeight:600, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
-            </div>
-          </div>
-          {/* Today's Tasks mini-summary — merged into the progress card so the card previews task progress at a glance, matching the home page mockup */}
-          {tab === "today" && (() => {
-            const cardTodayTasks = tasks.filter(x => x.dueDate === todayKey);
-            const hasTasks = cardTodayTasks.length > 0;
-            const cardDone = cardTodayTasks.filter(x => x.done).length;
-            const cardPct = hasTasks ? Math.round((cardDone / cardTodayTasks.length) * 100) : 0;
-            const cardLeft = cardTodayTasks.length - cardDone;
-            return (
-              <div style={{marginTop:12, paddingTop:12, borderTop:`1px solid ${accent}40`}}>
-                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
-                  <div style={{fontSize:13, fontWeight:800, color:inkColor}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
-                  <div style={{fontSize:11, fontWeight:700, color:inkA(0.75), whiteSpace:"nowrap"}}>
-                    {!hasTasks ? (lang==="bn" ? "কোনো টাস্ক নেই" : "No tasks today") : cardLeft > 0 ? (lang==="bn" ? `${nf(cardLeft)}টা বাকি` : `${cardLeft} left`) : t.taskAllDoneLabel}
-                  </div>
-                </div>
-                <div style={{height:6, borderRadius:8, background: `${accent}33`, overflow:"hidden"}}>
-                  <div style={{width: hasTasks ? `${cardPct}%` : "0%", height:"100%", borderRadius:8, background:accent, transition:"width .25s ease"}}/>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
-          );
-        })()}
 
         {/* Today's study list - Today tab + Study tab (shown above Study Plan/Exam) */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (
