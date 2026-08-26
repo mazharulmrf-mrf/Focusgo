@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "448849450957-e1pv8tlq3k1sl40n4sl7g563rrp3nhds.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.maruf.focusgo",
+            "certificate_hash": "3e426dc778c3ec69d288c5e41b424e29bb017ce7"
+          }
+        },
+        {
           "client_id": "448849450957-sdq4kq6d6sar5kscc41cd479ochuaar7.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
