@@ -118,7 +118,7 @@ function OnboardingScreen({ lang, dark, cardBg, textMain, textMuted2, accent, on
   const slides = [
     {
       Icon: Clock,
-      ring: "#4C8FA6",
+      ring: dark ? "#EDECF2" : "#1A1814",
       title: isBn ? "পড়ার সময় ট্র্যাক করুন" : "Track your study time",
       body: isBn
         ? "বিষয় অনুযায়ী টাইমার চালিয়ে প্রতিদিন কতক্ষণ পড়লেন তা সহজেই দেখুন।"
@@ -766,7 +766,7 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
 // ---------- Settings modal: Language, Theme, About Us ----------
 function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, setAccentKey, notificationsEnabled, setNotificationsEnabled,
   examNotifEnabled, setExamNotifEnabled, taskNotifEnabled, setTaskNotifEnabled, salahNotifEnabled, setSalahNotifEnabled, timerNotifEnabled, setTimerNotifEnabled,
-  weekStartsMonday, setWeekStartsMonday, focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes,
+  weekStartDay, setWeekStartDay, focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes,
   onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage }) {
   const [showAbout, setShowAbout] = useState(false);
   const [legalDoc, setLegalDoc] = useState(null); // null | "privacy" | "terms"
@@ -899,7 +899,6 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
           {t.appearance}
         </div>
 
-        <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:9, paddingLeft:2}}>{t.theme}</div>
         <div style={{display:"flex", flexWrap:"wrap", gap:8, marginBottom:18}}>
           {themeInlineOptions.map(({key, label}) => {
             const selected = themeMode === key;
@@ -971,12 +970,12 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
       {/* Week starts on — Sunday/Monday, ক্যালেন্ডার ও সাপ্তাহিক ভিউতে প্রযোজ্য */}
       <div style={{padding:"14px 2px", borderBottom:`1px solid ${cardBorder}`}}>
         <div style={{...labelStyle, marginBottom:12}}><span style={iconWrapStyle}><CalendarDays size={15}/></span>{t.weekStartsOn}</div>
-        <div style={{display:"flex", gap:8}}>
-          {[{key:false, label:t.weekStartSun}, {key:true, label:t.weekStartMon}].map(({key, label}) => {
-            const selected = weekStartsMonday === key;
+        <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
+          {(isBn ? WEEKDAY_PICKER_LABELS.bn : WEEKDAY_PICKER_LABELS.en).map((label, key) => {
+            const selected = weekStartDay === key;
             return (
-              <button key={String(key)} onClick={()=>setWeekStartsMonday(key)} style={{
-                ...pillBase,
+              <button key={key} onClick={()=>setWeekStartDay(key)} style={{
+                ...pillBase, padding:"7px 13px",
                 border: `1px solid ${selected ? accent : cardBorder}`,
                 background: selected ? accent : (dark?"#17151C":"#F8F5EE"),
                 color: selected ? "#fff" : textMain,
@@ -1057,7 +1056,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
   // fixed overlay/backdrop/X-close কিছুই থাকবে না, শুধু একটা হেডিং
   if (asPage) {
     return (
-      <div>
+      <div className="fg-tab-panel" style={{marginTop:18}}>
         <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, marginBottom:10, color:textMain}}>{t.settings}</div>
         {settingsRows}
       </div>
@@ -1780,15 +1779,21 @@ const isHolidayKey = (dk) => Object.prototype.hasOwnProperty.call(BD_HOLIDAYS_20
 const holidayName = (dk, lang) => { const h = BD_HOLIDAYS_2026[dk]; if (!h) return ""; return lang === "bn" ? h.bn : h.en; };
 
 
-// ---------- সপ্তাহ কোন দিন থেকে শুরু হবে (রবি/সোম) — Settings থেকে পাল্টানো যায়, localStorage-এ সেভ থাকে ----------
+// ---------- সপ্তাহ কোন দিন থেকে শুরু হবে (রবি থেকে শনি — যেকোনো একদিন) — Settings থেকে পাল্টানো যায়, localStorage-এ সেভ থাকে ----------
+// মান 0-6 (0=রবি...6=শনি)। আগে শুধু রবি/সোম টগল ছিল ("0"/"1") — সেই পুরনো ভ্যালুগুলোও এখানে ঠিকঠাক পড়া যায় বলে migration লাগে না।
 const WEEK_START_KEY = "focusgo_week_starts_monday";
-const isWeekStartsMonday = () => { try { return window.localStorage.getItem(WEEK_START_KEY) === "1"; } catch (e) { return false; } };
-const weekStartOffset = (jsDay) => { const startsMon = isWeekStartsMonday(); return startsMon ? (jsDay === 0 ? 6 : jsDay - 1) : jsDay; };
+const getWeekStartDay = () => { try { const v = parseInt(window.localStorage.getItem(WEEK_START_KEY), 10); return (v >= 0 && v <= 6) ? v : 0; } catch (e) { return 0; } };
+const weekStartOffset = (jsDay) => { const s = getWeekStartDay(); return (jsDay - s + 7) % 7; };
+const WEEKDAY_PICKER_LABELS = {
+  en: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+  bn: ["রবি","সোম","মঙ্গল","বুধ","বৃহঃ","শুক্র","শনি"],
+};
 const weekdayShortLabels = (lang) => {
   const bn = ["র","সো","ম","বু","বৃ","শু","শ"];
   const en = ["S","M","T","W","T","F","S"];
   const arr = lang === "bn" ? bn : en;
-  return isWeekStartsMonday() ? [...arr.slice(1), arr[0]] : arr;
+  const s = getWeekStartDay();
+  return [...arr.slice(s), ...arr.slice(0, s)];
 };
 
 const startOfWeek = (d) => { const x = new Date(d); const day = weekStartOffset(x.getDay()); x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x; };
@@ -2316,7 +2321,7 @@ const topicPickList = (topicBank, entries, subject) => {
 // Tapping a chip fills the topic input; typing a new topic still works as before.
 // ---------- Accent color options — ইউজার Settings থেকে বেছে নিতে পারবে, orange ডিফল্ট/প্রথম অপশন হিসেবে থাকছে ----------
 const ACCENT_OPTIONS = [
-  { key: "orange", labelBn: "কমলা",  labelEn: "Orange", light: "#D37A5F", dark: "#DC957F" },
+  { key: "orange", labelBn: "কমলা",  labelEn: "Orange", light: "#D97757", dark: "#E2967B" },
   { key: "lilac", labelBn: "লাইলাক", labelEn: "Lilac", light: "#8E7DBE", dark: "#AC9EDB" },
   { key: "moss",  labelBn: "মস",     labelEn: "Moss",  light: "#4C7A52", dark: "#6FA377" },
 ];
@@ -2821,8 +2826,8 @@ export default function FocusGo() {
   const [timerNotifEnabled, setTimerNotifEnabled] = useState(() => { try { return window.localStorage.getItem("focusgo_notif_timer") !== "0"; } catch (e) { return true; } });
   useEffect(() => { try { window.localStorage.setItem("focusgo_notif_timer", timerNotifEnabled ? "1" : "0"); } catch (e) {} }, [timerNotifEnabled]);
   // সপ্তাহ রবি নাকি সোম থেকে শুরু হবে — Settings থেকে বদলানো যায়, ক্যালেন্ডার গ্রিড ও উইকলি ভিউ সব জায়গায় প্রযোজ্য
-  const [weekStartsMonday, setWeekStartsMonday] = useState(() => isWeekStartsMonday());
-  useEffect(() => { try { window.localStorage.setItem(WEEK_START_KEY, weekStartsMonday ? "1" : "0"); } catch (e) {} }, [weekStartsMonday]);
+  const [weekStartDay, setWeekStartDay] = useState(() => getWeekStartDay());
+  useEffect(() => { try { window.localStorage.setItem(WEEK_START_KEY, String(weekStartDay)); } catch (e) {} }, [weekStartDay]);
   // skipNative: Focus Timer-এর session/break/topic-done ইভেন্টগুলোর জন্য OS notification
   // আগে থেকেই scheduleTimerEndNotif দিয়ে শিডিউল করা থাকে, তাই এখানে আবার একই নোটিফিকেশন
   // পাঠালে ডুপ্লিকেট হয়ে যাবে — সেসব কল-সাইট থেকে skipNative=true পাঠানো হয়।
@@ -4117,7 +4122,7 @@ export default function FocusGo() {
     let cur = [];
     for (let d = 1; d <= daysInMonth; d++) {
       cur.push(d);
-      const weekEndDay = isWeekStartsMonday() ? 0 : 6; // Monday শুরু হলে সপ্তাহ শেষ হয় রবিবারে, নাহলে শনিবারে
+      const weekEndDay = (weekStartDay + 6) % 7; // সপ্তাহ যেদিন শুরু, তার ঠিক আগের দিনে শেষ হয়
       const isWeekEnd = new Date(y, m, d).getDay() === weekEndDay;
       if (isWeekEnd || d === daysInMonth) { weeks.push(cur); cur = []; }
     }
@@ -4349,6 +4354,10 @@ export default function FocusGo() {
   const textMain = activeTheme.textMain;
   const textMuted2 = activeTheme.textMuted2;
   const accent = accentHexFor(accentKey, dark);
+  // "মিড টিল" সরিয়ে সেকেন্ডারি স্ট্যাটাস কালার হিসেবে থিম-অ্যাডাপ্টিভ "কালো" ব্যবহার হচ্ছে (dark থিমে অফ-হোয়াইট, light থিমে near-black) —
+  // এক্সাম মার্কারে আগে থেকেই এই একই কনভেনশন ছিল, এখন Planned/Study/Timer হাইলাইটেও সেটাই মিলিয়ে নেওয়া হলো
+  const inkColor = dark ? "#EDECF2" : "#1A1814";
+  const inkA = (o) => dark ? `rgba(237,236,242,${o})` : `rgba(26,24,20,${o})`;
   const accentLight = dark ? `${accent}22` : `${accent}14`; // primary light — নির্বাচিত accent-এর হালকা tint, active/selected state-এর background-এ ব্যবহার হবে
   const neutralIconBg = dark ? "#242229" : "#F0EEF5"; // decorative icon/avatar background — purple নয়, neutral lavender-gray
   const neutralIconColor = dark ? "#ADA9BB" : "#6E6B7A"; // decorative icon color — muted purple-gray
@@ -4800,7 +4809,7 @@ export default function FocusGo() {
               // সময়ভিত্তিক subtle gradient + icon — greeting card-টাকে আরেকটু জীবন্ত করতে
               const greetTheme = {
                 morning:   { grad: dark ? "rgba(224,168,58,0.10)" : "#E0A83A0F", Icon: Sun,  iconColor: "#E0A83A" },
-                noon:      { grad: dark ? "rgba(76,143,166,0.10)" : "#4C8FA60F", Icon: Sun,  iconColor: "#4C8FA6" },
+                noon:      { grad: dark ? "rgba(237,236,242,0.10)" : "#1A18140F", Icon: Sun,  iconColor: dark ? "#EDECF2" : "#1A1814" },
                 afternoon: { grad: `${accent}${dark ? "18" : "0F"}`, Icon: Sun,  iconColor: accent },
                 evening:   { grad: dark ? "rgba(155,107,158,0.11)" : "#9B6B9E0F", Icon: Moon, iconColor: "#9B6B9E" },
                 night:     { grad: dark ? "rgba(75,90,150,0.12)" : "#4B5A960F", Icon: Moon, iconColor: dark ? "#8FA0E0" : "#4B5A96" },
@@ -5159,7 +5168,7 @@ export default function FocusGo() {
                     const r = 45;
                     const c = 2 * Math.PI * r;
                     const elapsedFrac = timerTotal > 0 ? Math.min(1, Math.max(0, (timerTotal - timerSeconds) / timerTotal)) : 0;
-                    const ringColor = sessionType === "focus" ? accent : "#4C8FA6";
+                    const ringColor = sessionType === "focus" ? accent : inkColor;
                     return (
                       <div style={{position:"relative", display:"inline-flex", alignItems:"center", justifyContent:"center", width:ringSize, height:ringSize, transition:"width .25s ease, height .25s ease"}}>
                         <svg width={ringSize} height={ringSize} viewBox="0 0 100 100" style={{position:"absolute", inset:0, transform:"rotate(-90deg)"}}>
@@ -5194,11 +5203,11 @@ export default function FocusGo() {
                 )}
                 {!timerRunning && showTopicPicker && (
                   <div style={{display:"flex", flexWrap:"wrap", justifyContent:"center", gap:6, marginTop:8}}>
-                    <button onClick={()=>{ vibrate(); setTimerTopicId(null); setFreeSessionTouched(true); }} style={{border:`1px solid ${!timerTopic ? "#4C8FA6" : cardBorder}`, background: !timerTopic ? "#4C8FA61A" : "transparent", color: !timerTopic ? "#4C8FA6" : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+                    <button onClick={()=>{ vibrate(); setTimerTopicId(null); setFreeSessionTouched(true); }} style={{border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
                       {t.freeSessionOption}
                     </button>
                     {todayTopics.filter(x=>!x.done).map(x => (
-                      <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? "#4C8FA6" : cardBorder}`, background: timerTopicId===x.id ? "#4C8FA61A" : "transparent", color: timerTopicId===x.id ? "#4C8FA6" : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                      <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                         {x.topic}
                       </button>
                     ))}
@@ -5209,7 +5218,7 @@ export default function FocusGo() {
                     {(sessionType === "focus" ? [25,30,45,50,60] : [5,10,15]).map(mins => {
                       const active = Math.round(timerTotal/60) === mins;
                       return (
-                        <button key={mins} onClick={()=>setPresetDuration(mins)} style={{border:`1px solid ${active ? "#4C8FA6" : cardBorder}`, background: active ? "#4C8FA61A" : "transparent", color: active ? "#4C8FA6" : textMuted2, borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+                        <button key={mins} onClick={()=>setPresetDuration(mins)} style={{border:`1px solid ${active ? inkColor : cardBorder}`, background: active ? inkA(0.10) : "transparent", color: active ? inkColor : textMuted2, borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
                           <Num>{nf(mins)}</Num> {t.minutes}
                         </button>
                       );
@@ -5271,11 +5280,11 @@ export default function FocusGo() {
                 )}
                 {!stopwatchRunning && showTopicPicker && (
                   <div style={{display:"flex", flexWrap:"wrap", justifyContent:"center", gap:6, marginTop:8}}>
-                    <button onClick={()=>selectTimerTopic(null)} style={{border:`1px solid ${!timerTopic ? "#4C8FA6" : cardBorder}`, background: !timerTopic ? "#4C8FA61A" : "transparent", color: !timerTopic ? "#4C8FA6" : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+                    <button onClick={()=>selectTimerTopic(null)} style={{border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
                       {t.freeSessionOption}
                     </button>
                     {todayTopics.filter(x=>!x.done).map(x => (
-                      <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? "#4C8FA6" : cardBorder}`, background: timerTopicId===x.id ? "#4C8FA61A" : "transparent", color: timerTopicId===x.id ? "#4C8FA6" : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                      <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                         {x.topic}
                       </button>
                     ))}
@@ -5389,8 +5398,8 @@ export default function FocusGo() {
           <div className="fg-tab-panel" style={{marginTop:18}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <div style={{display:"flex", alignItems:"center", gap:8}}>
-                <span style={{width:26, height:26, borderRadius:9, background: dark ? "rgba(76,143,166,0.2)" : "rgba(76,143,166,0.12)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                  <ListChecks size={14} color="#4C8FA6" strokeWidth={2.2}/>
+                <span style={{width:26, height:26, borderRadius:9, background: inkA(dark ? 0.2 : 0.12), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                  <ListChecks size={14} color={inkColor} strokeWidth={2.2}/>
                 </span>
                 <div style={{fontSize:16,fontWeight:800,letterSpacing:-0.3,color:textMain}}>
                   {lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}
@@ -5401,9 +5410,9 @@ export default function FocusGo() {
               </button>
             </div>
             {homeTodayTasks.length === 0 ? (
-              <div style={{border:"1px dashed rgba(76,143,166,0.35)", borderRadius:16, padding:"16px", background:"rgba(76,143,166,0.06)", display:"flex", alignItems:"flex-start", gap:12}}>
-                <span style={{width:36, height:36, borderRadius:"50%", background:"rgba(76,143,166,0.14)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                  <ListChecks size={17} color="#4C8FA6" strokeWidth={2}/>
+              <div style={{border:`1px dashed ${inkA(0.35)}`, borderRadius:16, padding:"16px", background:inkA(0.06), display:"flex", alignItems:"flex-start", gap:12}}>
+                <span style={{width:36, height:36, borderRadius:"50%", background:inkA(0.14), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                  <ListChecks size={17} color={inkColor} strokeWidth={2}/>
                 </span>
                 <div style={{minWidth:0}}>
                   <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{t.taskEmptyTodayHome}</div>
@@ -5491,7 +5500,7 @@ export default function FocusGo() {
                 const dayList = entries[dk] || [];
                 const hasAny = dayList.length > 0;
                 const doneAll = hasAny && dayList.every(x=>x.done);
-                const statusColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : "#4C8FA6");
+                const statusColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : inkColor);
                 return (
                   <div key={i} className="fg-card" onClick={()=>setPlanDate(d)} style={{textAlign:"center", cursor:"pointer", flex: planRange > 7 ? "0 0 40px" : 1, padding:"0 2px"}}>
                     <div style={{fontSize:10, fontWeight:700, color: isSel ? accent : textMuted2, opacity: isSel ? 1 : 0.85, marginBottom:8, letterSpacing:0.3}}>{weekdayShort(d)}</div>
@@ -5739,7 +5748,7 @@ export default function FocusGo() {
                             color: isSelected ? "#fff" : (hasOverdue ? "#C0392B" : textMain)}}>
                             <Num>{nf(d.getDate())}</Num>
                           </div>
-                          <span style={{width:4, height:4, borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : (hasOverdue ? "#C0392B" : "#4C8FA6"))}}/>
+                          <span style={{width:4, height:4, borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : (hasOverdue ? "#C0392B" : inkColor))}}/>
                         </button>
                       );
                     })}
@@ -5752,7 +5761,7 @@ export default function FocusGo() {
                     <span style={{width:7,height:7,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
                   </span>
                   <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
-                    <span style={{width:7,height:7,borderRadius:"50%", background:"#4C8FA6"}}/>{t.calendarLegendPlanned}
+                    <span style={{width:7,height:7,borderRadius:"50%", background:inkColor}}/>{t.calendarLegendPlanned}
                   </span>
                   <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
                     <span style={{width:7,height:7,borderRadius:"50%", background:"#C0392B"}}/>{t.taskOverdue}
@@ -5921,7 +5930,7 @@ export default function FocusGo() {
             taskNotifEnabled={taskNotifEnabled} setTaskNotifEnabled={setTaskNotifEnabled}
             salahNotifEnabled={salahNotifEnabled} setSalahNotifEnabled={setSalahNotifEnabled}
             timerNotifEnabled={timerNotifEnabled} setTimerNotifEnabled={setTimerNotifEnabled}
-            weekStartsMonday={weekStartsMonday} setWeekStartsMonday={setWeekStartsMonday}
+            weekStartDay={weekStartDay} setWeekStartDay={setWeekStartDay}
             focusMinutes={focusMinutes} setFocusMinutes={setFocusMinutes}
             breakMinutes={breakMinutes} setBreakMinutes={setBreakMinutes}
             cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
@@ -5937,10 +5946,10 @@ export default function FocusGo() {
             {(() => {
               const h = Math.floor(studyOverview.totalMin/60), m = studyOverview.totalMin%60;
               return (
-                <div style={{background: dark ? "rgba(76,143,166,0.09)" : "#4C8FA60A", border:`1px solid ${cardBorder}`, borderRadius:16, padding:"13px 14px", marginBottom:20, display:"flex", alignItems:"center", gap:12}}>
+                <div style={{background: inkA(dark ? 0.09 : 0.04), border:`1px solid ${cardBorder}`, borderRadius:16, padding:"13px 14px", marginBottom:20, display:"flex", alignItems:"center", gap:12}}>
                   <div style={{display:"flex", alignItems:"center", gap:9, flexShrink:0}}>
-                    <div style={{width:34,height:34, borderRadius:10, background: dark?"rgba(76,143,166,0.22)":"#4C8FA61F", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                      <Clock size={16} color="#4C8FA6"/>
+                    <div style={{width:34,height:34, borderRadius:10, background: inkA(dark?0.22:0.12), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                      <Clock size={16} color={inkColor}/>
                     </div>
                     <div>
                       <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.4, color:textMain, lineHeight:1.15, whiteSpace:"nowrap"}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
@@ -5954,7 +5963,7 @@ export default function FocusGo() {
                       <div style={{fontSize:9, color:textMuted2, fontWeight:500, opacity:0.8, whiteSpace:"nowrap"}}>{t.topicsCompletedLabel}</div>
                     </div>
                     <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:2}}>
-                      <div style={{fontSize:14, fontWeight:800, letterSpacing:-0.2, color:"#4C8FA6", lineHeight:1.1}}><Num>{nf(studyOverview.pct)}</Num>%</div>
+                      <div style={{fontSize:14, fontWeight:800, letterSpacing:-0.2, color:inkColor, lineHeight:1.1}}><Num>{nf(studyOverview.pct)}</Num>%</div>
                       <div style={{fontSize:9, color:textMuted2, fontWeight:500, opacity:0.8, whiteSpace:"nowrap"}}>{t.completionLabel}</div>
                     </div>
                     <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:2}}>
@@ -6085,7 +6094,7 @@ export default function FocusGo() {
                           {hh > 0 ? <><Num>{nf(hh)}</Num>h<Num>{nf(mm)}</Num></> : <Num>{nf(mm)}</Num>}
                         </span>
                       ) : <span style={{fontSize:10, height:11}}/>}
-                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:8, background: w.min>0 ? (isToday ? accent : "#4C8FA655") : (dark?"#3A342A":"#F2ECDF"), border: w.min>0 ? "none" : `1px dashed ${textMuted2}55`, boxSizing:"border-box", transition:"height .3s"}}/>
+                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:8, background: w.min>0 ? (isToday ? accent : inkA(0.33)) : (dark?"#3A342A":"#F2ECDF"), border: w.min>0 ? "none" : `1px dashed ${textMuted2}55`, boxSizing:"border-box", transition:"height .3s"}}/>
                       <span style={{fontSize:10, fontWeight:700, color: isToday?accent:textMuted2}}>{weekdayShort(w.day)}</span>
                     </div>
                   );
@@ -6124,7 +6133,7 @@ export default function FocusGo() {
                           {hh > 0 ? <><Num>{nf(hh)}</Num>h<Num>{nf(mm)}</Num></> : <Num>{nf(mm)}</Num>}
                         </span>
                       ) : <span style={{fontSize:10, height:11}}/>}
-                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:8, background: w.min>0 ? (isCurrent ? accent : "#4C8FA655") : (dark?"#3A342A":"#F2ECDF"), border: w.min>0 ? "none" : `1px dashed ${textMuted2}55`, boxSizing:"border-box", transition:"height .3s"}}/>
+                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:8, background: w.min>0 ? (isCurrent ? accent : inkA(0.33)) : (dark?"#3A342A":"#F2ECDF"), border: w.min>0 ? "none" : `1px dashed ${textMuted2}55`, boxSizing:"border-box", transition:"height .3s"}}/>
                       <span style={{fontSize:10, fontWeight:700, color: isCurrent?accent:textMuted2}}>{t.weekLabelShort}<Num>{nf(w.weekNum)}</Num></span>
                     </div>
                   );
@@ -6152,7 +6161,7 @@ export default function FocusGo() {
                 <span style={{width:7,height:7,borderRadius:"50%", background: dark ? "#EDECF2" : "#1A1814"}}/>{t.calendarLegendExam}
               </span>
               <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
-                <span style={{width:7,height:7,borderRadius:"50%", background:"#4C8FA6"}}/>{t.calendarLegendPlanned}
+                <span style={{width:7,height:7,borderRadius:"50%", background:inkColor}}/>{t.calendarLegendPlanned}
               </span>
               <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
                 <span style={{width:7,height:7,borderRadius:"50%", background:"#C0392B"}}/>{t.calendarLegendHoliday}
@@ -6168,7 +6177,7 @@ export default function FocusGo() {
               canGoPrev={true} canGoNext={canGoNextSummaryWeek}
               onPrev={()=>setSummaryWeekAnchor(d=>{const x=new Date(d); x.setDate(x.getDate()-7); return x;})}
               onNext={()=>setSummaryWeekAnchor(d=>{const x=new Date(d); x.setDate(x.getDate()+7); return x;})}
-              sourceLabel={t.planViewStudy} sourceColor="#4C8FA6"
+              sourceLabel={t.planViewStudy} sourceColor={inkColor}
               t={t} nf={nf} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
 
             <TopicSummaryPeriodCard
@@ -6180,7 +6189,7 @@ export default function FocusGo() {
               canGoPrev={true} canGoNext={canGoNextSummaryMonth}
               onPrev={()=>setSummaryMonthAnchor(d=>new Date(d.getFullYear(), d.getMonth()-1, 1))}
               onNext={()=>setSummaryMonthAnchor(d=>new Date(d.getFullYear(), d.getMonth()+1, 1))}
-              sourceLabel={t.planViewStudy} sourceColor="#4C8FA6"
+              sourceLabel={t.planViewStudy} sourceColor={inkColor}
               t={t} nf={nf} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
           </div>
         )}
@@ -6784,7 +6793,7 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
       {attempts.length > 0 && (
         <div style={{display:"flex", gap:10, marginTop:8, paddingLeft:22, fontSize:12, color:textMuted2, fontWeight:600, flexWrap:"wrap"}}>
           <span><Num>{nf(attempts.length)}</Num> {t.attemptsLabel}</span>
-          {avgPct !== null && <span style={{color:"#4C8FA6", fontWeight:700}}>{t.average} <Num>{nf(avgPct)}</Num>%</span>}
+          {avgPct !== null && <span style={{color:(dark ? "#EDECF2" : "#1A1814"), fontWeight:700}}>{t.average} <Num>{nf(avgPct)}</Num>%</span>}
         </div>
       )}
 
@@ -6951,7 +6960,7 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
       {hasAttempts && (
         <div style={{display:"flex", gap:10, marginTop:8, paddingLeft:22, fontSize:12, color:textMuted2, fontWeight:600}}>
           <span><Num>{nf(attempts.length)}</Num> {t.attemptsLabel}</span>
-          {avgPct !== null && <span style={{color:"#4C8FA6", fontWeight:700}}>{t.average} <Num>{nf(avgPct)}</Num>%</span>}
+          {avgPct !== null && <span style={{color:(dark ? "#EDECF2" : "#1A1814"), fontWeight:700}}>{t.average} <Num>{nf(avgPct)}</Num>%</span>}
         </div>
       )}
 
@@ -7208,7 +7217,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
             </div>
             <div style={{display:"flex", gap:8}}>
               <StatCard icon={Calendar} value={total} label={lang==="bn"?"মোট":"Total"} color={accent}/>
-              <StatCard icon={Clock} value={upcoming.length} label={lang==="bn"?"আসন্ন":"Upcoming"} color="#4C8FA6"/>
+              <StatCard icon={Clock} value={upcoming.length} label={lang==="bn"?"আসন্ন":"Upcoming"} color={(dark ? "#EDECF2" : "#1A1814")}/>
               <StatCard icon={Check} value={completed.length} label={lang==="bn"?"সম্পন্ন":"Completed"} color="#6E8B5E"/>
               <StatCard icon={TrendingUp} value={missed.length} label={lang==="bn"?"মিস":"Missed"} color="#C0392B"/>
             </div>
@@ -7462,7 +7471,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
             </div>
             <div style={statBox}>
               <div style={{fontSize:11, color:textMuted2, fontWeight:700, letterSpacing:ls(0.5)}}>{t.avgScoreLabel}</div>
-              <div style={{fontSize:24, fontWeight:800, marginTop:4, color:"#4C8FA6"}}><Num>{nf(avgScorePct)}</Num>%</div>
+              <div style={{fontSize:24, fontWeight:800, marginTop:4, color:(dark ? "#EDECF2" : "#1A1814")}}><Num>{nf(avgScorePct)}</Num>%</div>
             </div>
             <div style={statBox}>
               <div style={{fontSize:11, color:textMuted2, fontWeight:700, letterSpacing:ls(0.5)}}>{t.maxScoreLabel}</div>
@@ -7486,7 +7495,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
                     </span>
                     <span style={{textAlign:"right"}}><Num>{nf(d.topics.size)}</Num></span>
                     <span style={{textAlign:"right"}}><Num>{nf(d.attempts)}</Num></span>
-                    <span style={{textAlign:"right", color:"#4C8FA6", fontWeight:700}}><Num>{nf(avg)}</Num>%</span>
+                    <span style={{textAlign:"right", color:(dark ? "#EDECF2" : "#1A1814"), fontWeight:700}}><Num>{nf(avg)}</Num>%</span>
                   </div>
                 );
               })}
@@ -8256,7 +8265,7 @@ function WeekDayStrip({ days, entries, selectedKey, onSelectDay, todayKey, weekd
         const list = entries[dk] || [];
         const hasAny = list.length > 0;
         const doneAll = hasAny && list.every(x=>x.done);
-        const dotColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : "#4C8FA6");
+        const dotColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : (dark ? "#EDECF2" : "#1A1814"));
         return (
           <button key={i} onClick={()=>onSelectDay(d)} style={{
             flex:"0 0 auto", width:56, display:"flex", flexDirection:"column", alignItems:"center", gap:6,
@@ -8341,7 +8350,7 @@ function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSe
                   {isHoliday && <span style={{position:"absolute", top:-2, left:-2, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
                   <Num>{nf(d.getDate())}</Num>
                 </div>
-                <span style={{width:4, height:4, borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : "#4C8FA6")}}/>
+                <span style={{width:4, height:4, borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : (dark ? "#EDECF2" : "#1A1814"))}}/>
               </button>
             );
           })}
@@ -10090,7 +10099,7 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
                 {isExam && <span style={{position:"absolute", top:4, right:4, width:5, height:5, borderRadius:"50%", background: dark ? "#EDECF2" : "#1A1814"}}/>}
                 {isHoliday && <span style={{position:"absolute", top:4, left:4, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
                 <span style={{fontSize:12, fontWeight:600, color:textMain}}><Num>{nf(d.getDate())}</Num></span>
-                <span style={{width:5,height:5,borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : "#4C8FA6")}}/>
+                <span style={{width:5,height:5,borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : (dark ? "#EDECF2" : "#1A1814"))}}/>
               </button>
             );
           })}
@@ -10104,7 +10113,7 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
             <span style={{width:6,height:6,borderRadius:"50%", background: dark ? "#EDECF2" : "#1A1814"}}/>{t.calendarLegendExam}
           </span>
           <span style={{display:"flex", alignItems:"center", gap:4, fontSize:10, color:textMuted2, fontWeight:600}}>
-            <span style={{width:6,height:6,borderRadius:"50%", background:"#4C8FA6"}}/>{t.calendarLegendPlanned}
+            <span style={{width:6,height:6,borderRadius:"50%", background:(dark ? "#EDECF2" : "#1A1814")}}/>{t.calendarLegendPlanned}
           </span>
           <span style={{display:"flex", alignItems:"center", gap:4, fontSize:10, color:textMuted2, fontWeight:600}}>
             <span style={{width:6,height:6,borderRadius:"50%", background:"#C0392B"}}/>{t.calendarLegendHoliday}
@@ -10139,14 +10148,14 @@ function DayDetailModal({ t, lang, nf, weekdayName, monthName, day, entries, all
           </div>
         )}
         {hasAnyStat && (
-          <div style={{display:"flex", flexDirection:"column", gap:8, marginTop:14, background: dark?"rgba(76,143,166,0.08)":"rgba(76,143,166,0.05)", border:`1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px"}}>
+          <div style={{display:"flex", flexDirection:"column", gap:8, marginTop:14, background: dark?"rgba(237,236,242,0.08)":"rgba(26,24,20,0.05)", border:`1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px"}}>
             {doneCount > 0 && (
               <div style={{display:"flex", alignItems:"center", gap:8, fontSize:13, fontWeight:600, color:"#6E8B5E"}}>
                 <Check size={14} strokeWidth={3}/><span><Num>{nf(doneCount)}</Num> {t.topicsCompletedLabel}</span>
               </div>
             )}
             {focusedMin > 0 && (
-              <div style={{display:"flex", alignItems:"center", gap:8, fontSize:13, fontWeight:600, color:"#4C8FA6"}}>
+              <div style={{display:"flex", alignItems:"center", gap:8, fontSize:13, fontWeight:600, color:(dark ? "#EDECF2" : "#1A1814")}}>
                 <Clock size={14}/><span>{fh > 0 && <><Num>{nf(fh)}</Num>h </>}<Num>{nf(fm)}</Num>m {t.dayFocusedLabel}</span>
               </div>
             )}
