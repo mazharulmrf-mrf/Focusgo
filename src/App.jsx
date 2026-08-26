@@ -5678,6 +5678,11 @@ export default function FocusGo() {
                 <div style={{fontSize:16,fontWeight:800,letterSpacing:-0.3,color:textMain}}>
                   {lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}
                 </div>
+                {homeTodayTasks.length > 0 && (
+                  <span style={{fontSize:12, fontWeight:800, color: homeTodayTasks.every(x=>x.done) ? "#6E8B5E" : textMuted2, background: inkA(dark?0.16:0.08), borderRadius:999, padding:"2px 8px"}}>
+                    <Num>{nf(homeTodayTasks.filter(x=>x.done).length)}</Num>/<Num>{nf(homeTodayTasks.length)}</Num>
+                  </span>
+                )}
               </div>
               <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}} title={t.taskAddBtn} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
                 <Plus size={17}/>
@@ -5892,6 +5897,16 @@ export default function FocusGo() {
                 <div style={{flex:1, minWidth:0, fontSize:13, fontWeight:400, color: x.done ? "#6E8B5E" : textMain, textDecoration: x.done ? "line-through" : "none", wordBreak:"break-word", overflowWrap:"break-word", whiteSpace:"normal", lineHeight:1.4}}>
                   {x.title}
                 </div>
+                {x.repeat && !x.done && (
+                  <span title={t.taskRepeatBadge} style={{flexShrink:0, display:"flex", alignItems:"center", gap:3, fontSize:10, fontWeight:800, color:accent, background:`${accent}14`, borderRadius:8, padding:"2px 6px", whiteSpace:"nowrap"}}>
+                    <Repeat size={11}/>
+                    {x.dueDate && (() => {
+                      const diffDays = Math.round((new Date(x.dueDate+"T00:00:00") - new Date(todayKey+"T00:00:00")) / 86400000);
+                      const label = diffDays === 0 ? (lang==="bn" ? "আজ" : "Today") : diffDays > 0 ? `D-${diffDays}` : `D+${Math.abs(diffDays)}`;
+                      return <span>{label}</span>;
+                    })()}
+                  </span>
+                )}
                 {x.note && (
                   <span title={lang==="bn"?"নোট আছে":"Has a note"} style={{flexShrink:0, color:textMuted2, display:"flex"}}>
                     <FileText size={13}/>
@@ -6008,21 +6023,34 @@ export default function FocusGo() {
                       const dk = dateKey(d);
                       const list = tasksByDay[dk] || [];
                       const hasAny = list.length > 0;
-                      const doneAll = hasAny && list.every(x=>x.done);
+                      const dayDone = list.filter(x=>x.done).length;
+                      const dayTotal = list.length;
+                      const dayPct = dayTotal ? dayDone / dayTotal : 0;
+                      const doneAll = hasAny && dayDone === dayTotal;
                       const hasOverdue = list.some(x => !x.done && dk < todayKey);
                       const isToday = dk === todayKey;
                       const isSelected = dk === selectedKey;
+                      const ringR = 12.5, ringC = 2 * Math.PI * ringR;
+                      const ringColor = hasOverdue ? "#C0392B" : (doneAll ? "#6E8B5E" : accent);
                       return (
                         <button key={i} onClick={()=>{vibrate(); setTaskCalSelectedDay(dk);}} style={{
                           display:"flex", flexDirection:"column", alignItems:"center", gap:4, padding:"4px 0", border:"none", background:"transparent", cursor:"pointer",
                         }}>
-                          <div style={{position:"relative", width:26, height:26, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700,
-                            background: isSelected ? accent : "transparent",
-                            border: isToday && !isSelected ? `1px solid ${accent}` : "none",
-                            color: isSelected ? "#fff" : (hasOverdue ? "#C0392B" : textMain)}}>
-                            <Num>{nf(d.getDate())}</Num>
+                          <div style={{position:"relative", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                            {hasAny && !isSelected && (
+                              <svg width={28} height={28} viewBox="0 0 28 28" style={{position:"absolute", inset:0, transform:"rotate(-90deg)"}}>
+                                <circle cx="14" cy="14" r={ringR} fill="none" stroke={dark?"#2C2B33":"#E7E5ED"} strokeWidth={2}/>
+                                <circle cx="14" cy="14" r={ringR} fill="none" stroke={ringColor} strokeWidth={2} strokeLinecap="round"
+                                  strokeDasharray={ringC} strokeDashoffset={ringC * (1 - dayPct)}/>
+                              </svg>
+                            )}
+                            <div style={{position:"relative", width:22, height:22, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700,
+                              background: isSelected ? accent : "transparent",
+                              border: isToday && !isSelected ? `1px solid ${accent}` : "none",
+                              color: isSelected ? "#fff" : (hasOverdue ? "#C0392B" : textMain)}}>
+                              <Num>{nf(d.getDate())}</Num>
+                            </div>
                           </div>
-                          <span style={{width:4, height:4, borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : (hasOverdue ? "#C0392B" : inkColor))}}/>
                         </button>
                       );
                     })}
