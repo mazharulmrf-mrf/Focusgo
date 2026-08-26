@@ -763,6 +763,43 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
   );
 }
 
+// ---------- ছোট, রি-ইউজেবল কাস্টম ড্রপডাউন — Settings-এ Week Starts On / Default Timer Duration-এ ব্যবহার হয় (বড় পিল-গ্রিডের বদলে কমপ্যাক্ট) ----------
+function SettingsDropdown({ value, options, onChange, dark, cardBorder, textMain, textMuted2, accent }) {
+  const [open, setOpen] = useState(false);
+  const current = options.find(o => o.value === value);
+  return (
+    <div style={{position:"relative"}}>
+      <button type="button" onClick={()=>setOpen(o=>!o)} style={{
+        display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, width:"100%",
+        border:`1px solid ${cardBorder}`, background: dark?"#17151C":"#F8F5EE", color:textMain,
+        borderRadius:10, padding:"10px 12px", fontSize:13, fontWeight:700, cursor:"pointer"
+      }}>
+        <span>{current ? current.label : ""}</span>
+        <ChevronDown size={15} style={{transform: open ? "rotate(180deg)" : "none", transition:"transform .15s", flexShrink:0, color:textMuted2}}/>
+      </button>
+      {open && (
+        <>
+          <div style={{position:"fixed", inset:0, zIndex:59}} onClick={()=>setOpen(false)}/>
+          <div style={{position:"absolute", top:"calc(100% + 6px)", left:0, right:0, background: dark?"#201F26":"#FFFFFF", border:`1px solid ${cardBorder}`, borderRadius:12, boxShadow:"0 8px 24px rgba(0,0,0,0.25)", zIndex:60, maxHeight:220, overflowY:"auto", padding:6}}>
+            {options.map(o => {
+              const selected = o.value === value;
+              return (
+                <button key={o.value} type="button" onClick={()=>{ onChange(o.value); setOpen(false); }} style={{
+                  width:"100%", textAlign:"left", border:"none", background: selected ? `${accent}1A` : "transparent",
+                  color: selected ? accent : textMain, borderRadius:8, padding:"9px 10px", fontSize:13, fontWeight:700, cursor:"pointer",
+                  display:"flex", alignItems:"center", justifyContent:"space-between"
+                }}>
+                  {o.label}{selected && <Check size={14} strokeWidth={3}/>}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ---------- Settings modal: Language, Theme, About Us ----------
 function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, setAccentKey, notificationsEnabled, setNotificationsEnabled,
   examNotifEnabled, setExamNotifEnabled, taskNotifEnabled, setTaskNotifEnabled, salahNotifEnabled, setSalahNotifEnabled, timerNotifEnabled, setTimerNotifEnabled,
@@ -771,6 +808,9 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
   const [showAbout, setShowAbout] = useState(false);
   const [legalDoc, setLegalDoc] = useState(null); // null | "privacy" | "terms"
   const isBn = lang === "bn";
+
+  // Notification sub-অপশনগুলো এখন ক্লিক করলে নিচে খুলবে (accordion) — মাস্টার টগলের সাথে সরাসরি বাঁধা নয়
+  const [notifExpanded, setNotifExpanded] = useState(false);
 
   // হ্যাপটিক ফিডব্যাক অন/অফ — localStorage-এ সেভ থাকে, vibrate() ফাংশন এটা নিজেই চেক করে
   const [hapticsEnabled, setHapticsEnabled] = useState(() => {
@@ -924,25 +964,28 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
       </div>
 
-      {/* Notifications on/off — exam/task reminders and Focus Timer end alerts */}
-      <div style={{...rowStyle, borderBottom: notificationsEnabled ? "none" : `1px solid ${cardBorder}`}}>
+      {/* Notifications on/off — মাস্টার টগল + ক্লিক করলে নিচে প্রতিটা ধরনের নোটিফিকেশন আলাদা করে দেখা/অন-অফ করা যায় (accordion) */}
+      <div style={{...rowStyle, borderBottom: notifExpanded ? "none" : `1px solid ${cardBorder}`, cursor:"pointer"}} onClick={()=>setNotifExpanded(v=>!v)}>
         <div style={labelStyle}><span style={iconWrapStyle}><Bell size={15}/></span>{t.notifications}</div>
-        <button onClick={toggleNotifications} aria-pressed={notificationsEnabled} style={{
-            width:44, height:26, borderRadius:12, border:"none", cursor:"pointer", padding:0,
-            background: notificationsEnabled ? accent : (dark ? "#3A362E" : "#DCD5C4"),
-            position:"relative", transition:"background 0.15s"
-          }}>
-          <span style={{
-            position:"absolute", top:3, left: notificationsEnabled ? 21 : 3,
-            width:20, height:20, borderRadius:"50%", background:"#fff",
-            transition:"left 0.15s", boxShadow:"0 1px 2px rgba(0,0,0,0.25)"
-          }}/>
-        </button>
+        <div style={{display:"flex", alignItems:"center", gap:12}}>
+          <button onClick={(e)=>{ e.stopPropagation(); toggleNotifications(); }} aria-pressed={notificationsEnabled} style={{
+              width:44, height:26, borderRadius:12, border:"none", cursor:"pointer", padding:0,
+              background: notificationsEnabled ? accent : (dark ? "#3A362E" : "#DCD5C4"),
+              position:"relative", transition:"background 0.15s"
+            }}>
+            <span style={{
+              position:"absolute", top:3, left: notificationsEnabled ? 21 : 3,
+              width:20, height:20, borderRadius:"50%", background:"#fff",
+              transition:"left 0.15s", boxShadow:"0 1px 2px rgba(0,0,0,0.25)"
+            }}/>
+          </button>
+          <ChevronDown size={16} color={textMuted2} style={{transform: notifExpanded ? "rotate(180deg)" : "none", transition:"transform .15s", flexShrink:0}}/>
+        </div>
       </div>
 
-      {/* Notification fine-tuning — মাস্টার টগল অন থাকলেই শুধু দেখা যায়, প্রতিটা ধরন আলাদাভাবে অন/অফ করা যায় */}
-      {notificationsEnabled && (
-        <div style={{padding:"4px 2px 14px 42px", borderBottom:`1px solid ${cardBorder}`, display:"flex", flexDirection:"column", gap:12}}>
+      {/* Notification fine-tuning — Notifications রো-তে ক্লিক করলে খোলে; মাস্টার টগল অফ থাকলে dim/disabled থাকে */}
+      {notifExpanded && (
+        <div style={{padding:"4px 2px 14px 42px", borderBottom:`1px solid ${cardBorder}`, display:"flex", flexDirection:"column", gap:12, opacity: notificationsEnabled ? 1 : 0.45, pointerEvents: notificationsEnabled ? "auto" : "none"}}>
           {[
             { label: t.notifExam, val: examNotifEnabled, set: setExamNotifEnabled },
             { label: t.notifTask, val: taskNotifEnabled, set: setTaskNotifEnabled },
@@ -967,54 +1010,39 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
         </div>
       )}
 
-      {/* Week starts on — Sunday/Monday, ক্যালেন্ডার ও সাপ্তাহিক ভিউতে প্রযোজ্য */}
+      {/* Week starts on — এখন কমপ্যাক্ট ড্রপডাউন, ক্যালেন্ডার ও সাপ্তাহিক ভিউতে প্রযোজ্য */}
       <div style={{padding:"14px 2px", borderBottom:`1px solid ${cardBorder}`}}>
         <div style={{...labelStyle, marginBottom:12}}><span style={iconWrapStyle}><CalendarDays size={15}/></span>{t.weekStartsOn}</div>
-        <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
-          {(isBn ? WEEKDAY_PICKER_LABELS.bn : WEEKDAY_PICKER_LABELS.en).map((label, key) => {
-            const selected = weekStartDay === key;
-            return (
-              <button key={key} onClick={()=>setWeekStartDay(key)} style={{
-                ...pillBase, padding:"7px 13px",
-                border: `1px solid ${selected ? accent : cardBorder}`,
-                background: selected ? accent : (dark?"#17151C":"#F8F5EE"),
-                color: selected ? "#fff" : textMain,
-              }}>{label}</button>
-            );
-          })}
-        </div>
+        <SettingsDropdown
+          value={weekStartDay}
+          options={(isBn ? WEEKDAY_PICKER_LABELS.bn : WEEKDAY_PICKER_LABELS.en).map((label, key) => ({ value: key, label }))}
+          onChange={setWeekStartDay}
+          dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}
+        />
       </div>
 
-      {/* Default Focus/Break duration — টাইমার শুরু করার সময় এই মানই ডিফল্ট হিসেবে বসবে */}
+      {/* Default Focus/Break duration — এখন দুইটা কমপ্যাক্ট ড্রপডাউন পাশাপাশি, টাইমার শুরু করার সময় এই মানই ডিফল্ট হিসেবে বসবে */}
       <div style={{padding:"14px 2px", borderBottom:`1px solid ${cardBorder}`}}>
         <div style={{...labelStyle, marginBottom:12}}><span style={iconWrapStyle}><Clock size={15}/></span>{t.defaultTimerDuration}</div>
-        <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:9, paddingLeft:2}}>{t.focusLabel}</div>
-        <div style={{display:"flex", flexWrap:"wrap", gap:8, marginBottom:14}}>
-          {[15,20,25,30,45,60].map(mins => {
-            const selected = focusMinutes === mins;
-            return (
-              <button key={mins} onClick={()=>setFocusMinutes(mins)} style={{
-                ...pillBase, padding:"7px 13px",
-                border: `1px solid ${selected ? accent : cardBorder}`,
-                background: selected ? accent : (dark?"#17151C":"#F8F5EE"),
-                color: selected ? "#fff" : textMain,
-              }}>{mins} {t.minutes}</button>
-            );
-          })}
-        </div>
-        <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:9, paddingLeft:2}}>{t.breakLabel}</div>
-        <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
-          {[5,10,15].map(mins => {
-            const selected = breakMinutes === mins;
-            return (
-              <button key={mins} onClick={()=>setBreakMinutes(mins)} style={{
-                ...pillBase, padding:"7px 13px",
-                border: `1px solid ${selected ? accent : cardBorder}`,
-                background: selected ? accent : (dark?"#17151C":"#F8F5EE"),
-                color: selected ? "#fff" : textMain,
-              }}>{mins} {t.minutes}</button>
-            );
-          })}
+        <div style={{display:"flex", gap:10}}>
+          <div style={{flex:1, minWidth:0}}>
+            <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.focusLabel}</div>
+            <SettingsDropdown
+              value={focusMinutes}
+              options={[15,20,25,30,45,60].map(mins => ({ value: mins, label: `${mins} ${t.minutes}` }))}
+              onChange={setFocusMinutes}
+              dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}
+            />
+          </div>
+          <div style={{flex:1, minWidth:0}}>
+            <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.breakLabel}</div>
+            <SettingsDropdown
+              value={breakMinutes}
+              options={[5,10,15].map(mins => ({ value: mins, label: `${mins} ${t.minutes}` }))}
+              onChange={setBreakMinutes}
+              dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}
+            />
+          </div>
         </div>
       </div>
 
@@ -2321,7 +2349,7 @@ const topicPickList = (topicBank, entries, subject) => {
 // Tapping a chip fills the topic input; typing a new topic still works as before.
 // ---------- Accent color options — ইউজার Settings থেকে বেছে নিতে পারবে, orange ডিফল্ট/প্রথম অপশন হিসেবে থাকছে ----------
 const ACCENT_OPTIONS = [
-  { key: "orange", labelBn: "কমলা",  labelEn: "Orange", light: "#D97757", dark: "#E2967B" },
+  { key: "orange", labelBn: "কমলা",  labelEn: "Orange", light: "#D97757", dark: "#D97757" },
   { key: "lilac", labelBn: "লাইলাক", labelEn: "Lilac", light: "#8E7DBE", dark: "#AC9EDB" },
   { key: "moss",  labelBn: "মস",     labelEn: "Moss",  light: "#4C7A52", dark: "#6FA377" },
 ];
@@ -5310,7 +5338,7 @@ export default function FocusGo() {
             এখন accent color ব্যবহার হচ্ছে (আগে dark teal ছিল, সেই রঙ Next Exam কার্ডে সরানো হয়েছে) */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
           return (
-        <div className="fg-tab-panel" style={{marginTop:14, border:`1px solid rgba(255,255,255,0.12)`, background: `linear-gradient(155deg, ${shadeColor(accent,8)} 0%, ${accent} 45%, ${shadeColor(accent,-10)} 100%)`, borderRadius:18, padding:"14px 16px", position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:14, border:`1px solid rgba(255,255,255,0.12)`, background: accent, borderRadius:18, padding:"14px 16px", position:"relative", overflow:"hidden"}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
