@@ -7,7 +7,7 @@ import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Geolocation } from "@capacitor/geolocation";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert } from "lucide-react";
 
 // lucide-react-এর এই ভার্সনে Mars/Venus নেই, তাই নিজে ছোট SVG icon বানানো হলো
 const Mars = ({ size = 18, color = "currentColor" }) => (
@@ -106,6 +106,112 @@ function resizeImageToDataUrl(file, maxDim = 320, quality = 0.82) {
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("image load failed")); };
     img.src = url;
   });
+}
+
+// ---------- White Noise: Web Audio API দিয়ে রিয়েল-টাইমে জেনারেট করা (কোনো external mp3 ফাইল/হোস্টিং লাগে না,
+// তাই অফলাইনেও কাজ করে এবং কোনো কপিরাইট/লাইসেন্স ইস্যু থাকে না) ----------
+const WHITE_NOISE_TYPES = [
+  { id: "none",  labelEn: "None",        labelBn: "কোনোটাই না", Icon: VolumeX },
+  { id: "white", labelEn: "White Noise", labelBn: "হোয়াইট নয়েজ", Icon: Volume2 },
+  { id: "pink",  labelEn: "Pink Noise",  labelBn: "পিংক নয়েজ",  Icon: Volume2 },
+  { id: "brown", labelEn: "Brown Noise", labelBn: "ব্রাউন নয়েজ", Icon: Volume2 },
+  { id: "rain",  labelEn: "Rain",        labelBn: "বৃষ্টি",       Icon: CloudRain },
+  { id: "waves", labelEn: "Ocean Waves", labelBn: "সমুদ্রের ঢেউ", Icon: Waves },
+];
+
+// সাউন্ড আইডি অনুযায়ী ২ সেকেন্ডের একটা লুপেবল বাফার বানায় (white/pink/brown/rain/waves)
+function buildNoiseBuffer(ctx, id) {
+  const bufferSize = 2 * ctx.sampleRate;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  if (id === "pink") {
+    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    for (let i=0;i<data.length;i++){
+      const white = Math.random()*2-1;
+      b0=0.99886*b0+white*0.0555179; b1=0.99332*b1+white*0.0750759;
+      b2=0.96900*b2+white*0.1538520; b3=0.86650*b3+white*0.3104856;
+      b4=0.55000*b4+white*0.5329522; b5=-0.7616*b5-white*0.0168980;
+      data[i]=(b0+b1+b2+b3+b4+b5+b6+white*0.5362)*0.11; b6=white*0.115926;
+    }
+  } else if (id === "brown" || id === "waves") {
+    let lastOut=0;
+    for (let i=0;i<data.length;i++){
+      const white = Math.random()*2-1;
+      lastOut = (lastOut + 0.02*white) / 1.02;
+      data[i] = lastOut * 3.5;
+    }
+  } else { // white / rain বেস
+    for (let i=0;i<data.length;i++) data[i] = Math.random()*2-1;
+  }
+  return buffer;
+}
+
+// timerRunning/stopwatchRunning চালু থাকলে এবং সাউন্ড "none" না হলে ব্যাকগ্রাউন্ডে লুপ চালায়;
+// এটা FocusGo কম্পোনেন্টের ভেতরে বসানো থাকে বলে ফুলস্ক্রিন টাইমারে গেলেও আওয়াজ বন্ধ হয় না।
+function useWhiteNoise(soundId, volume, active) {
+  const ctxRef = useRef(null);
+  const nodesRef = useRef({});
+
+  const stopNoise = () => {
+    const n = nodesRef.current;
+    try { n.source && n.source.stop(); } catch (e) {}
+    try { n.lfo && n.lfo.stop(); } catch (e) {}
+    try { n.source && n.source.disconnect(); } catch (e) {}
+    try { n.filter && n.filter.disconnect(); } catch (e) {}
+    try { n.modGain && n.modGain.disconnect(); } catch (e) {}
+    try { n.gain && n.gain.disconnect(); } catch (e) {}
+    nodesRef.current = {};
+  };
+
+  useEffect(() => {
+    if (!active || soundId === "none") { stopNoise(); return; }
+    if (!ctxRef.current) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      ctxRef.current = new AC();
+    }
+    const ctx = ctxRef.current;
+    if (ctx.state === "suspended") ctx.resume().catch(()=>{});
+
+    stopNoise();
+    const source = ctx.createBufferSource();
+    source.buffer = buildNoiseBuffer(ctx, soundId);
+    source.loop = true;
+
+    const gain = ctx.createGain();
+    gain.gain.value = volume;
+
+    let filter = null, lfo = null, modGain = null;
+    if (soundId === "rain") {
+      filter = ctx.createBiquadFilter();
+      filter.type = "highpass";
+      filter.frequency.value = 1200;
+      source.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+    } else if (soundId === "waves") {
+      lfo = ctx.createOscillator();
+      lfo.frequency.value = 0.12; // ধীর ওঠানামা, ঢেউয়ের অনুভূতি
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.value = 0.5;
+      modGain = ctx.createGain();
+      modGain.gain.value = 0.5;
+      lfo.connect(lfoGain); lfoGain.connect(modGain.gain);
+      source.connect(modGain); modGain.connect(gain); gain.connect(ctx.destination);
+      lfo.start();
+    } else {
+      source.connect(gain); gain.connect(ctx.destination);
+    }
+
+    source.start();
+    nodesRef.current = { source, gain, filter, lfo, modGain };
+    return () => stopNoise();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [soundId, active]);
+
+  useEffect(() => {
+    if (nodesRef.current.gain) nodesRef.current.gain.gain.value = volume;
+  }, [volume]);
+
+  useEffect(() => () => { stopNoise(); try { ctxRef.current && ctxRef.current.close(); } catch (e) {} }, []);
 }
 
 // ---------- Onboarding — নতুন ইউজারের জন্য ৩ স্লাইডের সংক্ষিপ্ত পরিচিতি ----------
@@ -2933,6 +3039,94 @@ export default function FocusGo() {
   const [stopwatchRunning, setStopwatchRunning] = useState(false);
   const [focusFullscreen, setFocusFullscreen] = useState(false);
   const focusFullscreenActiveRef = useRef(false); // popstate হ্যান্ডলারের ভেতর থেকে সবসময় সবশেষ ফুলস্ক্রিন অবস্থা জানার জন্য
+  // ---- White Noise: পছন্দ localStorage-এ থেকে যায়, টাইমার/স্টপওয়াচ চললেই ব্যাকগ্রাউন্ডে বাজে ----
+  const [whiteNoiseSound, setWhiteNoiseSound] = useState(() => { try { return window.localStorage.getItem("focusgo_white_noise") || "none"; } catch (e) { return "none"; } });
+  const [whiteNoiseVolume, setWhiteNoiseVolume] = useState(() => { try { const v = Number(window.localStorage.getItem("focusgo_white_noise_vol")); return Number.isFinite(v) && v > 0 ? v : 0.5; } catch (e) { return 0.5; } });
+  const [showWhiteNoisePicker, setShowWhiteNoisePicker] = useState(false);
+  useEffect(() => { try { window.localStorage.setItem("focusgo_white_noise", whiteNoiseSound); } catch (e) {} }, [whiteNoiseSound]);
+  useEffect(() => { try { window.localStorage.setItem("focusgo_white_noise_vol", String(whiteNoiseVolume)); } catch (e) {} }, [whiteNoiseVolume]);
+  useWhiteNoise(whiteNoiseSound, whiteNoiseVolume, timerRunning || stopwatchRunning);
+
+  // ---- Strict Mode: টাইমার/স্টপওয়াচ চলাকালীন অ্যাপ ছেড়ে গেলে ধরা পড়বে এবং একটা গ্রেস-পিরিয়ডের মধ্যে
+  // না ফিরলে সেশনটা ফেইল ধরে রিসেট হয়ে যাবে। কোনো OS-level "app block" সম্ভব না (Android/iOS পারমিশন দেয় না),
+  // তাই এই approach-টাই বাস্তবসম্মত: ছেড়ে যাওয়াটাকে costly করে তোলা। ----
+  const STRICT_GRACE_SECONDS = 15;
+  const [strictModeEnabled, setStrictModeEnabled] = useState(() => { try { return window.localStorage.getItem("focusgo_strict_mode") === "1"; } catch (e) { return false; } });
+  useEffect(() => { try { window.localStorage.setItem("focusgo_strict_mode", strictModeEnabled ? "1" : "0"); } catch (e) {} }, [strictModeEnabled]);
+  const [strictGraceLeft, setStrictGraceLeft] = useState(null); // null = away নয় / গ্রেস চলছে না; সংখ্যা হলে বাকি সেকেন্ড
+  const todayKeyStr = () => new Date().toISOString().slice(0, 10);
+  const [distractionCount, setDistractionCount] = useState(() => {
+    try { return Number(window.localStorage.getItem("focusgo_distractions_" + todayKeyStr())) || 0; } catch (e) { return 0; }
+  });
+  const strictActive = strictModeEnabled && (timerRunning || stopwatchRunning);
+  const strictAwaySinceRef = useRef(null);
+
+  const failStrictSession = () => {
+    setStrictGraceLeft(null);
+    strictAwaySinceRef.current = null;
+    vibrate(30);
+    if (focusMode === "timer") { setTimerRunning(false); setTimerSeconds(timerTotal); }
+    else { setStopwatchRunning(false); setStopwatchSeconds(0); }
+    setDistractionCount(c => {
+      const next = c + 1;
+      try { window.localStorage.setItem("focusgo_distractions_" + todayKeyStr(), String(next)); } catch (e) {}
+      return next;
+    });
+    pushNotification(
+      lang === "bn" ? "সেশন ফেইল হয়েছে" : "Session failed",
+      lang === "bn" ? "স্ট্রিক্ট মোডে ফোকাস ভেঙে যাওয়ায় সেশনটি বাতিল হয়ে গেছে" : "You left the app in Strict Mode — this session was cancelled",
+      null
+    );
+  };
+
+  // অ্যাপ minimize/tab-switch/অন্য অ্যাপে গেলে ডিটেক্ট করা — ওয়েবে visibilitychange, নেটিভে Capacitor App plugin
+  useEffect(() => {
+    if (!strictActive) { strictAwaySinceRef.current = null; setStrictGraceLeft(null); return; }
+    const onLeave = () => {
+      if (strictAwaySinceRef.current) return; // already tracking
+      strictAwaySinceRef.current = Date.now();
+      setStrictGraceLeft(STRICT_GRACE_SECONDS);
+      pushNotification(
+        lang === "bn" ? "সেশন বিপদে!" : "Session at risk!",
+        lang === "bn" ? `${STRICT_GRACE_SECONDS} সেকেন্ডের মধ্যে না ফিরলে সেশন ফেইল হবে` : `Return within ${STRICT_GRACE_SECONDS}s or the session will fail`,
+        null
+      );
+    };
+    const onReturn = () => {
+      if (!strictAwaySinceRef.current) return;
+      strictAwaySinceRef.current = null;
+      setStrictGraceLeft(null); // সময়মতো ফিরে এসেছে — গ্রেস কাউন্টডাউন বাতিল
+    };
+    const onVisibility = () => { if (document.hidden) onLeave(); else onReturn(); };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    let capListenerHandle = null;
+    if (Capacitor.isNativePlatform()) {
+      CapacitorApp.addListener("appStateChange", ({ isActive }) => { if (!isActive) onLeave(); else onReturn(); })
+        .then(h => { capListenerHandle = h; });
+    }
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      capListenerHandle && capListenerHandle.remove();
+    };
+  }, [strictActive, lang]);
+
+  // গ্রেস কাউন্টডাউন টিকার — ০-তে পৌঁছালে সেশন ফেইল
+  useEffect(() => {
+    if (strictGraceLeft === null) return;
+    if (strictGraceLeft <= 0) { failStrictSession(); return; }
+    const id = setTimeout(() => setStrictGraceLeft(s => (s === null ? null : s - 1)), 1000);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [strictGraceLeft]);
+
+  // ব্রাউজারে ট্যাব বন্ধ/রিফ্রেশ করলে সতর্ক করা (ওয়েব ডিপ্লয়মেন্টে "কঠিন করে তোলার" আরেকটা স্তর)
+  useEffect(() => {
+    if (!strictActive) return;
+    const handler = (e) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [strictActive]);
   const pushedFocusHistoryRef = useRef(false); // ফুলস্ক্রিন টাইমার খোলার সময় history-তে state push করেছি কিনা
   const [editTopic, setEditTopic] = useState(null);
   // ---- Pomodoro: session type (focus/break), remembered durations, and cycle progress ----
@@ -2955,7 +3149,19 @@ export default function FocusGo() {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     const listenerPromise = CapacitorApp.addListener("backButton", () => {
-      if (focusFullscreen) { setFocusFullscreen(false); return; }
+      if (focusFullscreen) {
+        if (strictActive) {
+          const leave = window.confirm(
+            lang === "bn"
+              ? "স্ট্রিক্ট মোড চালু আছে। এখন বের হলে সেশনটি ফেইল ধরা হবে। আপনি কি নিশ্চিত?"
+              : "Strict Mode is on. Leaving now will fail this session. Are you sure?"
+          );
+          if (!leave) return;
+          failStrictSession();
+        }
+        setFocusFullscreen(false);
+        return;
+      }
       if (showSearch) { setShowSearch(false); return; }
       if (taskDetailId) { setTaskDetailId(null); return; }
       if (showAddTask || editingTask) { setShowAddTask(false); setEditingTask(null); return; }
@@ -2991,7 +3197,7 @@ export default function FocusGo() {
     tab, focusFullscreen, taskDetailId, showAddTask, editingTask, selectedDay,
     showCombinedExamEditor, showNextExamEditor, showManageTopicsFor, showExamSchedule,
     showExams, showAdd, showSubjects, showAllSubjectsProgress, showCalendar,
-    showProfile, showTopicPicker, showBreakPrompt, showSearch,
+    showProfile, showTopicPicker, showBreakPrompt, showSearch, strictActive, lang,
   ]);
 
   const timerRef = useRef(null);
@@ -5199,6 +5405,46 @@ export default function FocusGo() {
                 <button onClick={()=>setFocusMode("timer")} style={{border:"none", borderRadius:8, padding:"3px 8px", fontSize:10, fontWeight:700, cursor:"pointer", background: focusMode==="timer" ? textMain : "transparent", color: focusMode==="timer" ? cardBg : textMuted2}}>{t.timerMode}</button>
                 <button onClick={()=>setFocusMode("stopwatch")} style={{border:"none", borderRadius:8, padding:"3px 8px", fontSize:10, fontWeight:700, cursor:"pointer", background: focusMode==="stopwatch" ? textMain : "transparent", color: focusMode==="stopwatch" ? cardBg : textMuted2}}>{t.stopwatchMode}</button>
               </div>
+              <button
+                onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setStrictModeEnabled(s=>!s); }}
+                disabled={timerRunning || stopwatchRunning}
+                title={lang==="bn" ? "স্ট্রিক্ট মোড (মাঝপথে অ্যাপ ছাড়লে সেশন ফেইল হবে)" : "Strict Mode (leaving mid-session fails it)"}
+                style={{border:"none", background:"transparent", cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", color: strictModeEnabled ? "#C0392B" : textMuted2, opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1, display:"flex", alignItems:"center", padding:4}}>
+                {strictModeEnabled ? <ShieldAlert size={15}/> : <Shield size={15}/>}
+              </button>
+              <div style={{position:"relative"}}>
+                <button onClick={()=>{vibrate(); setShowWhiteNoisePicker(s=>!s);}} title={lang==="bn" ? "হোয়াইট নয়েজ" : "White Noise"} style={{border:"none", background:"transparent", cursor:"pointer", color: whiteNoiseSound!=="none" ? accent : textMuted2, display:"flex", alignItems:"center", padding:4}}>
+                  <Music size={15}/>
+                </button>
+                {showWhiteNoisePicker && (
+                  <>
+                  <div onClick={()=>setShowWhiteNoisePicker(false)} style={{position:"fixed", inset:0, zIndex:19}}/>
+                  <div onClick={e=>e.stopPropagation()} style={{position:"absolute", top:"calc(100% + 6px)", right:0, zIndex:20, width:220, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:12, boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.35)" : "0 10px 24px rgba(0,0,0,0.14)"}}>
+                    <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:6}}>
+                      {WHITE_NOISE_TYPES.map(opt => {
+                        const active = whiteNoiseSound === opt.id;
+                        const OptIcon = opt.Icon;
+                        return (
+                          <button key={opt.id} onClick={()=>{ vibrate(); setWhiteNoiseSound(opt.id); }} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, border:`1px solid ${active ? accent : cardBorder}`, background: active ? `${accent}14` : "transparent", borderRadius:12, padding:"8px 4px", cursor:"pointer", color: active ? accent : textMain}}>
+                            <OptIcon size={16}/>
+                            <span style={{fontSize:10, fontWeight:700, textAlign:"center"}}>{lang==="bn" ? opt.labelBn : opt.labelEn}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {whiteNoiseSound !== "none" && (
+                      <div style={{display:"flex", alignItems:"center", gap:8, marginTop:10}}>
+                        <VolumeX size={13} color={textMuted2}/>
+                        <input type="range" min={0} max={1} step={0.01} value={whiteNoiseVolume}
+                          onChange={e=>setWhiteNoiseVolume(Number(e.target.value))}
+                          style={{flex:1}}/>
+                        <Volume2 size={13} color={textMuted2}/>
+                      </div>
+                    )}
+                  </div>
+                  </>
+                )}
+              </div>
               <button onClick={()=>{vibrate(); setFocusFullscreen(true);}} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex", alignItems:"center", padding:4}}>
                 <Maximize2 size={15}/>
               </button>
@@ -6417,6 +6663,19 @@ export default function FocusGo() {
             style={{border:"none", background:"transparent", color:"#8A8272", cursor:"pointer", padding:2, display:"flex", flexShrink:0}}>
             <X size={14}/>
           </button>
+        </div>
+      )}
+
+      {/* Strict Mode গ্রেস কাউন্টডাউন — অ্যাপ ছেড়ে গিয়ে দ্রুত ফিরে এলে এই ব্যানারটা সংক্ষিপ্ত সময়ের জন্য দেখা যেতে পারে */}
+      {strictGraceLeft !== null && (
+        <div style={{position:"fixed", left:"50%", top:14, transform:"translateX(-50%)", zIndex:90,
+          background:"#C0392B", color:"#fff", borderRadius:14, padding:"10px 16px",
+          display:"flex", alignItems:"center", gap:8, boxShadow:"0 6px 18px rgba(192,57,43,0.4)",
+          maxWidth:"calc(100vw - 32px)", animation:"fg-fade-up .2s cubic-bezier(0.16,1,0.3,1)"}}>
+          <ShieldAlert size={16}/>
+          <span style={{fontSize:13, fontWeight:700, whiteSpace:"nowrap"}}>
+            {lang==="bn" ? `ফিরে আসুন! সেশন ফেইল হতে বাকি ${strictGraceLeft} সেকেন্ড` : `Come back! Session fails in ${strictGraceLeft}s`}
+          </span>
         </div>
       )}
 
