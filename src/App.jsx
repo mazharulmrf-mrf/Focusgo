@@ -7,7 +7,7 @@ import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Geolocation } from "@capacitor/geolocation";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert, BookOpen } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert, BookOpen, Hourglass } from "lucide-react";
 
 // lucide-react-এর এই ভার্সনে Mars/Venus নেই, তাই নিজে ছোট SVG icon বানানো হলো
 const Mars = ({ size = 18, color = "currentColor" }) => (
@@ -5441,17 +5441,18 @@ export default function FocusGo() {
           );
         })()}
 
-        {/* Focus timer - main home of Study tab (Study Plan sub-section) */}
+        {/* Focus timer - main home of Study tab (Study Plan sub-section) — redesigned to match the two-column
+            mockup: title/subtitle + controls on the left, a decorative progress ring with an hourglass on the right */}
         {tab === "study" && studySection === "plan" && (
-        <div className="fg-tab-panel" style={{marginTop:14, background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:20, padding:"11px 16px 12px", color:textMain, boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.20)" : `0 6px 16px ${accent}14`, position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:14, background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:22, padding:"16px 18px 16px", color:textMain, boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.20)" : `0 6px 16px ${accent}14`, position:"relative", overflow:"hidden"}}>
           <div style={{position:"absolute", top:-50, right:-50, width:130, height:130, borderRadius:"50%", background:`${accent}14`, pointerEvents:"none"}}/>
-          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", position:"relative"}}>
-            <span style={{fontSize:11, letterSpacing:ls(1.5), fontWeight:800, color:textMuted2}}>{t.focusTimer}</span>
-            <div style={{display:"flex", alignItems:"center", gap:6}}>
-              <div style={{display:"flex", background: dark?"#17151C":"#fff", borderRadius:10, padding:2, gap:2}}>
-                <button onClick={()=>setFocusMode("timer")} style={{border:"none", borderRadius:8, padding:"3px 8px", fontSize:10, fontWeight:700, cursor:"pointer", background: focusMode==="timer" ? textMain : "transparent", color: focusMode==="timer" ? cardBg : textMuted2}}>{t.timerMode}</button>
-                <button onClick={()=>setFocusMode("stopwatch")} style={{border:"none", borderRadius:8, padding:"3px 8px", fontSize:10, fontWeight:700, cursor:"pointer", background: focusMode==="stopwatch" ? textMain : "transparent", color: focusMode==="stopwatch" ? cardBg : textMuted2}}>{t.stopwatchMode}</button>
-              </div>
+
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", position:"relative", gap:8}}>
+            <div style={{minWidth:0}}>
+              <div style={{fontSize:17, fontWeight:800, color:accent, letterSpacing:-0.2}}>{lang==="bn" ? "ফোকাস টাইমার" : "Focus Timer"}</div>
+              <div style={{fontSize:11.5, color:textMuted2, marginTop:2}}>{lang==="bn" ? "মনোযোগী থাকো। বেশি কাজ শেষ করো।" : "Stay focused. Get more done."}</div>
+            </div>
+            <div style={{display:"flex", alignItems:"center", gap:4, flexShrink:0}}>
               <button
                 onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setStrictModeEnabled(s=>!s); }}
                 disabled={timerRunning || stopwatchRunning}
@@ -5498,187 +5499,218 @@ export default function FocusGo() {
             </div>
           </div>
 
-          {focusMode === "timer" ? (
-            <>
-              {/* Session Type: Focus/Break — উপরের Timer/Stopwatch পিলের সাথে জগাখিচুড়ি লাগছিল বলে
-                  এখন বক্স/বর্ডার ছাড়া হালকা টেক্সট-টগল, সাব-লেবেলের মতো লাগবে, দুটো কন্ট্রোল আলাদা করে বোঝা যাবে */}
-              <div style={{display:"flex", justifyContent:"center", alignItems:"center", gap:8, marginTop:8}}>
-                <button onClick={()=>changeSessionType("focus")} disabled={timerRunning} title={t.sessionTypeLabel} style={{
-                  border:"none", background:"transparent", padding:0, fontSize:12, fontWeight: sessionType==="focus" ? 800 : 600,
-                  cursor: timerRunning ? "default" : "pointer",
-                  color: sessionType==="focus" ? accent : textMuted2,
-                  opacity: sessionType==="focus" ? 1 : 0.65,
-                  transition:"color .15s ease, opacity .15s ease"
-                }}>{t.focusOption}</button>
-                <span style={{width:3, height:3, borderRadius:"50%", background:textMuted2, opacity:0.4}}/>
-                <button onClick={()=>changeSessionType("break")} disabled={timerRunning} title={t.sessionTypeLabel} style={{
-                  border:"none", background:"transparent", padding:0, fontSize:12, fontWeight: sessionType==="break" ? 800 : 600,
-                  cursor: timerRunning ? "default" : "pointer",
-                  color: sessionType==="break" ? accent : textMuted2,
-                  opacity: sessionType==="break" ? 1 : 0.65,
-                  transition:"color .15s ease, opacity .15s ease"
-                }}>{t.breakOption}</button>
-              </div>
-              <div style={{textAlign:"center", margin: timerRunning ? "4px 0 2px" : "3px 0 1px", transition:"margin .25s ease"}}>
-                {editingDuration ? (
-                  <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4}}>
-                    <input
-                      type="number"
-                      autoFocus
-                      value={durationInput}
-                      onChange={(e)=>setDurationInput(e.target.value)}
-                      onBlur={commitDurationEdit}
-                      onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
-                      min={1}
-                      max={180}
-                      style={{width:80, fontSize:28, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:1, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${textMain}`, textAlign:"center", outline:"none"}}
-                    />
-                    <span style={{fontSize:14, fontWeight:700, color:textMuted2}}>{t.minutes}</span>
-                  </div>
-                ) : (
-                  // ডিজিটের চারপাশে একটা সরু সার্কুলার প্রোগ্রেস রিং — সেশন কতটা এগিয়েছে সেটা এক নজরে বোঝা যায়,
-                  // আগে শুধু প্লেইন নাম্বার ছিল, এখন সেটাই ভিজ্যুয়ালি informative হলো
-                  (() => {
-                    const ringSize = timerRunning ? 168 : 138;
-                    const stroke = timerRunning ? 6 : 5;
-                    const r = 45;
-                    const c = 2 * Math.PI * r;
-                    const elapsedFrac = timerTotal > 0 ? Math.min(1, Math.max(0, (timerTotal - timerSeconds) / timerTotal)) : 0;
-                    const ringColor = sessionType === "focus" ? accent : inkColor;
-                    return (
-                      <div style={{position:"relative", display:"inline-flex", alignItems:"center", justifyContent:"center", width:ringSize, height:ringSize, transition:"width .25s ease, height .25s ease"}}>
-                        <svg width={ringSize} height={ringSize} viewBox="0 0 100 100" style={{position:"absolute", inset:0, transform:"rotate(-90deg)"}}>
-                          <circle cx="50" cy="50" r={r} fill="none" stroke={dark?"#2C2B33":"#E7E5ED"} strokeWidth={stroke}/>
-                          <circle cx="50" cy="50" r={r} fill="none" stroke={ringColor} strokeWidth={stroke} strokeLinecap="round"
-                            strokeDasharray={c} strokeDashoffset={c * (1 - elapsedFrac)}
-                            style={{transition:"stroke-dashoffset 1s linear, stroke .2s ease"}}/>
-                        </svg>
-                        <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined} style={{position:"relative", fontSize: timerRunning ? 40 : 30, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
-                          <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
-                        </div>
-                      </div>
-                    );
-                  })()
-                )}
-                {timerTopic && (
-                  !timerRunning ? (
-                    <button onClick={()=>{ const next=!showTopicPicker; setShowTopicPicker(next); if (next) setFreeSessionTouched(false); }} style={{display:"inline-flex", alignItems:"center", gap:4, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, marginTop:2, padding:0}}>
-                      {`${timerTopic.subject} — ${timerTopic.topic}`}
-                      <ChevronDown size={12} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
-                    </button>
-                  ) : (
-                    <div style={{fontSize:12, color:textMuted2, marginTop:2}}>
-                      {`${timerTopic.subject} — ${timerTopic.topic}`}
+          <div style={{display:"flex", alignItems:"center", gap:16, marginTop:14, position:"relative"}}>
+            {/* LEFT column — digits, mode pill, and controls */}
+            <div style={{flex:1, minWidth:0}}>
+              {focusMode === "timer" ? (
+                <>
+                  {editingDuration ? (
+                    <div style={{display:"flex", alignItems:"center", gap:4}}>
+                      <input
+                        type="number"
+                        autoFocus
+                        value={durationInput}
+                        onChange={(e)=>setDurationInput(e.target.value)}
+                        onBlur={commitDurationEdit}
+                        onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
+                        min={1}
+                        max={180}
+                        style={{width:80, fontSize:28, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:1, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${textMain}`, outline:"none"}}
+                      />
+                      <span style={{fontSize:14, fontWeight:700, color:textMuted2}}>{t.minutes}</span>
                     </div>
-                  )
-                )}
-                {!timerTopic && !timerRunning && (
-                  <button onClick={()=>{ const next=!showTopicPicker; setShowTopicPicker(next); if (next) setFreeSessionTouched(false); }} style={{display:"inline-flex", alignItems:"center", border:"none", background:"transparent", cursor:"pointer", color:textMuted2, marginTop:4, padding:2}}>
-                    <ChevronDown size={13} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
-                  </button>
-                )}
-                {!timerRunning && showTopicPicker && (
-                  <div style={{display:"flex", flexWrap:"wrap", justifyContent:"center", gap:6, marginTop:8}}>
-                    <button onClick={()=>{ vibrate(); setTimerTopicId(null); setFreeSessionTouched(true); }} style={{border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
-                      {t.freeSessionOption}
+                  ) : (
+                    <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined}
+                      style={{fontSize:36, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color:textMain, cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
+                      <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
+                    </div>
+                  )}
+
+                  {/* Mode pill (Pomodoro/Stopwatch) + Focus/Break inline switch */}
+                  <div style={{display:"flex", alignItems:"center", gap:8, marginTop:8, flexWrap:"wrap"}}>
+                    <button onClick={()=>{ if (timerRunning) return; vibrate(); setFocusMode("stopwatch"); }} disabled={timerRunning}
+                      style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#17151C":"#fff", color:textMain, borderRadius:999, padding:"6px 12px", fontSize:12, fontWeight:800, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
+                      {t.timerMode} <ChevronDown size={12}/>
                     </button>
-                    {todayTopics.filter(x=>!x.done).map(x => (
-                      <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-                        {x.topic}
-                      </button>
-                    ))}
+                    <button onClick={()=>changeSessionType(sessionType==="focus" ? "break" : "focus")} disabled={timerRunning} title={t.sessionTypeLabel} style={{
+                      border:"none", background:"transparent", padding:0, fontSize:11.5, fontWeight:700,
+                      cursor: timerRunning ? "default" : "pointer",
+                      color: sessionType==="focus" ? accent : textMuted2,
+                      opacity: sessionType==="focus" ? 1 : 0.7,
+                    }}>{sessionType==="focus" ? t.focusOption : t.breakOption}</button>
                   </div>
-                )}
-                {!timerRunning && showTopicPicker && freeSessionTouched && (
-                  <div style={{display:"flex", justifyContent:"center", gap:6, marginTop:6, flexWrap:"wrap"}}>
-                    {(sessionType === "focus" ? [25,30,45,50,60] : [5,10,15]).map(mins => {
-                      const active = Math.round(timerTotal/60) === mins;
-                      return (
-                        <button key={mins} onClick={()=>setPresetDuration(mins)} style={{border:`1px solid ${active ? inkColor : cardBorder}`, background: active ? inkA(0.10) : "transparent", color: active ? inkColor : textMuted2, borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
-                          <Num>{nf(mins)}</Num> {t.minutes}
+
+                  {/* Start / Custom Time / Reset buttons */}
+                  <div style={{display:"flex", gap:8, marginTop:12}}>
+                    <button
+                      onClick={toggleTimerRunning}
+                      style={{display:"flex", alignItems:"center", gap:7, background: accent, border:"none", borderRadius:14, padding:"11px 16px", color:"#fff", fontWeight:800, fontSize:13.5, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`, flexShrink:0}}>
+                      {timerRunning ? <Pause size={15} fill="#fff"/> : <Play size={15} fill="#fff"/>} {timerRunning ? t.pause : t.start}
+                    </button>
+                    <button onClick={()=>{ if (timerRunning) return; vibrate(); startEditDuration(); }} disabled={timerRunning}
+                      style={{display:"flex", alignItems:"center", gap:6, border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, borderRadius:14, padding:"0 12px", fontWeight:800, fontSize:12, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.5 : 1, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                      <Clock size={13}/> {lang==="bn" ? "কাস্টম সময়" : "Custom Time"}
+                    </button>
+                    <button onClick={()=>{setTimerRunning(false); setTimerSeconds(timerTotal);}} title={t.reset} style={{background: dark?"#332E25":"#F0DCC9", border:"none", borderRadius:14, width:38, flexShrink:0, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+                      <RotateCcw size={15} color={textMain}/>
+                    </button>
+                  </div>
+
+                  {/* Topic picker */}
+                  <div style={{marginTop:10}}>
+                    {timerTopic ? (
+                      !timerRunning ? (
+                        <button onClick={()=>{ const next=!showTopicPicker; setShowTopicPicker(next); if (next) setFreeSessionTouched(false); }} style={{display:"inline-flex", alignItems:"center", gap:4, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, padding:0}}>
+                          {`${timerTopic.subject} — ${timerTopic.topic}`}
+                          <ChevronDown size={12} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
                         </button>
-                      );
-                    })}
+                      ) : (
+                        <div style={{fontSize:12, color:textMuted2}}>{`${timerTopic.subject} — ${timerTopic.topic}`}</div>
+                      )
+                    ) : (
+                      !timerRunning && (
+                        <button onClick={()=>{ const next=!showTopicPicker; setShowTopicPicker(next); if (next) setFreeSessionTouched(false); }} style={{display:"inline-flex", alignItems:"center", gap:4, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, padding:0}}>
+                          {t.pickTopicForTimer}
+                          <ChevronDown size={12} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+                        </button>
+                      )
+                    )}
+                    {!timerRunning && showTopicPicker && (
+                      <div style={{display:"flex", flexWrap:"wrap", gap:6, marginTop:8}}>
+                        <button onClick={()=>{ vibrate(); setTimerTopicId(null); setFreeSessionTouched(true); }} style={{border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+                          {t.freeSessionOption}
+                        </button>
+                        {todayTopics.filter(x=>!x.done).map(x => (
+                          <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                            {x.topic}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {!timerRunning && showTopicPicker && freeSessionTouched && (
+                      <div style={{display:"flex", gap:6, marginTop:6, flexWrap:"wrap"}}>
+                        {(sessionType === "focus" ? [25,30,45,50,60] : [5,10,15]).map(mins => {
+                          const active = Math.round(timerTotal/60) === mins;
+                          return (
+                            <button key={mins} onClick={()=>setPresetDuration(mins)} style={{border:`1px solid ${active ? inkColor : cardBorder}`, background: active ? inkA(0.10) : "transparent", color: active ? inkColor : textMuted2, borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+                              <Num>{nf(mins)}</Num> {t.minutes}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <div style={{display:"flex", gap:8, marginTop:8}}>
-                <button
-                  onClick={toggleTimerRunning}
-                  style={{flex:1, background: accent, border:"none", borderRadius:16, padding:"11px 0", color:"#fff", fontWeight:800, fontSize:16, display:"flex",alignItems:"center",justifyContent:"center", gap:8, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`}}>
-                  {timerRunning ? <Pause size={17} fill="#fff"/> : <Play size={17} fill="#fff"/>} {timerRunning ? t.pause : t.start}
-                </button>
-                <button onClick={()=>{setTimerRunning(false); setTimerSeconds(timerTotal);}} style={{background: dark?"#332E25":"#F0DCC9", border:"none", borderRadius:16, width:44, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
-                  <RotateCcw size={17} color={textMain}/>
-                </button>
-              </div>
-              {/* Pomodoro cycle progress: Session X/N + ●●○○○ — N dynamic হয় যদি টপিক থেকে multi-session শুরু হয় */}
-              <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, marginTop:6}}>
-                <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>
-                  {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num>
-                </div>
-                <div style={{display:"flex", alignItems:"center", gap:5, flexWrap:"wrap", justifyContent:"center", maxWidth:180}}>
-                  {Array.from({length:pomodoroTotalSessions}, (_,i)=>i+1).map(i => {
-                    const state = i < pomodoroSession ? "done" : (i === pomodoroSession ? "current" : "upcoming");
-                    return (
-                      <span key={i} style={{
-                        width: state === "current" ? 8 : 6, height: state === "current" ? 8 : 6, borderRadius:"50%",
-                        background: state === "upcoming" ? "transparent" : accent,
-                        border: state === "upcoming" ? `1.5px solid ${textMuted2}` : "none",
-                        opacity: state === "done" ? 0.55 : 1,
-                        transition:"all .2s ease"
-                      }}/>
-                    );
-                  })}
-                </div>
-                {timerTargetMinutes && (
-                  <div style={{fontSize:11, color:textMuted2, fontWeight:600, opacity:0.75}}>
-                    <Num>{nf(timerElapsedMinutes)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
+
+                  {/* Pomodoro cycle progress: Session X/N + ●●○○○ */}
+                  <div style={{display:"flex", flexDirection:"column", gap:4, marginTop:10}}>
+                    <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>
+                      {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num>
+                    </div>
+                    <div style={{display:"flex", alignItems:"center", gap:5, flexWrap:"wrap"}}>
+                      {Array.from({length:pomodoroTotalSessions}, (_,i)=>i+1).map(i => {
+                        const state = i < pomodoroSession ? "done" : (i === pomodoroSession ? "current" : "upcoming");
+                        return (
+                          <span key={i} style={{
+                            width: state === "current" ? 8 : 6, height: state === "current" ? 8 : 6, borderRadius:"50%",
+                            background: state === "upcoming" ? "transparent" : accent,
+                            border: state === "upcoming" ? `1.5px solid ${textMuted2}` : "none",
+                            opacity: state === "done" ? 0.55 : 1,
+                            transition:"all .2s ease"
+                          }}/>
+                        );
+                      })}
+                    </div>
+                    {timerTargetMinutes && (
+                      <div style={{fontSize:11, color:textMuted2, fontWeight:600, opacity:0.75}}>
+                        <Num>{nf(timerElapsedMinutes)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <div style={{textAlign:"center", margin: stopwatchRunning ? "4px 0 2px" : "3px 0 1px", transition:"margin .25s ease"}}>
-                <div className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize: stopwatchRunning ? 42 : 32, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", lineHeight:1}}>
-                  <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
-                </div>
-                {!stopwatchRunning ? (
-                  <button onClick={()=>setShowTopicPicker(v=>!v)} style={{display:"inline-flex", alignItems:"center", gap:4, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, marginTop:2, padding:0}}>
-                    {timerTopic ? `${timerTopic.subject} — ${timerTopic.topic}` : t.pickTopicForTimer}
-                    <ChevronDown size={12} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
-                  </button>
-                ) : (
-                  <div style={{fontSize:12, color:textMuted2, marginTop:2}}>
-                    {timerTopic ? `${timerTopic.subject} — ${timerTopic.topic}` : t.pickTopicForTimer}
+                </>
+              ) : (
+                <>
+                  <div className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:36, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, lineHeight:1}}>
+                    <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
                   </div>
-                )}
-                {!stopwatchRunning && showTopicPicker && (
-                  <div style={{display:"flex", flexWrap:"wrap", justifyContent:"center", gap:6, marginTop:8}}>
-                    <button onClick={()=>selectTimerTopic(null)} style={{border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
-                      {t.freeSessionOption}
+
+                  <div style={{display:"flex", alignItems:"center", gap:8, marginTop:8, flexWrap:"wrap"}}>
+                    <button onClick={()=>{ if (stopwatchRunning) return; vibrate(); setFocusMode("timer"); }} disabled={stopwatchRunning}
+                      style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#17151C":"#fff", color:textMain, borderRadius:999, padding:"6px 12px", fontSize:12, fontWeight:800, cursor: stopwatchRunning ? "default" : "pointer", opacity: stopwatchRunning ? 0.6 : 1}}>
+                      {t.stopwatchMode} <ChevronDown size={12}/>
                     </button>
-                    {todayTopics.filter(x=>!x.done).map(x => (
-                      <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-                        {x.topic}
-                      </button>
-                    ))}
                   </div>
-                )}
+
+                  <div style={{display:"flex", gap:8, marginTop:12}}>
+                    <button
+                      onClick={toggleStopwatchRunning}
+                      style={{display:"flex", alignItems:"center", gap:7, background: accent, border:"none", borderRadius:14, padding:"11px 16px", color:"#fff", fontWeight:800, fontSize:13.5, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`, flexShrink:0}}>
+                      {stopwatchRunning ? <Pause size={15} fill="#fff"/> : <Play size={15} fill="#fff"/>} {stopwatchRunning ? t.pause : t.start}
+                    </button>
+                    <button onClick={()=>{setStopwatchRunning(false); setStopwatchSeconds(0);}} title={t.reset} style={{background: dark?"#332E25":"#F0DCC9", border:"none", borderRadius:14, width:38, flexShrink:0, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+                      <RotateCcw size={15} color={textMain}/>
+                    </button>
+                  </div>
+
+                  <div style={{marginTop:10}}>
+                    {!stopwatchRunning ? (
+                      <button onClick={()=>setShowTopicPicker(v=>!v)} style={{display:"inline-flex", alignItems:"center", gap:4, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, padding:0}}>
+                        {timerTopic ? `${timerTopic.subject} — ${timerTopic.topic}` : t.pickTopicForTimer}
+                        <ChevronDown size={12} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+                      </button>
+                    ) : (
+                      <div style={{fontSize:12, color:textMuted2}}>
+                        {timerTopic ? `${timerTopic.subject} — ${timerTopic.topic}` : t.pickTopicForTimer}
+                      </div>
+                    )}
+                    {!stopwatchRunning && showTopicPicker && (
+                      <div style={{display:"flex", flexWrap:"wrap", gap:6, marginTop:8}}>
+                        <button onClick={()=>selectTimerTopic(null)} style={{border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+                          {t.freeSessionOption}
+                        </button>
+                        {todayTopics.filter(x=>!x.done).map(x => (
+                          <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                            {x.topic}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* RIGHT column — decorative dashed progress ring with hourglass, matches the mockup */}
+            <div style={{flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center", gap:10, width:110}}>
+              {(() => {
+                const ringSize = 108;
+                const stroke = 5;
+                const r = 47;
+                const c = 2 * Math.PI * r;
+                const dashLen = 5.5, gapLen = 4.5;
+                const elapsedFrac = focusMode === "timer"
+                  ? (timerTotal > 0 ? Math.min(1, Math.max(0, (timerTotal - timerSeconds) / timerTotal)) : 0)
+                  : ((stopwatchSeconds % 60) / 60);
+                const ringColor = focusMode === "timer" && sessionType === "break" ? inkColor : accent;
+                const running = focusMode === "timer" ? timerRunning : stopwatchRunning;
+                return (
+                  <div style={{position:"relative", width:ringSize, height:ringSize, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                    <svg width={ringSize} height={ringSize} viewBox="0 0 120 120" style={{position:"absolute", inset:0, transform:"rotate(-90deg)"}}>
+                      <circle cx="60" cy="60" r={r} fill="none" stroke={`${ringColor}33`} strokeWidth={stroke} strokeDasharray={`${dashLen} ${gapLen}`}/>
+                      <circle cx="60" cy="60" r={r} fill="none" stroke={ringColor} strokeWidth={stroke} strokeDasharray={`${dashLen} ${gapLen}`}
+                        strokeDashoffset={c * (1 - elapsedFrac)}
+                        style={{transition:"stroke-dashoffset 1s linear"}}/>
+                    </svg>
+                    <div className={running ? "fg-timer-running" : undefined} style={{width:56, height:56, borderRadius:"50%", background:`${ringColor}1c`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                      <Hourglass size={24} color={ringColor} strokeWidth={2}/>
+                    </div>
+                  </div>
+                );
+              })()}
+              <div style={{fontSize:11, color:textMuted2, fontWeight:700, textAlign:"center", lineHeight:1.3}}>
+                {lang==="bn" ? "তুমি পারবে! 💪" : "You've got this! 💪"}
               </div>
-              <div style={{display:"flex", gap:8, marginTop:8}}>
-                <button
-                  onClick={toggleStopwatchRunning}
-                  style={{flex:1, background: accent, border:"none", borderRadius:16, padding:"11px 0", color:"#fff", fontWeight:800, fontSize:16, display:"flex",alignItems:"center",justifyContent:"center", gap:8, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`}}>
-                  {stopwatchRunning ? <Pause size={17} fill="#fff"/> : <Play size={17} fill="#fff"/>} {stopwatchRunning ? t.pause : t.start}
-                </button>
-                <button onClick={()=>{setStopwatchRunning(false); setStopwatchSeconds(0);}} style={{background: dark?"#332E25":"#F0DCC9", border:"none", borderRadius:16, width:44, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
-                  <RotateCcw size={17} color={textMain}/>
-                </button>
-              </div>
-            </>
-          )}
+            </div>
+          </div>
         </div>
         )}
 
