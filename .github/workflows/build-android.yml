@@ -31,6 +31,16 @@ jobs:
       - name: Add Android platform
         run: npx cap add android
 
+      # @capacitor-firebase/authentication-এর Google Sign-In (Android) নেটিভ কোড ছাড়া কাজ করবে না
+      # যতক্ষণ না variables.gradle-এ এই দুটো ফ্ল্যাগ থাকে — নাহলে GoogleAuthProviderHandler null থেকে যায়
+      # এবং "Attempt to invoke virtual method ... on a null object reference" ক্র্যাশ হয়।
+      - name: Enable Google provider for capacitor-firebase-authentication
+        run: |
+          sed -i "/ext {/a\\    rgcfaIncludeGoogle = true\n    androidxCredentialsVersion = '1.3.0'" android/variables.gradle
+
+      - name: DEBUG - show variables.gradle content
+        run: cat android/variables.gradle
+
       - name: Add Android permissions
         run: |
           sed -i '/<application/i\    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />' android/app/src/main/AndroidManifest.xml
