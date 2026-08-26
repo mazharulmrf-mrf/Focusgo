@@ -8271,8 +8271,8 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
         </div>
         <div style={{display:"flex", gap:10, marginTop:20}}>
           <button onClick={onClose} style={{flex:1, padding:"12px 0", borderRadius:12, border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, fontWeight:700, cursor:"pointer"}}>{t.cancel}</button>
-          <button onClick={submit}
-            style={{flex:1, padding:"12px 0", borderRadius:12, border:"none", background:accent, color:"#fff", fontWeight:700, cursor:"pointer", opacity: canSubmit?1:0.5}}>{t.add}</button>
+          <button onClick={submit} disabled={!canSubmit}
+            style={{flex:1, padding:"12px 0", borderRadius:12, border:"none", background:accent, color:"#fff", fontWeight:700, cursor: canSubmit?"pointer":"not-allowed", opacity: canSubmit?1:0.45}}>{t.add}</button>
         </div>
       </div>
     </div>
