@@ -4269,9 +4269,14 @@ export default function FocusGo() {
       if (e.done) { doneCount += 1; totalMin += (e.duration || 0); }
     });
     const pct = totalCount ? Math.round((doneCount/totalCount)*100) : 0;
-    // streak: consecutive days up to today with at least one completed topic
+    // streak: consecutive days up to today with at least one completed topic.
+    // আজকে এখনো কিছু done না হলেও গতকালের স্ট্রিক ভাঙা উচিত না (দিনের শুরুতেই ০ দেখানো ভুল লজিক ছিল) —
+    // তাই আজ কিছু done না থাকলে গতকাল থেকে গোনা শুরু হয়, শুধু "আজ" থেকেই না
     let streak = 0;
     let cursor = new Date(today);
+    if (!(entries[dateKey(cursor)] || []).some(x=>x.done)) {
+      cursor.setDate(cursor.getDate()-1);
+    }
     while (true) {
       const dk = dateKey(cursor);
       const list = entries[dk] || [];
@@ -5009,14 +5014,14 @@ export default function FocusGo() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:16, border:`1px solid ${accent}4D`, borderBottom:"none", background: dark ? `${accent}3D` : `${accent}33`, borderRadius:"20px 20px 0 0", padding:"14px 18px 6px", boxSizing:"border-box"}}>
+        <div style={{marginTop:16, border:`1px solid ${accent}3D`, borderBottom:"none", background: dark ? `${accent}24` : `${accent}1F`, borderRadius:"20px 20px 0 0", padding:"14px 18px 6px", boxSizing:"border-box"}}>
           <div style={{marginBottom:2}}>
             {(() => {
               const fullName = (user?.displayName || "").trim();
               const parts = fullName.split(/\s+/).filter(Boolean);
               // Md./Mr./Mrs./Miss/Ms./Dr. এই ধরনের honorific প্রথম word হিসেবে থাকলে বাদ দিয়ে তার পরের word-টাকে First Name ধরা হয়
               const HONORIFIC_RE = /^(md|mr|mrs|miss|ms|dr|mohammad|mohammed)\.?$/i;
-              const firstName = parts.find(p => !HONORIFIC_RE.test(p)) || (lang === "bn" ? "বন্ধু" : "Maruf");
+              const firstName = parts.find(p => !HONORIFIC_RE.test(p)) || (lang === "bn" ? "বন্ধু" : "Friend");
               const dayHash = Math.floor(new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime() / 86400000);
 
               // আজকের study progress অনুযায়ী motivation-এর টোন ঠিক করা হয় — শুরু/চলমান/সম্পন্ন
@@ -5319,9 +5324,9 @@ export default function FocusGo() {
           return (
         <div className="fg-tab-panel" style={{
             marginTop: tab === "today" ? 0 : 16,
-            border:`1px solid ${accent}4D`,
-            borderTop: tab === "today" ? "none" : `1px solid ${accent}4D`,
-            background: dark ? `${accent}3D` : `${accent}33`,
+            border:`1px solid ${accent}3D`,
+            borderTop: tab === "today" ? "none" : `1px solid ${accent}3D`,
+            background: dark ? `${accent}24` : `${accent}1F`,
             borderRadius: tab === "today" ? "0 0 20px 20px" : 20,
             padding: tab === "today" ? "10px 18px 16px" : "16px 18px",
             position:"relative", overflow:"hidden",
@@ -5364,7 +5369,7 @@ export default function FocusGo() {
                 <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
                   <div style={{fontSize:13, fontWeight:800, color:inkColor}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
                   <div style={{fontSize:11, fontWeight:700, color:inkA(0.75), whiteSpace:"nowrap"}}>
-                    {!hasTasks ? (lang==="bn" ? "কোনো টাস্ক নেই" : "No tasks today") : cardLeft > 0 ? (lang==="bn" ? `${nf(cardLeft)}টা বাকি` : `${cardLeft} left`) : t.taskAllDoneLabel}
+                    {!hasTasks ? (lang==="bn" ? "কোনো টাস্ক নেই" : "No tasks today") : cardLeft > 0 ? (lang==="bn" ? `${nf(cardDone)}/${nf(cardTodayTasks.length)} সম্পন্ন` : `${cardDone}/${cardTodayTasks.length} completed`) : t.taskAllDoneLabel}
                   </div>
                 </div>
                 <div style={{height:6, borderRadius:8, background: `${accent}33`, overflow:"hidden"}}>
@@ -5400,10 +5405,10 @@ export default function FocusGo() {
               {nearestUpcomingExam && examInfo && (
                 <button
                   onClick={() => { vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
-                  style={{display:"flex", alignItems:"center", gap:7, flexShrink:1, minWidth:0, border:"none", background:"#000000", color:"#fff", borderRadius:999, padding:"9px 14px", cursor:"pointer", boxShadow:"0 4px 10px rgba(0,0,0,0.20)"}}
+                  style={{display:"flex", alignItems:"flex-start", gap:7, flexShrink:1, minWidth:0, border:"none", background:"#000000", color:"#fff", borderRadius:20, padding:"9px 14px", cursor:"pointer", boxShadow:"0 4px 10px rgba(0,0,0,0.20)", textAlign:"left"}}
                 >
-                  <CalendarDays size={14} strokeWidth={2.2}/>
-                  <span style={{fontSize:12.5, fontWeight:700, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                  <CalendarDays size={14} strokeWidth={2.2} style={{marginTop:1, flexShrink:0}}/>
+                  <span style={{fontSize:12.5, fontWeight:700, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden", lineHeight:1.3}}>
                     {nearestUpcomingExam.subject} · {examInfo.daysLabel}
                   </span>
                 </button>
@@ -8115,12 +8120,12 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
                   {item.time ? (() => {
                     const st = parseTime12(item.time);
                     const et = item.endTime ? parseTime12(item.endTime) : null;
-                    if (!st) return t.noTimeSet;
+                    if (!st) return <span style={{fontSize:10}}>{t.noTimeSet}</span>;
                     const stPart = <><Num>{nf(st.h12)}</Num>:<Num>{nf(pad2(st.m))}</Num> <span style={{fontSize:10}}>{st.pm ? t.pmLabel : t.amLabel}</span></>;
                     if (!et) return stPart;
                     const etPart = <><Num>{nf(et.h12)}</Num>:<Num>{nf(pad2(et.m))}</Num> <span style={{fontSize:10}}>{et.pm ? t.pmLabel : t.amLabel}</span></>;
                     return <>{stPart}–{etPart}</>;
-                  })() : t.noTimeSet}
+                  })() : <span style={{fontSize:10}}>{t.noTimeSet}</span>}
                 </div>
               )}
               {!isActiveTimer && item.duration > 0 && <div style={{fontSize:11, fontWeight:500, color:textMuted2, opacity:0.6, marginTop:2}}><Num>{nf(item.duration)}</Num> {t.minutes}</div>}
