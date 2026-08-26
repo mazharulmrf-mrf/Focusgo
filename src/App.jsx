@@ -5009,7 +5009,7 @@ export default function FocusGo() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:10}}>
+        <div style={{marginTop:16, border:`1px solid ${accent}4D`, borderBottom:"none", background: dark ? `${accent}3D` : `${accent}33`, borderRadius:"20px 20px 0 0", padding:"14px 18px 6px", boxSizing:"border-box"}}>
           <div style={{marginBottom:2}}>
             {(() => {
               const fullName = (user?.displayName || "").trim();
@@ -5067,7 +5067,7 @@ export default function FocusGo() {
                       </div>
                     </div>
                   </div>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8, paddingBottom:6, borderBottom:`0.5px solid ${cardBorder}`, position:"relative"}} ref={salahMenuRef}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8, paddingBottom:10, borderBottom:`1px solid ${accent}40`, position:"relative"}} ref={salahMenuRef}>
                     <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
                       <span style={{width:30, height:30, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
                         <CalendarDays size={20} color={accent} strokeWidth={2}/>
@@ -5317,7 +5317,16 @@ export default function FocusGo() {
             এখন accent color ব্যবহার হচ্ছে (আগে dark teal ছিল, সেই রঙ Next Exam কার্ডে সরানো হয়েছে) */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
           return (
-        <div className="fg-tab-panel" style={{marginTop:16, border:`1px solid ${accent}4D`, background: dark ? `${accent}3D` : `${accent}33`, borderRadius:20, padding:"16px 18px", position:"relative", overflow:"hidden", boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.20)" : `0 6px 16px ${accent}1F`}}>
+        <div className="fg-tab-panel" style={{
+            marginTop: tab === "today" ? 0 : 16,
+            border:`1px solid ${accent}4D`,
+            borderTop: tab === "today" ? "none" : `1px solid ${accent}4D`,
+            background: dark ? `${accent}3D` : `${accent}33`,
+            borderRadius: tab === "today" ? "0 0 20px 20px" : 20,
+            padding: tab === "today" ? "10px 18px 16px" : "16px 18px",
+            position:"relative", overflow:"hidden",
+            boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.20)" : `0 6px 16px ${accent}1F`
+          }}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
@@ -5710,7 +5719,7 @@ export default function FocusGo() {
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:10}}>
                 {homeTodayTasks.map(x => (
-                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:10,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"12px 14px",boxSizing:"border-box"}}>
+                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:10,background:cardBg,border:`1px solid ${cardBorder}`,borderLeft:`3px solid ${x.done ? "#6E8B5E" : "#C0392B"}`,borderRadius:16,padding:"12px 14px",boxSizing:"border-box"}}>
                     <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:21,height:21,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
                       {x.done && <Check size={12} color="#fff" strokeWidth={3}/>}
                     </button>
@@ -8084,6 +8093,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
           <div key={item.id} style={{
             background: isActiveTimer ? `${c.bg}0F` : cardBg,
             border: `1px solid ${isActiveTimer ? c.bg : cardBorder}`,
+            borderLeft: `3px solid ${c.bg}`,
             borderRadius:16, padding:"12px 14px", display:"flex", alignItems:"center", gap:12, position:"relative",
             transition:"background .15s ease, border-color .15s ease",
           }}>
