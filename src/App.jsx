@@ -7,7 +7,7 @@ import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Geolocation } from "@capacitor/geolocation";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert, BookOpen } from "lucide-react";
 
 // lucide-react-এর এই ভার্সনে Mars/Venus নেই, তাই নিজে ছোট SVG icon বানানো হলো
 const Mars = ({ size = 18, color = "currentColor" }) => (
@@ -5279,41 +5279,65 @@ export default function FocusGo() {
 
         {tab === "study" && (
           <div className="fg-tab-panel" style={{marginTop:18, marginBottom:-2}}>
-            <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.4, color:textMain}}>Study</div>
-            <div style={{fontSize:12, color:textMuted2, marginTop:3}}>Plan, focus, and track your study.</div>
-            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginTop:16, borderBottom:`1px solid ${cardBorder}`}}>
-              <div style={{display:"flex", gap:24}}>
-                <button onClick={()=>{vibrate(); setStudySection("plan");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 10px", fontSize:14, fontWeight:800, color: studySection==="plan" ? textMain : textMuted2, borderBottom: studySection==="plan" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
-                  {t.planViewStudy}
-                </button>
-                <button onClick={()=>{vibrate(); setStudySection("stats");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 10px", fontSize:14, fontWeight:800, color: studySection==="stats" ? textMain : textMuted2, borderBottom: studySection==="stats" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
-                  {lang==="bn" ? "স্ট্যাটস" : "Stats"}
-                </button>
+            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}>
+              <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
+                <div style={{width:44, height:44, borderRadius:14, background: dark ? `${accent}30` : `${accent}1c`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                  <GraduationCap size={22} color={accent} strokeWidth={2.2}/>
+                </div>
+                <div style={{minWidth:0}}>
+                  <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.4, color:textMain}}>{lang==="bn" ? "স্টাডি" : "Study"}</div>
+                  <div style={{fontSize:12, color:textMuted2, marginTop:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
+                    {lang==="bn" ? "তোমার পড়াশোনার যাত্রা ট্র্যাক করো" : "Track your learning journey"}
+                  </div>
+                </div>
               </div>
-              <div style={{display:"flex", alignItems:"center", gap:2}}>
-                <button onClick={()=>{vibrate(); setShowExamSchedule(true);}} title={lang==="bn"?"পরীক্ষার সময়সূচি":"Exam Schedule"} style={{
-                  border:"none",
-                  background: dark ? `${accent}38` : `${accent}24`,
-                  borderRadius:"50%",
-                  width:30,
-                  height:30,
-                  marginBottom:6,
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  cursor:"pointer",
-                  flexShrink:0,
-                  position:"relative",
-                }}>
-                  <CalendarClock size={20} color={accent} strokeWidth={2}/>
-                  {nearestUpcomingExam && (
-                    <span style={{
-                      position:"absolute", top:2, right:2,
-                      width:7, height:7, borderRadius:"50%",
-                      background:"#C0392B",
-                      border:`1.5px solid ${cardBg}`,
-                    }}/>
-                  )}
-                </button>
-              </div>
+              <button onClick={()=>{vibrate(); setShowExamSchedule(true);}} style={{
+                display:"flex", alignItems:"center", gap:6, whiteSpace:"nowrap",
+                border:`1px solid ${accent}55`, background: dark ? `${accent}22` : `${accent}14`,
+                color:accent, borderRadius:14, padding:"9px 14px", fontSize:12.5, fontWeight:800,
+                cursor:"pointer", flexShrink:0, position:"relative"
+              }}>
+                <Calendar size={15} strokeWidth={2.3}/> {lang==="bn" ? "এক্সাম যোগ করো" : "Add Exam"}
+                {nearestUpcomingExam && (
+                  <span style={{position:"absolute", top:-3, right:-3, width:8, height:8, borderRadius:"50%", background:"#C0392B", border:`1.5px solid ${cardBg}`}}/>
+                )}
+              </button>
+            </div>
+
+            {studySection === "plan" && (() => {
+              const DAILY_GOAL_MIN = 120;
+              const todayMinutes = (entries[todayKey] || []).filter(x=>x.done).reduce((s,x)=>s+(x.duration||0),0);
+              const goalPct = Math.min(100, Math.round((todayMinutes/DAILY_GOAL_MIN)*100));
+              const sh = Math.floor(todayMinutes/60), sm = todayMinutes%60;
+              const statItems = [
+                { Icon: BookOpen, color:"#4C8FA6", value: nf(subjects.length), label: lang==="bn" ? "সাবজেক্ট" : "Subjects" },
+                { Icon: Clock, color:"#6E8B5E", value: `${nf(sh)}h ${nf(sm).padStart ? nf(sm) : sm}m`, label: lang==="bn" ? "পড়ার সময়" : "Study Time", sub: lang==="bn" ? "(আজ)" : "(Today)" },
+                { Icon: Target, color: accent, value: `${nf(goalPct)}%`, label: lang==="bn" ? "দৈনিক লক্ষ্য" : "Daily Goal" },
+                { Icon: Flame, color:"#8E6BAF", value: nf(studyOverview.streak), label: lang==="bn" ? "দিনের স্ট্রিক" : "Day Streak" },
+              ];
+              return (
+                <div style={{display:"grid", gridTemplateColumns:"repeat(4, 1fr)", marginTop:16, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:20, padding:"18px 4px 14px", boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.18)" : "0 6px 16px rgba(0,0,0,0.04)"}}>
+                  {statItems.map((it, i) => (
+                    <div key={i} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:6, textAlign:"center", position:"relative", padding:"0 4px"}}>
+                      {i > 0 && <span style={{position:"absolute", left:0, top:4, bottom:12, width:1, background:cardBorder}}/>}
+                      <div style={{width:36, height:36, borderRadius:"50%", background:`${it.color}22`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                        <it.Icon size={17} color={it.color} strokeWidth={2.2}/>
+                      </div>
+                      <div style={{fontSize:15, fontWeight:800, color:textMain, letterSpacing:-0.2, lineHeight:1.1}}>{it.value}</div>
+                      <div style={{fontSize:9.5, color:textMuted2, fontWeight:700, lineHeight:1.25}}>{it.label}{it.sub ? <><br/>{it.sub}</> : null}</div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+
+            <div style={{display:"flex", gap:20, marginTop:18, borderBottom:`1px solid ${cardBorder}`}}>
+              <button onClick={()=>{vibrate(); setStudySection("plan");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 10px", fontSize:13.5, fontWeight:800, color: studySection==="plan" ? textMain : textMuted2, borderBottom: studySection==="plan" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
+                {t.planViewStudy}
+              </button>
+              <button onClick={()=>{vibrate(); setStudySection("stats");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 10px", fontSize:13.5, fontWeight:800, color: studySection==="stats" ? textMain : textMuted2, borderBottom: studySection==="stats" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
+                {lang==="bn" ? "স্ট্যাটস" : "Stats"}
+              </button>
             </div>
           </div>
         )}
@@ -5683,7 +5707,117 @@ export default function FocusGo() {
         </div>
         )}
 
-        {/* Section spacer — separates "Today's Study" from the Next 7 Days plan below, only in Study tab */}
+        {/* Upcoming Exams preview — top 3 nearest, matches Study tab home mockup */}
+        {tab === "study" && studySection === "plan" && (
+        <div className="fg-tab-panel" style={{marginTop:26}}>
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
+            <div style={{display:"flex", alignItems:"center", gap:8}}>
+              <span style={{width:26, height:26, borderRadius:9, background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                <CalendarDays size={14} color={accent} strokeWidth={2.2}/>
+              </span>
+              <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{lang==="bn" ? "আসন্ন পরীক্ষা" : "Upcoming Exams"}</div>
+            </div>
+            <div style={{display:"flex", alignItems:"center", gap:10}}>
+              <button onClick={()=>{vibrate(); setShowExamSchedule(true);}} style={{border:"none", background:"transparent", color:accent, fontSize:12.5, fontWeight:800, cursor:"pointer", padding:0}}>
+                {lang==="bn" ? "সব দেখো" : "View all"}
+              </button>
+              <button onClick={()=>{vibrate(); setShowExamSchedule(true);}} title={lang==="bn" ? "পরীক্ষা যোগ করো" : "Add Exam"} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
+                <Plus size={17}/>
+              </button>
+            </div>
+          </div>
+          {(() => {
+            const upcoming = sortedExamSchedule.filter(ex => ex.date && !isExamPast(ex)).slice(0, 3);
+            if (upcoming.length === 0) {
+              return (
+                <div style={{border:`1px dashed ${cardBorder}`, borderRadius:16, padding:"16px", background: dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)", display:"flex", alignItems:"center", gap:12}}>
+                  <span style={{width:36, height:36, borderRadius:"50%", background: dark ? `${accent}22` : `${accent}16`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                    <CalendarDays size={17} color={accent} strokeWidth={2}/>
+                  </span>
+                  <div style={{fontSize:12.5, color:textMuted2, fontWeight:600}}>
+                    {lang==="bn" ? "কোনো আসন্ন পরীক্ষা নেই।" : "No upcoming exams."}
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div style={{display:"flex", flexDirection:"column", gap:10}}>
+                {upcoming.map(ex => {
+                  const d = new Date(ex.date + "T00:00:00");
+                  const diffDays = Math.round((d - stripTime(today)) / 86400000);
+                  const daysLabel = diffDays <= 0 ? (lang==="bn" ? "আজ" : "Today") : diffDays === 1 ? (lang==="bn" ? "১ দিন বাকি" : "1 day left") : (lang==="bn" ? `${nf(diffDays)} দিন বাকি` : `${diffDays} days left`);
+                  const badgeColor = diffDays <= 5 ? "#C0392B" : diffDays <= 14 ? "#4C8FA6" : "#8E6BAF";
+                  return (
+                    <button key={ex.id} onClick={()=>{vibrate(); setShowExamSchedule(true);}} style={{display:"flex", alignItems:"center", gap:12, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:18, padding:"12px 14px", cursor:"pointer", textAlign:"left", boxShadow: dark ? "none" : "0 2px 8px rgba(0,0,0,0.04)"}}>
+                      <span style={{width:38, height:38, borderRadius:12, background:`${badgeColor}22`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                        <CalendarDays size={17} color={badgeColor} strokeWidth={2.2}/>
+                      </span>
+                      <div style={{flex:1, minWidth:0}}>
+                        <div style={{fontSize:13.5, fontWeight:800, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{ex.subject}</div>
+                        <div style={{fontSize:11, color:textMuted2, fontWeight:600, marginTop:3, display:"flex", alignItems:"center", gap:6, flexWrap:"wrap"}}>
+                          <span style={{display:"inline-flex", alignItems:"center", gap:3}}><Calendar size={11}/> <Num>{nf(d.getDate())}</Num> {monthName(d.getMonth())} <Num>{nf(d.getFullYear())}</Num> ({weekdayShort(d)})</span>
+                          {ex.startTime && (
+                            <span style={{display:"inline-flex", alignItems:"center", gap:3}}><Clock size={11}/> {ex.startTime}{ex.endTime ? ` – ${ex.endTime}` : ""}</span>
+                          )}
+                        </div>
+                      </div>
+                      <span style={{fontSize:10.5, fontWeight:800, color:badgeColor, background:`${badgeColor}18`, borderRadius:999, padding:"5px 10px", whiteSpace:"nowrap", flexShrink:0}}>
+                        {daysLabel}
+                      </span>
+                      <ChevronRight size={16} color={textMuted2} style={{flexShrink:0}}/>
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </div>
+        )}
+
+        {/* Continue Studying preview — subjects with progress, matches Study tab home mockup */}
+        {tab === "study" && studySection === "plan" && allSubjects.length > 0 && (
+        <div className="fg-tab-panel" style={{marginTop:26}}>
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
+            <div style={{display:"flex", alignItems:"center", gap:8}}>
+              <span style={{width:26, height:26, borderRadius:9, background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                <BookOpen size={14} color={accent} strokeWidth={2.2}/>
+              </span>
+              <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{lang==="bn" ? "পড়া চালিয়ে যাও" : "Continue Studying"}</div>
+            </div>
+            <button onClick={()=>{vibrate(); setShowSubjects(true);}} style={{border:"none", background:"transparent", color:accent, fontSize:12.5, fontWeight:800, cursor:"pointer", padding:0}}>
+              {lang==="bn" ? "সব দেখো" : "See all"}
+            </button>
+          </div>
+          <div style={{display:"flex", flexDirection:"column", gap:10}}>
+            {[...allSubjects].sort((a,b)=>{
+              const va = subjectProgress[a] || {done:0,total:0}, vb = subjectProgress[b] || {done:0,total:0};
+              const pa = va.total ? va.done/va.total : 0, pb = vb.total ? vb.done/vb.total : 0;
+              return pa - pb;
+            }).slice(0, 3).map(subj => {
+              const v = subjectProgress[subj] || { done:0, total:0 };
+              const c = colorForSubject(subj, allSubjects);
+              const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
+              return (
+                <button key={subj} onClick={()=>{vibrate(); setShowManageTopicsFor(subj); setShowSubjects(true);}} style={{display:"flex", alignItems:"center", gap:12, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:18, padding:"12px 14px", cursor:"pointer", textAlign:"left", boxShadow: dark ? "none" : "0 2px 8px rgba(0,0,0,0.04)"}}>
+                  <span style={{width:10, height:10, borderRadius:"50%", background:c.bg, flexShrink:0}}/>
+                  <div style={{flex:1, minWidth:0}}>
+                    <div style={{fontSize:10.5, fontWeight:800, letterSpacing:0.4, color:c.bg, textTransform:"uppercase", marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{v.total ? `${nf(pct)}%` : (lang==="bn"?"শুরু হয়নি":"Not started")}</div>
+                    <div style={{fontSize:14, fontWeight:800, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subj}</div>
+                    <div style={{height:5, borderRadius:8, background: dark?"#2C2B33":"#EFEBDF", overflow:"hidden", marginTop:6}}>
+                      <div style={{width:`${pct}%`, height:"100%", borderRadius:8, background:c.bg, transition:"width .25s ease"}}/>
+                    </div>
+                  </div>
+                  <span style={{width:34, height:34, borderRadius:"50%", background:c.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                    <Play size={13} color="#fff" fill="#fff" strokeWidth={0}/>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        )}
+
+        {/* Section spacer — separates the previews above from the Next-Days plan below, only in Study tab */}
         {tab === "study" && studySection === "plan" && (
         <div className="fg-tab-panel" style={{marginTop:30}}/>
         )}
