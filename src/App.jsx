@@ -5338,7 +5338,7 @@ export default function FocusGo() {
             এখন accent color ব্যবহার হচ্ছে (আগে dark teal ছিল, সেই রঙ Next Exam কার্ডে সরানো হয়েছে) */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
           return (
-        <div className="fg-tab-panel" style={{marginTop:14, border:`1px solid ${accent}2E`, background: dark ? `${accent}26` : `${accent}1F`, borderRadius:18, padding:"14px 16px", position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:14, border:`1px solid ${accent}4D`, background: dark ? `${accent}3D` : `${accent}33`, borderRadius:18, padding:"14px 16px", position:"relative", overflow:"hidden"}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
