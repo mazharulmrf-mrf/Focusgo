@@ -4464,6 +4464,7 @@ export default function FocusGo() {
         const newIds = [];
         const toSchedule = [];
         if (notificationsEnabled && examNotifEnabled) {
+          examSchedule.forEach(ex => {
             if (!ex.date) return;
             const examDate = new Date(ex.date + "T00:00:00");
             const reminderAt = new Date(examDate);
