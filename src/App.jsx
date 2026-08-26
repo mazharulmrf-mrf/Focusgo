@@ -7,7 +7,7 @@ import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Geolocation } from "@capacitor/geolocation";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Flag, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert } from "lucide-react";
 
 // lucide-react-এর এই ভার্সনে Mars/Venus নেই, তাই নিজে ছোট SVG icon বানানো হলো
 const Mars = ({ size = 18, color = "currentColor" }) => (
@@ -5277,275 +5277,967 @@ export default function FocusGo() {
         </div>
         )}
 
-        {/* কাছের পরীক্ষার কাউন্টডাউন কার্ড — Home ট্যাবে, শুধু যদি Exam Schedule-এ আসন্ন কোনো পরীক্ষা থাকে; ট্যাপ করলে Study ট্যাবের Exam ম্যানেজার খোলে */}
-        {tab === "today" && nearestUpcomingExam && (() => {
-          const diffDays = Math.round((new Date(nearestUpcomingExam.date + "T00:00:00") - new Date(todayKey + "T00:00:00")) / 86400000);
-          const daysLabel = diffDays === 0 ? (lang==="bn" ? "আজ" : "Today") : diffDays === 1 ? (lang==="bn" ? "আগামীকাল" : "Tomorrow") : (lang==="bn" ? `${nf(diffDays)} দিন বাকি` : `${diffDays} days left`);
-          return (
-            <button
-              onClick={()=>{ vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
-              className="fg-tab-panel"
-              style={{marginTop:16, width:"100%", textAlign:"left", border:"none", cursor:"pointer", background: accent, borderRadius:20, padding:"16px 18px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, position:"relative", overflow:"hidden", boxShadow:`0 6px 18px ${accent}45`}}
-            >
-              <div style={{position:"absolute", top:-40, right:-30, width:110, height:110, borderRadius:"50%", background:"rgba(255,255,255,0.08)", pointerEvents:"none"}}/>
-              <div style={{minWidth:0, position:"relative"}}>
-                <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:"rgba(255,255,255,0.8)", textTransform:"uppercase"}}>{lang==="bn"?"পরবর্তী পরীক্ষা":"Next Exam"}</div>
-                <div style={{fontSize:14.5, fontWeight:800, color:"#fff", marginTop:3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{nearestUpcomingExam.subject}</div>
-                <div style={{fontSize:12, color:"rgba(255,255,255,0.72)", marginTop:3}}>
-                  {weekdayName(new Date(nearestUpcomingExam.date+"T00:00:00"))}, <Num>{nf(new Date(nearestUpcomingExam.date+"T00:00:00").getDate())}</Num> {monthName(new Date(nearestUpcomingExam.date+"T00:00:00").getMonth())}
-                  {nearestUpcomingExam.startTime ? ` · ${nearestUpcomingExam.startTime}${nearestUpcomingExam.endTime ? "–"+nearestUpcomingExam.endTime : ""}` : ""}
-                </div>
-              </div>
-              <div style={{flexShrink:0, fontSize:13, fontWeight:800, color:accent, background: "#fff", padding:"7px 13px", borderRadius:999, whiteSpace:"nowrap", position:"relative"}}>
-                {daysLabel}
-              </div>
-            </button>
-          );
-        })()}
-
-        {/* ==================== REDESIGNED STUDY TAB ==================== */}
         {tab === "study" && (
-          <div className="fg-tab-panel" style={{marginTop:18, marginBottom:8}}>
-            {/* Header */}
-            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:14}}>
-              <div style={{display:"flex", alignItems:"center", gap:10, minWidth:0}}>
-                <span style={{
-                  width:38, height:38, borderRadius:13, flexShrink:0,
-                  background: dark ? `${accent}24` : `${accent}16`,
-                  display:"flex", alignItems:"center", justifyContent:"center"
-                }}>
-                  <GraduationCap size={20} color={accent} strokeWidth={2.2}/>
-                </span>
-                <div style={{minWidth:0}}>
-                  <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.5, color:textMain, lineHeight:1.1}}>Study</div>
-                  <div style={{fontSize:11.5, color:textMuted2, marginTop:4}}>Track your learning journey</div>
-                </div>
-              </div>
-              <button
-                onClick={()=>{vibrate(); setShowExamSchedule(true);}}
-                style={{
-                  border:`1px solid ${accent}45`, background:dark?`${accent}18`:`${accent}0D`,
-                  color:accent, borderRadius:14, padding:"9px 12px",
-                  display:"flex", alignItems:"center", gap:7, fontSize:12,
-                  fontWeight:800, cursor:"pointer", flexShrink:0
-                }}
-              >
-                <Calendar size={17} strokeWidth={2.2}/>
-                Add Exam
-              </button>
-            </div>
-
-            {/* Stats */}
-            <div style={{
-              background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:18,
-              padding:"14px 7px", display:"grid", gridTemplateColumns:"repeat(4,1fr)",
-              boxShadow:dark?"0 5px 14px rgba(0,0,0,.16)":`0 5px 14px ${accent}0D`
-            }}>
-              {[
-                {icon:FileText, value:allSubjects.length, label:"Subjects", color:"#1387B8", bg:"#EAF7FC"},
-                {icon:Clock, value:`${Math.floor((studyOverview.totalMin||0)/60)}h ${String((studyOverview.totalMin||0)%60).padStart(2,"0")}m`, label:"Study Time", color:"#18A44A", bg:"#EDF9F0"},
-                {icon:Target, value:`${studyOverview.pct||0}%`, label:"Daily Goal", color:"#F15A24", bg:"#FFF0EA"},
-                {icon:Flame, value:studyOverview.streak||0, label:"Day Streak", color:"#7A45E5", bg:"#F3EDFF"}
-              ].map((s,i)=>{
-                const I=s.icon;
-                return (
-                  <div key={i} style={{
-                    minWidth:0, textAlign:"center", padding:"0 6px",
-                    borderRight:i<3?`1px solid ${cardBorder}`:"none"
-                  }}>
-                    <div style={{
-                      width:40,height:40,borderRadius:"50%",margin:"0 auto 7px",
-                      background:dark?inkA(0.10):s.bg,
-                      display:"flex",alignItems:"center",justifyContent:"center"
-                    }}>
-                      <I size={20} color={dark?accent:s.color} strokeWidth={2.2}/>
-                    </div>
-                    <div style={{fontSize:16,fontWeight:800,color:textMain,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
-                      {typeof s.value==="number"?<Num>{nf(s.value)}</Num>:s.value}
-                    </div>
-                    <div style={{fontSize:10.5,color:textMuted2,marginTop:4,lineHeight:1.2}}>{s.label}</div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Focus Timer */}
-            <div style={{
-              marginTop:12, background:dark?"#15171B":cardBg,
-              border:`1px solid ${dark?"#252A30":accent+"18"}`, borderRadius:19,
-              padding:"15px 16px 13px", position:"relative", overflow:"hidden",
-              boxShadow:dark?"0 6px 18px rgba(0,0,0,.20)":`0 6px 18px ${accent}0C`
-            }}>
-              <div style={{position:"absolute",right:-40,top:-55,width:150,height:150,borderRadius:"50%",background:`${accent}0C`,pointerEvents:"none"}}/>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",position:"relative"}}>
-                <div>
-                  <div style={{fontSize:15,fontWeight:800,color:accent}}>Focus Timer</div>
-                  <div style={{fontSize:11,color:textMuted2,marginTop:3}}>Stay focused. Get more done.</div>
-                </div>
-                <button
-                  onClick={()=>{vibrate();setFocusMode("timer");}}
-                  style={{
-                    border:`1px solid ${cardBorder}`,background:dark?"#202228":"#fff",
-                    color:textMain,borderRadius:12,padding:"7px 10px",fontSize:11,
-                    fontWeight:700,cursor:"pointer"
-                  }}
-                >
-                  Pomodoro <ChevronDown size={12} style={{verticalAlign:"-2px",marginLeft:4}}/>
+          <div className="fg-tab-panel" style={{marginTop:18, marginBottom:-2}}>
+            <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.4, color:textMain}}>Study</div>
+            <div style={{fontSize:12, color:textMuted2, marginTop:3}}>Plan, focus, and track your study.</div>
+            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginTop:16, borderBottom:`1px solid ${cardBorder}`}}>
+              <div style={{display:"flex", gap:24}}>
+                <button onClick={()=>{vibrate(); setStudySection("plan");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 10px", fontSize:14, fontWeight:800, color: studySection==="plan" ? textMain : textMuted2, borderBottom: studySection==="plan" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
+                  {t.planViewStudy}
+                </button>
+                <button onClick={()=>{vibrate(); setStudySection("stats");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 10px", fontSize:14, fontWeight:800, color: studySection==="stats" ? textMain : textMuted2, borderBottom: studySection==="stats" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
+                  {lang==="bn" ? "স্ট্যাটস" : "Stats"}
                 </button>
               </div>
-
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginTop:8}}>
-                <div style={{minWidth:0,flex:1}}>
-                  <div
-                    onClick={!timerRunning?startEditDuration:undefined}
-                    style={{fontSize:39,fontWeight:800,fontVariantNumeric:"tabular-nums",letterSpacing:-1,color:dark?"#fff":textMain,lineHeight:1.05,cursor:timerRunning?"default":"pointer"}}
-                  >
-                    <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
-                  </div>
-                  <div style={{display:"flex",gap:8,marginTop:9,flexWrap:"wrap"}}>
-                    <button
-                      onClick={toggleTimerRunning}
-                      style={{border:"none",background:accent,borderRadius:14,padding:"9px 15px",color:"#fff",fontWeight:800,fontSize:13,display:"flex",alignItems:"center",gap:6,cursor:"pointer",boxShadow:`0 6px 14px ${accent}45`}}
-                    >
-                      {timerRunning?<Pause size={15} fill="#fff"/>:<Play size={15} fill="#fff"/>}
-                      {timerRunning?t.pause:t.start}
-                    </button>
-                    <button
-                      onClick={startEditDuration}
-                      disabled={timerRunning}
-                      style={{border:`1px solid ${accent}55`,background:"transparent",color:accent,borderRadius:14,padding:"8px 12px",fontWeight:700,fontSize:12,cursor:timerRunning?"default":"pointer",opacity:timerRunning?.55:1}}
-                    >
-                      <Clock size={13} style={{verticalAlign:"-2px",marginRight:5}}/> Custom Time
-                    </button>
-                  </div>
-                </div>
-
-                <div style={{width:145,height:145,position:"relative",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  {(() => {
-                    const r=56, c=2*Math.PI*r;
-                    const frac=timerTotal>0?Math.min(1,Math.max(0,(timerTotal-timerSeconds)/timerTotal)):0;
-                    return (
-                      <svg width="145" height="145" viewBox="0 0 145 145" style={{position:"absolute",inset:0,transform:"rotate(-90deg)"}}>
-                        <circle cx="72.5" cy="72.5" r={r} fill="none" stroke={dark?"#34383D":"#F7D8CB"} strokeWidth="6" strokeDasharray="3 7"/>
-                        <circle cx="72.5" cy="72.5" r={r} fill="none" stroke={accent} strokeWidth="6" strokeLinecap="round"
-                          strokeDasharray={c} strokeDashoffset={c*(1-frac)} style={{transition:"stroke-dashoffset 1s linear"}}/>
-                      </svg>
-                    );
-                  })()}
-                  <div style={{
-                    width:72,height:72,borderRadius:"50%",background:dark?"#302722":`${accent}0D`,
-                    display:"flex",alignItems:"center",justifyContent:"center"
-                  }}>
-                    <span style={{fontSize:38,lineHeight:1,color:accent}}>⌛</span>
-                  </div>
-                </div>
+              <div style={{display:"flex", alignItems:"center", gap:2}}>
+                <button onClick={()=>{vibrate(); setShowExamSchedule(true);}} title={lang==="bn"?"পরীক্ষার সময়সূচি":"Exam Schedule"} style={{
+                  border:"none",
+                  background: dark ? `${accent}38` : `${accent}24`,
+                  borderRadius:"50%",
+                  width:30,
+                  height:30,
+                  marginBottom:6,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  cursor:"pointer",
+                  flexShrink:0,
+                  position:"relative",
+                }}>
+                  <CalendarClock size={20} color={accent} strokeWidth={2}/>
+                  {nearestUpcomingExam && (
+                    <span style={{
+                      position:"absolute", top:2, right:2,
+                      width:7, height:7, borderRadius:"50%",
+                      background:"#C0392B",
+                      border:`1.5px solid ${cardBg}`,
+                    }}/>
+                  )}
+                </button>
               </div>
-              <div style={{textAlign:"center",fontSize:10.5,color:textMuted2,marginTop:-2}}>You've got this! 💪</div>
-            </div>
-
-            {/* Today's Study */}
-            <div style={{marginTop:15}}>
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-                <div style={{display:"flex",alignItems:"center",gap:8,minWidth:0}}>
-                  <span style={{width:27,height:27,borderRadius:9,background:dark?`${accent}22`:`${accent}12`,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                    <GraduationCap size={14} color={accent} strokeWidth={2.2}/>
-                  </span>
-                  <span style={{fontSize:15,fontWeight:800,color:textMain}}>Today's Study</span>
-                </div>
-                <div style={{display:"flex",alignItems:"center",gap:8}}>
-                  <button onClick={()=>{vibrate();setAddTargetKey(todayKey);setShowAdd(true);}} style={{border:"none",background:"transparent",color:accent,fontSize:11,fontWeight:700,cursor:"pointer"}}>See all</button>
-                  <button onClick={()=>{setAddTargetKey(todayKey);setShowAdd(true);}} style={{width:30,height:30,border:`1px solid ${accent}30`,background:dark?`${accent}1C`:`${accent}0C`,color:accent,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",padding:0,cursor:"pointer"}}>
-                    <Plus size={17}/>
-                  </button>
-                </div>
-              </div>
-              <TopicsList items={todayTopics} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
-                cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} textMain={textMain} accent={accent}
-                onToggle={(id)=>toggleDoneFor(todayKey,id)} onStartTimer={startTimerFor}
-                activeTimerId={timerTopicId} timerRunning={timerRunning} timerSeconds={timerSeconds} onToggleRun={toggleTimerRunning}
-                onEdit={(item)=>setEditTopic({...item,_dk:todayKey})} onDelete={(id)=>deleteTopicFor(todayKey,id)}
-                onRename={(item,newTopic)=>saveEditFor(todayKey,{...item,topic:newTopic})}
-                emptyText={t.noTopicsToday} emptySubtext={t.noTopicsTodaySub} emptyIcon={Sparkles}
-              />
-            </div>
-
-            {/* Upcoming Exams */}
-            <div style={{marginTop:15}}>
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-                <div style={{display:"flex",alignItems:"center",gap:8}}>
-                  <span style={{width:27,height:27,borderRadius:9,background:dark?"#1B83D922":"#1B83D912",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                    <Calendar size={14} color="#1685C0" strokeWidth={2.2}/>
-                  </span>
-                  <span style={{fontSize:15,fontWeight:800,color:textMain}}>Upcoming Exams</span>
-                </div>
-                <div style={{display:"flex",alignItems:"center",gap:8}}>
-                  <button onClick={()=>{vibrate();setShowExamSchedule(true);}} style={{border:"none",background:"transparent",color:accent,fontSize:11,fontWeight:700,cursor:"pointer"}}>View all</button>
-                  <button onClick={()=>{vibrate();setShowExamSchedule(true);}} style={{width:30,height:30,border:`1px solid ${accent}30`,background:dark?`${accent}1C`:`${accent}0C`,color:accent,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",padding:0,cursor:"pointer"}}>
-                    <Plus size={17}/>
-                  </button>
-                </div>
-              </div>
-
-              <div style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:17,overflow:"hidden",boxShadow:dark?"0 5px 14px rgba(0,0,0,.14)":"0 4px 12px rgba(25,20,35,.04)"}}>
-                {sortedExamSchedule.filter(ex=>ex.date && !isExamPast(ex)).slice(0,3).map((ex,i)=>{
-                  const d0=new Date(ex.date+"T00:00:00");
-                  const diff=Math.max(0,Math.round((d0-new Date(todayKey+"T00:00:00"))/86400000));
-                  const dateLabel=d0.toLocaleDateString(lang==="bn"?"bn-BD":"en-US",{day:"numeric",month:"short",year:"numeric"});
-                  const timeLabel=ex.startTime&&ex.endTime?`${ex.startTime} – ${ex.endTime}`:"Time not set";
-                  const daysLabel=diff===0?(lang==="bn"?"আজ":"Today"):`${diff} ${lang==="bn"?"দিন বাকি":"days left"}`;
-                  return (
-                    <button key={ex.id||i} onClick={()=>{vibrate();setShowExamSchedule(true);}} style={{
-                      width:"100%",border:"none",borderBottom:i<Math.min(2,sortedExamSchedule.filter(x=>x.date&&!isExamPast(x)).length-1)?`1px solid ${cardBorder}`:"none",
-                      background:"transparent",padding:"11px 12px",display:"flex",alignItems:"center",gap:10,textAlign:"left",cursor:"pointer",color:textMain
-                    }}>
-                      <span style={{width:35,height:35,borderRadius:11,background:dark?`${accent}18`:`${accent}0C`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                        <Calendar size={17} color={accent}/>
-                      </span>
-                      <span style={{minWidth:0,flex:1}}>
-                        <span style={{display:"block",fontSize:13,fontWeight:800,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ex.subject}</span>
-                        <span style={{display:"block",fontSize:10.5,color:textMuted2,marginTop:3}}>{dateLabel} · {timeLabel}</span>
-                      </span>
-                      <span style={{fontSize:10.5,fontWeight:800,color:accent,background:dark?`${accent}18`:`${accent}0D`,borderRadius:999,padding:"6px 9px",whiteSpace:"nowrap",flexShrink:0}}>{daysLabel}</span>
-                      <ChevronRight size={16} color={textMuted2} flexShrink={0}/>
-                    </button>
-                  );
-                })}
-                {sortedExamSchedule.filter(ex=>ex.date && !isExamPast(ex)).length===0 && (
-                  <button onClick={()=>setShowExamSchedule(true)} style={{width:"100%",border:"none",background:"transparent",padding:"16px",color:textMuted2,cursor:"pointer",textAlign:"center",fontSize:12}}>
-                    No upcoming exams — tap to add one
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Continue Studying */}
-            <div style={{marginTop:15}}>
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-                <div style={{display:"flex",alignItems:"center",gap:8}}>
-                  <span style={{width:27,height:27,borderRadius:9,background:dark?"#1685C018":"#1685C00D",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                    <GraduationCap size={14} color="#1685C0"/>
-                  </span>
-                  <span style={{fontSize:15,fontWeight:800,color:textMain}}>Continue Studying</span>
-                </div>
-                <button onClick={()=>{vibrate();setAddTargetKey(todayKey);setShowAdd(true);}} style={{border:"none",background:"transparent",color:accent,fontSize:11,fontWeight:700,cursor:"pointer"}}>See all <ChevronRight size={13} style={{verticalAlign:"-2px"}}/></button>
-              </div>
-              <TopicsList items={todayTopics.filter(x=>!x.done)} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
-                cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} textMain={textMain} accent={accent}
-                onToggle={(id)=>toggleDoneFor(todayKey,id)} onStartTimer={startTimerFor}
-                activeTimerId={timerTopicId} timerRunning={timerRunning} timerSeconds={timerSeconds} onToggleRun={toggleTimerRunning}
-                onEdit={(item)=>setEditTopic({...item,_dk:todayKey})} onDelete={(id)=>deleteTopicFor(todayKey,id)}
-                onRename={(item,newTopic)=>saveEditFor(todayKey,{...item,topic:newTopic})}
-                emptyText={t.noTopicsToday} emptySubtext={t.noTopicsTodaySub} emptyIcon={Sparkles}
-              />
             </div>
           </div>
         )}
 
-{tab === "task" && (
-          <TasksRedesign t={t} lang={lang} tasks={tasks} todayKey={todayKey} nf={nf} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark} vibrate={vibrate}
-            onToggleTask={toggleTask} onOpenTask={setTaskDetailId} onEditTask={setEditingTask} onDeleteTask={deleteTask}
-            onAddTask={()=>{ setTaskAddDefaultDate(todayKey); setShowAddTask(true); }} />
+        {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — Option 2: circular progress, premium look
+            এখন accent color ব্যবহার হচ্ছে (আগে dark teal ছিল, সেই রঙ Next Exam কার্ডে সরানো হয়েছে) */}
+        {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
+          return (
+        <div className="fg-tab-panel" style={{
+            marginTop: tab === "today" ? 0 : 16,
+            border:`1px solid ${accent}3D`,
+            borderTop: tab === "today" ? "none" : `1px solid ${accent}3D`,
+            background: dark ? `${accent}24` : `${accent}1F`,
+            borderRadius: tab === "today" ? "0 0 20px 20px" : 20,
+            padding: tab === "today" ? "10px 18px 16px" : "16px 18px",
+            position:"relative", overflow:"hidden",
+            boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.20)" : `0 6px 16px ${accent}1F`
+          }}>
+          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
+            <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
+              <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
+                size={58} stroke={5.5} accent={accent} trackColor={`${accent}40`} textMain={inkColor} nf={nf}/>
+              <div style={{minWidth:0}}>
+                <div style={{fontSize:14, fontWeight:800, color:inkColor, marginBottom:6}}>{t.todaysProgress}</div>
+                <div style={{display:"flex", alignItems:"center", gap:7, fontSize:12.5, fontWeight:700, whiteSpace:"nowrap"}}>
+                  <span style={{display:"inline-flex", alignItems:"center", gap:3, color:inkA(0.82)}}>
+                    <Check size={12} strokeWidth={3}/> <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.progressCompletedLabel}
+                  </span>
+                  <span style={{color:inkA(0.3), fontWeight:400}}>|</span>
+                  <span style={{display:"inline-flex", alignItems:"center", gap:3, color:inkA(0.82)}}>
+                    <Clock size={12}/> <Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:2, paddingLeft:12, borderLeft: `1px solid ${accent}40`}}>
+              <div style={{width:26, height:26, borderRadius:"50%", background: `${accent}29`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                <Flame size={14} color={inkColor} fill={`${inkColor}55`}/>
+              </div>
+              <div style={{fontSize:14, fontWeight:800, color:inkColor, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
+              <div style={{fontSize:10, color:inkA(0.75), fontWeight:600, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
+            </div>
+          </div>
+          {/* Today's Tasks mini-summary — merged into the progress card so the card previews task progress at a glance, matching the home page mockup */}
+          {tab === "today" && (() => {
+            const cardTodayTasks = tasks.filter(x => x.dueDate === todayKey);
+            const hasTasks = cardTodayTasks.length > 0;
+            const cardDone = cardTodayTasks.filter(x => x.done).length;
+            const cardPct = hasTasks ? Math.round((cardDone / cardTodayTasks.length) * 100) : 0;
+            const cardLeft = cardTodayTasks.length - cardDone;
+            return (
+              <div style={{marginTop:14, paddingTop:14, borderTop:`1px solid ${accent}40`}}>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
+                  <div style={{fontSize:13, fontWeight:800, color:inkColor}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
+                  <div style={{fontSize:11, fontWeight:700, color:inkA(0.75), whiteSpace:"nowrap"}}>
+                    {!hasTasks ? (lang==="bn" ? "কোনো টাস্ক নেই" : "No tasks today") : cardLeft > 0 ? (lang==="bn" ? `${nf(cardDone)}/${nf(cardTodayTasks.length)} সম্পন্ন` : `${cardDone}/${cardTodayTasks.length} completed`) : t.taskAllDoneLabel}
+                  </div>
+                </div>
+                <div style={{height:6, borderRadius:8, background: `${accent}33`, overflow:"hidden"}}>
+                  <div style={{width: hasTasks ? `${cardPct}%` : "0%", height:"100%", borderRadius:8, background:accent, transition:"width .25s ease"}}/>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+          );
+        })()}
+
+        {/* Salah countdown + Next Exam — ছোট pill আকারে হেরো কার্ডের ঠিক নিচে, পাশাপাশি এক row-তে (হোমপেজ মকআপ অনুযায়ী) */}
+        {tab === "today" && (nextSalahCountdown || nearestUpcomingExam) && (() => {
+          const examInfo = nearestUpcomingExam ? (() => {
+            const diffDays = Math.round((new Date(nearestUpcomingExam.date + "T00:00:00") - new Date(todayKey + "T00:00:00")) / 86400000);
+            const daysLabel = diffDays === 0 ? (lang==="bn" ? "আজ" : "Today") : diffDays === 1 ? (lang==="bn" ? "আগামীকাল" : "Tomorrow") : (lang==="bn" ? `${nf(diffDays)} দিন বাকি` : `${diffDays}d left`);
+            return { daysLabel };
+          })() : null;
+          return (
+            <div style={{display:"flex", gap:8, marginTop:14, overflowX:"auto", WebkitOverflowScrolling:"touch"}}>
+              {nextSalahCountdown && (
+                <button
+                  onClick={() => { vibrate(); setShowSalahDropdown(true); if (!salahCoords) requestSalahLocation(); }}
+                  style={{display:"flex", alignItems:"center", gap:7, flexShrink:0, maxWidth:"62%", border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:999, padding:"9px 14px", cursor:"pointer", boxShadow: dark ? "0 4px 10px rgba(0,0,0,0.18)" : "0 4px 10px rgba(0,0,0,0.05)"}}
+                >
+                  <Moon size={14} color={accent} fill={`${accent}33`} strokeWidth={2.2}/>
+                  <span style={{fontSize:12.5, fontWeight:700, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                    {lang === "bn" ? `${nextSalahCountdown.label} বাকি ${nextSalahCountdown.text}` : `${nextSalahCountdown.label} in ${nextSalahCountdown.text}`}
+                  </span>
+                </button>
+              )}
+              {nearestUpcomingExam && examInfo && (
+                <button
+                  onClick={() => { vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
+                  style={{display:"flex", alignItems:"flex-start", gap:7, flexShrink:1, minWidth:0, border:"none", background:"#000000", color:"#fff", borderRadius:20, padding:"9px 14px", cursor:"pointer", boxShadow:"0 4px 10px rgba(0,0,0,0.20)", textAlign:"left"}}
+                >
+                  <CalendarDays size={14} strokeWidth={2.2} style={{marginTop:1, flexShrink:0}}/>
+                  <span style={{fontSize:12.5, fontWeight:700, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden", lineHeight:1.3}}>
+                    {nearestUpcomingExam.subject} · {examInfo.daysLabel}
+                  </span>
+                </button>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* Focus timer - main home of Study tab (Study Plan sub-section) */}
+        {tab === "study" && studySection === "plan" && (
+        <div className="fg-tab-panel" style={{marginTop:14, background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:20, padding:"11px 16px 12px", color:textMain, boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.20)" : `0 6px 16px ${accent}14`, position:"relative", overflow:"hidden"}}>
+          <div style={{position:"absolute", top:-50, right:-50, width:130, height:130, borderRadius:"50%", background:`${accent}14`, pointerEvents:"none"}}/>
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", position:"relative"}}>
+            <span style={{fontSize:11, letterSpacing:ls(1.5), fontWeight:800, color:textMuted2}}>{t.focusTimer}</span>
+            <div style={{display:"flex", alignItems:"center", gap:6}}>
+              <div style={{display:"flex", background: dark?"#17151C":"#fff", borderRadius:10, padding:2, gap:2}}>
+                <button onClick={()=>setFocusMode("timer")} style={{border:"none", borderRadius:8, padding:"3px 8px", fontSize:10, fontWeight:700, cursor:"pointer", background: focusMode==="timer" ? textMain : "transparent", color: focusMode==="timer" ? cardBg : textMuted2}}>{t.timerMode}</button>
+                <button onClick={()=>setFocusMode("stopwatch")} style={{border:"none", borderRadius:8, padding:"3px 8px", fontSize:10, fontWeight:700, cursor:"pointer", background: focusMode==="stopwatch" ? textMain : "transparent", color: focusMode==="stopwatch" ? cardBg : textMuted2}}>{t.stopwatchMode}</button>
+              </div>
+              <button
+                onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setStrictModeEnabled(s=>!s); }}
+                disabled={timerRunning || stopwatchRunning}
+                title={lang==="bn" ? "স্ট্রিক্ট মোড (মাঝপথে অ্যাপ ছাড়লে সেশন ফেইল হবে)" : "Strict Mode (leaving mid-session fails it)"}
+                style={{border:"none", background:"transparent", cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", color: strictModeEnabled ? "#C0392B" : textMuted2, opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1, display:"flex", alignItems:"center", padding:4}}>
+                {strictModeEnabled ? <ShieldAlert size={15}/> : <Shield size={15}/>}
+              </button>
+              <div style={{position:"relative"}}>
+                <button onClick={()=>{vibrate(); setShowWhiteNoisePicker(s=>!s);}} title={lang==="bn" ? "হোয়াইট নয়েজ" : "White Noise"} style={{border:"none", background:"transparent", cursor:"pointer", color: whiteNoiseSound!=="none" ? accent : textMuted2, display:"flex", alignItems:"center", padding:4}}>
+                  <Music size={15}/>
+                </button>
+                {showWhiteNoisePicker && (
+                  <>
+                  <div onClick={()=>setShowWhiteNoisePicker(false)} style={{position:"fixed", inset:0, zIndex:19}}/>
+                  <div onClick={e=>e.stopPropagation()} style={{position:"absolute", top:"calc(100% + 6px)", right:0, zIndex:20, width:220, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:12, boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.35)" : "0 10px 24px rgba(0,0,0,0.14)"}}>
+                    <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:6}}>
+                      {WHITE_NOISE_TYPES.map(opt => {
+                        const active = whiteNoiseSound === opt.id;
+                        const OptIcon = opt.Icon;
+                        return (
+                          <button key={opt.id} onClick={()=>{ vibrate(); setWhiteNoiseSound(opt.id); }} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, border:`1px solid ${active ? accent : cardBorder}`, background: active ? `${accent}14` : "transparent", borderRadius:12, padding:"8px 4px", cursor:"pointer", color: active ? accent : textMain}}>
+                            <OptIcon size={16}/>
+                            <span style={{fontSize:10, fontWeight:700, textAlign:"center"}}>{lang==="bn" ? opt.labelBn : opt.labelEn}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {whiteNoiseSound !== "none" && (
+                      <div style={{display:"flex", alignItems:"center", gap:8, marginTop:10}}>
+                        <VolumeX size={13} color={textMuted2}/>
+                        <input type="range" min={0} max={1} step={0.01} value={whiteNoiseVolume}
+                          onChange={e=>setWhiteNoiseVolume(Number(e.target.value))}
+                          style={{flex:1}}/>
+                        <Volume2 size={13} color={textMuted2}/>
+                      </div>
+                    )}
+                  </div>
+                  </>
+                )}
+              </div>
+              <button onClick={()=>{vibrate(); setFocusFullscreen(true);}} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex", alignItems:"center", padding:4}}>
+                <Maximize2 size={15}/>
+              </button>
+            </div>
+          </div>
+
+          {focusMode === "timer" ? (
+            <>
+              {/* Session Type: Focus/Break — উপরের Timer/Stopwatch পিলের সাথে জগাখিচুড়ি লাগছিল বলে
+                  এখন বক্স/বর্ডার ছাড়া হালকা টেক্সট-টগল, সাব-লেবেলের মতো লাগবে, দুটো কন্ট্রোল আলাদা করে বোঝা যাবে */}
+              <div style={{display:"flex", justifyContent:"center", alignItems:"center", gap:8, marginTop:8}}>
+                <button onClick={()=>changeSessionType("focus")} disabled={timerRunning} title={t.sessionTypeLabel} style={{
+                  border:"none", background:"transparent", padding:0, fontSize:12, fontWeight: sessionType==="focus" ? 800 : 600,
+                  cursor: timerRunning ? "default" : "pointer",
+                  color: sessionType==="focus" ? accent : textMuted2,
+                  opacity: sessionType==="focus" ? 1 : 0.65,
+                  transition:"color .15s ease, opacity .15s ease"
+                }}>{t.focusOption}</button>
+                <span style={{width:3, height:3, borderRadius:"50%", background:textMuted2, opacity:0.4}}/>
+                <button onClick={()=>changeSessionType("break")} disabled={timerRunning} title={t.sessionTypeLabel} style={{
+                  border:"none", background:"transparent", padding:0, fontSize:12, fontWeight: sessionType==="break" ? 800 : 600,
+                  cursor: timerRunning ? "default" : "pointer",
+                  color: sessionType==="break" ? accent : textMuted2,
+                  opacity: sessionType==="break" ? 1 : 0.65,
+                  transition:"color .15s ease, opacity .15s ease"
+                }}>{t.breakOption}</button>
+              </div>
+              <div style={{textAlign:"center", margin: timerRunning ? "4px 0 2px" : "3px 0 1px", transition:"margin .25s ease"}}>
+                {editingDuration ? (
+                  <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4}}>
+                    <input
+                      type="number"
+                      autoFocus
+                      value={durationInput}
+                      onChange={(e)=>setDurationInput(e.target.value)}
+                      onBlur={commitDurationEdit}
+                      onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
+                      min={1}
+                      max={180}
+                      style={{width:80, fontSize:28, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:1, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${textMain}`, textAlign:"center", outline:"none"}}
+                    />
+                    <span style={{fontSize:14, fontWeight:700, color:textMuted2}}>{t.minutes}</span>
+                  </div>
+                ) : (
+                  // ডিজিটের চারপাশে একটা সরু সার্কুলার প্রোগ্রেস রিং — সেশন কতটা এগিয়েছে সেটা এক নজরে বোঝা যায়,
+                  // আগে শুধু প্লেইন নাম্বার ছিল, এখন সেটাই ভিজ্যুয়ালি informative হলো
+                  (() => {
+                    const ringSize = timerRunning ? 168 : 138;
+                    const stroke = timerRunning ? 6 : 5;
+                    const r = 45;
+                    const c = 2 * Math.PI * r;
+                    const elapsedFrac = timerTotal > 0 ? Math.min(1, Math.max(0, (timerTotal - timerSeconds) / timerTotal)) : 0;
+                    const ringColor = sessionType === "focus" ? accent : inkColor;
+                    return (
+                      <div style={{position:"relative", display:"inline-flex", alignItems:"center", justifyContent:"center", width:ringSize, height:ringSize, transition:"width .25s ease, height .25s ease"}}>
+                        <svg width={ringSize} height={ringSize} viewBox="0 0 100 100" style={{position:"absolute", inset:0, transform:"rotate(-90deg)"}}>
+                          <circle cx="50" cy="50" r={r} fill="none" stroke={dark?"#2C2B33":"#E7E5ED"} strokeWidth={stroke}/>
+                          <circle cx="50" cy="50" r={r} fill="none" stroke={ringColor} strokeWidth={stroke} strokeLinecap="round"
+                            strokeDasharray={c} strokeDashoffset={c * (1 - elapsedFrac)}
+                            style={{transition:"stroke-dashoffset 1s linear, stroke .2s ease"}}/>
+                        </svg>
+                        <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined} style={{position:"relative", fontSize: timerRunning ? 40 : 30, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
+                          <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
+                        </div>
+                      </div>
+                    );
+                  })()
+                )}
+                {timerTopic && (
+                  !timerRunning ? (
+                    <button onClick={()=>{ const next=!showTopicPicker; setShowTopicPicker(next); if (next) setFreeSessionTouched(false); }} style={{display:"inline-flex", alignItems:"center", gap:4, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, marginTop:2, padding:0}}>
+                      {`${timerTopic.subject} — ${timerTopic.topic}`}
+                      <ChevronDown size={12} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+                    </button>
+                  ) : (
+                    <div style={{fontSize:12, color:textMuted2, marginTop:2}}>
+                      {`${timerTopic.subject} — ${timerTopic.topic}`}
+                    </div>
+                  )
+                )}
+                {!timerTopic && !timerRunning && (
+                  <button onClick={()=>{ const next=!showTopicPicker; setShowTopicPicker(next); if (next) setFreeSessionTouched(false); }} style={{display:"inline-flex", alignItems:"center", border:"none", background:"transparent", cursor:"pointer", color:textMuted2, marginTop:4, padding:2}}>
+                    <ChevronDown size={13} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+                  </button>
+                )}
+                {!timerRunning && showTopicPicker && (
+                  <div style={{display:"flex", flexWrap:"wrap", justifyContent:"center", gap:6, marginTop:8}}>
+                    <button onClick={()=>{ vibrate(); setTimerTopicId(null); setFreeSessionTouched(true); }} style={{border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+                      {t.freeSessionOption}
+                    </button>
+                    {todayTopics.filter(x=>!x.done).map(x => (
+                      <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                        {x.topic}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {!timerRunning && showTopicPicker && freeSessionTouched && (
+                  <div style={{display:"flex", justifyContent:"center", gap:6, marginTop:6, flexWrap:"wrap"}}>
+                    {(sessionType === "focus" ? [25,30,45,50,60] : [5,10,15]).map(mins => {
+                      const active = Math.round(timerTotal/60) === mins;
+                      return (
+                        <button key={mins} onClick={()=>setPresetDuration(mins)} style={{border:`1px solid ${active ? inkColor : cardBorder}`, background: active ? inkA(0.10) : "transparent", color: active ? inkColor : textMuted2, borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+                          <Num>{nf(mins)}</Num> {t.minutes}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              <div style={{display:"flex", gap:8, marginTop:8}}>
+                <button
+                  onClick={toggleTimerRunning}
+                  style={{flex:1, background: accent, border:"none", borderRadius:16, padding:"11px 0", color:"#fff", fontWeight:800, fontSize:16, display:"flex",alignItems:"center",justifyContent:"center", gap:8, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`}}>
+                  {timerRunning ? <Pause size={17} fill="#fff"/> : <Play size={17} fill="#fff"/>} {timerRunning ? t.pause : t.start}
+                </button>
+                <button onClick={()=>{setTimerRunning(false); setTimerSeconds(timerTotal);}} style={{background: dark?"#332E25":"#F0DCC9", border:"none", borderRadius:16, width:44, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+                  <RotateCcw size={17} color={textMain}/>
+                </button>
+              </div>
+              {/* Pomodoro cycle progress: Session X/N + ●●○○○ — N dynamic হয় যদি টপিক থেকে multi-session শুরু হয় */}
+              <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, marginTop:6}}>
+                <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>
+                  {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num>
+                </div>
+                <div style={{display:"flex", alignItems:"center", gap:5, flexWrap:"wrap", justifyContent:"center", maxWidth:180}}>
+                  {Array.from({length:pomodoroTotalSessions}, (_,i)=>i+1).map(i => {
+                    const state = i < pomodoroSession ? "done" : (i === pomodoroSession ? "current" : "upcoming");
+                    return (
+                      <span key={i} style={{
+                        width: state === "current" ? 8 : 6, height: state === "current" ? 8 : 6, borderRadius:"50%",
+                        background: state === "upcoming" ? "transparent" : accent,
+                        border: state === "upcoming" ? `1.5px solid ${textMuted2}` : "none",
+                        opacity: state === "done" ? 0.55 : 1,
+                        transition:"all .2s ease"
+                      }}/>
+                    );
+                  })}
+                </div>
+                {timerTargetMinutes && (
+                  <div style={{fontSize:11, color:textMuted2, fontWeight:600, opacity:0.75}}>
+                    <Num>{nf(timerElapsedMinutes)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{textAlign:"center", margin: stopwatchRunning ? "4px 0 2px" : "3px 0 1px", transition:"margin .25s ease"}}>
+                <div className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize: stopwatchRunning ? 42 : 32, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, transition:"font-size .25s ease", lineHeight:1}}>
+                  <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
+                </div>
+                {!stopwatchRunning ? (
+                  <button onClick={()=>setShowTopicPicker(v=>!v)} style={{display:"inline-flex", alignItems:"center", gap:4, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, marginTop:2, padding:0}}>
+                    {timerTopic ? `${timerTopic.subject} — ${timerTopic.topic}` : t.pickTopicForTimer}
+                    <ChevronDown size={12} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+                  </button>
+                ) : (
+                  <div style={{fontSize:12, color:textMuted2, marginTop:2}}>
+                    {timerTopic ? `${timerTopic.subject} — ${timerTopic.topic}` : t.pickTopicForTimer}
+                  </div>
+                )}
+                {!stopwatchRunning && showTopicPicker && (
+                  <div style={{display:"flex", flexWrap:"wrap", justifyContent:"center", gap:6, marginTop:8}}>
+                    <button onClick={()=>selectTimerTopic(null)} style={{border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+                      {t.freeSessionOption}
+                    </button>
+                    {todayTopics.filter(x=>!x.done).map(x => (
+                      <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:700, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                        {x.topic}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div style={{display:"flex", gap:8, marginTop:8}}>
+                <button
+                  onClick={toggleStopwatchRunning}
+                  style={{flex:1, background: accent, border:"none", borderRadius:16, padding:"11px 0", color:"#fff", fontWeight:800, fontSize:16, display:"flex",alignItems:"center",justifyContent:"center", gap:8, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`}}>
+                  {stopwatchRunning ? <Pause size={17} fill="#fff"/> : <Play size={17} fill="#fff"/>} {stopwatchRunning ? t.pause : t.start}
+                </button>
+                <button onClick={()=>{setStopwatchRunning(false); setStopwatchSeconds(0);}} style={{background: dark?"#332E25":"#F0DCC9", border:"none", borderRadius:16, width:44, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+                  <RotateCcw size={17} color={textMain}/>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
         )}
+
+        {/* Today's study list - Today tab + Study tab (shown above Study Plan/Exam) */}
+        {(tab === "today" || (tab === "study" && studySection === "plan")) && (
+        <div className="fg-tab-panel" style={{marginTop:26}}>
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
+            <div style={{display:"flex", alignItems:"center", gap:8}}>
+              <span style={{width:26, height:26, borderRadius:9, background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                <GraduationCap size={14} color={accent} strokeWidth={2.2}/>
+              </span>
+              <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
+            </div>
+            <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} title={t.addTopic} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
+              <Plus size={17}/>
+            </button>
+          </div>
+
+          <TopicsList items={todayTopics} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
+            cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} textMain={textMain} accent={accent}
+            onToggle={(id)=>toggleDoneFor(todayKey, id)} onStartTimer={startTimerFor}
+            activeTimerId={timerTopicId} timerRunning={timerRunning} timerSeconds={timerSeconds} onToggleRun={toggleTimerRunning}
+            onEdit={(item)=>setEditTopic({...item, _dk: todayKey})} onDelete={(id)=>deleteTopicFor(todayKey, id)}
+            onRename={(item, newTopic)=>saveEditFor(todayKey, {...item, topic:newTopic})}
+            emptyText={t.noTopicsToday} emptySubtext={t.noTopicsTodaySub} emptyIcon={Sparkles}/>
+        </div>
+        )}
+
+        {/* Section spacer — separates "Today's Study" from the Next 7 Days plan below, only in Study tab */}
+        {tab === "study" && studySection === "plan" && (
+        <div className="fg-tab-panel" style={{marginTop:30}}/>
+        )}
+
+        {/* Today's Tasks — after Today's Study */}
+        {tab === "today" && (() => {
+          const homeTodayTasks = tasks.filter(x => x.dueDate === todayKey);
+          return (
+          <div className="fg-tab-panel" style={{marginTop:26}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <div style={{display:"flex", alignItems:"center", gap:8}}>
+                <span style={{width:26, height:26, borderRadius:9, background: inkA(dark ? 0.2 : 0.12), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                  <ListChecks size={14} color={inkColor} strokeWidth={2.2}/>
+                </span>
+                <div style={{fontSize:16,fontWeight:800,letterSpacing:-0.3,color:textMain}}>
+                  {lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}
+                </div>
+                {homeTodayTasks.length > 0 && (
+                  <span style={{fontSize:12, fontWeight:800, color: homeTodayTasks.every(x=>x.done) ? "#6E8B5E" : textMuted2, background: inkA(dark?0.16:0.08), borderRadius:999, padding:"2px 8px"}}>
+                    <Num>{nf(homeTodayTasks.filter(x=>x.done).length)}</Num>/<Num>{nf(homeTodayTasks.length)}</Num>
+                  </span>
+                )}
+              </div>
+              <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}} title={t.taskAddBtn} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
+                <Plus size={17}/>
+              </button>
+            </div>
+            {homeTodayTasks.length === 0 ? (
+              <div style={{border:`1px dashed ${inkA(0.35)}`, borderRadius:16, padding:"16px", background:inkA(0.06), display:"flex", alignItems:"flex-start", gap:12}}>
+                <span style={{width:36, height:36, borderRadius:"50%", background:inkA(0.14), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                  <ListChecks size={17} color={inkColor} strokeWidth={2}/>
+                </span>
+                <div style={{minWidth:0}}>
+                  <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{t.taskEmptyTodayHome}</div>
+                  <div style={{color:textMuted2, fontSize:12, marginTop:2}}>{lang==="bn" ? "আজকের একটা টাস্ক যোগ করুন।" : "Add a task to plan your day."}</div>
+                </div>
+              </div>
+            ) : (
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                {homeTodayTasks.map(x => (
+                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:10,background:cardBg,border:`1px solid ${cardBorder}`,borderLeft:`3px solid ${x.done ? "#6E8B5E" : "#C0392B"}`,borderRadius:16,padding:"12px 14px",boxSizing:"border-box"}}>
+                    <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:21,height:21,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
+                      {x.done && <Check size={12} color="#fff" strokeWidth={3}/>}
+                    </button>
+                    <div style={{flex:1,minWidth:0,fontSize:13,fontWeight:500,color:x.done?"#6E8B5E":textMain,textDecoration:x.done?"line-through":"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                      {x.title}
+                    </div>
+                    <div style={{position:"relative", flexShrink:0}}>
+                      <button onClick={(e)=>{ e.stopPropagation(); setTaskMenuOpenId(v => v===x.id ? null : x.id); setTaskDeleteConfirmId(null); }} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:10, margin:-6, display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation"}}>
+                        <MoreVertical size={16}/>
+                      </button>
+                      {taskMenuOpenId === x.id && (
+                        <>
+                          <div onClick={closeTaskMenu} style={{position:"fixed", inset:0, zIndex:59}}/>
+                          <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 4px 12px rgba(0,0,0,0.08)", zIndex:60, minWidth:150, overflow:"hidden"}}>
+                            {taskDeleteConfirmId === x.id ? (
+                              <>
+                                <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:600}}>{lang==="bn"?"টাস্কটি ডিলিট করবেন?":"Delete this task?"}</div>
+                                <button onClick={()=>{ closeTaskMenu(); vibrate(); deleteTask(x.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:700, cursor:"pointer", textAlign:"left"}}>
+                                  <Trash2 size={13}/> {lang==="bn"?"ডিলিট নিশ্চিত করুন":"Confirm delete"}
+                                </button>
+                                <button onClick={()=>setTaskDeleteConfirmId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                                  {t.cancel}
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button onClick={()=>{closeTaskMenu(); setEditingTask(x);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                                  <Pencil size={13}/> {lang==="bn"?"এডিট":"Edit"}
+                                </button>
+                                <button onClick={()=>setTaskDeleteConfirmId(x.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                                  <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          );
+        })()}
+
+        {/* STUDY planning section */}
+        {tab === "study" && studySection === "plan" && (
+          <div key="plan" className="fg-tab-panel" style={{marginTop:20}}>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8, marginBottom:14}}>
+              <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>
+                {lang === "bn" ? `পরের ${nf(planRange)} দিন` : `Next ${nf(planRange)} Days`}
+              </div>
+              {/* range selector: 7/15/30/60/90 দিনের মধ্যে বেছে নেওয়া যায়, পছন্দ মনে থাকে —
+                  লেবেলের একই লাইনে, ছোট compact pill, হালকা background */}
+              <div style={{display:"flex", gap:2, background: dark?"#211E19":"#F0EBDF", borderRadius:10, padding:2, flexShrink:0}}>
+                {[7,15,30,60,90].map(r => (
+                  <button key={r} onClick={()=>{vibrate(); setPlanRange(r);}} style={{
+                    border:"none", cursor:"pointer", fontFamily:"inherit", fontWeight:700, fontSize:11,
+                    padding:"4px 9px", borderRadius:8,
+                    background: planRange===r ? accent : "transparent",
+                    color: planRange===r ? "#FFFFFF" : textMuted2,
+                    transition:"background .15s ease, color .15s ease"
+                  }}>
+                    <Num>{nf(r)}</Num>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{display:"flex", gap:2, padding:"6px 0 4px",
+              overflowX: planRange > 7 ? "auto" : "visible", WebkitOverflowScrolling:"touch"}}>
+              {planDays.map((d,i) => {
+                const dk = dateKey(d);
+                const isSel = dk === planKey;
+                const dayList = entries[dk] || [];
+                const hasAny = dayList.length > 0;
+                const doneAll = hasAny && dayList.every(x=>x.done);
+                const statusColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : inkColor);
+                return (
+                  <div key={i} className="fg-card" onClick={()=>setPlanDate(d)} style={{textAlign:"center", cursor:"pointer", flex: planRange > 7 ? "0 0 40px" : 1, padding:"0 2px"}}>
+                    <div style={{fontSize:10, fontWeight:700, color: isSel ? accent : textMuted2, opacity: isSel ? 1 : 0.85, marginBottom:8, letterSpacing:0.3}}>{weekdayShort(d)}</div>
+                    <div style={{width:34,height:34, borderRadius:"50%", display:"flex",alignItems:"center",justifyContent:"center", margin:"0 auto", fontSize:13, fontWeight:800,
+                      transition:"background .18s ease, color .18s ease, box-shadow .18s ease", boxShadow: isSel ? `0 0 0 1.5px ${accent}` : "none",
+                      background:"transparent", color: isSel ? accent : textMain}}>
+                      <Num>{nf(d.getDate())}</Num>
+                    </div>
+                    {/* status dot — same legend colors as Calendar (green completed / blue planned) */}
+                    <div style={{marginTop:8, display:"flex", justifyContent:"center"}}>
+                      <span style={{width:6, height:6, borderRadius:"50%", background: statusColor, opacity: hasAny ? 1 : 0.3}}/>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {planRange > 7 && (
+              <div style={{marginTop:8, fontSize:11, color:textMuted2, textAlign:"center", opacity:0.8}}>
+                {lang === "bn" ? "← স্ক্রল করে বাকি দিনগুলো দেখো →" : "← scroll to see more days →"}
+              </div>
+            )}
+
+            <div style={{marginTop:20, marginBottom:12, paddingBottom:12, borderBottom:`0.5px solid ${cardBorder}`}}>
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8}}>
+                <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3}}>
+                  {isPlanToday ? t.todaysStudy : <>{weekdayName(planDate)}, <Num>{nf(planDate.getDate())}</Num> {monthName(planDate.getMonth())}</>}
+                </div>
+                <button onClick={()=>{setAddTargetKey(planKey); setShowAdd(true);}} title={t.addTopic} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
+                  <Plus size={17}/>
+                </button>
+              </div>
+              {planTopics.length > 0 && (() => {
+                const totalMin = planTopics.reduce((sum,x)=>sum+(x.duration||0), 0);
+                const h = Math.floor(totalMin/60), m = totalMin%60;
+                return (
+                  <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, marginTop:6}}>
+                    {t.totalPlannedLabel}: <span style={{color:textMain, fontWeight:800}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</span>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <TopicsList items={planTopics} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
+              cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} textMain={textMain} accent={accent}
+              onToggle={isPlanToday ? (id)=>toggleDoneFor(planKey, id) : null}
+              onStartTimer={isPlanToday ? startTimerFor : null}
+              activeTimerId={isPlanToday ? timerTopicId : null} timerRunning={timerRunning} timerSeconds={timerSeconds} onToggleRun={toggleTimerRunning}
+              onEdit={(item)=>setEditTopic({...item, _dk: planKey})}
+              onDelete={(id)=>deleteTopicFor(planKey, id)}
+              onRename={(item, newTopic)=>saveEditFor(planKey, {...item, topic:newTopic})}
+              emptyText={t.noTopicsPlanned} emptySubtext={t.noTopicsPlannedSub}/>
+          </div>
+        )}
+
+        {/* TASK tab - simple to-do list, separate from study sessions */}
+        {tab === "task" && (() => {
+          const prColor = { high: "#C0392B", med: accent, low: "#6E8B5E" };
+          const prLabel = { high: t.taskPrHigh, med: t.taskPrMed, low: t.taskPrLow };
+          const doneCount = tasks.filter(x => x.done).length;
+          const pct = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0;
+
+          // ---- Due-date helpers: bucket a task into "overdue" (past due date), "today" (due exactly today),
+          // "nodate" (no due date set), or "upcoming" (future date) ----
+          const tomorrowKey = dateKey(new Date(today.getFullYear(), today.getMonth(), today.getDate()+1));
+          const bucketOf = (x) => {
+            if (!x.dueDate) return "nodate";
+            if (x.dueDate < todayKey) return "overdue";
+            if (x.dueDate === todayKey) return "today";
+            return "upcoming";
+          };
+          const dueLabel = (dk) => {
+            if (!dk) return null;
+            if (dk === todayKey) return { text: t.taskDueToday, color: accent };
+            if (dk < todayKey) return { text: t.taskOverdue, color: "#C0392B" };
+            if (dk === tomorrowKey) return { text: t.taskDueTomorrow, color: textMuted2 };
+            const d = new Date(dk + "T00:00:00");
+            const diffDays = Math.round((d - new Date(todayKey + "T00:00:00")) / 86400000);
+            if (diffDays > 1 && diffDays < 7) return { text: (lang==="bn" ? WEEKDAYS_BN : WEEKDAYS_EN)[d.getDay()], color: textMuted2 };
+            return { text: `${nf(d.getDate())} ${monthName(d.getMonth())}`, color: textMuted2 };
+          };
+
+          const filterChips = [
+            ["all", t.taskAll, ListChecks],
+            ["today", t.taskFilterToday, Calendar],
+            ["upcoming", t.taskFilterUpcoming, CalendarDays],
+            ["overdue", t.taskFilterOverdue, CalendarClock],
+            ["done", t.taskFilterDone, Check],
+          ];
+
+          const overdueCount = tasks.filter(x => !x.done && bucketOf(x) === "overdue").length;
+
+          let filteredTasks;
+          if (taskFilter === "done") filteredTasks = tasks.filter(x => x.done);
+          else if (taskFilter === "today") filteredTasks = tasks.filter(x => !x.done && bucketOf(x) === "today");
+          else if (taskFilter === "upcoming") filteredTasks = tasks.filter(x => !x.done && bucketOf(x) === "upcoming");
+          else if (taskFilter === "overdue") filteredTasks = tasks.filter(x => !x.done && bucketOf(x) === "overdue");
+          else filteredTasks = tasks.filter(x => (!x.done && bucketOf(x) !== "overdue") || (x.done && x.doneAt === todayKey));
+
+          // ---- টাস্ক রো: কম্প্যাক্ট, প্রায়োরিটি অনুযায়ী রঙিন (বাঁ পাশের বর্ডার + হালকা টিন্ট) ----
+          // ক্যাটাগরি/প্রায়োরিটি/ডিউ-ডেট ব্যাজ এখানে দেখানো হয় না — রো-এর রংই প্রায়োরিটি বোঝায়, বাকি ডিটেইল ট্যাপ করলে দেখা যায়
+          const renderTask = (x) => {
+            const pr = x.priority || "med";
+            const borderColor = x.done ? "#6E8B5E" : prColor[pr];
+            return (
+              <div key={x.id} className="fg-card" onClick={()=>setTaskDetailId(x.id)} style={{
+                background: cardBg,
+                border: `1px solid ${cardBorder}`,
+                borderLeft: `3px solid ${borderColor}`,
+                borderRadius:12, padding:"9px 10px", display:"flex", alignItems:"center", gap:8, position:"relative", cursor:"pointer",
+                transition:"background .15s ease",
+              }}>
+                <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{width:20, height:20, borderRadius:"50%", flexShrink:0, cursor:"pointer", border:`2px solid ${borderColor}`, background: x.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", padding:0}}>
+                  {x.done && <Check size={11} color="#fff" strokeWidth={3}/>}
+                </button>
+                <div style={{flex:1, minWidth:0, fontSize:13, fontWeight:400, color: x.done ? "#6E8B5E" : textMain, textDecoration: x.done ? "line-through" : "none", wordBreak:"break-word", overflowWrap:"break-word", whiteSpace:"normal", lineHeight:1.4}}>
+                  {x.title}
+                </div>
+                {x.repeat && !x.done && (
+                  <span title={t.taskRepeatBadge} style={{flexShrink:0, display:"flex", alignItems:"center", gap:3, fontSize:10, fontWeight:800, color:accent, background:`${accent}14`, borderRadius:8, padding:"2px 6px", whiteSpace:"nowrap"}}>
+                    <Repeat size={11}/>
+                    {x.dueDate && (() => {
+                      const diffDays = Math.round((new Date(x.dueDate+"T00:00:00") - new Date(todayKey+"T00:00:00")) / 86400000);
+                      const label = diffDays === 0 ? (lang==="bn" ? "আজ" : "Today") : diffDays > 0 ? `D-${diffDays}` : `D+${Math.abs(diffDays)}`;
+                      return <span>{label}</span>;
+                    })()}
+                  </span>
+                )}
+                {x.note && (
+                  <span title={lang==="bn"?"নোট আছে":"Has a note"} style={{flexShrink:0, color:textMuted2, display:"flex"}}>
+                    <FileText size={13}/>
+                  </span>
+                )}
+                {x.reminderTime && !x.done && (
+                  <span title={lang==="bn"?"রিমাইন্ডার সেট আছে":"Reminder set"} style={{flexShrink:0, color:textMuted2, display:"flex"}}>
+                    <Bell size={13}/>
+                  </span>
+                )}
+                <div style={{position:"relative", flexShrink:0}} onClick={(e)=>e.stopPropagation()}>
+                  <button onClick={(e)=>{ e.stopPropagation(); setTaskMenuOpenId(v => v===x.id ? null : x.id); setTaskDeleteConfirmId(null); }} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:10, margin:-6, display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation"}}>
+                    <MoreVertical size={16}/>
+                  </button>
+                  {taskMenuOpenId === x.id && (
+                    <>
+                      <div onClick={closeTaskMenu} style={{position:"fixed", inset:0, zIndex:59}}/>
+                      <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 4px 12px rgba(0,0,0,0.08)", zIndex:60, minWidth:150, overflow:"hidden"}}>
+                        {taskDeleteConfirmId === x.id ? (
+                          <>
+                            <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:600}}>{lang==="bn"?"টাস্কটি ডিলিট করবেন?":"Delete this task?"}</div>
+                            <button onClick={()=>{ closeTaskMenu(); vibrate(); deleteTask(x.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:700, cursor:"pointer", textAlign:"left"}}>
+                              <Trash2 size={13}/> {lang==="bn"?"ডিলিট নিশ্চিত করুন":"Confirm delete"}
+                            </button>
+                            <button onClick={()=>setTaskDeleteConfirmId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                              {t.cancel}
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button onClick={()=>{closeTaskMenu(); setEditingTask(x);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                              <Pencil size={13}/> {lang==="bn"?"এডিট":"Edit"}
+                            </button>
+                            <button onClick={()=>setTaskDeleteConfirmId(x.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                              <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          };
+
+
+          const emptyMsg = taskFilter === "today" ? t.taskEmptyToday : taskFilter === "upcoming" ? t.taskEmptyUpcoming : taskFilter === "done" ? t.taskEmptyDone : taskFilter === "overdue" ? t.taskEmptyOverdue : t.taskEmpty;
+          const emptySub = taskFilter === "today" ? t.taskEmptyTodaySub : taskFilter === "upcoming" ? t.taskEmptyUpcomingSub : taskFilter === "done" ? t.taskEmptyDoneSub : taskFilter === "overdue" ? t.taskEmptyOverdueSub : t.taskEmptySub;
+
+          // ---- Calendar view: Stats ট্যাবের InlineMonthCalendar-এর মতোই একই ভিজ্যুয়াল স্টাইল (গ্রিড + legend), শুধু ডট রঙ টাস্ক অনুযায়ী (completed/pending/overdue) ----
+          const renderTaskCalendarView = () => {
+            const y = taskCalMonth.getFullYear(), m = taskCalMonth.getMonth();
+            const firstDay = new Date(y, m, 1);
+            const startOffset = weekStartOffset(firstDay.getDay());
+            const daysInMonth = new Date(y, m+1, 0).getDate();
+            const cells = [];
+            for (let i=0;i<startOffset;i++) cells.push(null);
+            for (let d=1; d<=daysInMonth; d++) cells.push(new Date(y,m,d));
+            const shortDays = weekdayShortLabels(lang);
+
+            const tasksByDay = {};
+            tasks.forEach(x => { if (x.dueDate) (tasksByDay[x.dueDate] = tasksByDay[x.dueDate] || []).push(x); });
+            const noDateTasks = tasks.filter(x => !x.dueDate);
+            const selectedKey = taskCalSelectedDay || todayKey;
+            const dayTasks = tasksByDay[selectedKey] || [];
+            const selectedDateObj = new Date(selectedKey + "T00:00:00");
+
+            // এই মাসের সামারি — মোট / সম্পন্ন / মেয়াদ-শেষ টাস্ক (calendar গ্রিডের উপরে ছোট overview strip)
+            const monthPrefix = `${y}-${pad2(m+1)}-`;
+            const monthTasks = tasks.filter(x => x.dueDate && x.dueDate.startsWith(monthPrefix));
+            const monthTotal = monthTasks.length;
+            const monthDone = monthTasks.filter(x => x.done).length;
+            const monthOverdue = monthTasks.filter(x => !x.done && x.dueDate < todayKey).length;
+            const monthPct = monthTotal ? Math.round((monthDone/monthTotal)*100) : 0;
+
+            return (
+              <div>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12}}>
+                  <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m-1,1));}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", display:"flex", padding:4}}><ChevronLeft size={18}/></button>
+                  <span style={{fontSize:14, fontWeight:800, color:textMain}}>{monthName(m)} <Num>{nf(y)}</Num></span>
+                  <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m+1,1));}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", display:"flex", padding:4}}><ChevronRight size={18}/></button>
+                </div>
+
+                {/* Month overview strip — মোট/সম্পন্ন/মেয়াদ-শেষ + completion %, একনজরে পুরো মাসের প্যাটার্ন বোঝার জন্য */}
+                <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"13px 15px", marginBottom:12}}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
+                    <div style={{fontSize:11, letterSpacing:ls(1.4), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.taskCalMonthOverview}</div>
+                    {monthTotal > 0 && <div style={{fontSize:12, fontWeight:800, color:"#6E8B5E"}}><Num>{nf(monthPct)}</Num>%</div>}
+                  </div>
+                  <div style={{display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8}}>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:18, fontWeight:800, color:textMain}}><Num>{nf(monthTotal)}</Num></div>
+                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8, marginTop:2}}>{t.taskCalMonthTotal}</div>
+                    </div>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:18, fontWeight:800, color:"#6E8B5E"}}><Num>{nf(monthDone)}</Num></div>
+                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8, marginTop:2}}>{t.taskCalMonthCompleted}</div>
+                    </div>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:18, fontWeight:800, color: monthOverdue > 0 ? "#C0392B" : textMain}}><Num>{nf(monthOverdue)}</Num></div>
+                      <div style={{fontSize:10, color:textMuted2, fontWeight:500, opacity:0.8, marginTop:2}}>{t.taskCalMonthOverdue}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 12px", marginBottom:14}}>
+                  <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:8}}>
+                    {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:11, fontWeight:700, color:textMuted2}}>{d}</div>))}
+                  </div>
+                  <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", rowGap:6}}>
+                    {cells.map((d,i) => {
+                      if (!d) return <div key={i}/>;
+                      const dk = dateKey(d);
+                      const list = tasksByDay[dk] || [];
+                      const hasAny = list.length > 0;
+                      const dayDone = list.filter(x=>x.done).length;
+                      const dayTotal = list.length;
+                      const dayPct = dayTotal ? dayDone / dayTotal : 0;
+                      const doneAll = hasAny && dayDone === dayTotal;
+                      const hasOverdue = list.some(x => !x.done && dk < todayKey);
+                      const isToday = dk === todayKey;
+                      const isSelected = dk === selectedKey;
+                      const ringR = 12.5, ringC = 2 * Math.PI * ringR;
+                      const ringColor = hasOverdue ? "#C0392B" : (doneAll ? "#6E8B5E" : accent);
+                      return (
+                        <button key={i} onClick={()=>{vibrate(); setTaskCalSelectedDay(dk);}} style={{
+                          display:"flex", flexDirection:"column", alignItems:"center", gap:4, padding:"4px 0", border:"none", background:"transparent", cursor:"pointer",
+                        }}>
+                          <div style={{position:"relative", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                            {hasAny && !isSelected && (
+                              <svg width={28} height={28} viewBox="0 0 28 28" style={{position:"absolute", inset:0, transform:"rotate(-90deg)"}}>
+                                <circle cx="14" cy="14" r={ringR} fill="none" stroke={dark?"#2C2B33":"#E7E5ED"} strokeWidth={2}/>
+                                <circle cx="14" cy="14" r={ringR} fill="none" stroke={ringColor} strokeWidth={2} strokeLinecap="round"
+                                  strokeDasharray={ringC} strokeDashoffset={ringC * (1 - dayPct)}/>
+                              </svg>
+                            )}
+                            <div style={{position:"relative", width:22, height:22, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700,
+                              background: isSelected ? accent : "transparent",
+                              border: isToday && !isSelected ? `1px solid ${accent}` : "none",
+                              color: isSelected ? "#fff" : (hasOverdue ? "#C0392B" : textMain)}}>
+                              <Num>{nf(d.getDate())}</Num>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Calendar legend — Stats-এর ক্যালেন্ডার legend-এর মতোই একই স্টাইল */}
+                <div style={{display:"flex", justifyContent:"center", alignItems:"center", gap:16, marginBottom:18, flexWrap:"wrap"}}>
+                  <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
+                    <span style={{width:7,height:7,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
+                  </span>
+                  <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
+                    <span style={{width:7,height:7,borderRadius:"50%", background:inkColor}}/>{t.calendarLegendPlanned}
+                  </span>
+                  <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
+                    <span style={{width:7,height:7,borderRadius:"50%", background:"#C0392B"}}/>{t.taskOverdue}
+                  </span>
+                </div>
+
+                <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:12}}>
+                  {selectedKey === todayKey ? (lang==="bn" ? "আজ" : "Today") : <>{weekdayName(selectedDateObj)}, <Num>{nf(selectedDateObj.getDate())}</Num> {monthName(selectedDateObj.getMonth())}</>}
+                </div>
+                {dayTasks.length === 0 ? (
+                  <div style={{display:"flex", alignItems:"center", gap:8, padding:"10px 0 20px", color:textMuted2, fontSize:12.5, marginBottom: noDateTasks.length ? 8 : 0}}>
+                    <Check size={16} color={textMuted2} strokeWidth={2}/>
+                    <span style={{fontWeight:500}}>{t.taskCalEmptyDay}</span>
+                  </div>
+                ) : (
+                  <div style={{display:"flex", flexDirection:"column", gap:8, marginBottom: noDateTasks.length ? 18 : 0}}>{dayTasks.map(renderTask)}</div>
+                )}
+
+                {noDateTasks.length > 0 && (
+                  <div>
+                    <div style={{fontSize:11, fontWeight:800, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskCalNoDateTasks}</div>
+                    <div style={{display:"flex", flexDirection:"column", gap:8}}>{noDateTasks.map(renderTask)}</div>
+                  </div>
+                )}
+              </div>
+            );
+          };
+
+          return (
+            <>
+            <div key="task" className="fg-tab-panel" style={{marginTop:14}}>
+              <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:3}}>{t.taskTitle}</div>
+              <div style={{fontSize:12, color:textMuted2, marginBottom:16}}>{t.taskSubtitle}</div>
+
+              {/* List / Calendar ভিউ টগল — Study Plan/Stats-এর মতো একই underline-tab স্টাইল */}
+              <div style={{display:"flex", gap:24, marginBottom:14, borderBottom:`1px solid ${cardBorder}`}}>
+                {[["list", t.taskViewList, List], ["calendar", t.taskViewCalendar, CalendarRange]].map(([key,label,Icon]) => {
+                  const active = taskViewMode === key;
+                  return (
+                    <button key={key} onClick={()=>{vibrate(); setTaskViewMode(key);}} style={{
+                      display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", cursor:"pointer",
+                      padding:"0 0 10px", fontSize:14, fontWeight:800,
+                      color: active ? textMain : textMuted2,
+                      borderBottom: active ? `2px solid ${accent}` : "2px solid transparent",
+                      marginBottom:-1, transition:"color .18s ease, border-color .18s ease",
+                    }}>
+                      <Icon size={14} color={active ? accent : textMuted2}/>
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {taskViewMode === "list" ? (
+                <>
+                  <div style={{position:"relative", marginBottom:14}}>
+                    <div className="fg-chip-row" style={{display:"flex", gap:6, overflowX:"auto", WebkitMaskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)", maskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)"}}>
+                      {filterChips.map(([key,label,Icon]) => (
+                        <button key={key} onClick={()=>{vibrate(); setTaskFilter(key);}} style={{
+                          display:"flex", alignItems:"center", gap:4, padding:"6px 10px", borderRadius:20, cursor:"pointer", flexShrink:0,
+                          border:`1px solid ${taskFilter===key ? accent : (key==="overdue" && overdueCount>0 ? "#D6493A55" : cardBorder)}`,
+                          background: taskFilter===key ? accent : "transparent",
+                          color: taskFilter===key ? "#fff" : textMuted2, fontWeight:700, fontSize:11, whiteSpace:"nowrap",
+                        }}>
+                          <Icon size={10}/> {label}
+                          {key==="overdue" && overdueCount>0 && (
+                            <span style={{marginLeft:2, minWidth:15, height:15, borderRadius:8, padding:"0 4px", fontSize:10, fontWeight:800, display:"inline-flex", alignItems:"center", justifyContent:"center",
+                              background: taskFilter===key ? "rgba(255,255,255,0.3)" : "#D6493A", color:"#fff"}}>
+                              <Num>{nf(overdueCount)}</Num>
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                      <div style={{width:1, flexShrink:0}}/>
+                    </div>
+                    <div style={{position:"absolute", right:0, top:0, bottom:0, width:22, display:"flex", alignItems:"center", justifyContent:"flex-end", pointerEvents:"none"}}>
+                      <ChevronRight size={14} color={textMuted2} strokeWidth={2.5}/>
+                    </div>
+                  </div>
+
+                  {filteredTasks.length === 0 && (
+                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:14, padding:"46px 24px 34px"}}>
+                      <div style={{position:"relative", width:78, height:78, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                        <div style={{position:"absolute", inset:0, borderRadius:"50%", background: dark ? "rgba(110,139,94,0.14)" : "rgba(110,139,94,0.11)"}}/>
+                        <div style={{width:52, height:52, borderRadius:"50%", background: dark ? "rgba(110,139,94,0.22)" : "rgba(110,139,94,0.14)", border:`1px solid rgba(110,139,94,0.32)`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                          <Sparkles size={22} color="#6E8B5E" strokeWidth={2}/>
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{fontWeight:800, color:textMain, fontSize:15}}>{emptyMsg}</div>
+                        <div style={{color:textMuted2, fontSize:12.5, lineHeight:1.5, marginTop:5, maxWidth:230}}>{emptySub}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {filteredTasks.length > 0 && taskFilter === "all" ? (() => {
+                    const todayBucket = filteredTasks.filter(x => !x.done && bucketOf(x) === "today");
+                    const upcomingBucket = filteredTasks.filter(x => !x.done && bucketOf(x) === "upcoming");
+                    const nodateBucket = filteredTasks.filter(x => !x.done && bucketOf(x) === "nodate");
+                    const doneTodayBucket = filteredTasks.filter(x => x.done);
+                    return (
+                      <>
+                        {todayBucket.length > 0 && (
+                          <div style={{marginBottom: (upcomingBucket.length || nodateBucket.length || doneTodayBucket.length) ? 18 : 0}}>
+                            <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionToday}</div>
+                            <div style={{display:"flex", flexDirection:"column", gap:8}}>{todayBucket.map(renderTask)}</div>
+                          </div>
+                        )}
+                        {upcomingBucket.length > 0 && (
+                          <div style={{marginBottom: (nodateBucket.length || doneTodayBucket.length) ? 18 : 0}}>
+                            <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionUpcoming}</div>
+                            <div style={{display:"flex", flexDirection:"column", gap:8}}>{upcomingBucket.map(renderTask)}</div>
+                          </div>
+                        )}
+                        {nodateBucket.length > 0 && (
+                          <div style={{marginBottom: doneTodayBucket.length ? 18 : 0}}>
+                            <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionNoDate}</div>
+                            <div style={{display:"flex", flexDirection:"column", gap:8}}>{nodateBucket.map(renderTask)}</div>
+                          </div>
+                        )}
+                        {doneTodayBucket.length > 0 && (
+                          <div>
+                            <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:"#6E8B5E", opacity:0.9, marginBottom:9}}>{t.taskSectionCompletedToday}</div>
+                            <div style={{display:"flex", flexDirection:"column", gap:8}}>{doneTodayBucket.map(renderTask)}</div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })() : (
+                    <div style={{display:"flex", flexDirection:"column", gap:8}}>
+                      {filteredTasks.map(renderTask)}
+                    </div>
+                  )}
+                </>
+              ) : renderTaskCalendarView()}
+            </div>
+
+            {/* ফ্লোটিং + বাটন — ".fg-tab-panel"-এর বাইরে (sibling হিসেবে) রাখা হয়েছে যাতে পেজ-লোড অ্যানিমেশনের transform এটাকে
+                উপর থেকে নিচে স্লাইড করিয়ে না আনে — সবসময় বটম-ন্যাভের ঠিক উপরে স্থির থাকবে;
+                Calendar view-এ থাকলে ও কোনো দিন সিলেক্ট করা থাকলে সেই দিনটাই নতুন টাস্কের due date হিসেবে prefill হয়ে যাবে */}
+            <button onClick={()=>{vibrate(); setTaskAddDefaultDate(taskViewMode === "calendar" ? (taskCalSelectedDay || todayKey) : todayKey); setShowAddTask(true);}} title={t.taskAdd} style={{
+              position:"fixed", right:20, bottom: isDesktop ? 28 : 96, zIndex:41,
+              width:40, height:40, borderRadius:12, border:"none", background:accent, color:"#fff",
+              display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
+              boxShadow: dark ? "0 2px 6px rgba(0,0,0,0.2)" : "0 2px 6px rgba(217,119,87,0.2)",
+            }}>
+              <Plus size={17} strokeWidth={2.4}/>
+            </button>
+          </>
+          );
+        })()}
 
         {/* NOTES tab */}
         {tab === "notes" && (
@@ -5554,14 +6246,17 @@ export default function FocusGo() {
             textMuted2={textMuted2} accent={accent} dark={dark} isDesktop={isDesktop}/>
         )}
 
-        {/* SETTINGS tab */}
+        {/* SETTINGS tab — অন্য ট্যাবগুলোর মতোই সরাসরি পেজ হিসেবে (আগে বটম-শিট মোডাল ছিল) */}
         {tab === "settings" && (
-          <SettingsRedesign t={t} lang={lang} setLang={setLang} themeMode={themeMode} setThemeMode={setThemeMode}
-            notificationsEnabled={notificationsEnabled} setNotificationsEnabled={setNotificationsEnabled}
+          <SettingsModal t={t} lang={lang} setLang={setLang} themeMode={themeMode} setThemeMode={setThemeMode}
+            accentKey={accentKey} setAccentKey={setAccentKey}
+            notificationsEnabled={notificationsEnabled} setNotificationsEnabled={setNotificationsEnabled} asPage
             examNotifEnabled={examNotifEnabled} setExamNotifEnabled={setExamNotifEnabled}
             taskNotifEnabled={taskNotifEnabled} setTaskNotifEnabled={setTaskNotifEnabled}
+            salahNotifEnabled={salahNotifEnabled} setSalahNotifEnabled={setSalahNotifEnabled}
             timerNotifEnabled={timerNotifEnabled} setTimerNotifEnabled={setTimerNotifEnabled}
-            weekStartDay={weekStartDay} setWeekStartDay={setWeekStartDay} focusMinutes={focusMinutes} setFocusMinutes={setFocusMinutes}
+            weekStartDay={weekStartDay} setWeekStartDay={setWeekStartDay}
+            focusMinutes={focusMinutes} setFocusMinutes={setFocusMinutes}
             breakMinutes={breakMinutes} setBreakMinutes={setBreakMinutes}
             cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
         )}
@@ -8128,88 +8823,6 @@ function compressImageToDataUrl(file, maxDim = 800, quality = 0.6) {
   });
 }
 
-
-
-// ---------- Compact redesigns for Tasks / Notes / Settings ----------
-function TasksRedesign({ t, lang, tasks, todayKey, nf, cardBg, cardBorder, textMain, textMuted2, accent, dark, vibrate, onToggleTask, onOpenTask, onEditTask, onDeleteTask, onAddTask }) {
-  const [filter, setFilter] = React.useState("all");
-  const total = tasks.length;
-  const completed = tasks.filter(x=>x.done).length;
-  const pending = tasks.filter(x=>!x.done).length;
-  const overdue = tasks.filter(x=>!x.done && x.dueDate && x.dueDate < todayKey).length;
-  const filtered = tasks.filter(x=>filter === "all" ? true : filter === "completed" ? x.done : filter === "pending" ? !x.done : (!x.done && x.dueDate && x.dueDate < todayKey));
-  const priorityColor = { high:"#1685C0", med:accent, low:"#6E8B5E" };
-  const due = (d) => {
-    if (!d) return "";
-    if (d===todayKey) return lang==="bn" ? "আজ" : "Today";
-    const dt=new Date(d+"T00:00:00");
-    return `${nf(dt.getDate())} ${dt.toLocaleString(lang==="bn"?"bn-BD":"en-US",{month:"short"})}`;
-  };
-  return <div className="fg-tab-panel" style={{marginTop:16,paddingBottom:100}}>
-    <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
-      <div style={{width:54,height:54,borderRadius:18,background:dark?`${accent}18`:`${accent}12`,display:"flex",alignItems:"center",justifyContent:"center",color:accent}}><ListChecks size={27}/></div>
-      <div><div style={{fontSize:22,fontWeight:800,color:textMain,letterSpacing:-.5}}>{lang==="bn"?"আজকের টাস্ক":"Today's Tasks"}</div><div style={{fontSize:13,color:textMuted2,marginTop:3}}>{lang==="bn"?"পরিকল্পনা করো, ফোকাস করো, কাজ শেষ করো":"Plan, focus and get things done"}</div></div>
-    </div>
-    <div style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:18,padding:"16px 12px",marginBottom:14}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}><div style={{fontSize:17,fontWeight:800,color:textMain}}>{lang==="bn"?"Task Overview":"Task Overview"}</div><button onClick={()=>setFilter("all")} style={{border:0,background:"transparent",color:accent,fontWeight:700,fontSize:12}}>View all tasks <ChevronRight size={14} style={{verticalAlign:-3}}/></button></div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)"}}>
-        {[ [ListChecks,total,accent,"Total"],[Check,completed,"#2FA34A","Completed"],[Clock,pending,accent,"Pending"],[Flag,overdue,"#8A55D8","Overdue"] ].map(([I,n,c,l],i)=><div key={l} style={{textAlign:"center",borderLeft:i?`1px solid ${cardBorder}`:"none"}}><div style={{width:36,height:36,borderRadius:50,background:`${c}14`,color:c,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 7px"}}><I size={19}/></div><div style={{fontSize:20,fontWeight:800,color:textMain}}>{nf(n)}</div><div style={{fontSize:10.5,color:textMuted2,marginTop:2}}>{l}</div></div>)}
-      </div>
-    </div>
-    <div style={{display:"flex",gap:8,overflowX:"auto",paddingBottom:4,marginBottom:14}}>
-      {[ ["all",`All (${total})`],["pending",`Pending (${pending})`],["completed",`Completed (${completed})`],["overdue",`Overdue (${overdue})`] ].map(([k,l])=><button key={k} onClick={()=>setFilter(k)} style={{border:`1px solid ${filter===k?accent:cardBorder}`,background:filter===k?accent:(dark?"#1A191F":"#F7F7F9"),color:filter===k?"#fff":textMain,borderRadius:999,padding:"8px 14px",fontSize:11.5,fontWeight:700,whiteSpace:"nowrap"}}>{l}</button>)}
-    </div>
-    <div style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:18,overflow:"hidden"}}>
-      <div style={{padding:"14px 16px",borderBottom:`1px solid ${cardBorder}`,display:"flex",justifyContent:"space-between"}}><div style={{fontSize:16,fontWeight:800,color:textMain}}>Today</div><div style={{fontSize:11,color:textMuted2}}>{todayKey}</div></div>
-      {filtered.length===0 ? <div style={{padding:"35px 20px",textAlign:"center",color:textMuted2,fontSize:13}}>No tasks here</div> : filtered.map((x,i)=><div key={x.id} onClick={()=>onOpenTask(x.id)} style={{display:"flex",alignItems:"center",gap:10,padding:"13px 12px",borderBottom:i<filtered.length-1?`1px solid ${cardBorder}`:"none",cursor:"pointer"}}>
-        <button onClick={e=>{e.stopPropagation();vibrate();onToggleTask(x.id)}} style={{width:22,height:22,borderRadius:"50%",border:`2px solid ${x.done?"#2FA34A":priorityColor[x.priority||"med"]}`,background:x.done?"#2FA34A":"transparent",display:"flex",alignItems:"center",justifyContent:"center",padding:0}}>{x.done&&<Check size={12} color="#fff"/>}</button>
-        <div style={{width:34,height:34,borderRadius:12,background:`${priorityColor[x.priority||"med"]}12`,color:priorityColor[x.priority||"med"],display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{x.done?<Check size={17}/>:<FileText size={17}/>}</div>
-        <div style={{flex:1,minWidth:0}}><div style={{fontSize:13.5,fontWeight:750,color:textMain,textDecoration:x.done?"line-through":"none",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{x.title}</div><div style={{fontSize:10.5,color:textMuted2,marginTop:4}}>{x.category||""}{x.dueDate?`  •  ${due(x.dueDate)}`:""}{x.duration?`  •  ${x.duration} min`:""}</div></div>
-        <button onClick={e=>{e.stopPropagation();onEditTask(x)}} style={{border:0,background:"transparent",color:textMuted2,padding:6}}><MoreVertical size={18}/></button>
-      </div>)}
-    </div>
-    <button onClick={()=>{vibrate();onAddTask()}} style={{position:"fixed",right:20,bottom:92,zIndex:45,width:54,height:54,borderRadius:"50%",border:0,background:accent,color:"white",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 22px rgba(0,0,0,.16)"}}><Plus size={25}/></button>
-  </div>;
-}
-
-function NotesRedesign({ lang, notes, setNotes, search, setSearch, onNew, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
-  const active = notes.filter(n=>!n.deletedAt);
-  const pinned = active.filter(n=>n.pinned);
-  const categories = [...new Set(active.map(n=>n.category||"General"))];
-  const recent = [...active].sort((a,b)=>new Date(b.updatedAt||b.createdAt||0)-new Date(a.updatedAt||a.createdAt||0)).slice(0,5);
-  const q=search.trim().toLowerCase();
-  const shown=(q?active.filter(n=>`${n.title} ${n.body} ${n.category||""}`.toLowerCase().includes(q)):recent);
-  const togglePin=(id)=>setNotes(prev=>prev.map(n=>n.id===id?{...n,pinned:!n.pinned}:n));
-  const editQuick=(n)=>{const title=window.prompt(lang==="bn"?"নোটের শিরোনাম":"Note title",n.title||"");if(title===null)return;const body=window.prompt(lang==="bn"?"নোটের লেখা":"Note body",n.body||"");if(body===null)return;setNotes(prev=>prev.map(x=>x.id===n.id?{...x,title,body,updatedAt:new Date().toISOString()}:x));};
-  const NoteCard=({n})=><div style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:14,minWidth:0}}><div style={{display:"flex",alignItems:"flex-start",gap:8}}><div style={{width:32,height:32,borderRadius:10,background:`${accent}12`,color:accent,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><FileText size={16}/></div><div style={{flex:1,minWidth:0}}><div style={{fontSize:13,fontWeight:800,color:textMain,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{n.title||"Untitled note"}</div><div style={{fontSize:10.5,color:textMuted2,marginTop:4}}>{n.category||"General"}</div></div><button onClick={()=>togglePin(n.id)} style={{border:0,background:"transparent",color:n.pinned?accent:textMuted2,padding:2}}><Pin size={15}/></button></div><div style={{fontSize:11.5,color:textMuted2,lineHeight:1.5,margin:"10px 0 8px",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{(n.body||"").replace(/<[^>]+>/g," ")||"No content"}</div><button onClick={()=>editQuick(n)} style={{border:0,background:"transparent",padding:0,color:accent,fontSize:11,fontWeight:700}}>Edit</button></div>;
-  return <div className="fg-tab-panel" style={{marginTop:16,paddingBottom:100}}>
-    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}><div style={{display:"flex",alignItems:"center",gap:12}}><div style={{width:54,height:54,borderRadius:18,background:dark?`${accent}18`:`${accent}12`,color:accent,display:"flex",alignItems:"center",justifyContent:"center"}}><FileText size={27}/></div><div><div style={{fontSize:22,fontWeight:800,color:textMain}}>My Notes</div><div style={{fontSize:13,color:textMuted2,marginTop:3}}>All your ideas, in one place</div></div></div><button onClick={onNew} style={{width:42,height:42,borderRadius:14,border:0,background:`${accent}12`,color:accent,display:"flex",alignItems:"center",justifyContent:"center"}}><Plus size={23}/></button></div>
-    <div style={{display:"flex",alignItems:"center",gap:8,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:"9px 12px",marginBottom:14}}><Search size={15} color={textMuted2}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search notes..." style={{border:0,outline:0,background:"transparent",color:textMain,flex:1,fontSize:12.5}}/></div>
-    <div style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:18,padding:"14px 10px",marginBottom:14}}><div style={{fontSize:16,fontWeight:800,color:textMain,marginBottom:12}}>Notes Overview</div><div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)"}}>{[[FileText,active.length,accent,"Total Notes"],[FileText,active.filter(n=>{const d=Date.now()-new Date(n.createdAt||0).getTime();return d<7*86400000}).length,"#2FA34A","Created"],[Pin,pinned.length,"#1685C0","Pinned"],[Tag,categories.length,"#8A55D8","Categories"]].map(([I,n,c,l],i)=><div key={l} style={{textAlign:"center",borderLeft:i?`1px solid ${cardBorder}`:"none"}}><div style={{color:c,marginBottom:5}}><I size={19}/></div><div style={{fontSize:18,fontWeight:800,color:textMain}}>{n}</div><div style={{fontSize:9.5,color:textMuted2}}>{l}</div></div>)}</div></div>
-    {pinned.length>0 && <><div style={{display:"flex",justifyContent:"space-between",margin:"4px 2px 9px"}}><div style={{fontSize:16,fontWeight:800,color:textMain}}>Pinned Notes</div></div><div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:8,marginBottom:16}}>{pinned.slice(0,3).map(n=><NoteCard key={n.id} n={n}/>)}</div></>}
-    <div style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:18,overflow:"hidden"}}><div style={{padding:"14px 14px 10px",fontSize:16,fontWeight:800,color:textMain}}>Recent Notes</div>{shown.length===0?<div style={{padding:28,textAlign:"center",color:textMuted2,fontSize:12}}>No notes found</div>:shown.map((n,i)=><div key={n.id} style={{padding:"12px 14px",borderTop:`1px solid ${cardBorder}`}}><div style={{display:"flex",alignItems:"center",gap:10}}><div style={{width:34,height:34,borderRadius:11,background:`${accent}12`,color:accent,display:"flex",alignItems:"center",justifyContent:"center"}}><FileText size={17}/></div><div style={{flex:1,minWidth:0}}><div style={{fontSize:12.5,fontWeight:750,color:textMain,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{n.title||"Untitled note"}</div><div style={{fontSize:10,color:textMuted2,marginTop:3}}>{n.category||"General"} • {n.createdAt?new Date(n.createdAt).toLocaleDateString():""}</div></div><button onClick={()=>togglePin(n.id)} style={{border:0,background:"transparent",color:n.pinned?accent:textMuted2}}><Pin size={15}/></button><button onClick={()=>editQuick(n)} style={{border:0,background:"transparent",color:textMuted2}}><MoreVertical size={16}/></button></div></div>)}</div>
-    <button onClick={onNew} style={{position:"fixed",right:20,bottom:92,zIndex:45,width:46,height:46,borderRadius:"50%",border:0,background:accent,color:"white",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 7px 18px rgba(0,0,0,.15)"}}><Plus size={21}/></button>
-  </div>;
-}
-
-function SettingsRedesign({ t, lang, setLang, themeMode, setThemeMode, notificationsEnabled, setNotificationsEnabled, examNotifEnabled, setExamNotifEnabled, taskNotifEnabled, setTaskNotifEnabled, timerNotifEnabled, setTimerNotifEnabled, weekStartDay, setWeekStartDay, focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
-  const Toggle=({value,onChange})=><button onClick={()=>onChange(v=>!v)} style={{width:40,height:23,border:0,borderRadius:20,background:value?accent:(dark?"#3A373E":"#DDD8D0"),padding:2,display:"flex",justifyContent:value?"flex-end":"flex-start"}}><span style={{width:19,height:19,borderRadius:"50%",background:"#fff",boxShadow:"0 1px 2px rgba(0,0,0,.18)"}}/></button>;
-  const Row=({icon:Icon,title,sub,children})=><div style={{display:"flex",alignItems:"center",gap:12,padding:"13px 14px",borderBottom:`1px solid ${cardBorder}`}}><div style={{width:34,height:34,borderRadius:11,background:`${accent}12`,color:accent,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Icon size={17}/></div><div style={{flex:1,minWidth:0}}><div style={{fontSize:13,fontWeight:750,color:textMain}}>{title}</div>{sub&&<div style={{fontSize:10.5,color:textMuted2,marginTop:3}}>{sub}</div>}</div>{children||<ChevronRight size={16} color={textMuted2}/>}</div>;
-  return <div className="fg-tab-panel" style={{marginTop:16,paddingBottom:80}}>
-    <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}><div style={{width:54,height:54,borderRadius:18,background:`${accent}12`,color:accent,display:"flex",alignItems:"center",justifyContent:"center"}}><Settings size={27}/></div><div><div style={{fontSize:22,fontWeight:800,color:textMain}}>Settings</div><div style={{fontSize:13,color:textMuted2,marginTop:3}}>Manage your app preferences</div></div></div>
-    <div style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:18,overflow:"hidden",marginBottom:14}}><Row icon={User2} title="Md. Mazharul Islam Maruf" sub="Account & profile"/><Row icon={Palette} title="Appearance" sub={themeMode}/><Row icon={Clock} title="Focus Timer" sub={`${focusMinutes} min focus • ${breakMinutes} min break`}/><Row icon={Bell} title="Notifications" sub={notificationsEnabled?"Enabled":"Disabled"}><Toggle value={notificationsEnabled} onChange={setNotificationsEnabled}/></Row></div>
-    <div style={{fontSize:13,fontWeight:800,color:textMain,margin:"12px 2px 8px"}}>Preferences</div>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:9,marginBottom:14}}>
-      <button onClick={()=>setThemeMode(themeMode==="dark"?"light":"dark")} style={{textAlign:"left",background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:13,color:textMain}}><Palette size={18} color={accent}/><div style={{fontSize:12.5,fontWeight:750,marginTop:10}}>Appearance</div><div style={{fontSize:10,color:textMuted2,marginTop:3}}>{themeMode}</div></button>
-      <button onClick={()=>setNotificationsEnabled(v=>!v)} style={{textAlign:"left",background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:13,color:textMain}}><Bell size={18} color={accent}/><div style={{fontSize:12.5,fontWeight:750,marginTop:10}}>Notifications</div><div style={{fontSize:10,color:textMuted2,marginTop:3}}>{notificationsEnabled?"Manage alerts":"Off"}</div></button>
-    </div>
-    <div style={{fontSize:13,fontWeight:800,color:textMain,margin:"12px 2px 8px"}}>Notification types</div>
-    <div style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,overflow:"hidden",marginBottom:14}}><Row icon={Calendar} title="Exam reminders"><Toggle value={examNotifEnabled} onChange={setExamNotifEnabled}/></Row><Row icon={ListChecks} title="Task reminders"><Toggle value={taskNotifEnabled} onChange={setTaskNotifEnabled}/></Row><Row icon={Clock} title="Timer notifications"><Toggle value={timerNotifEnabled} onChange={setTimerNotifEnabled}/></Row></div>
-    <div style={{fontSize:13,fontWeight:800,color:textMain,margin:"12px 2px 8px"}}>More</div>
-    <div style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,overflow:"hidden"}}><Row icon={CalendarDays} title="Week starts on" sub={weekStartDay===0?"Sunday":"Monday"}/><Row icon={Compass} title="Language" sub={lang==="bn"?"বাংলা":"English"}><button onClick={()=>setLang(v=>v==="bn"?"en":"bn")} style={{border:`1px solid ${cardBorder}`,background:"transparent",borderRadius:9,padding:"5px 9px",fontSize:10,fontWeight:800,color:textMain}}>{lang==="bn"?"EN":"বাংলা"}</button></Row><Row icon={Info} title="About FocusGo" sub="Version 1.0.0"/></div>
-  </div>;
-}
-
 function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg, cardBorder, textMain, textMuted2, accent, dark, isDesktop, bg }) {
   const [editing, setEditing] = useState(null);
   const [title, setTitle] = useState("");
@@ -8909,45 +9522,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
   return (
     <>
-      {/* Redesigned Notes UI — editor/trash/calendar modals below remain unchanged */}
-      <div className="fg-tab-panel" style={{marginTop:16,paddingBottom:100}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
-          <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <div style={{width:54,height:54,borderRadius:18,background:dark?`${accent}18`:`${accent}12`,color:accent,display:"flex",alignItems:"center",justifyContent:"center"}}><FileText size={27}/></div>
-            <div><div style={{fontSize:22,fontWeight:800,color:textMain}}>My Notes</div><div style={{fontSize:13,color:textMuted2,marginTop:3}}>All your ideas, in one place</div></div>
-          </div>
-          <button onClick={()=>{vibrate();openNew(false);}} style={{width:42,height:42,borderRadius:14,border:0,background:`${accent}12`,color:accent,display:"flex",alignItems:"center",justifyContent:"center"}}><Plus size={23}/></button>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:8,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:"9px 12px",marginBottom:14}}><Search size={15} color={textMuted2}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t.notesSearch} style={{border:0,outline:0,background:"transparent",color:textMain,flex:1,fontSize:12.5}}/></div>
-        <div style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:18,padding:"14px 10px",marginBottom:14}}>
-          <div style={{fontSize:16,fontWeight:800,color:textMain,marginBottom:12}}>Notes Overview</div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)"}}>
-            {[[FileText,filtered.length,accent,"Total Notes"],[FileText,filtered.filter(n=>n.createdAt&&Date.now()-new Date(n.createdAt).getTime()<7*86400000).length,"#2FA34A","Created"],[Pin,filtered.filter(n=>n.pinned).length,"#1685C0","Pinned"],[Tag,[...new Set(filtered.map(n=>n.category||"General"))].length,"#8A55D8","Categories"]].map(([I,n,c,l],i)=><div key={l} style={{textAlign:"center",borderLeft:i?`1px solid ${cardBorder}`:"none"}}><div style={{color:c,marginBottom:5}}><I size={19}/></div><div style={{fontSize:18,fontWeight:800,color:textMain}}>{n}</div><div style={{fontSize:9.5,color:textMuted2}}>{l}</div></div>)}
-          </div>
-        </div>
-        {filtered.filter(n=>n.pinned).length>0 && <>
-          <div style={{fontSize:16,fontWeight:800,color:textMain,margin:"4px 2px 9px"}}>Pinned Notes</div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:8,marginBottom:16}}>
-            {filtered.filter(n=>n.pinned).slice(0,3).map(n=><div key={n.id} style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:12,minWidth:0}}>
-              <div style={{display:"flex",gap:7,alignItems:"flex-start"}}><div style={{width:29,height:29,borderRadius:9,background:`${accent}12`,color:accent,display:"flex",alignItems:"center",justifyContent:"center"}}><Pin size={14}/></div><div style={{fontSize:11.5,fontWeight:800,color:textMain,flex:1,minWidth:0,overflow:"hidden",textOverflow:"ellipsis"}}>{n.title||"Untitled note"}</div></div>
-              <div style={{fontSize:10.5,color:textMuted2,lineHeight:1.45,marginTop:8,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{stripHtmlToText(n.body||"")||"No content"}</div>
-              <button onClick={()=>togglePin(n.id)} style={{border:0,background:"transparent",color:textMuted2,fontSize:10,padding:"7px 0 0"}}>Unpin</button>
-            </div>)}
-          </div>
-        </>}
-        <div style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:18,overflow:"hidden"}}>
-          <div style={{padding:"14px 14px 10px",fontSize:16,fontWeight:800,color:textMain}}>Recent Notes</div>
-          {filtered.slice(0,6).map((n,i)=><div key={n.id} style={{padding:"11px 14px",borderTop:`1px solid ${cardBorder}`,display:"flex",alignItems:"center",gap:9}}>
-            <div style={{width:34,height:34,borderRadius:11,background:`${accent}12`,color:accent,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><FileText size={17}/></div>
-            <div style={{flex:1,minWidth:0}}><div style={{fontSize:12.5,fontWeight:750,color:textMain,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{n.title||"Untitled note"}</div><div style={{fontSize:10,color:textMuted2,marginTop:3}}>{n.category||"General"} {n.updatedAt?`• ${timeAgoLabel(n.updatedAt,lang)}`:""}</div></div>
-            <button onClick={()=>togglePin(n.id)} style={{border:0,background:"transparent",color:n.pinned?accent:textMuted2,padding:5}}><Pin size={15}/></button>
-            <button onClick={()=>openEdit(n)} style={{border:0,background:"transparent",color:textMuted2,padding:5}}><MoreVertical size={16}/></button>
-          </div>)}
-          {filtered.length===0&&<div style={{padding:28,textAlign:"center",color:textMuted2,fontSize:12}}>No notes yet</div>}
-        </div>
-      </div>
-
-    <div className="fg-tab-panel" style={{ display:"none", marginTop: 20, paddingBottom: 30 }} onClick={() => { openMenu && setOpenMenu(null); fabOpen && setFabOpen(false); categoryMenuFor && setCategoryMenuFor(null); showSortMenu && setShowSortMenu(false); showCatMenu && setShowCatMenu(false); }}>
+    <div className="fg-tab-panel" style={{ marginTop: 20, paddingBottom: 30 }} onClick={() => { openMenu && setOpenMenu(null); fabOpen && setFabOpen(false); categoryMenuFor && setCategoryMenuFor(null); showSortMenu && setShowSortMenu(false); showCatMenu && setShowCatMenu(false); }}>
       {/* Bold/Italic/Underline/H1/H2 রিচ টেক্সট স্টাইল — নোট এডিটর ও নোট কার্ড প্রিভিউ, দুই জায়গাতেই কাজ করার জন্য একবারই বসানো */}
       <style>{`
         .fg-note-body h1{font-size:1.5em;font-weight:800;margin:0.5em 0 0.25em;line-height:1.25;}
@@ -9259,7 +9834,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
       {/* ফ্লোটিং + বাটন — ".fg-tab-panel"-এর বাইরে (sibling হিসেবে) রাখা হয়েছে যাতে পেজ-লোড অ্যানিমেশনের transform এটাকে
           উপর থেকে নিচে স্লাইড করিয়ে না আনে — সবসময় বটম-ন্যাভের ঠিক উপরে স্থির থাকবে; ট্যাপ করলে Note/Checklist অপশন দেখায় */}
-      <div style={{display:"none", position:"fixed", right:20, bottom: isDesktop ? 28 : 96, zIndex:41, flexDirection:"column", alignItems:"flex-end", gap:10}}>
+      <div style={{position:"fixed", right:20, bottom: isDesktop ? 28 : 96, zIndex:41, display:"flex", flexDirection:"column", alignItems:"flex-end", gap:10}}>
         {fabOpen && (
           <div onClick={e=>e.stopPropagation()} style={{display:"flex", flexDirection:"column", gap:8, alignItems:"flex-end"}}>
             <button onClick={()=>{vibrate(); openNew(true);}} style={{display:"flex",alignItems:"center",gap:8,border:`1px solid ${cardBorder}`,background:cardBg,color:textMain,borderRadius:999,padding:"9px 14px 9px 12px",fontSize:13,fontWeight:700,cursor:"pointer",boxShadow: dark ? "0 4px 12px rgba(0,0,0,0.25)" : "0 4px 12px rgba(0,0,0,0.10)"}}>
