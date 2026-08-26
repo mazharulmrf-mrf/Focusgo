@@ -5272,32 +5272,6 @@ export default function FocusGo() {
         </div>
         )}
 
-        {/* কাছের পরীক্ষার কাউন্টডাউন কার্ড — Home ট্যাবে, শুধু যদি Exam Schedule-এ আসন্ন কোনো পরীক্ষা থাকে; ট্যাপ করলে Study ট্যাবের Exam ম্যানেজার খোলে */}
-        {tab === "today" && nearestUpcomingExam && (() => {
-          const diffDays = Math.round((new Date(nearestUpcomingExam.date + "T00:00:00") - new Date(todayKey + "T00:00:00")) / 86400000);
-          const daysLabel = diffDays === 0 ? (lang==="bn" ? "আজ" : "Today") : diffDays === 1 ? (lang==="bn" ? "আগামীকাল" : "Tomorrow") : (lang==="bn" ? `${nf(diffDays)} দিন বাকি` : `${diffDays} days left`);
-          return (
-            <button
-              onClick={()=>{ vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
-              className="fg-tab-panel"
-              style={{marginTop:8, width:"100%", textAlign:"left", border:`1px solid ${accent}22`, cursor:"pointer", background: "#000000", borderRadius:18, padding:"14px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, position:"relative", overflow:"hidden"}}
-            >
-              <div style={{position:"absolute", top:-40, right:-30, width:110, height:110, borderRadius:"50%", background:`${accent}12`, pointerEvents:"none"}}/>
-              <div style={{minWidth:0, position:"relative"}}>
-                <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:"rgba(255,255,255,0.8)", textTransform:"uppercase"}}>{lang==="bn"?"পরবর্তী পরীক্ষা":"Next Exam"}</div>
-                <div style={{fontSize:14.5, fontWeight:800, color:"#fff", marginTop:3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{nearestUpcomingExam.subject}</div>
-                <div style={{fontSize:12, color:"rgba(255,255,255,0.72)", marginTop:3}}>
-                  {weekdayName(new Date(nearestUpcomingExam.date+"T00:00:00"))}, <Num>{nf(new Date(nearestUpcomingExam.date+"T00:00:00").getDate())}</Num> {monthName(new Date(nearestUpcomingExam.date+"T00:00:00").getMonth())}
-                  {nearestUpcomingExam.startTime ? ` · ${nearestUpcomingExam.startTime}${nearestUpcomingExam.endTime ? "–"+nearestUpcomingExam.endTime : ""}` : ""}
-                </div>
-              </div>
-              <div style={{flexShrink:0, fontSize:13, fontWeight:800, color:accent, background: "#fff", padding:"7px 13px", borderRadius:999, whiteSpace:"nowrap", position:"relative"}}>
-                {daysLabel}
-              </div>
-            </button>
-          );
-        })()}
-
         {tab === "study" && (
           <div className="fg-tab-panel" style={{marginTop:18, marginBottom:-2}}>
             <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.4, color:textMain}}>Study</div>
@@ -5343,7 +5317,7 @@ export default function FocusGo() {
             এখন accent color ব্যবহার হচ্ছে (আগে dark teal ছিল, সেই রঙ Next Exam কার্ডে সরানো হয়েছে) */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
           return (
-        <div className="fg-tab-panel" style={{marginTop:14, border:`1px solid ${accent}4D`, background: dark ? `${accent}3D` : `${accent}33`, borderRadius:18, padding:"14px 16px", position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:16, border:`1px solid ${accent}4D`, background: dark ? `${accent}3D` : `${accent}33`, borderRadius:20, padding:"16px 18px", position:"relative", overflow:"hidden", boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.20)" : `0 6px 16px ${accent}1F`}}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
@@ -5377,7 +5351,7 @@ export default function FocusGo() {
             const cardPct = hasTasks ? Math.round((cardDone / cardTodayTasks.length) * 100) : 0;
             const cardLeft = cardTodayTasks.length - cardDone;
             return (
-              <div style={{marginTop:12, paddingTop:12, borderTop:`1px solid ${accent}40`}}>
+              <div style={{marginTop:14, paddingTop:14, borderTop:`1px solid ${accent}40`}}>
                 <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
                   <div style={{fontSize:13, fontWeight:800, color:inkColor}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
                   <div style={{fontSize:11, fontWeight:700, color:inkA(0.75), whiteSpace:"nowrap"}}>
@@ -5391,6 +5365,41 @@ export default function FocusGo() {
             );
           })()}
         </div>
+          );
+        })()}
+
+        {/* Salah countdown + Next Exam — ছোট pill আকারে হেরো কার্ডের ঠিক নিচে, পাশাপাশি এক row-তে (হোমপেজ মকআপ অনুযায়ী) */}
+        {tab === "today" && (nextSalahCountdown || nearestUpcomingExam) && (() => {
+          const examInfo = nearestUpcomingExam ? (() => {
+            const diffDays = Math.round((new Date(nearestUpcomingExam.date + "T00:00:00") - new Date(todayKey + "T00:00:00")) / 86400000);
+            const daysLabel = diffDays === 0 ? (lang==="bn" ? "আজ" : "Today") : diffDays === 1 ? (lang==="bn" ? "আগামীকাল" : "Tomorrow") : (lang==="bn" ? `${nf(diffDays)} দিন বাকি` : `${diffDays}d left`);
+            return { daysLabel };
+          })() : null;
+          return (
+            <div style={{display:"flex", gap:8, marginTop:14, overflowX:"auto", WebkitOverflowScrolling:"touch"}}>
+              {nextSalahCountdown && (
+                <button
+                  onClick={() => { vibrate(); setShowSalahDropdown(true); if (!salahCoords) requestSalahLocation(); }}
+                  style={{display:"flex", alignItems:"center", gap:7, flexShrink:0, maxWidth:"62%", border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:999, padding:"9px 14px", cursor:"pointer", boxShadow: dark ? "0 4px 10px rgba(0,0,0,0.18)" : "0 4px 10px rgba(0,0,0,0.05)"}}
+                >
+                  <Moon size={14} color={accent} fill={`${accent}33`} strokeWidth={2.2}/>
+                  <span style={{fontSize:12.5, fontWeight:700, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                    {lang === "bn" ? `${nextSalahCountdown.label} বাকি ${nextSalahCountdown.text}` : `${nextSalahCountdown.label} in ${nextSalahCountdown.text}`}
+                  </span>
+                </button>
+              )}
+              {nearestUpcomingExam && examInfo && (
+                <button
+                  onClick={() => { vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
+                  style={{display:"flex", alignItems:"center", gap:7, flexShrink:1, minWidth:0, border:"none", background:"#000000", color:"#fff", borderRadius:999, padding:"9px 14px", cursor:"pointer", boxShadow:"0 4px 10px rgba(0,0,0,0.20)"}}
+                >
+                  <CalendarDays size={14} strokeWidth={2.2}/>
+                  <span style={{fontSize:12.5, fontWeight:700, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                    {nearestUpcomingExam.subject} · {examInfo.daysLabel}
+                  </span>
+                </button>
+              )}
+            </div>
           );
         })()}
 
@@ -5637,8 +5646,8 @@ export default function FocusGo() {
 
         {/* Today's study list - Today tab + Study tab (shown above Study Plan/Exam) */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (
-        <div className="fg-tab-panel" style={{marginTop:14}}>
-          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
+        <div className="fg-tab-panel" style={{marginTop:26}}>
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
             <div style={{display:"flex", alignItems:"center", gap:8}}>
               <span style={{width:26, height:26, borderRadius:9, background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                 <GraduationCap size={14} color={accent} strokeWidth={2.2}/>
@@ -5669,7 +5678,7 @@ export default function FocusGo() {
         {tab === "today" && (() => {
           const homeTodayTasks = tasks.filter(x => x.dueDate === todayKey);
           return (
-          <div className="fg-tab-panel" style={{marginTop:18}}>
+          <div className="fg-tab-panel" style={{marginTop:26}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <div style={{display:"flex", alignItems:"center", gap:8}}>
                 <span style={{width:26, height:26, borderRadius:9, background: inkA(dark ? 0.2 : 0.12), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
@@ -5699,9 +5708,9 @@ export default function FocusGo() {
                 </div>
               </div>
             ) : (
-              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
                 {homeTodayTasks.map(x => (
-                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:10,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"10px 12px",height:41,boxSizing:"border-box"}}>
+                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:10,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"12px 14px",boxSizing:"border-box"}}>
                     <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:21,height:21,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
                       {x.done && <Check size={12} color="#fff" strokeWidth={3}/>}
                     </button>
