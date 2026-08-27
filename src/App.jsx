@@ -4894,7 +4894,8 @@ export default function FocusGo() {
   const isDesktop = breakpoint === "desktop";
   // আগে zoom 1.4 আর maxWidth cap 1080px ছিল — বড় স্ক্রিনে সবকিছু অনেক বেশি "চাপানো"/ঠাসা লাগছিল।
   // এখন একটু কমিয়ে আনা হলো, যাতে বড় দেখাবে কিন্তু ঘিঞ্জি না লাগে।
-  const desktopZoom = isDesktop ? 1.18 : 1;
+  // মোবাইলেও পুরো অ্যাপটা একটু ছোট (compact) দেখানোর জন্য সামান্য zoom-out (0.92x) প্রয়োগ করা হলো।
+  const desktopZoom = isDesktop ? 1.18 : (breakpoint === "tablet" ? 1 : 0.92);
   const containerMaxWidth = isDesktop
     ? 1400
     : breakpoint === "tablet" ? 640 : 480;
@@ -5254,7 +5255,7 @@ export default function FocusGo() {
           </button>
         </div>
       )}
-      <div style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, ...(isDesktop ? { zoom: desktopZoom } : {})}}>
+      <div style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, zoom: desktopZoom}}>
       <div style={styles.container}>
         {/* Header row: logo | toggles (search circular icon next to bell, like before) */}
         <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
