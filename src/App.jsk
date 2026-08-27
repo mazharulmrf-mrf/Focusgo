@@ -1278,9 +1278,10 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
       const open = openCard === cardKey;
       return (
         <button onClick={() => toggleCard(cardKey)} style={{
-            background: dark ? "#17151C" : "#F8F5EE", border:`1px solid ${open ? accent : cardBorder}`, borderRadius:16,
+            background: cardBg, border:`1px solid ${open ? accent : cardBorder}`, borderRadius:16,
             padding:"13px 12px 12px", cursor:"pointer", display:"flex", flexDirection:"column", gap:8, minHeight:96,
             position:"relative", textAlign:"left", width:"100%", boxSizing:"border-box", transition:"border-color .15s",
+            boxShadow: dark ? "none" : "0 1px 2px rgba(26,24,20,0.04)",
           }}>
           <span style={softIconWrap(iconBg)}><Icon size={17} color={iconColor}/></span>
           <span style={{display:"block"}}>
@@ -4907,7 +4908,7 @@ export default function FocusGo() {
   // আগে zoom 1.4 আর maxWidth cap 1080px ছিল — বড় স্ক্রিনে সবকিছু অনেক বেশি "চাপানো"/ঠাসা লাগছিল।
   // এখন একটু কমিয়ে আনা হলো, যাতে বড় দেখাবে কিন্তু ঘিঞ্জি না লাগে।
   // মোবাইলেও পুরো অ্যাপটা একটু ছোট (compact) দেখানোর জন্য সামান্য zoom-out (0.92x) প্রয়োগ করা হলো।
-  const desktopZoom = isDesktop ? 1.18 : (breakpoint === "tablet" ? 1 : 0.92);
+  const desktopZoom = isDesktop ? 1.18 : (breakpoint === "tablet" ? 1 : 0.97);
   const containerMaxWidth = isDesktop
     ? 1400
     : breakpoint === "tablet" ? 640 : 480;
