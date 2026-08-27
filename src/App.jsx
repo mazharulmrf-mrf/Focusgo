@@ -909,7 +909,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
   examNotifEnabled, setExamNotifEnabled, taskNotifEnabled, setTaskNotifEnabled, salahNotifEnabled, setSalahNotifEnabled, timerNotifEnabled, setTimerNotifEnabled,
   weekStartDay, setWeekStartDay, focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes,
   onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage,
-  user, isGuest, onOpenProfile, notes, tasks, subjects }) {
+  user, isGuest, onOpenProfile, notes, tasks, subjects, setNotes, setTasks, setSubjects }) {
   const [showAbout, setShowAbout] = useState(false);
   const [legalDoc, setLegalDoc] = useState(null); // null | "privacy" | "terms"
   const isBn = lang === "bn";
@@ -989,6 +989,43 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
       setTimeout(() => setExportDone(false), 2200);
     } catch (e) { /* silently ignore — ডাউনলোড সমর্থন না থাকলে কিছু করার নেই */ }
   };
+
+  // ডেটা ইমপোর্ট — আগে এক্সপোর্ট করা .json ফাইল থেকে নোট/টাস্ক/সাবজেক্ট ফিরিয়ে আনা (লোকাল ব্যাকআপ রিস্টোর)
+  const importFileInputRef = useRef(null);
+  const [importState, setImportState] = useState("idle"); // idle | done | error
+  const [importConfirm, setImportConfirm] = useState(null); // পার্স হওয়া ডেটা — কনফার্ম মোডাল দেখানোর জন্য অপেক্ষায়
+  const triggerImport = () => { vibrate(); importFileInputRef.current && importFileInputRef.current.click(); };
+  const onImportFileChosen = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (e.target) e.target.value = ""; // একই ফাইল আবার সিলেক্ট করলেও যেন change ইভেন্ট আসে
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        if (!parsed || typeof parsed !== "object" || (!Array.isArray(parsed.notes) && !Array.isArray(parsed.tasks) && !Array.isArray(parsed.subjects))) {
+          throw new Error("invalid backup file");
+        }
+        setImportConfirm(parsed);
+      } catch (err) {
+        setImportState("error");
+        setTimeout(() => setImportState("idle"), 2500);
+      }
+    };
+    reader.onerror = () => { setImportState("error"); setTimeout(() => setImportState("idle"), 2500); };
+    reader.readAsText(file);
+  };
+  const confirmImport = () => {
+    if (!importConfirm) return;
+    vibrate();
+    if (Array.isArray(importConfirm.notes)) setNotes(importConfirm.notes);
+    if (Array.isArray(importConfirm.tasks)) setTasks(importConfirm.tasks);
+    if (Array.isArray(importConfirm.subjects)) setSubjects(importConfirm.subjects);
+    setImportConfirm(null);
+    setImportState("done");
+    setTimeout(() => setImportState("idle"), 2200);
+  };
+
 
   const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:`1px solid ${cardBorder}` };
   const labelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14, fontWeight:700, color:textMain };
@@ -1473,7 +1510,33 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             title={isBn ? "এক্সপোর্ট ডেটা" : "Export Data"}
             subtitle={exportDone ? (isBn ? "ডাউনলোড হয়ে গেছে ✓" : "Downloaded ✓") : (isBn ? "নোট ও ডেটা এক্সপোর্ট করুন" : "Export your notes and data")}
             onClick={exportData}/>
+          <GroupRow Icon={UploadCloud} iconBg={dark ? "#1F3A2E":"#DCEFE4"} iconColor="#3F9A6E" borderTop
+            title={isBn ? "ইমপোর্ট ডেটা" : "Import Data"}
+            subtitle={
+              importState === "done" ? (isBn ? "রিস্টোর সম্পন্ন হয়েছে ✓" : "Restored ✓")
+              : importState === "error" ? (isBn ? "ফাইলটি সঠিক নয়" : "Invalid backup file")
+              : (isBn ? "ব্যাকআপ ফাইল থেকে ডেটা ফিরিয়ে আনুন" : "Restore from a backup file")
+            }
+            onClick={triggerImport}/>
+          <input ref={importFileInputRef} type="file" accept="application/json,.json" onChange={onImportFileChosen} style={{display:"none"}}/>
         </div>
+
+        {importConfirm && (
+          <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200, padding:20}} onClick={()=>setImportConfirm(null)}>
+            <div onClick={(e)=>e.stopPropagation()} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:18, padding:20, maxWidth:340, width:"100%"}}>
+              <div style={{fontSize:16, fontWeight:800, color:textMain, marginBottom:8}}>{isBn ? "ডেটা রিস্টোর করবেন?" : "Restore this backup?"}</div>
+              <div style={{fontSize:13, color:textMuted2, fontWeight:600, lineHeight:1.5, marginBottom:16}}>
+                {isBn
+                  ? "এটি আপনার বর্তমান নোট, টাস্ক ও সাবজেক্ট মুছে ব্যাকআপ ফাইলের ডেটা দিয়ে প্রতিস্থাপন করবে। এই কাজটি ফিরিয়ে নেওয়া যাবে না।"
+                  : "This will replace your current notes, tasks, and subjects with the data from this backup file. This cannot be undone."}
+              </div>
+              <div style={{display:"flex", gap:10}}>
+                <button onClick={()=>setImportConfirm(null)} style={{flex:1, border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, borderRadius:12, padding:"10px 0", fontWeight:700, fontSize:13, cursor:"pointer"}}>{isBn ? "বাতিল" : "Cancel"}</button>
+                <button onClick={confirmImport} style={{flex:1, border:"none", background:accent, color:"#fff", borderRadius:12, padding:"10px 0", fontWeight:700, fontSize:13, cursor:"pointer"}}>{isBn ? "রিস্টোর করুন" : "Restore"}</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ---- More ---- */}
         <div style={sectionHeadingStyle}>{isBn ? "আরও" : "More"}</div>
@@ -6255,42 +6318,30 @@ export default function FocusGo() {
           // ক্যাটাগরি/প্রায়োরিটি/ডিউ-ডেট ব্যাজ এখানে দেখানো হয় না — রো-এর রংই প্রায়োরিটি বোঝায়, বাকি ডিটেইল ট্যাপ করলে দেখা যায়
           const renderTask = (x) => {
             const pr = x.priority || "med";
-            const cat = taskCategories.find(c => c.key === x.category) || taskCategories[0] || { icon:"Tag", color:accent, label:"Task", labelBn:"টাস্ক" };
-            const CatIcon = taskCategoryIcon(cat.icon);
             const due = dueLabel(x.dueDate);
             return (
               <div key={x.id} className="fg-card" onClick={()=>setTaskDetailId(x.id)} style={{
                 background: cardBg,
                 border: `1px solid ${cardBorder}`,
-                borderRadius:16, padding:"12px 12px", display:"flex", alignItems:"flex-start", gap:10, position:"relative", cursor:"pointer",
+                borderRadius:14, padding:"9px 11px", display:"flex", alignItems:"flex-start", gap:9, position:"relative", cursor:"pointer",
                 transition:"background .15s ease",
               }}>
-                <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{width:22, height:22, marginTop:2, borderRadius:"50%", flexShrink:0, cursor:"pointer", border:`2px solid ${x.done ? "#6E8B5E" : cardBorder}`, background: x.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", padding:0}}>
-                  {x.done && <Check size={12} color="#fff" strokeWidth={3}/>}
+                <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{width:19, height:19, marginTop:2, borderRadius:"50%", flexShrink:0, cursor:"pointer", border:`2px solid ${x.done ? "#6E8B5E" : cardBorder}`, background: x.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", padding:0}}>
+                  {x.done && <Check size={11} color="#fff" strokeWidth={3}/>}
                 </button>
-                <span style={{width:34, height:34, borderRadius:11, background:`${cat.color}1E`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                  <CatIcon size={16} color={cat.color} strokeWidth={2.2}/>
-                </span>
                 <div style={{flex:1, minWidth:0}}>
-                  <div style={{fontSize:13.5, fontWeight:800, color: x.done ? textMuted2 : textMain, textDecoration: x.done ? "line-through" : "none", wordBreak:"break-word", overflowWrap:"break-word", whiteSpace:"normal", lineHeight:1.35}}>
+                  <div style={{fontSize:13, fontWeight:800, color: x.done ? textMuted2 : textMain, textDecoration: x.done ? "line-through" : "none", wordBreak:"break-word", overflowWrap:"break-word", whiteSpace:"normal", lineHeight:1.3}}>
                     {x.title}
-                    {x.note && (
-                      <FileText size={11} color={textMuted2} style={{display:"inline", verticalAlign:"middle", marginLeft:5, marginTop:-2}}/>
-                    )}
-                  </div>
-                  <div style={{fontSize:11, color:textMuted2, fontWeight:600, marginTop:2}}>
-                    {lang==="bn" ? cat.labelBn : cat.label}
                   </div>
                   {(x.reminderTime || due) && (
-                    <div style={{display:"flex", alignItems:"center", gap:5, marginTop:4, fontSize:11, color:textMuted2, fontWeight:600, flexWrap:"wrap"}}>
-                      {x.reminderTime && (<span style={{display:"inline-flex", alignItems:"center", gap:3}}><Clock size={11}/> {x.reminderTime}</span>)}
+                    <div style={{display:"flex", alignItems:"center", gap:5, marginTop:3, fontSize:10.5, color:textMuted2, fontWeight:600, flexWrap:"wrap"}}>
+                      {x.reminderTime && (<span>{x.reminderTime}</span>)}
                       {x.reminderTime && due && <span style={{opacity:0.5}}>•</span>}
                       {due && <span style={{color: due.color, fontWeight:700}}>{due.text}</span>}
                     </div>
                   )}
                   {x.repeat && !x.done && (
-                    <span title={t.taskRepeatBadge} style={{display:"inline-flex", alignItems:"center", gap:3, fontSize:10, fontWeight:800, color:accent, background:`${accent}14`, borderRadius:8, padding:"2px 6px", marginTop:5, whiteSpace:"nowrap"}}>
-                      <Repeat size={11}/>
+                    <span title={t.taskRepeatBadge} style={{display:"inline-block", fontSize:9.5, fontWeight:800, color:accent, background:`${accent}14`, borderRadius:8, padding:"2px 6px", marginTop:4, whiteSpace:"nowrap"}}>
                       {x.dueDate && (() => {
                         const diffDays = Math.round((new Date(x.dueDate+"T00:00:00") - new Date(todayKey+"T00:00:00")) / 86400000);
                         const label = diffDays === 0 ? (lang==="bn" ? "আজ" : "Today") : diffDays > 0 ? `D-${diffDays}` : `D+${Math.abs(diffDays)}`;
@@ -6299,9 +6350,9 @@ export default function FocusGo() {
                     </span>
                   )}
                 </div>
-                <div style={{display:"flex", flexDirection:"column", alignItems:"flex-end", gap:8, flexShrink:0}}>
+                <div style={{display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6, flexShrink:0}}>
                   {!x.done && (
-                    <span style={{fontSize:10.5, fontWeight:800, color:prColor[pr], background:`${prColor[pr]}18`, borderRadius:999, padding:"4px 10px", whiteSpace:"nowrap"}}>
+                    <span style={{fontSize:10, fontWeight:800, color:prColor[pr], background:`${prColor[pr]}18`, borderRadius:999, padding:"3px 9px", whiteSpace:"nowrap"}}>
                       {prLabel[pr]}
                     </span>
                   )}
@@ -6337,6 +6388,9 @@ export default function FocusGo() {
                       </>
                     )}
                   </div>
+                  {x.note && (
+                    <FileText size={13} color={textMuted2} style={{flexShrink:0, opacity:0.75}}/>
+                  )}
                 </div>
               </div>
             );
@@ -6617,7 +6671,7 @@ export default function FocusGo() {
             focusMinutes={focusMinutes} setFocusMinutes={setFocusMinutes}
             breakMinutes={breakMinutes} setBreakMinutes={setBreakMinutes}
             user={user} isGuest={isGuest} onOpenProfile={() => setShowProfile(true)}
-            notes={notes} tasks={tasks} subjects={subjects}
+            notes={notes} tasks={tasks} subjects={subjects} setNotes={setNotes} setTasks={setTasks} setSubjects={setSubjects}
             cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
         )}
 
