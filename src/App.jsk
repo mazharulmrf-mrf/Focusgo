@@ -1346,13 +1346,27 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
         {/* ---- Preferences ---- */}
         <div style={{...sectionHeadingStyle, marginTop:0}}>{isBn ? "পছন্দসমূহ" : "Preferences"}</div>
-        <div style={{display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:10, marginBottom:10}}>
+
+        {/* Appearance — একাই, কারণ এটাই সবচেয়ে বেশি ব্যবহৃত সেটিং */}
+        <div style={{display:"grid", gridTemplateColumns:"1fr", gap:10, marginBottom:14}}>
           <PrefCard cardKey="appearance" Icon={Palette} iconBg={dark ? "#5A3A2A":"#FBE6D8"} iconColor="#D97757" title={isBn ? "অ্যাপিয়ারেন্স" : "Appearance"} subtitle={currentThemeLabel}/>
-          <PrefCard cardKey="timer" Icon={Hourglass} iconBg={dark ? "#3A2F55":"#EDE4FB"} iconColor="#7C5CD9" title={isBn ? "ফোকাস টাইমার" : "Focus Timer"} subtitle={isBn ? "পোমোডোরো সেটিংস" : "Pomodoro settings"}/>
-          <PrefCard cardKey="notifications" Icon={Bell} iconBg={dark ? "#5A4A1F":"#FCEFC7"} iconColor="#C99A1E" title={t.notifications} subtitle={isBn ? "অ্যালার্ট পরিচালনা" : "Manage alerts"}/>
+        </div>
+
+        {/* Focus & Study — টাইমার আর স্টাডি রিমাইন্ডার, দুটোই পড়াশোনার রুটিন নিয়ন্ত্রণ করে */}
+        <div style={{fontSize:10.5, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", opacity:0.7, margin:"0 2px 8px"}}>
+          {isBn ? "ফোকাস ও পড়াশোনা" : "Focus & Study"}
         </div>
         <div style={{display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:10, marginBottom:14}}>
+          <PrefCard cardKey="timer" Icon={Hourglass} iconBg={dark ? "#3A2F55":"#EDE4FB"} iconColor="#7C5CD9" title={isBn ? "ফোকাস টাইমার" : "Focus Timer"} subtitle={isBn ? "পোমোডোরো সেটিংস" : "Pomodoro settings"}/>
           <PrefCard cardKey="reminders" Icon={CalendarDays} iconBg={dark ? "#1F4A2C":"#DCEFDF"} iconColor="#3F9A54" title={isBn ? "স্টাডি রিমাইন্ডার" : "Study Reminders"} subtitle={studyRemindersEnabled ? (isBn ? "প্রতিদিনের রিমাইন্ডার" : "Daily reminders") : (isBn ? "বন্ধ" : "Off")}/>
+        </div>
+
+        {/* Alerts — নোটিফিকেশন আর সাউন্ড/হ্যাপটিক, দুটোই অ্যাপ কীভাবে অ্যালার্ট দেয় সেটা নিয়ন্ত্রণ করে */}
+        <div style={{fontSize:10.5, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", opacity:0.7, margin:"0 2px 8px"}}>
+          {isBn ? "অ্যালার্ট" : "Alerts"}
+        </div>
+        <div style={{display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:10, marginBottom:14}}>
+          <PrefCard cardKey="notifications" Icon={Bell} iconBg={dark ? "#5A4A1F":"#FCEFC7"} iconColor="#C99A1E" title={t.notifications} subtitle={isBn ? "অ্যালার্ট পরিচালনা" : "Manage alerts"}/>
           <PrefCard cardKey="sound" Icon={soundEnabled ? Volume2 : VolumeX} iconBg={dark ? "#1F4550":"#DCF1F5"} iconColor="#2E9AB0" title={isBn ? "সাউন্ড" : "Sound"} subtitle={isBn ? "শব্দ ও কম্পন" : "Sound & vibration"}/>
         </div>
 
