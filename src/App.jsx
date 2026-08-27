@@ -5695,36 +5695,49 @@ export default function FocusGo() {
         })()}
 
         {/* Salah countdown + Next Exam — ছোট pill আকারে হেরো কার্ডের ঠিক নিচে, পাশাপাশি এক row-তে (হোমপেজ মকআপ অনুযায়ী) */}
-        {tab === "today" && (nextSalahCountdown || nearestUpcomingExam) && (() => {
-          const examInfo = nearestUpcomingExam ? (() => {
-            const diffDays = Math.round((new Date(nearestUpcomingExam.date + "T00:00:00") - new Date(todayKey + "T00:00:00")) / 86400000);
-            const daysLabel = diffDays === 0 ? (lang==="bn" ? "আজ" : "Today") : diffDays === 1 ? (lang==="bn" ? "আগামীকাল" : "Tomorrow") : (lang==="bn" ? `${nf(diffDays)} দিন বাকি` : `${diffDays}d left`);
-            return { daysLabel };
-          })() : null;
+        {/* সালাত countdown pill — নিজের সারিতে, যাতে নিচের Exam ব্যানার ফুল-উইথ থাকতে পারে (হোমপেজ মকআপ অনুযায়ী) */}
+        {tab === "today" && nextSalahCountdown && (
+          <div style={{marginTop:14}}>
+            <button
+              onClick={() => { vibrate(); setShowSalahDropdown(true); if (!salahCoords) requestSalahLocation(); }}
+              style={{display:"flex", alignItems:"center", gap:7, maxWidth:"100%", border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:999, padding:"9px 14px", cursor:"pointer", boxShadow: dark ? "0 4px 10px rgba(0,0,0,0.18)" : "0 4px 10px rgba(0,0,0,0.05)"}}
+            >
+              <Moon size={14} color={accent} fill={`${accent}33`} strokeWidth={2.2}/>
+              <span style={{fontSize:12.5, fontWeight:700, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                {lang === "bn" ? `${nextSalahCountdown.label} বাকি ${nextSalahCountdown.text}` : `${nextSalahCountdown.label} in ${nextSalahCountdown.text}`}
+              </span>
+            </button>
+          </div>
+        )}
+
+        {/* Exam ব্যানার — হোমপেজ মকআপের মতো ফুল-উইথ কালো বার: ক্যালেন্ডার আইকন | "Exam" | ডিভাইডার | সাবজেক্ট | "X Days Left" পিল | শেভরন */}
+        {tab === "today" && nearestUpcomingExam && (() => {
+          const diffDays = Math.round((new Date(nearestUpcomingExam.date + "T00:00:00") - new Date(todayKey + "T00:00:00")) / 86400000);
+          const daysLabel = diffDays <= 0 ? (lang==="bn" ? "আজ" : "Today")
+            : diffDays === 1 ? (lang==="bn" ? "১ দিন বাকি" : "1 Day Left")
+            : (lang==="bn" ? `${nf(diffDays)} দিন বাকি` : `${diffDays} Days Left`);
           return (
-            <div style={{display:"flex", gap:8, marginTop:14, overflowX:"auto", WebkitOverflowScrolling:"touch"}}>
-              {nextSalahCountdown && (
-                <button
-                  onClick={() => { vibrate(); setShowSalahDropdown(true); if (!salahCoords) requestSalahLocation(); }}
-                  style={{display:"flex", alignItems:"center", gap:7, flexShrink:0, maxWidth:"62%", border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:999, padding:"9px 14px", cursor:"pointer", boxShadow: dark ? "0 4px 10px rgba(0,0,0,0.18)" : "0 4px 10px rgba(0,0,0,0.05)"}}
-                >
-                  <Moon size={14} color={accent} fill={`${accent}33`} strokeWidth={2.2}/>
-                  <span style={{fontSize:12.5, fontWeight:700, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-                    {lang === "bn" ? `${nextSalahCountdown.label} বাকি ${nextSalahCountdown.text}` : `${nextSalahCountdown.label} in ${nextSalahCountdown.text}`}
-                  </span>
-                </button>
-              )}
-              {nearestUpcomingExam && examInfo && (
-                <button
-                  onClick={() => { vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
-                  style={{display:"flex", alignItems:"flex-start", gap:7, flexShrink:1, minWidth:0, border:"none", background:"#000000", color:"#fff", borderRadius:20, padding:"9px 14px", cursor:"pointer", boxShadow:"0 4px 10px rgba(0,0,0,0.20)", textAlign:"left"}}
-                >
-                  <CalendarDays size={14} strokeWidth={2.2} style={{marginTop:1, flexShrink:0}}/>
-                  <span style={{fontSize:12.5, fontWeight:700, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden", lineHeight:1.3}}>
-                    {nearestUpcomingExam.subject} · {examInfo.daysLabel}
-                  </span>
-                </button>
-              )}
+            <div
+              onClick={() => { vibrate(); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
+              role="button" tabIndex={0}
+              style={{
+                display:"flex", flexWrap:"nowrap", alignItems:"center", width:"100%", boxSizing:"border-box",
+                marginTop:12, background:"#141118", color:"#fff", borderRadius:16, padding:"13px 15px",
+                cursor:"pointer", boxShadow:"0 6px 16px rgba(0,0,0,0.28)",
+              }}
+            >
+              <CalendarDays size={16} color="#fff" strokeWidth={2.2} style={{flexShrink:0}}/>
+              <span style={{fontSize:13.5, fontWeight:800, color:"#fff", flexShrink:0, marginLeft:9}}>
+                {lang==="bn" ? "পরীক্ষা" : "Exam"}
+              </span>
+              <span style={{width:1, alignSelf:"stretch", background:"rgba(255,255,255,0.28)", flexShrink:0, margin:"0 11px"}}/>
+              <span style={{flex:"1 1 auto", minWidth:0, fontSize:13, fontWeight:600, color:"rgba(255,255,255,0.88)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                {nearestUpcomingExam.subject}
+              </span>
+              <span style={{fontSize:11, fontWeight:800, color:"#fff", background:accent, borderRadius:999, padding:"6px 11px", whiteSpace:"nowrap", flexShrink:0, marginLeft:10}}>
+                {daysLabel}
+              </span>
+              <ChevronRight size={17} color="#fff" strokeWidth={2.2} style={{flexShrink:0, marginLeft:8, opacity:0.85}}/>
             </div>
           );
         })()}
