@@ -7,7 +7,7 @@ import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Geolocation } from "@capacitor/geolocation";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert, BookOpen, Hourglass } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert, BookOpen, Hourglass, Flag, Lightbulb, Cloud, UploadCloud, Globe, HelpCircle } from "lucide-react";
 
 // lucide-react-এর এই ভার্সনে Mars/Venus নেই, তাই নিজে ছোট SVG icon বানানো হলো
 const Mars = ({ size = 18, color = "currentColor" }) => (
@@ -910,7 +910,8 @@ function SettingsDropdown({ value, options, onChange, dark, cardBorder, textMain
 function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, setAccentKey, notificationsEnabled, setNotificationsEnabled,
   examNotifEnabled, setExamNotifEnabled, taskNotifEnabled, setTaskNotifEnabled, salahNotifEnabled, setSalahNotifEnabled, timerNotifEnabled, setTimerNotifEnabled,
   weekStartDay, setWeekStartDay, focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes,
-  onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage }) {
+  onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage,
+  user, isGuest, onOpenProfile, notes, tasks, subjects }) {
   const [showAbout, setShowAbout] = useState(false);
   const [legalDoc, setLegalDoc] = useState(null); // null | "privacy" | "terms"
   const isBn = lang === "bn";
@@ -930,6 +931,66 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
     });
   };
   const toggleNotifications = () => setNotificationsEnabled(v => !v);
+
+  // ---- নতুন Settings পেজের (কার্ড-গ্রিড ডিজাইন) জন্য এক্সট্রা state ----
+  // কোন Preference কার্ড খোলা আছে — একসাথে একটাই খোলা থাকবে (accordion)
+  const [openCard, setOpenCard] = useState(null); // null | "appearance" | "timer" | "notifications" | "reminders" | "sound"
+  const toggleCard = (key) => { vibrate(); setOpenCard(v => v === key ? null : key); };
+
+  // সাউন্ড এফেক্ট অন/অফ — হ্যাপটিকের মতোই localStorage-এ সেভ থাকে
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    try { return window.localStorage.getItem("focusgo_sound_enabled") !== "0"; } catch (e) { return true; }
+  });
+  const toggleSound = () => {
+    vibrate();
+    setSoundEnabled(v => {
+      const next = !v;
+      try { window.localStorage.setItem("focusgo_sound_enabled", next ? "1" : "0"); } catch (e) {}
+      return next;
+    });
+  };
+
+  // স্টাডি রিমাইন্ডার — প্রতিদিন নির্দিষ্ট সময়ে পড়াশোনার রিমাইন্ডার অন/অফ ও সময়
+  const [studyRemindersEnabled, setStudyRemindersEnabled] = useState(() => {
+    try { return window.localStorage.getItem("focusgo_study_reminders_enabled") !== "0"; } catch (e) { return true; }
+  });
+  const [studyReminderHour, setStudyReminderHour] = useState(() => {
+    try { return Number(window.localStorage.getItem("focusgo_study_reminder_hour") || 20); } catch (e) { return 20; }
+  });
+  const toggleStudyReminders = () => {
+    vibrate();
+    setStudyRemindersEnabled(v => {
+      const next = !v;
+      try { window.localStorage.setItem("focusgo_study_reminders_enabled", next ? "1" : "0"); } catch (e) {}
+      return next;
+    });
+  };
+  const setReminderHour = (h) => {
+    setStudyReminderHour(h);
+    try { window.localStorage.setItem("focusgo_study_reminder_hour", String(h)); } catch (e) {}
+  };
+
+  // ডেটা এক্সপোর্ট — নোট, টাস্ক ও সাবজেক্ট একটা .json ফাইলে ডাউনলোড হয়ে যায়
+  const [exportDone, setExportDone] = useState(false);
+  const exportData = () => {
+    vibrate();
+    try {
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        app: "FocusGo", version: "1.0.0",
+        notes: notes || [], tasks: tasks || [], subjects: subjects || [],
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const stamp = new Date().toISOString().slice(0, 10);
+      a.href = url; a.download = `focusgo-export-${stamp}.json`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setExportDone(true);
+      setTimeout(() => setExportDone(false), 2200);
+    } catch (e) { /* silently ignore — ডাউনলোড সমর্থন না থাকলে কিছু করার নেই */ }
+  };
 
   const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:`1px solid ${cardBorder}` };
   const labelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14, fontWeight:700, color:textMain };
@@ -1187,12 +1248,239 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
   );
 
   // asPage=true: বাকি ট্যাবগুলোর (Today/Study/Task/Notes) মতোই সরাসরি কন্টেন্ট এরিয়ায় বসবে —
-  // fixed overlay/backdrop/X-close কিছুই থাকবে না, শুধু একটা হেডিং
+  // নতুন কার্ড-গ্রিড ডিজাইন: হিরো হেডার + প্রোফাইল কার্ড + Preferences গ্রিড + Data & Sync + More
   if (asPage) {
+    const themeLabelFor = (key) => key === "system" ? t.themeSystem : key === "light" ? t.themeLight : key === "dark" ? t.themeDark
+      : key === "ivory" ? t.themeIvory : key === "graphite" ? t.themeGraphite : t.themeMist;
+    const currentThemeLabel = themeLabelFor(themeMode);
+
+    const displayName = (user && (user.displayName || user.email)) ? (user.displayName || user.email) : (isBn ? "গেস্ট ইউজার" : "Guest User");
+    const displayEmail = (user && user.email) ? user.email : (isBn ? "সাইন ইন করা হয়নি — ট্যাপ করুন" : "Not signed in — tap to sign in");
+
+    const hourLabel = (h) => {
+      const h12 = h % 12 === 0 ? 12 : h % 12;
+      const suffix = h < 12 ? t.amLabel : t.pmLabel;
+      return `${h12}:00 ${suffix}`;
+    };
+
+    const softIconWrap = (bgTint) => ({ width:34, height:34, borderRadius:10, background:bgTint, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 });
+
+    // ---- ছোট রি-ইউজেবল টগল সুইচ ----
+    const Toggle = ({ on, onClick }) => (
+      <button onClick={onClick} aria-pressed={on} style={{
+          width:44, height:26, borderRadius:12, border:"none", cursor:"pointer", padding:0, flexShrink:0,
+          background: on ? accent : (dark ? "#3A362E" : "#DCD5C4"), position:"relative", transition:"background 0.15s"
+        }}>
+        <span style={{ position:"absolute", top:3, left: on ? 21 : 3, width:20, height:20, borderRadius:"50%", background:"#fff", transition:"left 0.15s", boxShadow:"0 1px 2px rgba(0,0,0,0.25)" }}/>
+      </button>
+    );
+
+    // ---- Preferences গ্রিডের একটা কার্ড ----
+    const PrefCard = ({ cardKey, Icon, iconBg, iconColor, title, subtitle }) => {
+      const open = openCard === cardKey;
+      return (
+        <button onClick={() => toggleCard(cardKey)} style={{
+            background: dark ? "#17151C" : "#F8F5EE", border:`1px solid ${open ? accent : cardBorder}`, borderRadius:16,
+            padding:"13px 12px 12px", cursor:"pointer", display:"flex", flexDirection:"column", gap:8, minHeight:96,
+            position:"relative", textAlign:"left", width:"100%", boxSizing:"border-box", transition:"border-color .15s",
+          }}>
+          <span style={softIconWrap(iconBg)}><Icon size={17} color={iconColor}/></span>
+          <span style={{display:"block"}}>
+            <div style={{fontSize:13, fontWeight:800, color:textMain, marginBottom:2, lineHeight:1.2}}>{title}</div>
+            <div style={{fontSize:11, color:textMuted2, fontWeight:600, lineHeight:1.2}}>{subtitle}</div>
+          </span>
+          <ChevronRight size={14} color={textMuted2} style={{position:"absolute", right:10, bottom:11, transform: open ? "rotate(90deg)" : "none", transition:"transform .15s", flexShrink:0}}/>
+        </button>
+      );
+    };
+
+    // ---- Data & Sync / More সেকশনের রো ----
+    const GroupRow = ({ Icon, iconBg, iconColor, title, subtitle, right, onClick, href, borderTop }) => {
+      const inner = (
+        <div style={{display:"flex", alignItems:"center", gap:12, padding:"13px 14px", borderTop: borderTop ? `1px solid ${cardBorder}` : "none", cursor: onClick || href ? "pointer" : "default"}}>
+          <span style={softIconWrap(iconBg)}><Icon size={16} color={iconColor}/></span>
+          <div style={{flex:1, minWidth:0}}>
+            <div style={{fontSize:14, fontWeight:800, color:textMain, marginBottom:1}}>{title}</div>
+            <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subtitle}</div>
+          </div>
+          {right !== undefined ? right : (isBn ? <ChevronLeft size={16} color={textMuted2}/> : <ChevronRight size={16} color={textMuted2}/>)}
+        </div>
+      );
+      if (href) return <a href={href} style={{textDecoration:"none", display:"block"}}>{inner}</a>;
+      return <div onClick={onClick}>{inner}</div>;
+    };
+
+    const groupCardStyle = { background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, overflow:"hidden" };
+    const sectionHeadingStyle = { fontSize:13, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", margin:"22px 2px 10px" };
+
     return (
-      <div className="fg-tab-panel" style={{marginTop:18}}>
-        <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, marginBottom:10, color:textMain}}>{t.settings}</div>
-        {settingsRows}
+      <div className="fg-tab-panel" style={{marginTop:18, paddingBottom:8}}>
+
+        {/* ---- Hero header ---- */}
+        <div style={{display:"flex", alignItems:"center", gap:14, marginBottom:18}}>
+          <span style={{width:52, height:52, borderRadius:16, background: dark ? `${accent}26` : `${accent}17`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+            <Settings size={24} color={accent}/>
+          </span>
+          <div>
+            <div style={{fontSize:21, fontWeight:800, letterSpacing:-0.3, color:textMain, lineHeight:1.2}}>{t.settings}</div>
+            <div style={{fontSize:12.5, color:textMuted2, fontWeight:600}}>{isBn ? "আপনার অ্যাপ পছন্দ পরিচালনা করুন" : "Manage your app preferences"}</div>
+          </div>
+        </div>
+
+        {/* ---- Profile card ---- */}
+        <button onClick={() => { vibrate(); onOpenProfile && onOpenProfile(); }} style={{
+            ...groupCardStyle, width:"100%", display:"flex", alignItems:"center", gap:14, padding:"14px 14px",
+            marginBottom:22, cursor:"pointer", textAlign:"left",
+          }}>
+          <span style={{width:48, height:48, borderRadius:"50%", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden"}}>
+            {user && user.photoURL ? (
+              <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
+            ) : (
+              <User size={20} color={dark ? "#ADA9BB" : "#6E6B7A"}/>
+            )}
+          </span>
+          <div style={{flex:1, minWidth:0}}>
+            <div style={{fontSize:15.5, fontWeight:800, color:textMain, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayName}</div>
+            <div style={{fontSize:12, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayEmail}</div>
+          </div>
+          <ChevronRight size={18} color={textMuted2} style={{flexShrink:0}}/>
+        </button>
+
+        {/* ---- Preferences ---- */}
+        <div style={{...sectionHeadingStyle, marginTop:0}}>{isBn ? "পছন্দসমূহ" : "Preferences"}</div>
+        <div style={{display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:10, marginBottom:10}}>
+          <PrefCard cardKey="appearance" Icon={Palette} iconBg={dark ? "#5A3A2A":"#FBE6D8"} iconColor="#D97757" title={isBn ? "অ্যাপিয়ারেন্স" : "Appearance"} subtitle={currentThemeLabel}/>
+          <PrefCard cardKey="timer" Icon={Hourglass} iconBg={dark ? "#3A2F55":"#EDE4FB"} iconColor="#7C5CD9" title={isBn ? "ফোকাস টাইমার" : "Focus Timer"} subtitle={isBn ? "পোমোডোরো সেটিংস" : "Pomodoro settings"}/>
+          <PrefCard cardKey="notifications" Icon={Bell} iconBg={dark ? "#5A4A1F":"#FCEFC7"} iconColor="#C99A1E" title={t.notifications} subtitle={isBn ? "অ্যালার্ট পরিচালনা" : "Manage alerts"}/>
+        </div>
+        <div style={{display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:10, marginBottom:14}}>
+          <PrefCard cardKey="reminders" Icon={CalendarDays} iconBg={dark ? "#1F4A2C":"#DCEFDF"} iconColor="#3F9A54" title={isBn ? "স্টাডি রিমাইন্ডার" : "Study Reminders"} subtitle={studyRemindersEnabled ? (isBn ? "প্রতিদিনের রিমাইন্ডার" : "Daily reminders") : (isBn ? "বন্ধ" : "Off")}/>
+          <PrefCard cardKey="sound" Icon={soundEnabled ? Volume2 : VolumeX} iconBg={dark ? "#1F4550":"#DCF1F5"} iconColor="#2E9AB0" title={isBn ? "সাউন্ড" : "Sound"} subtitle={isBn ? "শব্দ ও কম্পন" : "Sound & vibration"}/>
+        </div>
+
+        {/* ---- Expanded card content (accordion) ---- */}
+        {openCard === "appearance" && (
+          <div style={{...groupCardStyle, padding:"14px", marginBottom:14}}>
+            <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
+              {themeInlineOptions.map(({key, label}) => {
+                const selected = themeMode === key;
+                const isSystem = key === "system";
+                return (
+                  <button key={key} onClick={()=>{vibrate(); setThemeMode(key);}} style={{
+                    ...pillBase, display:"flex", alignItems:"center", gap:7,
+                    border:`1px solid ${selected ? accent : cardBorder}`,
+                    background: selected ? accent : (dark?"#17151C":"#F8F5EE"),
+                    color: selected ? "#fff" : textMain,
+                  }}>
+                    {isSystem ? <Contrast size={14} style={{flexShrink:0}}/> : <span style={{width:12, height:12, borderRadius:"50%", background:themeFor(key).cardBg, border:`1px solid ${selected ? "rgba(255,255,255,0.6)" : cardBorder}`, flexShrink:0}}/>}
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {openCard === "timer" && (
+          <div style={{...groupCardStyle, padding:"14px", marginBottom:14, display:"flex", gap:10}}>
+            <div style={{flex:1, minWidth:0}}>
+              <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.focusLabel}</div>
+              <SettingsDropdown value={focusMinutes} options={[15,20,25,30,45,60].map(m => ({value:m, label:`${m} ${t.minutes}`}))} onChange={setFocusMinutes}
+                dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
+            </div>
+            <div style={{flex:1, minWidth:0}}>
+              <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.breakLabel}</div>
+              <SettingsDropdown value={breakMinutes} options={[5,10,15].map(m => ({value:m, label:`${m} ${t.minutes}`}))} onChange={setBreakMinutes}
+                dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
+            </div>
+          </div>
+        )}
+
+        {openCard === "notifications" && (
+          <div style={{...groupCardStyle, padding:"14px", marginBottom:14}}>
+            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: notificationsEnabled ? 14 : 0}}>
+              <span style={{fontSize:13, fontWeight:700, color:textMain}}>{isBn ? "সব নোটিফিকেশন" : "All notifications"}</span>
+              <Toggle on={notificationsEnabled} onClick={()=>{vibrate(); toggleNotifications();}}/>
+            </div>
+            {notificationsEnabled && (
+              <div style={{display:"flex", flexDirection:"column", gap:12}}>
+                {[
+                  { label: t.notifExam, val: examNotifEnabled, set: setExamNotifEnabled },
+                  { label: t.notifTask, val: taskNotifEnabled, set: setTaskNotifEnabled },
+                  { label: t.notifSalah, val: salahNotifEnabled, set: setSalahNotifEnabled },
+                  { label: t.notifTimer, val: timerNotifEnabled, set: setTimerNotifEnabled },
+                ].map(({label, val, set}) => (
+                  <div key={label} style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+                    <span style={{fontSize:12.5, fontWeight:600, color:textMuted2}}>{label}</span>
+                    <Toggle on={val} onClick={()=>{vibrate(); set(v=>!v);}}/>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {openCard === "reminders" && (
+          <div style={{...groupCardStyle, padding:"14px", marginBottom:14}}>
+            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: studyRemindersEnabled ? 14 : 0}}>
+              <span style={{fontSize:13, fontWeight:700, color:textMain}}>{isBn ? "দৈনিক স্টাডি রিমাইন্ডার" : "Daily study reminder"}</span>
+              <Toggle on={studyRemindersEnabled} onClick={toggleStudyReminders}/>
+            </div>
+            {studyRemindersEnabled && (
+              <div>
+                <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{isBn ? "রিমাইন্ডারের সময়" : "Reminder time"}</div>
+                <SettingsDropdown value={studyReminderHour} options={[6,7,8,9,10,17,18,19,20,21,22].map(h => ({value:h, label:hourLabel(h)}))} onChange={setReminderHour}
+                  dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
+              </div>
+            )}
+          </div>
+        )}
+
+        {openCard === "sound" && (
+          <div style={{...groupCardStyle, padding:"14px", marginBottom:14, display:"flex", flexDirection:"column", gap:14}}>
+            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+              <span style={{display:"flex", alignItems:"center", gap:10, fontSize:13, fontWeight:700, color:textMain}}><Music size={15} color={textMuted2}/>{isBn ? "অ্যাপ সাউন্ড এফেক্ট" : "App sound effects"}</span>
+              <Toggle on={soundEnabled} onClick={toggleSound}/>
+            </div>
+            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+              <span style={{display:"flex", alignItems:"center", gap:10, fontSize:13, fontWeight:700, color:textMain}}><Vibrate size={15} color={textMuted2}/>{t.hapticFeedback}</span>
+              <Toggle on={hapticsEnabled} onClick={toggleHaptics}/>
+            </div>
+          </div>
+        )}
+
+        {/* ---- Data & Sync ---- */}
+        <div style={sectionHeadingStyle}>{isBn ? "ডেটা ও সিঙ্ক" : "Data & Sync"}</div>
+        <div style={groupCardStyle}>
+          <GroupRow Icon={Cloud} iconBg={dark ? "#17324A":"#E6F1FB"} iconColor="#3184D6"
+            title={isBn ? "ব্যাকআপ ও সিঙ্ক" : "Backup & Sync"}
+            subtitle={isGuest ? (isBn ? "সাইন ইন করুন — সিঙ্ক বন্ধ আছে" : "Sign in to enable sync") : (isBn ? "সব ডিভাইসে অটো-সিঙ্ক চালু আছে" : "Auto-syncing across your devices")}
+            onClick={() => { vibrate(); onOpenProfile && onOpenProfile(); }}/>
+          <GroupRow Icon={UploadCloud} iconBg={dark ? "#2E2350":"#EDE4FB"} iconColor="#7C5CD9" borderTop
+            title={isBn ? "এক্সপোর্ট ডেটা" : "Export Data"}
+            subtitle={exportDone ? (isBn ? "ডাউনলোড হয়ে গেছে ✓" : "Downloaded ✓") : (isBn ? "নোট ও ডেটা এক্সপোর্ট করুন" : "Export your notes and data")}
+            onClick={exportData}/>
+        </div>
+
+        {/* ---- More ---- */}
+        <div style={sectionHeadingStyle}>{isBn ? "আরও" : "More"}</div>
+        <div style={groupCardStyle}>
+          <GroupRow Icon={Globe} iconBg={dark ? "#1F4A2C":"#DCEFDF"} iconColor="#3F9A54"
+            title={t.language} subtitle={lang === "bn" ? "বাংলা" : "English"}
+            right={<span style={{display:"flex", alignItems:"center", gap:6}}>
+              <span onClick={(e)=>{e.stopPropagation(); vibrate(); setLang(l=>l==="bn"?"en":"bn");}} style={{border:`1px solid ${cardBorder}`, background: dark?"#17151C":"#fff", color:textMain, borderRadius:999, padding:"4px 10px", fontSize:11.5, fontWeight:800}}>
+                {lang==="bn" ? "বাং" : "EN"}
+              </span>
+              {isBn ? <ChevronLeft size={16} color={textMuted2}/> : <ChevronRight size={16} color={textMuted2}/>}
+            </span>}
+            onClick={()=>{vibrate(); setLang(l=>l==="bn"?"en":"bn");}}/>
+          <GroupRow Icon={HelpCircle} iconBg={dark ? "#5A3A2A":"#FBE6D8"} iconColor="#D97757" borderTop
+            title={isBn ? "সাহায্য ও সাপোর্ট" : "Help & Support"} subtitle={isBn ? "প্রশ্ন, মতামত ও সহায়তা" : "FAQs, feedback and help"}
+            href={`mailto:mazharul.mrf@gmail.com?subject=${encodeURIComponent(t.feedbackSubject)}`}/>
+          <GroupRow Icon={Info} iconBg={dark ? "#2E2350":"#EDE4FB"} iconColor="#7C5CD9" borderTop
+            title={isBn ? "FocusGo সম্পর্কে" : "About FocusGo"} subtitle={`${t.version} 1.0.0`}
+            onClick={()=>{vibrate(); setShowAbout(true);}}/>
+        </div>
       </div>
     );
   }
@@ -6057,20 +6345,20 @@ export default function FocusGo() {
             return { text: `${nf(d.getDate())} ${monthName(d.getMonth())}`, color: textMuted2 };
           };
 
-          const filterChips = [
-            ["all", t.taskAll, ListChecks],
-            ["today", t.taskFilterToday, Calendar],
-            ["upcoming", t.taskFilterUpcoming, CalendarDays],
-            ["overdue", t.taskFilterOverdue, CalendarClock],
-            ["done", t.taskFilterDone, Check],
-          ];
-
           const overdueCount = tasks.filter(x => !x.done && bucketOf(x) === "overdue").length;
+          const pendingCount = tasks.filter(x => !x.done && bucketOf(x) !== "overdue").length;
+          const doneAllCount = tasks.filter(x => x.done).length;
+
+          const filterChips = [
+            ["all", t.taskAll, ListChecks, tasks.length],
+            ["pending", lang==="bn" ? "পেন্ডিং" : "Pending", Hourglass, pendingCount],
+            ["done", t.taskFilterDone, Check, doneAllCount],
+            ["overdue", t.taskFilterOverdue, CalendarClock, overdueCount],
+          ];
 
           let filteredTasks;
           if (taskFilter === "done") filteredTasks = tasks.filter(x => x.done);
-          else if (taskFilter === "today") filteredTasks = tasks.filter(x => !x.done && bucketOf(x) === "today");
-          else if (taskFilter === "upcoming") filteredTasks = tasks.filter(x => !x.done && bucketOf(x) === "upcoming");
+          else if (taskFilter === "pending") filteredTasks = tasks.filter(x => !x.done && bucketOf(x) !== "overdue");
           else if (taskFilter === "overdue") filteredTasks = tasks.filter(x => !x.done && bucketOf(x) === "overdue");
           else filteredTasks = tasks.filter(x => (!x.done && bucketOf(x) !== "overdue") || (x.done && x.doneAt === todayKey));
 
@@ -6078,72 +6366,88 @@ export default function FocusGo() {
           // ক্যাটাগরি/প্রায়োরিটি/ডিউ-ডেট ব্যাজ এখানে দেখানো হয় না — রো-এর রংই প্রায়োরিটি বোঝায়, বাকি ডিটেইল ট্যাপ করলে দেখা যায়
           const renderTask = (x) => {
             const pr = x.priority || "med";
-            const borderColor = x.done ? "#6E8B5E" : prColor[pr];
+            const cat = taskCategories.find(c => c.key === x.category) || taskCategories[0] || { icon:"Tag", color:accent, label:"Task", labelBn:"টাস্ক" };
+            const CatIcon = taskCategoryIcon(cat.icon);
+            const due = dueLabel(x.dueDate);
             return (
               <div key={x.id} className="fg-card" onClick={()=>setTaskDetailId(x.id)} style={{
                 background: cardBg,
                 border: `1px solid ${cardBorder}`,
-                borderLeft: `3px solid ${borderColor}`,
-                borderRadius:12, padding:"9px 10px", display:"flex", alignItems:"center", gap:8, position:"relative", cursor:"pointer",
+                borderRadius:16, padding:"12px 12px", display:"flex", alignItems:"flex-start", gap:10, position:"relative", cursor:"pointer",
                 transition:"background .15s ease",
               }}>
-                <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{width:20, height:20, borderRadius:"50%", flexShrink:0, cursor:"pointer", border:`2px solid ${borderColor}`, background: x.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", padding:0}}>
-                  {x.done && <Check size={11} color="#fff" strokeWidth={3}/>}
+                <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{width:22, height:22, marginTop:2, borderRadius:"50%", flexShrink:0, cursor:"pointer", border:`2px solid ${x.done ? "#6E8B5E" : cardBorder}`, background: x.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", padding:0}}>
+                  {x.done && <Check size={12} color="#fff" strokeWidth={3}/>}
                 </button>
-                <div style={{flex:1, minWidth:0, fontSize:13, fontWeight:400, color: x.done ? "#6E8B5E" : textMain, textDecoration: x.done ? "line-through" : "none", wordBreak:"break-word", overflowWrap:"break-word", whiteSpace:"normal", lineHeight:1.4}}>
-                  {x.title}
-                </div>
-                {x.repeat && !x.done && (
-                  <span title={t.taskRepeatBadge} style={{flexShrink:0, display:"flex", alignItems:"center", gap:3, fontSize:10, fontWeight:800, color:accent, background:`${accent}14`, borderRadius:8, padding:"2px 6px", whiteSpace:"nowrap"}}>
-                    <Repeat size={11}/>
-                    {x.dueDate && (() => {
-                      const diffDays = Math.round((new Date(x.dueDate+"T00:00:00") - new Date(todayKey+"T00:00:00")) / 86400000);
-                      const label = diffDays === 0 ? (lang==="bn" ? "আজ" : "Today") : diffDays > 0 ? `D-${diffDays}` : `D+${Math.abs(diffDays)}`;
-                      return <span>{label}</span>;
-                    })()}
-                  </span>
-                )}
-                {x.note && (
-                  <span title={lang==="bn"?"নোট আছে":"Has a note"} style={{flexShrink:0, color:textMuted2, display:"flex"}}>
-                    <FileText size={13}/>
-                  </span>
-                )}
-                {x.reminderTime && !x.done && (
-                  <span title={lang==="bn"?"রিমাইন্ডার সেট আছে":"Reminder set"} style={{flexShrink:0, color:textMuted2, display:"flex"}}>
-                    <Bell size={13}/>
-                  </span>
-                )}
-                <div style={{position:"relative", flexShrink:0}} onClick={(e)=>e.stopPropagation()}>
-                  <button onClick={(e)=>{ e.stopPropagation(); setTaskMenuOpenId(v => v===x.id ? null : x.id); setTaskDeleteConfirmId(null); }} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:10, margin:-6, display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation"}}>
-                    <MoreVertical size={16}/>
-                  </button>
-                  {taskMenuOpenId === x.id && (
-                    <>
-                      <div onClick={closeTaskMenu} style={{position:"fixed", inset:0, zIndex:59}}/>
-                      <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 4px 12px rgba(0,0,0,0.08)", zIndex:60, minWidth:150, overflow:"hidden"}}>
-                        {taskDeleteConfirmId === x.id ? (
-                          <>
-                            <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:600}}>{lang==="bn"?"টাস্কটি ডিলিট করবেন?":"Delete this task?"}</div>
-                            <button onClick={()=>{ closeTaskMenu(); vibrate(); deleteTask(x.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:700, cursor:"pointer", textAlign:"left"}}>
-                              <Trash2 size={13}/> {lang==="bn"?"ডিলিট নিশ্চিত করুন":"Confirm delete"}
-                            </button>
-                            <button onClick={()=>setTaskDeleteConfirmId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
-                              {t.cancel}
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button onClick={()=>{closeTaskMenu(); setEditingTask(x);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
-                              <Pencil size={13}/> {lang==="bn"?"এডিট":"Edit"}
-                            </button>
-                            <button onClick={()=>setTaskDeleteConfirmId(x.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
-                              <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </>
+                <span style={{width:34, height:34, borderRadius:11, background:`${cat.color}1E`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                  <CatIcon size={16} color={cat.color} strokeWidth={2.2}/>
+                </span>
+                <div style={{flex:1, minWidth:0}}>
+                  <div style={{fontSize:13.5, fontWeight:800, color: x.done ? textMuted2 : textMain, textDecoration: x.done ? "line-through" : "none", wordBreak:"break-word", overflowWrap:"break-word", whiteSpace:"normal", lineHeight:1.35}}>
+                    {x.title}
+                    {x.note && (
+                      <FileText size={11} color={textMuted2} style={{display:"inline", verticalAlign:"middle", marginLeft:5, marginTop:-2}}/>
+                    )}
+                  </div>
+                  <div style={{fontSize:11, color:textMuted2, fontWeight:600, marginTop:2}}>
+                    {lang==="bn" ? cat.labelBn : cat.label}
+                  </div>
+                  {(x.reminderTime || due) && (
+                    <div style={{display:"flex", alignItems:"center", gap:5, marginTop:4, fontSize:11, color:textMuted2, fontWeight:600, flexWrap:"wrap"}}>
+                      {x.reminderTime && (<span style={{display:"inline-flex", alignItems:"center", gap:3}}><Clock size={11}/> {x.reminderTime}</span>)}
+                      {x.reminderTime && due && <span style={{opacity:0.5}}>•</span>}
+                      {due && <span style={{color: due.color, fontWeight:700}}>{due.text}</span>}
+                    </div>
                   )}
+                  {x.repeat && !x.done && (
+                    <span title={t.taskRepeatBadge} style={{display:"inline-flex", alignItems:"center", gap:3, fontSize:10, fontWeight:800, color:accent, background:`${accent}14`, borderRadius:8, padding:"2px 6px", marginTop:5, whiteSpace:"nowrap"}}>
+                      <Repeat size={11}/>
+                      {x.dueDate && (() => {
+                        const diffDays = Math.round((new Date(x.dueDate+"T00:00:00") - new Date(todayKey+"T00:00:00")) / 86400000);
+                        const label = diffDays === 0 ? (lang==="bn" ? "আজ" : "Today") : diffDays > 0 ? `D-${diffDays}` : `D+${Math.abs(diffDays)}`;
+                        return <span>{label}</span>;
+                      })()}
+                    </span>
+                  )}
+                </div>
+                <div style={{display:"flex", flexDirection:"column", alignItems:"flex-end", gap:8, flexShrink:0}}>
+                  {!x.done && (
+                    <span style={{fontSize:10.5, fontWeight:800, color:prColor[pr], background:`${prColor[pr]}18`, borderRadius:999, padding:"4px 10px", whiteSpace:"nowrap"}}>
+                      {prLabel[pr]}
+                    </span>
+                  )}
+                  <div style={{position:"relative"}} onClick={(e)=>e.stopPropagation()}>
+                    <button onClick={(e)=>{ e.stopPropagation(); setTaskMenuOpenId(v => v===x.id ? null : x.id); setTaskDeleteConfirmId(null); }} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:10, margin:-6, display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation"}}>
+                      <MoreVertical size={16}/>
+                    </button>
+                    {taskMenuOpenId === x.id && (
+                      <>
+                        <div onClick={closeTaskMenu} style={{position:"fixed", inset:0, zIndex:59}}/>
+                        <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 4px 12px rgba(0,0,0,0.08)", zIndex:60, minWidth:150, overflow:"hidden"}}>
+                          {taskDeleteConfirmId === x.id ? (
+                            <>
+                              <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:600}}>{lang==="bn"?"টাস্কটি ডিলিট করবেন?":"Delete this task?"}</div>
+                              <button onClick={()=>{ closeTaskMenu(); vibrate(); deleteTask(x.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:700, cursor:"pointer", textAlign:"left"}}>
+                                <Trash2 size={13}/> {lang==="bn"?"ডিলিট নিশ্চিত করুন":"Confirm delete"}
+                              </button>
+                              <button onClick={()=>setTaskDeleteConfirmId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                                {t.cancel}
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button onClick={()=>{closeTaskMenu(); setEditingTask(x);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                                <Pencil size={13}/> {lang==="bn"?"এডিট":"Edit"}
+                              </button>
+                              <button onClick={()=>setTaskDeleteConfirmId(x.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                                <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -6291,8 +6595,42 @@ export default function FocusGo() {
           return (
             <>
             <div key="task" className="fg-tab-panel" style={{marginTop:14}}>
-              <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:3}}>{t.taskTitle}</div>
-              <div style={{fontSize:12, color:textMuted2, marginBottom:16}}>{t.taskSubtitle}</div>
+              <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:18}}>
+                <div style={{width:44, height:44, borderRadius:14, background: dark ? `${accent}30` : `${accent}1c`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                  <ListChecks size={21} color={accent} strokeWidth={2.2}/>
+                </div>
+                <div style={{minWidth:0}}>
+                  <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.taskTitle}</div>
+                  <div style={{fontSize:12, color:textMuted2, marginTop:2}}>{t.taskSubtitle}</div>
+                </div>
+              </div>
+
+              {/* Task Overview — 4-column summary card, matches the Study tab's stat-grid style */}
+              <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:20, padding:"16px 14px 14px", marginBottom:18, boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.18)" : "0 6px 16px rgba(0,0,0,0.04)"}}>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14}}>
+                  <div style={{fontSize:14.5, fontWeight:800, color:textMain}}>{lang==="bn" ? "টাস্ক ওভারভিউ" : "Task Overview"}</div>
+                  <button onClick={()=>{vibrate(); setTaskFilter("all"); setTaskViewMode("list");}} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:accent, fontSize:12, fontWeight:800, cursor:"pointer", padding:0}}>
+                    {lang==="bn" ? "সব টাস্ক দেখো" : "View all tasks"} <ChevronRight size={13}/>
+                  </button>
+                </div>
+                <div style={{display:"grid", gridTemplateColumns:"repeat(4, 1fr)"}}>
+                  {[
+                    { Icon: ListChecks, color:"#4C8FA6", value: tasks.length, label: lang==="bn" ? "মোট" : "Total" },
+                    { Icon: Check, color:"#6E8B5E", value: doneAllCount, label: lang==="bn" ? "সম্পন্ন" : "Completed" },
+                    { Icon: Hourglass, color:accent, value: pendingCount, label: lang==="bn" ? "পেন্ডিং" : "Pending" },
+                    { Icon: Flag, color:"#7E6EC9", value: overdueCount, label: lang==="bn" ? "মেয়াদোত্তীর্ণ" : "Overdue" },
+                  ].map((it, i) => (
+                    <div key={i} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:6, textAlign:"center", position:"relative"}}>
+                      {i > 0 && <span style={{position:"absolute", left:0, top:4, bottom:14, width:1, background:cardBorder}}/>}
+                      <div style={{width:36, height:36, borderRadius:"50%", background:`${it.color}22`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                        <it.Icon size={17} color={it.color} strokeWidth={2.2}/>
+                      </div>
+                      <div style={{fontSize:17, fontWeight:800, color:textMain, letterSpacing:-0.2}}><Num>{nf(it.value)}</Num></div>
+                      <div style={{fontSize:10, color:textMuted2, fontWeight:700}}>{it.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
               {/* List / Calendar ভিউ টগল — Study Plan/Stats-এর মতো একই underline-tab স্টাইল */}
               <div style={{display:"flex", gap:24, marginBottom:14, borderBottom:`1px solid ${cardBorder}`}}>
@@ -6317,20 +6655,14 @@ export default function FocusGo() {
                 <>
                   <div style={{position:"relative", marginBottom:14}}>
                     <div className="fg-chip-row" style={{display:"flex", gap:6, overflowX:"auto", WebkitMaskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)", maskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)"}}>
-                      {filterChips.map(([key,label,Icon]) => (
+                      {filterChips.map(([key,label,Icon,count]) => (
                         <button key={key} onClick={()=>{vibrate(); setTaskFilter(key);}} style={{
-                          display:"flex", alignItems:"center", gap:4, padding:"6px 10px", borderRadius:20, cursor:"pointer", flexShrink:0,
-                          border:`1px solid ${taskFilter===key ? accent : (key==="overdue" && overdueCount>0 ? "#D6493A55" : cardBorder)}`,
-                          background: taskFilter===key ? accent : "transparent",
-                          color: taskFilter===key ? "#fff" : textMuted2, fontWeight:700, fontSize:11, whiteSpace:"nowrap",
+                          display:"flex", alignItems:"center", gap:5, padding:"9px 14px", borderRadius:20, cursor:"pointer", flexShrink:0,
+                          border:"none",
+                          background: taskFilter===key ? accent : (dark ? "#232127" : "#EFEBE3"),
+                          color: taskFilter===key ? "#fff" : textMain, fontWeight:800, fontSize:12.5, whiteSpace:"nowrap",
                         }}>
-                          <Icon size={10}/> {label}
-                          {key==="overdue" && overdueCount>0 && (
-                            <span style={{marginLeft:2, minWidth:15, height:15, borderRadius:8, padding:"0 4px", fontSize:10, fontWeight:800, display:"inline-flex", alignItems:"center", justifyContent:"center",
-                              background: taskFilter===key ? "rgba(255,255,255,0.3)" : "#D6493A", color:"#fff"}}>
-                              <Num>{nf(overdueCount)}</Num>
-                            </span>
-                          )}
+                          {label} (<Num>{nf(count)}</Num>)
                         </button>
                       ))}
                       <div style={{width:1, flexShrink:0}}/>
@@ -6363,31 +6695,50 @@ export default function FocusGo() {
                     return (
                       <>
                         {todayBucket.length > 0 && (
-                          <div style={{marginBottom: (upcomingBucket.length || nodateBucket.length || doneTodayBucket.length) ? 18 : 0}}>
-                            <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionToday}</div>
+                          <div style={{marginBottom: (upcomingBucket.length || nodateBucket.length || doneTodayBucket.length) ? 22 : 0}}>
+                            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
+                              <div style={{display:"flex", alignItems:"center", gap:7}}>
+                                <Sun size={15} color="#C08A2E" strokeWidth={2.3}/>
+                                <span style={{fontSize:15, fontWeight:800, color:textMain}}>{t.taskSectionToday}</span>
+                              </div>
+                              <div style={{display:"flex", alignItems:"center", gap:5, fontSize:11.5, color:textMuted2, fontWeight:700}}>
+                                <Calendar size={12}/> <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}, {weekdayShort(today)}
+                              </div>
+                            </div>
                             <div style={{display:"flex", flexDirection:"column", gap:8}}>{todayBucket.map(renderTask)}</div>
                           </div>
                         )}
                         {upcomingBucket.length > 0 && (
-                          <div style={{marginBottom: (nodateBucket.length || doneTodayBucket.length) ? 18 : 0}}>
+                          <div style={{marginBottom: (nodateBucket.length || doneTodayBucket.length) ? 22 : 0}}>
                             <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionUpcoming}</div>
                             <div style={{display:"flex", flexDirection:"column", gap:8}}>{upcomingBucket.map(renderTask)}</div>
                           </div>
                         )}
                         {nodateBucket.length > 0 && (
-                          <div style={{marginBottom: doneTodayBucket.length ? 18 : 0}}>
+                          <div style={{marginBottom: doneTodayBucket.length ? 22 : 0}}>
                             <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionNoDate}</div>
                             <div style={{display:"flex", flexDirection:"column", gap:8}}>{nodateBucket.map(renderTask)}</div>
                           </div>
                         )}
                         {doneTodayBucket.length > 0 && (
                           <div>
-                            <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:"#6E8B5E", opacity:0.9, marginBottom:9}}>{t.taskSectionCompletedToday}</div>
+                            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
+                              <div style={{display:"flex", alignItems:"center", gap:7}}>
+                                <span style={{width:20, height:20, borderRadius:"50%", background:"#6E8B5E", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                                  <Check size={12} color="#fff" strokeWidth={3}/>
+                                </span>
+                                <span style={{fontSize:15, fontWeight:800, color:textMain}}>{t.taskSectionCompletedToday}</span>
+                              </div>
+                              <button onClick={()=>{vibrate(); setTaskFilter("done");}} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:"#6E8B5E", fontSize:12, fontWeight:800, cursor:"pointer", padding:0}}>
+                                {lang==="bn" ? "সব দেখো" : "See all"} <ChevronRight size={13}/>
+                              </button>
+                            </div>
                             <div style={{display:"flex", flexDirection:"column", gap:8}}>{doneTodayBucket.map(renderTask)}</div>
                           </div>
                         )}
                       </>
                     );
+
                   })() : (
                     <div style={{display:"flex", flexDirection:"column", gap:8}}>
                       {filteredTasks.map(renderTask)}
@@ -6431,6 +6782,8 @@ export default function FocusGo() {
             weekStartDay={weekStartDay} setWeekStartDay={setWeekStartDay}
             focusMinutes={focusMinutes} setFocusMinutes={setFocusMinutes}
             breakMinutes={breakMinutes} setBreakMinutes={setBreakMinutes}
+            user={user} isGuest={isGuest} onOpenProfile={() => setShowProfile(true)}
+            notes={notes} tasks={tasks} subjects={subjects}
             cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
         )}
 
@@ -9013,6 +9366,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
   const [activeFontSize, setActiveFontSize] = useState(14.5); // কার্সার/সিলেকশনে এখন যে ফন্ট সাইজ আছে — A-/A+ বাটনের disable অবস্থা ও পরের সাইজ হিসাব করতে ব্যবহার হয়
   const [noteColor, setNoteColor] = useState(null); // নোট কার্ডের ব্যাকগ্রাউন্ড রঙ — null মানে ডিফল্ট বেইজ রঙ, প্রতি নোটে আলাদাভাবে সেভ থাকে
   const [activeFolder, setActiveFolder] = useState("All Notes");
+  const [overviewRange, setOverviewRange] = useState("week"); // "week" | "all" — Notes Overview কার্ডের "Created" স্ট্যাটের সময়সীমা
   const [openMenu, setOpenMenu] = useState(null);
   const [showCatMenu, setShowCatMenu] = useState(false); // হ্যামবার্গার আইকনে ট্যাপ করলে ক্যাটাগরি/ফোল্ডার ড্রপডাউন দেখা যায় (Google Keep-এর সাইড মেনুর মতো)
   const [fabOpen, setFabOpen] = useState(false); // নিচের ফ্লোটিং + বাটনে ট্যাপ করলে Note/Checklist অপশন দেখা যায়
@@ -9710,6 +10064,194 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         .fg-hide-scrollbar{scrollbar-width:none;}
       `}</style>
       <div style={{ fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:12 }}>{t.notesTitle}</div>
+
+      {/* ---- Notes dashboard header (overview stats + pinned/recent previews) — sits above the full
+           Google-Keep-style notes app below, which is left completely intact ---- */}
+      {(() => {
+        const activeNotes = notes.filter(n => !n.deletedAt);
+        const pinnedNotes = activeNotes.filter(n => n.pinned).sort((a,b)=>new Date(b.updatedAt||0)-new Date(a.updatedAt||0));
+        const recentNotes = [...activeNotes].sort((a,b)=>new Date(b.updatedAt||0)-new Date(a.updatedAt||0)).slice(0,4);
+        const createdCount = overviewRange === "week"
+          ? activeNotes.filter(n => n.createdAt && (Date.now() - new Date(n.createdAt).getTime()) < 7*86400000).length
+          : activeNotes.length;
+        const monthNameShort = (i) => (lang==="bn" ? MONTHS_BN[i] : MONTHS_EN[i].slice(0,3));
+        const fmtDate = (iso) => {
+          if (!iso) return "";
+          const d = new Date(iso);
+          return `${nf(d.getDate())} ${monthNameShort(d.getMonth())}`;
+        };
+        const fmtDateTime = (iso) => {
+          if (!iso) return "";
+          const d = new Date(iso);
+          let h = d.getHours(), mm = d.getMinutes();
+          const ampm = h >= 12 ? "PM" : "AM";
+          h = h % 12; if (h === 0) h = 12;
+          return `${nf(d.getDate())} ${monthNameShort(d.getMonth())}, ${nf(pad2(h))}:${nf(pad2(mm))} ${ampm}`;
+        };
+        const categoryIconFor = (name) => {
+          const n = (name || "").toLowerCase();
+          if (n.includes("lecture") || n.includes("class")) return GraduationCap;
+          if (n.includes("stud") || n.includes("course")) return BookOpen;
+          if (n.includes("personal")) return User2;
+          if (n.includes("idea")) return Lightbulb;
+          return Tag;
+        };
+
+        return (
+          <>
+            <div style={{display:"flex", alignItems:"center", gap:12, marginTop:-4, marginBottom:18}}>
+              <div style={{width:44, height:44, borderRadius:14, background: dark ? `${accent}30` : `${accent}1c`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                <FileText size={21} color={accent} strokeWidth={2.2}/>
+              </div>
+              <div style={{minWidth:0}}>
+                <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{lang==="bn" ? "আমার নোট" : "My Notes"}</div>
+                <div style={{fontSize:12, color:textMuted2, marginTop:2}}>{lang==="bn" ? "তোমার সব আইডিয়া, একই জায়গায়" : "All your ideas, in one place"}</div>
+              </div>
+            </div>
+
+            {/* Notes Overview — 4-stat card, matches Study/Task tabs' overview style */}
+            <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:20, padding:"16px 14px 14px", marginBottom:18, boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.18)" : "0 6px 16px rgba(0,0,0,0.04)"}}>
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14}}>
+                <div style={{fontSize:14.5, fontWeight:800, color:textMain}}>{lang==="bn" ? "নোট ওভারভিউ" : "Notes Overview"}</div>
+                <button onClick={()=>{vibrate(); setOverviewRange(r => r==="week" ? "all" : "week");}} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:textMuted2, fontSize:12, fontWeight:800, cursor:"pointer", padding:0}}>
+                  {overviewRange==="week" ? (lang==="bn" ? "এই সপ্তাহ" : "This Week") : (lang==="bn" ? "সব সময়" : "All Time")} <ChevronDown size={13}/>
+                </button>
+              </div>
+              <div style={{display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8}}>
+                {[
+                  { Icon: FileText, color:"#D97757", value: activeNotes.length, label: lang==="bn" ? "মোট নোট" : "Total Notes" },
+                  { Icon: FileText, color:"#6E8B5E", value: createdCount, label: lang==="bn" ? "তৈরি হয়েছে" : "Created" },
+                  { Icon: Pin, color:"#4C8FA6", value: pinnedNotes.length, label: lang==="bn" ? "পিন করা" : "Pinned" },
+                  { Icon: Tag, color:"#7E6EC9", value: categories.length, label: lang==="bn" ? "ক্যাটাগরি" : "Categories" },
+                ].map((it, i) => (
+                  <div key={i} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:6, textAlign:"center", background:`${it.color}12`, borderRadius:14, padding:"10px 4px"}}>
+                    <it.Icon size={17} color={it.color} strokeWidth={2.2}/>
+                    <div style={{fontSize:17, fontWeight:800, color:textMain, letterSpacing:-0.2}}><Num>{nf(it.value)}</Num></div>
+                    <div style={{fontSize:9.5, color:textMuted2, fontWeight:700}}>{it.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Pinned Notes preview — up to 3, horizontal scroll */}
+            {pinnedNotes.length > 0 && (
+              <div style={{marginBottom:22}}>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
+                  <div style={{display:"flex", alignItems:"center", gap:7}}>
+                    <Pin size={14} color={textMain} strokeWidth={2.3}/>
+                    <span style={{fontSize:15, fontWeight:800, color:textMain}}>{lang==="bn" ? "পিন করা নোট" : "Pinned Notes"}</span>
+                  </div>
+                  <button onClick={()=>{vibrate(); setActiveFolder("Pinned");}} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:accent, fontSize:12, fontWeight:800, cursor:"pointer", padding:0}}>
+                    {lang==="bn" ? "সব দেখো" : "View all"} <ChevronRight size={13}/>
+                  </button>
+                </div>
+                <div className="fg-hide-scrollbar" style={{display:"flex", gap:10, overflowX:"auto", WebkitOverflowScrolling:"touch", paddingBottom:2}}>
+                  {pinnedNotes.slice(0,3).map(note => {
+                    const col = noteColorFor(note.category || "General", categories);
+                    const snippet = looksLikeHtml(note.body) ? stripHtmlToText(note.body) : (note.body || "");
+                    return (
+                      <div key={note.id} onClick={()=>openEdit(note)} style={{
+                        flex:"0 0 auto", width:190, background: dark ? col.bgDark : col.bg, borderRadius:16, padding:"12px 13px", cursor:"pointer", position:"relative",
+                      }}>
+                        <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6}}>
+                          <Pin size={15} color={col.text} strokeWidth={2.3} fill={col.text}/>
+                          <button onClick={(e)=>{e.stopPropagation(); vibrate(); setOpenMenu(v => v===note.id ? null : note.id);}} style={{border:"none", background:"transparent", color:col.text, cursor:"pointer", padding:2, opacity:0.75}}>
+                            <MoreVertical size={15}/>
+                          </button>
+                          {openMenu === note.id && (
+                            <>
+                              <div onClick={(e)=>{e.stopPropagation(); setOpenMenu(null);}} style={{position:"fixed", inset:0, zIndex:39}}/>
+                              <div onClick={e=>e.stopPropagation()} style={{position:"absolute", top:30, right:10, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 4px 12px rgba(0,0,0,0.12)", zIndex:40, overflow:"hidden", minWidth:120}}>
+                                <button onClick={()=>togglePin(note.id)} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:textMain, padding:"8px 11px", fontSize:12.5, fontWeight:700, cursor:"pointer", textAlign:"left"}}>
+                                  <PinOff size={13}/> {lang==="bn" ? "আনপিন" : "Unpin"}
+                                </button>
+                                <button onClick={()=>remove(note.id)} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"8px 11px", fontSize:12.5, fontWeight:700, cursor:"pointer", textAlign:"left"}}>
+                                  <Trash2 size={13}/> {lang==="bn" ? "ডিলিট" : "Delete"}
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                        <div style={{fontSize:13.5, fontWeight:800, color:col.text, lineHeight:1.3, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden", marginBottom:6}}>
+                          {note.title || (lang==="bn" ? "শিরোনামহীন" : "Untitled")}
+                        </div>
+                        <div style={{fontSize:11, color:col.text, opacity:0.8, lineHeight:1.4, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden", marginBottom:10, minHeight:28}}>
+                          {snippet || "—"}
+                        </div>
+                        <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", fontSize:10.5, color:col.text, opacity:0.75, fontWeight:700}}>
+                          <span style={{display:"flex", alignItems:"center", gap:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}><Folder size={11}/> {note.category || "General"}</span>
+                          <span style={{flexShrink:0}}>{fmtDate(note.updatedAt || note.createdAt)}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Recent Notes preview — up to 4, simple list style */}
+            {recentNotes.length > 0 && (
+              <div style={{marginBottom:24}}>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
+                  <div style={{display:"flex", alignItems:"center", gap:7}}>
+                    <Clock size={14} color={textMain} strokeWidth={2.3}/>
+                    <span style={{fontSize:15, fontWeight:800, color:textMain}}>{lang==="bn" ? "সাম্প্রতিক নোট" : "Recent Notes"}</span>
+                  </div>
+                  <button onClick={()=>{vibrate(); setActiveFolder("All Notes"); setSortMode("updated");}} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:accent, fontSize:12, fontWeight:800, cursor:"pointer", padding:0}}>
+                    {lang==="bn" ? "সব দেখো" : "View all"} <ChevronRight size={13}/>
+                  </button>
+                </div>
+                <div style={{display:"flex", flexDirection:"column", gap:8}}>
+                  {recentNotes.map(note => {
+                    const col = noteColorFor(note.category || "General", categories);
+                    const CatIcon = categoryIconFor(note.category || "General");
+                    return (
+                      <div key={note.id} onClick={()=>openEdit(note)} style={{display:"flex", alignItems:"center", gap:10, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"10px 12px", cursor:"pointer"}}>
+                        <span style={{width:34, height:34, borderRadius:10, background: dark ? col.bgDark : col.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                          <CatIcon size={15} color={col.text} strokeWidth={2.2}/>
+                        </span>
+                        <div style={{flex:1, minWidth:0}}>
+                          <div style={{fontSize:13, fontWeight:800, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                            {note.title || (lang==="bn" ? "শিরোনামহীন" : "Untitled")}
+                          </div>
+                          <div style={{fontSize:11, color:textMuted2, fontWeight:600, marginTop:2, display:"flex", alignItems:"center", gap:4}}>
+                            <Folder size={10}/> {note.category || "General"} <span style={{opacity:0.5}}>•</span> {fmtDateTime(note.updatedAt || note.createdAt)}
+                          </div>
+                        </div>
+                        <button onClick={(e)=>{e.stopPropagation(); vibrate(); togglePin(note.id);}} title={note.pinned ? (lang==="bn"?"আনপিন":"Unpin") : (lang==="bn"?"পিন":"Pin")} style={{border:"none", background:"transparent", color: note.pinned ? accent : textMuted2, cursor:"pointer", padding:5, flexShrink:0, display:"flex"}}>
+                          {note.pinned ? <Pin size={15} fill={accent}/> : <Pin size={15}/>}
+                        </button>
+                        <div style={{position:"relative", flexShrink:0}} onClick={(e)=>e.stopPropagation()}>
+                          <button onClick={()=>{vibrate(); setOpenMenu(v => v===note.id ? null : note.id);}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:5, display:"flex"}}>
+                            <MoreVertical size={15}/>
+                          </button>
+                          {openMenu === note.id && (
+                            <>
+                              <div onClick={()=>setOpenMenu(null)} style={{position:"fixed", inset:0, zIndex:39}}/>
+                              <div style={{position:"absolute", top:"100%", right:0, marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 4px 12px rgba(0,0,0,0.12)", zIndex:40, overflow:"hidden", minWidth:120}}>
+                                <button onClick={()=>openEdit(note)} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:textMain, padding:"8px 11px", fontSize:12.5, fontWeight:700, cursor:"pointer", textAlign:"left"}}>
+                                  <Pencil size={13}/> {lang==="bn" ? "এডিট" : "Edit"}
+                                </button>
+                                <button onClick={()=>remove(note.id)} style={{display:"flex", alignItems:"center", gap:7, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"8px 11px", fontSize:12.5, fontWeight:700, cursor:"pointer", textAlign:"left"}}>
+                                  <Trash2 size={13}/> {lang==="bn" ? "ডিলিট" : "Delete"}
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div style={{fontSize:11, fontWeight:800, letterSpacing: lang==="bn"?0:0.6, color:textMuted2, opacity:0.75, marginBottom:10, textTransform:"uppercase"}}>
+              {lang==="bn" ? "সব নোট" : "All Notes"}
+            </div>
+          </>
+        );
+      })()}
 
       {/* সার্চ রো — squircle আইকন বাটন, তারপর সবসময়-দৃশ্যমান সার্চ পিল, Grid/List টগল, আর সর্ট/তারিখ */}
       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:11,position:"relative"}}>
