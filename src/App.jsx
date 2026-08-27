@@ -6516,7 +6516,7 @@ export default function FocusGo() {
                 </div>
                 <div style={{minWidth:0}}>
                   <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.taskTitle}</div>
-                  <div style={{fontSize:12, color:textMuted2, marginTop:2}}>{t.taskSubtitle}</div>
+                  <div style={{fontSize:12, color:textMuted2, marginTop:2, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden", lineHeight:1.3}}>{t.taskSubtitle}</div>
                 </div>
               </div>
 
