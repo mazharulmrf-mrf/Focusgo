@@ -597,14 +597,12 @@ function NotificationBell({ t, lang, notifications, onMarkAllRead, onClear, card
     <div style={{ position: "relative", flexShrink: 0 }}>
       <button
         onClick={() => { setOpen(v => !v); if (!open) onMarkAllRead(); }}
-        style={{ position: "relative", border: `1px solid #FAC77555`, background: dark ? "#85490B22" : "#FAEEDA", color: "#854F0B", borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
+        style={{ position: "relative", border: "none", background: "transparent", color: textMain, borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
         title={t.notifications}
       >
-        <Bell size={14} />
+        <Bell size={19} strokeWidth={1.8} />
         {unreadCount > 0 && (
-          <span style={{ position: "absolute", top: -2, right: -2, minWidth: 14, height: 14, padding: "0 3px", borderRadius: "50%", background: "#C0392B", color: "#fff", fontSize:10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
+          <span style={{ position: "absolute", top: 1, right: 2, width: 8, height: 8, borderRadius: "50%", background: "#F0651E", border: `1.5px solid ${cardBg}` }} />
         )}
       </button>
       {open && (
@@ -5274,8 +5272,8 @@ export default function FocusGo() {
             )}
             <button onClick={()=>{vibrate(); setShowSearch(true);}}
               title={lang==="bn" ? "খুঁজুন" : "Search"}
-              style={{border:`1px solid #85B7EB55`, background: dark ? "#0C447C22" : "#E6F1FB", color:"#185FA5", borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
-              <Search size={14}/>
+              style={{border:"none", background:"transparent", color:textMain, borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
+              <Search size={19} strokeWidth={1.8}/>
             </button>
             <NotificationBell
               t={t} lang={lang} notifications={notifications}
@@ -5285,15 +5283,15 @@ export default function FocusGo() {
             />
             <button onClick={()=>{vibrate(); setShowProfile(true);}}
               title={t.profile}
-              style={{border:`2px solid ${accent}`, background:cardBg, color:textMain, borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, overflow:"hidden", padding:0}}>
+              style={{border:"none", background:cardBg, color:textMain, borderRadius:"50%", width:29, height:29, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, overflow:"hidden", padding:0}}>
               {user && user.photoURL ? (
                 <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
               ) : user && user.gender === "female" ? (
-                <Venus size={14}/>
+                <Venus size={15}/>
               ) : user && user.gender === "male" ? (
-                <Mars size={14}/>
+                <Mars size={15}/>
               ) : (
-                <User size={14}/>
+                <User size={15}/>
               )}
             </button>
           </div>
@@ -5303,7 +5301,7 @@ export default function FocusGo() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:16, border:`1px solid ${accent}33`, borderBottom:"none", background: dark ? `${accent}26` : `${accent}17`, borderRadius:"24px 24px 0 0", padding:"18px 20px 6px", boxSizing:"border-box", boxShadow: dark ? "none" : `0 10px 28px ${accent}14`}}>
+        <div style={{marginTop:16, border:`1px solid ${accent}1A`, borderBottom:"none", background: dark ? `${accent}15` : `${accent}0A`, borderRadius:"20px 20px 0 0", padding:"12px 18px 4px", boxSizing:"border-box", boxShadow: dark ? "none" : `0 6px 16px ${accent}0A`}}>
           <div style={{marginBottom:2}}>
             {(() => {
               const fullName = (user?.displayName || "").trim();
@@ -5345,23 +5343,23 @@ export default function FocusGo() {
 
               return (
                 <>
-                  <div style={{padding:"2px 2px 6px", marginBottom:0}}>
+                  <div style={{padding:"2px 2px 4px", marginBottom:0}}>
                     <div style={{minWidth:0, flex:1}}>
-                      <div style={{fontSize:13, fontWeight:800, color:accent, letterSpacing:0.2, marginBottom:4, display:"flex", alignItems:"center", gap:6}}>
+                      <div style={{fontSize:12, fontWeight:800, color:accent, letterSpacing:0.2, marginBottom:2, display:"flex", alignItems:"center", gap:6}}>
                         {lang === "bn" ? greetingBn : greetingEn}
-                        <greetTheme.Icon size={16} color={accent} strokeWidth={2.3} fill={greetKey==="night" ? `${accent}33` : "none"}/>
+                        <greetTheme.Icon size={14} color={accent} strokeWidth={2.3} fill={greetKey==="night" ? `${accent}33` : "none"}/>
                       </div>
                       <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
-                        <div style={{fontSize:30,fontWeight:800,letterSpacing:-0.6,color:textMain}}>
+                        <div style={{fontSize:23,fontWeight:800,letterSpacing:-0.6,color:textMain}}>
                           {firstName}
                         </div>
                       </div>
-                      <div style={{fontSize:13.5,color:textMuted2,marginTop:4,lineHeight:1.4}}>
+                      <div style={{fontSize:12.5,color:textMuted2,marginTop:2,lineHeight:1.35}}>
                         {line}
                       </div>
                     </div>
                   </div>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8, paddingBottom:10, borderBottom:`1px solid ${accent}40`, position:"relative"}} ref={salahMenuRef}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:6, paddingBottom:8, borderBottom:`1px solid ${accent}25`, position:"relative"}} ref={salahMenuRef}>
                     <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
                       <span style={{width:30, height:30, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
                         <CalendarDays size={20} color={accent} strokeWidth={2}/>
@@ -5637,21 +5635,21 @@ export default function FocusGo() {
           return (
         <div className="fg-tab-panel" style={{
             marginTop: tab === "today" ? 0 : 16,
-            border:`1px solid ${accent}33`,
-            borderTop: tab === "today" ? "none" : `1px solid ${accent}33`,
-            background: dark ? `${accent}26` : `${accent}17`,
-            borderRadius: tab === "today" ? "0 0 24px 24px" : 24,
-            padding: tab === "today" ? "12px 20px 18px" : "16px 18px",
+            border:`1px solid ${accent}1A`,
+            borderTop: tab === "today" ? "none" : `1px solid ${accent}1A`,
+            background: dark ? `${accent}15` : `${accent}0A`,
+            borderRadius: tab === "today" ? "0 0 20px 20px" : 20,
+            padding: tab === "today" ? "10px 18px 14px" : "16px 18px",
             position:"relative", overflow:"hidden",
-            boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.22)" : `0 10px 28px ${accent}14`
+            boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.14)" : `0 6px 16px ${accent}0A`
           }}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
-            <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
+            <div style={{display:"flex", alignItems:"center", gap:10, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
-                size={58} stroke={5.5} accent={accent} trackColor={`${accent}40`} textMain={inkColor} nf={nf}/>
+                size={48} stroke={5} accent={accent} trackColor={`${accent}40`} textMain={inkColor} nf={nf}/>
               <div style={{minWidth:0}}>
-                <div style={{fontSize:14, fontWeight:800, color:inkColor, marginBottom:6}}>{t.todaysProgress}</div>
-                <div style={{display:"flex", alignItems:"center", gap:7, fontSize:12.5, fontWeight:700, whiteSpace:"nowrap"}}>
+                <div style={{fontSize:13, fontWeight:800, color:inkColor, marginBottom:4}}>{t.todaysProgress}</div>
+                <div style={{display:"flex", alignItems:"center", gap:7, fontSize:12, fontWeight:700, whiteSpace:"nowrap"}}>
                   <span style={{display:"inline-flex", alignItems:"center", gap:3, color:inkA(0.82)}}>
                     <Check size={12} strokeWidth={3}/> <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.progressCompletedLabel}
                   </span>
@@ -5662,12 +5660,12 @@ export default function FocusGo() {
                 </div>
               </div>
             </div>
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:3, paddingLeft:14, borderLeft: `1px solid ${accent}30`}}>
-              <div style={{width:34, height:34, borderRadius:"50%", background: `${accent}22`, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                <Flame size={17} color={accent} fill={`${accent}55`}/>
+            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:2, paddingLeft:12, borderLeft: `1px solid ${accent}25`}}>
+              <div style={{width:28, height:28, borderRadius:"50%", background: `${accent}22`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                <Flame size={14} color={accent} fill={`${accent}55`}/>
               </div>
-              <div style={{fontSize:16, fontWeight:800, color:inkColor, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
-              <div style={{fontSize:10, color:inkA(0.75), fontWeight:600, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
+              <div style={{fontSize:14, fontWeight:800, color:inkColor, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
+              <div style={{fontSize:9.5, color:inkA(0.75), fontWeight:600, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
             </div>
           </div>
           {/* Today's Tasks mini-summary — merged into the progress card so the card previews task progress at a glance, matching the home page mockup */}
@@ -5678,14 +5676,14 @@ export default function FocusGo() {
             const cardPct = hasTasks ? Math.round((cardDone / cardTodayTasks.length) * 100) : 0;
             const cardLeft = cardTodayTasks.length - cardDone;
             return (
-              <div style={{marginTop:14, paddingTop:14, borderTop:`1px solid ${accent}40`}}>
-                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
-                  <div style={{fontSize:13, fontWeight:800, color:inkColor}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
-                  <div style={{fontSize:11, fontWeight:700, color:inkA(0.75), whiteSpace:"nowrap"}}>
+              <div style={{marginTop:10, paddingTop:10, borderTop:`1px solid ${accent}25`}}>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
+                  <div style={{fontSize:12.5, fontWeight:800, color:inkColor}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
+                  <div style={{fontSize:10.5, fontWeight:700, color:inkA(0.75), whiteSpace:"nowrap"}}>
                     {!hasTasks ? (lang==="bn" ? "কোনো টাস্ক নেই" : "No tasks today") : cardLeft > 0 ? (lang==="bn" ? `${nf(cardDone)}/${nf(cardTodayTasks.length)} সম্পন্ন` : `${cardDone}/${cardTodayTasks.length} completed`) : t.taskAllDoneLabel}
                   </div>
                 </div>
-                <div style={{height:6, borderRadius:8, background: `${accent}33`, overflow:"hidden"}}>
+                <div style={{height:5, borderRadius:8, background: `${accent}33`, overflow:"hidden"}}>
                   <div style={{width: hasTasks ? `${cardPct}%` : "0%", height:"100%", borderRadius:8, background:accent, transition:"width .25s ease"}}/>
                 </div>
               </div>
@@ -5695,9 +5693,8 @@ export default function FocusGo() {
           );
         })()}
 
-        {/* Salah countdown + Next Exam — ছোট pill আকারে হেরো কার্ডের ঠিক নিচে, পাশাপাশি এক row-তে (হোমপেজ মকআপ অনুযায়ী) */}
-        {/* সালাত countdown pill — নিজের সারিতে, যাতে নিচের Exam ব্যানার ফুল-উইথ থাকতে পারে (হোমপেজ মকআপ অনুযায়ী) */}
-        {tab === "today" && nextSalahCountdown && (
+        {/* Salah countdown pill (Home tab) — আপাতত hidden, per user request (২৭ আগস্ট থেকে) */}
+        {false && tab === "today" && nextSalahCountdown && (
           <div style={{marginTop:14}}>
             <button
               onClick={() => { vibrate(); setShowSalahDropdown(true); if (!salahCoords) requestSalahLocation(); }}
