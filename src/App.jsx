@@ -5832,10 +5832,10 @@ export default function FocusGo() {
               )}
             </div>
 
-            {/* RIGHT column — decorative dashed progress ring with hourglass, matches the mockup */}
-            <div style={{flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center", gap:10, width:110}}>
+            {/* RIGHT column — decorative dashed progress ring with hourglass, matches the mockup (বড় করা হয়েছে, "You've got this" ক্যাপশন বাদ) */}
+            <div style={{flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center", gap:10, width:132}}>
               {(() => {
-                const ringSize = 108;
+                const ringSize = 132;
                 const stroke = 5;
                 const r = 47;
                 const c = 2 * Math.PI * r;
@@ -5853,15 +5853,12 @@ export default function FocusGo() {
                         strokeDashoffset={c * (1 - elapsedFrac)}
                         style={{transition:"stroke-dashoffset 1s linear"}}/>
                     </svg>
-                    <div className={running ? "fg-timer-running" : undefined} style={{width:56, height:56, borderRadius:"50%", background:`${ringColor}1c`, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                      <Hourglass size={24} color={ringColor} strokeWidth={2}/>
+                    <div className={running ? "fg-timer-running" : undefined} style={{width:68, height:68, borderRadius:"50%", background:`${ringColor}1c`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                      <Hourglass size={29} color={ringColor} strokeWidth={2}/>
                     </div>
                   </div>
                 );
               })()}
-              <div style={{fontSize:11, color:textMuted2, fontWeight:700, textAlign:"center", lineHeight:1.3}}>
-                {lang==="bn" ? "তুমি পারবে! 💪" : "You've got this! 💪"}
-              </div>
             </div>
           </div>
         </div>
@@ -6670,71 +6667,50 @@ export default function FocusGo() {
         {/* STATS sub-section (inside Study tab) - week + subjects + month, one shared day-detail card at the bottom */}
         {tab === "study" && studySection === "stats" && (
           <div key="stats" className="fg-tab-panel" style={{marginTop:22}}>
-            {/* সাবজেক্ট/স্টাডি টাইম/ডেইলি গোল/স্ট্রিক — আগে Study tab-এর একদম উপরে (Plan view-তেও) দেখাত, এখন শুধু Stats-এই থাকবে */}
+            {/* একীভূত Stats কার্ড — আগে দুটো আলাদা ব্লক ছিল (৪-আইকন quick-stats grid + "Study Overview" hero),
+                দুটোতেই Day Streak রিপিট হচ্ছিল আর concept ওভারল্যাপ করছিল, তাই একটা কম্প্যাক্ট কার্ডে মার্জ করা হলো:
+                উপরে Total Time Focused (হেডলাইন), নিচে ৫টা ইউনিক সেকেন্ডারি স্ট্যাট এক সারিতে */}
             {(() => {
               const DAILY_GOAL_MIN = 120;
               const todayMinutes = (entries[todayKey] || []).filter(x=>x.done).reduce((s,x)=>s+(x.duration||0),0);
               const goalPct = Math.min(100, Math.round((todayMinutes/DAILY_GOAL_MIN)*100));
-              const sh = Math.floor(todayMinutes/60), sm = todayMinutes%60;
+              const h = Math.floor(studyOverview.totalMin/60), m = studyOverview.totalMin%60;
               const statItems = [
                 { Icon: BookOpen, color:"#4C8FA6", value: nf(subjects.length), label: lang==="bn" ? "সাবজেক্ট" : "Subjects" },
-                { Icon: Clock, color:"#6E8B5E", value: `${nf(sh)}h ${nf(sm).padStart ? nf(sm) : sm}m`, label: lang==="bn" ? "পড়ার সময়" : "Study Time", sub: lang==="bn" ? "(আজ)" : "(Today)" },
+                { Icon: Check, color:"#6E8B5E", value: nf(studyOverview.doneCount), label: t.topicsCompletedLabel },
+                { Icon: TrendingUp, color: inkColor, value: `${nf(studyOverview.pct)}%`, label: t.completionLabel },
                 { Icon: Target, color: accent, value: `${nf(goalPct)}%`, label: lang==="bn" ? "দৈনিক লক্ষ্য" : "Daily Goal" },
-                { Icon: Flame, color:"#8E6BAF", value: nf(studyOverview.streak), label: lang==="bn" ? "দিনের স্ট্রিক" : "Day Streak" },
+                { Icon: Flame, color:"#C08A2E", value: nf(studyOverview.streak), label: t.streakLabel },
               ];
               return (
-                <div style={{display:"grid", gridTemplateColumns:"repeat(4, 1fr)", marginBottom:20, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:20, padding:"18px 4px 14px", boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.18)" : "0 6px 16px rgba(0,0,0,0.04)"}}>
-                  {statItems.map((it, i) => (
-                    <div key={i} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:6, textAlign:"center", position:"relative", padding:"0 4px"}}>
-                      {i > 0 && <span style={{position:"absolute", left:0, top:4, bottom:12, width:1, background:cardBorder}}/>}
-                      <div style={{width:36, height:36, borderRadius:"50%", background:`${it.color}22`, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                        <it.Icon size={17} color={it.color} strokeWidth={2.2}/>
-                      </div>
-                      <div style={{fontSize:15, fontWeight:800, color:textMain, letterSpacing:-0.2, lineHeight:1.1}}>{it.value}</div>
-                      <div style={{fontSize:9.5, color:textMuted2, fontWeight:700, lineHeight:1.25}}>{it.label}{it.sub ? <><br/>{it.sub}</> : null}</div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
-
-            {/* Study Overview — headline numbers, justifies the "Stats" name */}
-            <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:12}}>{t.studyOverview}</div>
-
-            {/* Hero stat + completed/completion/streak — compact single-row layout (icon+total on the left, divider, 3 stats on the right) */}
-            {(() => {
-              const h = Math.floor(studyOverview.totalMin/60), m = studyOverview.totalMin%60;
-              return (
-                <div style={{background: inkA(dark ? 0.09 : 0.04), border:`1px solid ${cardBorder}`, borderRadius:16, padding:"13px 14px", marginBottom:20, display:"flex", alignItems:"center", gap:12}}>
-                  <div style={{display:"flex", alignItems:"center", gap:9, flexShrink:0}}>
-                    <div style={{width:34,height:34, borderRadius:10, background: inkA(dark?0.22:0.12), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                      <Clock size={16} color={inkColor}/>
+                <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:20, padding:"16px 16px 14px", marginBottom:20, boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.18)" : "0 6px 16px rgba(0,0,0,0.04)"}}>
+                  <div style={{display:"flex", alignItems:"center", gap:10}}>
+                    <div style={{width:38,height:38, borderRadius:11, background: inkA(dark?0.22:0.12), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                      <Clock size={18} color={inkColor}/>
                     </div>
                     <div>
-                      <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.4, color:textMain, lineHeight:1.15, whiteSpace:"nowrap"}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
-                      <div style={{fontSize:10, color:textMuted2, fontWeight:600, opacity:0.8, whiteSpace:"nowrap"}}>{t.focusedLabel}</div>
+                      <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.4, color:textMain, lineHeight:1.15}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
+                      <div style={{fontSize:11, color:textMuted2, fontWeight:600, opacity:0.8}}>{t.focusedLabel}</div>
                     </div>
                   </div>
-                  <div style={{width:1, alignSelf:"stretch", background:cardBorder, flexShrink:0}}/>
-                  <div style={{display:"flex", flex:1, justifyContent:"space-between", gap:4, minWidth:0}}>
-                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:2}}>
-                      <div style={{fontSize:14, fontWeight:800, letterSpacing:-0.2, color:"#6E8B5E", lineHeight:1.1}}><Num>{nf(studyOverview.doneCount)}</Num></div>
-                      <div style={{fontSize:9, color:textMuted2, fontWeight:500, opacity:0.8, whiteSpace:"nowrap"}}>{t.topicsCompletedLabel}</div>
-                    </div>
-                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:2}}>
-                      <div style={{fontSize:14, fontWeight:800, letterSpacing:-0.2, color:inkColor, lineHeight:1.1}}><Num>{nf(studyOverview.pct)}</Num>%</div>
-                      <div style={{fontSize:9, color:textMuted2, fontWeight:500, opacity:0.8, whiteSpace:"nowrap"}}>{t.completionLabel}</div>
-                    </div>
-                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:2}}>
-                      <div style={{fontSize:14, fontWeight:800, letterSpacing:-0.2, color:"#C08A2E", lineHeight:1.1}}><Num>{nf(studyOverview.streak)}</Num></div>
-                      <div style={{fontSize:9, color:textMuted2, fontWeight:500, opacity:0.8, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
-                    </div>
+                  <div style={{height:1, background:cardBorder, margin:"14px 0"}}/>
+                  <div style={{display:"grid", gridTemplateColumns:"repeat(5, 1fr)"}}>
+                    {statItems.map((it, i) => (
+                      <div key={i} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:5, textAlign:"center", position:"relative", padding:"0 2px"}}>
+                        {i > 0 && <span style={{position:"absolute", left:0, top:2, bottom:10, width:1, background:cardBorder}}/>}
+                        <div style={{width:30, height:30, borderRadius:"50%", background:`${it.color}22`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                          <it.Icon size={14} color={it.color} strokeWidth={2.2}/>
+                        </div>
+                        <div style={{fontSize:13, fontWeight:800, color:textMain, letterSpacing:-0.2, lineHeight:1.1}}>{it.value}</div>
+                        <div style={{fontSize:8.5, color:textMuted2, fontWeight:700, lineHeight:1.2}}>{it.label}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               );
             })()}
 
-            {/* Subject Progress — right after Study Overview */}
+            {/* Subject Progress — right after the merged stats card */}
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginTop:6, marginBottom:16}}>
               <div style={{display:"flex", alignItems:"center", gap:10, minWidth:0}}>
                 <div style={{width:36,height:36, borderRadius:12, background: dark?"#242229":"#F0EEF5", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
