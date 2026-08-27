@@ -5301,7 +5301,7 @@ export default function FocusGo() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:16, border:`1px solid ${accent}1A`, borderBottom:"none", background: dark ? `${accent}15` : `${accent}0A`, borderRadius:"20px 20px 0 0", padding:"12px 18px 4px", boxSizing:"border-box", boxShadow: dark ? "none" : `0 6px 16px ${accent}0A`}}>
+        <div style={{marginTop:16, border:`1px solid ${dark ? cardBorder : `${accent}1A`}`, borderBottom:"none", background: dark ? cardBg : `${accent}0A`, borderRadius:"20px 20px 0 0", padding:"12px 18px 4px", boxSizing:"border-box", boxShadow: dark ? "none" : `0 6px 16px ${accent}0A`}}>
           <div style={{marginBottom:2}}>
             {(() => {
               const fullName = (user?.displayName || "").trim();
@@ -5635,13 +5635,13 @@ export default function FocusGo() {
           return (
         <div className="fg-tab-panel" style={{
             marginTop: tab === "today" ? 0 : 16,
-            border:`1px solid ${accent}1A`,
-            borderTop: tab === "today" ? "none" : `1px solid ${accent}1A`,
-            background: dark ? `${accent}15` : `${accent}0A`,
+            border:`1px solid ${dark ? cardBorder : `${accent}1A`}`,
+            borderTop: tab === "today" ? "none" : `1px solid ${dark ? cardBorder : `${accent}1A`}`,
+            background: dark ? cardBg : `${accent}0A`,
             borderRadius: tab === "today" ? "0 0 20px 20px" : 20,
             padding: tab === "today" ? "10px 18px 14px" : "16px 18px",
             position:"relative", overflow:"hidden",
-            boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.14)" : `0 6px 16px ${accent}0A`
+            boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.28)" : `0 6px 16px ${accent}0A`
           }}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:10, minWidth:0}}>
@@ -6015,7 +6015,7 @@ export default function FocusGo() {
 
         {/* Today's study list - Today tab + Study tab (shown above Study Plan/Exam) */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (
-        <div className="fg-tab-panel" style={{marginTop:26}}>
+        <div className="fg-tab-panel" style={{marginTop:19}}>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
             <div style={{display:"flex", alignItems:"center", gap:8}}>
               <span style={{width:26, height:26, borderRadius:9, background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
@@ -6040,7 +6040,7 @@ export default function FocusGo() {
 
         {/* Upcoming Exams preview — top 3 nearest, matches Study tab home mockup */}
         {tab === "study" && studySection === "plan" && (
-        <div className="fg-tab-panel" style={{marginTop:26}}>
+        <div className="fg-tab-panel" style={{marginTop:19}}>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
             <div style={{display:"flex", alignItems:"center", gap:8}}>
               <span style={{width:26, height:26, borderRadius:9, background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
@@ -6107,7 +6107,7 @@ export default function FocusGo() {
 
         {/* Continue Studying preview — subjects with progress, matches Study tab home mockup */}
         {tab === "study" && studySection === "plan" && allSubjects.length > 0 && (
-        <div className="fg-tab-panel" style={{marginTop:26}}>
+        <div className="fg-tab-panel" style={{marginTop:19}}>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
             <div style={{display:"flex", alignItems:"center", gap:8}}>
               <span style={{width:26, height:26, borderRadius:9, background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
@@ -6150,14 +6150,14 @@ export default function FocusGo() {
 
         {/* Section spacer — separates the previews above from the Next-Days plan below, only in Study tab */}
         {tab === "study" && studySection === "plan" && (
-        <div className="fg-tab-panel" style={{marginTop:30}}/>
+        <div className="fg-tab-panel" style={{marginTop:23}}/>
         )}
 
         {/* Today's Tasks — after Today's Study */}
         {tab === "today" && (() => {
           const homeTodayTasks = tasks.filter(x => x.dueDate === todayKey);
           return (
-          <div className="fg-tab-panel" style={{marginTop:26}}>
+          <div className="fg-tab-panel" style={{marginTop:19}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <div style={{display:"flex", alignItems:"center", gap:8}}>
                 <span style={{width:26, height:26, borderRadius:9, background: inkA(dark ? 0.2 : 0.12), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
@@ -6177,21 +6177,21 @@ export default function FocusGo() {
               </button>
             </div>
             {homeTodayTasks.length === 0 ? (
-              <div style={{border:`1px dashed ${inkA(0.35)}`, borderRadius:16, padding:"16px", background:inkA(0.06), display:"flex", alignItems:"flex-start", gap:12}}>
-                <span style={{width:36, height:36, borderRadius:"50%", background:inkA(0.14), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                  <ListChecks size={17} color={inkColor} strokeWidth={2}/>
+              <div style={{border:`1px dashed ${inkA(0.35)}`, borderRadius:16, padding:"12px 13px", background:inkA(0.06), display:"flex", alignItems:"flex-start", gap:10}}>
+                <span style={{width:30, height:30, borderRadius:"50%", background:inkA(0.14), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                  <ListChecks size={15} color={inkColor} strokeWidth={2}/>
                 </span>
                 <div style={{minWidth:0}}>
-                  <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{t.taskEmptyTodayHome}</div>
-                  <div style={{color:textMuted2, fontSize:12, marginTop:2}}>{lang==="bn" ? "আজকের একটা টাস্ক যোগ করুন।" : "Add a task to plan your day."}</div>
+                  <div style={{fontWeight:800, color:textMain, fontSize:13}}>{t.taskEmptyTodayHome}</div>
+                  <div style={{color:textMuted2, fontSize:11.5, marginTop:2}}>{lang==="bn" ? "আজকের একটা টাস্ক যোগ করুন।" : "Add a task to plan your day."}</div>
                 </div>
               </div>
             ) : (
-              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {homeTodayTasks.map(x => (
-                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:12,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:18,padding:"12px 14px",boxSizing:"border-box",boxShadow: dark ? "none" : "0 2px 8px rgba(0,0,0,0.04)"}}>
-                    <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:26,height:26,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
-                      {x.done && <Check size={14} color="#fff" strokeWidth={3}/>}
+                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:11,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"10px 13px",boxSizing:"border-box",boxShadow: dark ? "none" : "0 2px 8px rgba(0,0,0,0.04)"}}>
+                    <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:23,height:23,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
+                      {x.done && <Check size={13} color="#fff" strokeWidth={3}/>}
                     </button>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{fontSize:13.5,fontWeight:700,color:x.done?textMain:textMain,textDecoration:x.done?"line-through":"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
@@ -8613,15 +8613,15 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
   const closeMenu = () => { setOpenMenuId(null); setConfirmDeleteId(null); };
   if (items.length === 0) {
     return (
-      <div style={{border:`1px dashed ${cardBorder}`, borderRadius:16, padding:"16px", textAlign:"left", background: `${accent}08`, display:"flex", alignItems:"flex-start", gap:12}}>
+      <div style={{border:`1px dashed ${cardBorder}`, borderRadius:16, padding:"12px 13px", textAlign:"left", background: `${accent}08`, display:"flex", alignItems:"flex-start", gap:10}}>
         {EmptyIcon && (
-          <span style={{width:36, height:36, borderRadius:"50%", background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-            <EmptyIcon size={17} color={accent} strokeWidth={2}/>
+          <span style={{width:30, height:30, borderRadius:"50%", background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+            <EmptyIcon size={15} color={accent} strokeWidth={2}/>
           </span>
         )}
         <div style={{minWidth:0}}>
-          <div style={{fontWeight:800, color:textMain, fontSize:13.5}}>{emptyText}</div>
-          {emptySubtext && <div style={{fontSize:12, color:textMuted2, marginTop:3, lineHeight:1.5}}>{emptySubtext}</div>}
+          <div style={{fontWeight:800, color:textMain, fontSize:13}}>{emptyText}</div>
+          {emptySubtext && <div style={{fontSize:11.5, color:textMuted2, marginTop:2, lineHeight:1.4}}>{emptySubtext}</div>}
         </div>
       </div>
     );
@@ -8635,12 +8635,12 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
           <div key={item.id} style={{
             background: isActiveTimer ? `${c.bg}0F` : cardBg,
             border: `1px solid ${isActiveTimer ? c.bg : cardBorder}`,
-            borderRadius:18, padding:"12px 14px", display:"flex", alignItems:"center", gap:12, position:"relative",
+            borderRadius:16, padding:"10px 13px", display:"flex", alignItems:"center", gap:11, position:"relative",
             boxShadow: isActiveTimer ? "none" : "0 2px 8px rgba(0,0,0,0.04)",
             transition:"background .15s ease, border-color .15s ease",
           }}>
             <button onClick={onToggle ? ()=>onToggle(item.id) : undefined} disabled={!onToggle}
-              style={{width:34,height:34, borderRadius:"50%", border:"none", flexShrink:0, cursor: onToggle?"pointer":"default", background: item.done ? "#6E8B5E" : c.bgSoft, display:"flex",alignItems:"center",justifyContent:"center", transition:"background-color .2s ease"}}>
+              style={{width:30,height:30, borderRadius:"50%", border:"none", flexShrink:0, cursor: onToggle?"pointer":"default", background: item.done ? "#6E8B5E" : c.bgSoft, display:"flex",alignItems:"center",justifyContent:"center", transition:"background-color .2s ease"}}>
               {item.done ? <span key={`done-${item.id}`} className="fg-check-pop" style={{display:"flex"}}><Check size={16} color="#fff" strokeWidth={3}/></span> : <span style={{width:9,height:9,borderRadius:"50%", background:c.bg}}/>}
             </button>
             <div style={{flex:1, minWidth:0}}>
