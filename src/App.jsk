@@ -6751,35 +6751,6 @@ export default function FocusGo() {
               })()}
             </div>
 
-            {/* Task Overview */}
-            {(() => {
-              const taskTotal = tasks.length;
-              const taskDone = tasks.filter(x => x.done).length;
-              const taskRemaining = taskTotal - taskDone;
-              const taskPct = taskTotal ? Math.round((taskDone / taskTotal) * 100) : 0;
-              return (
-                <div style={{background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"13px 15px",marginBottom:20}}>
-                  <div style={{fontSize:11,letterSpacing:ls(1.4),color:textMuted2,fontWeight:700,opacity:0.85,marginBottom:10}}>
-                    {lang === "bn" ? "টাস্ক ওভারভিউ" : "Task Overview"}
-                  </div>
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
-                    <div style={{textAlign:"center"}}>
-                      <div style={{fontSize:18,fontWeight:800,color:textMain}}><Num>{nf(taskDone)}</Num></div>
-                      <div style={{fontSize:10,color:textMuted2}}>{lang === "bn" ? "সম্পন্ন" : "Completed"}</div>
-                    </div>
-                    <div style={{textAlign:"center"}}>
-                      <div style={{fontSize:18,fontWeight:800,color:textMain}}><Num>{nf(taskRemaining)}</Num></div>
-                      <div style={{fontSize:10,color:textMuted2}}>{lang === "bn" ? "বাকি" : "Remaining"}</div>
-                    </div>
-                    <div style={{textAlign:"center"}}>
-                      <div style={{fontSize:18,fontWeight:800,color:textMain}}><Num>{nf(taskPct)}</Num>%</div>
-                      <div style={{fontSize:10,color:textMuted2}}>{lang === "bn" ? "সম্পন্নের হার" : "Completion"}</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-
             {/* Weekly Activity — bar chart with value labels and accent-weighted bars */}
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:10}}>
               <span style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.weeklyActivity}</span>
