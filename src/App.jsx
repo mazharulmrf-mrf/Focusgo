@@ -1310,107 +1310,80 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
       </button>
     );
 
-    // ---- Preferences গ্রিডের একটা কার্ড ----
-    const PrefCard = ({ cardKey, Icon, iconBg, iconColor, title, subtitle }) => {
-      const open = openCard === cardKey;
-      return (
-        <button onClick={() => toggleCard(cardKey)} style={{
-            background: cardBg, border:`1px solid ${open ? accent : cardBorder}`, borderRadius:16,
-            padding:"13px 12px 12px", cursor:"pointer", display:"flex", flexDirection:"column", gap:8, minHeight:96,
-            position:"relative", textAlign:"left", width:"100%", boxSizing:"border-box", transition:"border-color .15s",
-            boxShadow: dark ? "none" : "0 1px 2px rgba(26,24,20,0.04)",
-          }}>
-          <span style={softIconWrap(iconBg)}><Icon size={17} color={iconColor}/></span>
-          <span style={{display:"block"}}>
-            <div style={{fontSize:13, fontWeight:800, color:textMain, marginBottom:2, lineHeight:1.2}}>{title}</div>
-            <div style={{fontSize:11, color:textMuted2, fontWeight:600, lineHeight:1.2}}>{subtitle}</div>
-          </span>
-          <ChevronRight size={14} color={textMuted2} style={{position:"absolute", right:10, bottom:11, transform: open ? "rotate(90deg)" : "none", transition:"transform .15s", flexShrink:0}}/>
-        </button>
-      );
-    };
+    // ---- মিনিমাল, মনোক্রোম আইকন র‍্যাপ — গ্রিডের বদলে এখন সব প্রেফারেন্স এক লিস্টে, রঙের ভ্যারাইটি বাদ দিয়ে একটাই নিউট্রাল টোন ----
+    const neutralIconBg = dark ? "#242229" : "#F0EEF5";
+    const neutralIconColor = dark ? "#ADA9BB" : "#6E6B7A";
 
-    // ---- Data & Sync / More সেকশনের রো ----
-    const GroupRow = ({ Icon, iconBg, iconColor, title, subtitle, right, onClick, href, borderTop }) => {
+    // ---- এক লাইনের সেটিংস রো — আইকন, টাইটেল, সাবটাইটেল, ডান পাশে হয় শেভরন নাহয় কাস্টম কন্টেন্ট ----
+    // expandKey দেওয়া থাকলে ক্লিক করলে accordion হিসেবে নিচে children খোলে; নাহলে onClick/href দিয়ে সরাসরি অ্যাকশন
+    const Row = ({ Icon, title, subtitle, right, onClick, href, expandKey, children, borderTop = true }) => {
+      const isExpandable = !!expandKey;
+      const open = isExpandable && openCard === expandKey;
+      const handleClick = () => {
+        vibrate();
+        if (isExpandable) { toggleCard(expandKey); return; }
+        if (onClick) onClick();
+      };
       const inner = (
-        <div style={{display:"flex", alignItems:"center", gap:12, padding:"13px 14px", borderTop: borderTop ? `1px solid ${cardBorder}` : "none", cursor: onClick || href ? "pointer" : "default"}}>
-          <span style={softIconWrap(iconBg)}><Icon size={16} color={iconColor}/></span>
+        <div onClick={href ? undefined : handleClick} style={{
+            display:"flex", alignItems:"center", gap:12, padding:"13px 4px",
+            borderTop: borderTop ? `1px solid ${cardBorder}` : "none",
+            cursor: (onClick || href || isExpandable) ? "pointer" : "default",
+          }}>
+          <span style={softIconWrap(neutralIconBg)}><Icon size={16} color={neutralIconColor}/></span>
           <div style={{flex:1, minWidth:0}}>
-            <div style={{fontSize:14, fontWeight:800, color:textMain, marginBottom:1}}>{title}</div>
-            <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subtitle}</div>
+            <div style={{fontSize:14, fontWeight:700, color:textMain, marginBottom:1}}>{title}</div>
+            {subtitle && <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subtitle}</div>}
           </div>
-          {right !== undefined ? right : (isBn ? <ChevronLeft size={16} color={textMuted2}/> : <ChevronRight size={16} color={textMuted2}/>)}
+          {right !== undefined ? right : (
+            isExpandable
+              ? <ChevronDown size={16} color={textMuted2} style={{transform: open ? "rotate(180deg)" : "none", transition:"transform .15s", flexShrink:0}}/>
+              : (isBn ? <ChevronLeft size={16} color={textMuted2} style={{flexShrink:0}}/> : <ChevronRight size={16} color={textMuted2} style={{flexShrink:0}}/>)
+          )}
         </div>
       );
-      if (href) return <a href={href} style={{textDecoration:"none", display:"block"}}>{inner}</a>;
-      return <div onClick={onClick}>{inner}</div>;
+      return (
+        <>
+          {href ? <a href={href} onClick={()=>vibrate()} style={{textDecoration:"none", display:"block"}}>{inner}</a> : inner}
+          {isExpandable && open && children && (
+            <div style={{padding:"2px 4px 16px 46px"}}>{children}</div>
+          )}
+        </>
+      );
     };
 
-    const groupCardStyle = { background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, overflow:"hidden" };
-    const sectionHeadingStyle = { fontSize:13, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", margin:"22px 2px 10px" };
+    const groupCardStyle = { background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"0 12px", overflow:"hidden" };
+    const sectionHeadingStyle = { fontSize:12, fontWeight:800, color:textMuted2, letterSpacing:0.4, textTransform:"uppercase", opacity:0.75, margin:"22px 4px 8px" };
 
     return (
       <div className="fg-tab-panel" style={{marginTop:18, paddingBottom:8}}>
 
-        {/* ---- Hero header ---- */}
-        <div style={{display:"flex", alignItems:"center", gap:14, marginBottom:18}}>
-          <span style={{width:52, height:52, borderRadius:16, background: dark ? `${accent}26` : `${accent}17`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-            <Settings size={24} color={accent}/>
-          </span>
-          <div>
-            <div style={{fontSize:21, fontWeight:800, letterSpacing:-0.3, color:textMain, lineHeight:1.2}}>{t.settings}</div>
-            <div style={{fontSize:12.5, color:textMuted2, fontWeight:600}}>{isBn ? "আপনার অ্যাপ পছন্দ পরিচালনা করুন" : "Manage your app preferences"}</div>
-          </div>
-        </div>
+        {/* ---- হেডার — ছোট, একরঙা, বাড়তি সাবটেক্সট ছাড়া ---- */}
+        <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:18}}>{t.settings}</div>
 
-        {/* ---- Profile card ---- */}
+        {/* ---- প্রোফাইল রো ---- */}
         <button onClick={() => { vibrate(); onOpenProfile && onOpenProfile(); }} style={{
-            ...groupCardStyle, width:"100%", display:"flex", alignItems:"center", gap:14, padding:"14px 14px",
-            marginBottom:22, cursor:"pointer", textAlign:"left",
+            ...groupCardStyle, padding:"12px 14px", width:"100%", display:"flex", alignItems:"center", gap:14,
+            marginBottom:20, cursor:"pointer", textAlign:"left",
           }}>
-          <span style={{width:48, height:48, borderRadius:"50%", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden"}}>
+          <span style={{width:44, height:44, borderRadius:"50%", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden"}}>
             {user && user.photoURL ? (
               <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
             ) : (
-              <User size={20} color={dark ? "#ADA9BB" : "#6E6B7A"}/>
+              <User size={18} color={dark ? "#ADA9BB" : "#6E6B7A"}/>
             )}
           </span>
           <div style={{flex:1, minWidth:0}}>
-            <div style={{fontSize:15.5, fontWeight:800, color:textMain, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayName}</div>
-            <div style={{fontSize:12, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayEmail}</div>
+            <div style={{fontSize:14.5, fontWeight:800, color:textMain, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayName}</div>
+            <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayEmail}</div>
           </div>
-          <ChevronRight size={18} color={textMuted2} style={{flexShrink:0}}/>
+          <ChevronRight size={17} color={textMuted2} style={{flexShrink:0}}/>
         </button>
 
-        {/* ---- Preferences ---- */}
+        {/* ---- Preferences — একটাই কার্ডে সব প্রেফারেন্স, প্রতিটা রো accordion হিসেবে খোলে ---- */}
         <div style={{...sectionHeadingStyle, marginTop:0}}>{isBn ? "পছন্দসমূহ" : "Preferences"}</div>
-
-        {/* Appearance — একাই, কারণ এটাই সবচেয়ে বেশি ব্যবহৃত সেটিং */}
-        <div style={{display:"grid", gridTemplateColumns:"1fr", gap:10, marginBottom:14}}>
-          <PrefCard cardKey="appearance" Icon={Palette} iconBg={dark ? "#5A3A2A":"#FBE6D8"} iconColor="#D97757" title={isBn ? "অ্যাপিয়ারেন্স" : "Appearance"} subtitle={currentThemeLabel}/>
-        </div>
-
-        {/* Focus & Study — টাইমার আর স্টাডি রিমাইন্ডার, দুটোই পড়াশোনার রুটিন নিয়ন্ত্রণ করে */}
-        <div style={{fontSize:10.5, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", opacity:0.7, margin:"0 2px 8px"}}>
-          {isBn ? "ফোকাস ও পড়াশোনা" : "Focus & Study"}
-        </div>
-        <div style={{display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:10, marginBottom:14}}>
-          <PrefCard cardKey="timer" Icon={Hourglass} iconBg={dark ? "#3A2F55":"#EDE4FB"} iconColor="#7C5CD9" title={isBn ? "ফোকাস টাইমার" : "Focus Timer"} subtitle={isBn ? "পোমোডোরো সেটিংস" : "Pomodoro settings"}/>
-          <PrefCard cardKey="reminders" Icon={CalendarDays} iconBg={dark ? "#1F4A2C":"#DCEFDF"} iconColor="#3F9A54" title={isBn ? "স্টাডি রিমাইন্ডার" : "Study Reminders"} subtitle={studyRemindersEnabled ? (isBn ? "প্রতিদিনের রিমাইন্ডার" : "Daily reminders") : (isBn ? "বন্ধ" : "Off")}/>
-        </div>
-
-        {/* Alerts — নোটিফিকেশন আর সাউন্ড/হ্যাপটিক, দুটোই অ্যাপ কীভাবে অ্যালার্ট দেয় সেটা নিয়ন্ত্রণ করে */}
-        <div style={{fontSize:10.5, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", opacity:0.7, margin:"0 2px 8px"}}>
-          {isBn ? "অ্যালার্ট" : "Alerts"}
-        </div>
-        <div style={{display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:10, marginBottom:14}}>
-          <PrefCard cardKey="notifications" Icon={Bell} iconBg={dark ? "#5A4A1F":"#FCEFC7"} iconColor="#C99A1E" title={t.notifications} subtitle={isBn ? "অ্যালার্ট পরিচালনা" : "Manage alerts"}/>
-          <PrefCard cardKey="sound" Icon={soundEnabled ? Volume2 : VolumeX} iconBg={dark ? "#1F4550":"#DCF1F5"} iconColor="#2E9AB0" title={isBn ? "সাউন্ড" : "Sound"} subtitle={isBn ? "শব্দ ও কম্পন" : "Sound & vibration"}/>
-        </div>
-
-        {/* ---- Expanded card content (accordion) ---- */}
-        {openCard === "appearance" && (
-          <div style={{...groupCardStyle, padding:"14px", marginBottom:14}}>
+        <div style={groupCardStyle}>
+          <Row Icon={Palette} title={isBn ? "অ্যাপিয়ারেন্স" : "Appearance"} subtitle={currentThemeLabel} expandKey="appearance" borderTop={false}>
             <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
               {themeInlineOptions.map(({key, label}) => {
                 const selected = themeMode === key;
@@ -1428,26 +1401,56 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                 );
               })}
             </div>
-          </div>
-        )}
+          </Row>
 
-        {openCard === "timer" && (
-          <div style={{...groupCardStyle, padding:"14px", marginBottom:14, display:"flex", gap:10}}>
-            <div style={{flex:1, minWidth:0}}>
-              <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.focusLabel}</div>
-              <SettingsDropdown value={focusMinutes} options={[15,20,25,30,45,60].map(m => ({value:m, label:`${m} ${t.minutes}`}))} onChange={setFocusMinutes}
-                dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
-            </div>
-            <div style={{flex:1, minWidth:0}}>
-              <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.breakLabel}</div>
-              <SettingsDropdown value={breakMinutes} options={[5,10,15].map(m => ({value:m, label:`${m} ${t.minutes}`}))} onChange={setBreakMinutes}
-                dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
-            </div>
-          </div>
-        )}
+          <Row Icon={Globe} title={t.language} subtitle={lang === "bn" ? "বাংলা" : "English"}
+            right={<span style={{display:"flex", alignItems:"center", gap:6}}>
+              <span onClick={(e)=>{e.stopPropagation(); vibrate(); setLang(l=>l==="bn"?"en":"bn");}} style={{border:`1px solid ${cardBorder}`, background: dark?"#17151C":"#fff", color:textMain, borderRadius:999, padding:"4px 10px", fontSize:11.5, fontWeight:800}}>
+                {lang==="bn" ? "বাং" : "EN"}
+              </span>
+            </span>}
+            onClick={()=>{vibrate(); setLang(l=>l==="bn"?"en":"bn");}}/>
 
-        {openCard === "notifications" && (
-          <div style={{...groupCardStyle, padding:"14px", marginBottom:14}}>
+          <Row Icon={Hourglass} title={isBn ? "ফোকাস টাইমার" : "Focus Timer"} subtitle={`${focusMinutes} / ${breakMinutes} ${t.minutes}`} expandKey="timer">
+            <div style={{display:"flex", gap:10}}>
+              <div style={{flex:1, minWidth:0}}>
+                <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.focusLabel}</div>
+                <SettingsDropdown value={focusMinutes} options={[15,20,25,30,45,60].map(m => ({value:m, label:`${m} ${t.minutes}`}))} onChange={setFocusMinutes}
+                  dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
+              </div>
+              <div style={{flex:1, minWidth:0}}>
+                <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.breakLabel}</div>
+                <SettingsDropdown value={breakMinutes} options={[5,10,15].map(m => ({value:m, label:`${m} ${t.minutes}`}))} onChange={setBreakMinutes}
+                  dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
+              </div>
+            </div>
+          </Row>
+
+          <Row Icon={CalendarDays} title={isBn ? "স্টাডি রিমাইন্ডার" : "Study Reminders"}
+            subtitle={studyRemindersEnabled ? (isBn ? "প্রতিদিনের রিমাইন্ডার" : "Daily reminders") : (isBn ? "বন্ধ" : "Off")} expandKey="reminders">
+            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: studyRemindersEnabled ? 14 : 0}}>
+              <span style={{fontSize:13, fontWeight:700, color:textMain}}>{isBn ? "দৈনিক স্টাডি রিমাইন্ডার" : "Daily study reminder"}</span>
+              <Toggle on={studyRemindersEnabled} onClick={toggleStudyReminders}/>
+            </div>
+            {studyRemindersEnabled && (
+              <div>
+                <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{isBn ? "রিমাইন্ডারের সময়" : "Reminder time"}</div>
+                <SettingsDropdown value={studyReminderHour} options={[6,7,8,9,10,17,18,19,20,21,22].map(h => ({value:h, label:hourLabel(h)}))} onChange={setReminderHour}
+                  dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
+              </div>
+            )}
+          </Row>
+
+          <Row Icon={CalendarDays} title={t.weekStartsOn} subtitle={(isBn ? WEEKDAY_PICKER_LABELS.bn : WEEKDAY_PICKER_LABELS.en)[weekStartDay]} expandKey="weekstart">
+            <SettingsDropdown
+              value={weekStartDay}
+              options={(isBn ? WEEKDAY_PICKER_LABELS.bn : WEEKDAY_PICKER_LABELS.en).map((label, key) => ({ value: key, label }))}
+              onChange={setWeekStartDay}
+              dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}
+            />
+          </Row>
+
+          <Row Icon={Bell} title={t.notifications} subtitle={notificationsEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")} expandKey="notifications">
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: notificationsEnabled ? 14 : 0}}>
               <span style={{fontSize:13, fontWeight:700, color:textMain}}>{isBn ? "সব নোটিফিকেশন" : "All notifications"}</span>
               <Toggle on={notificationsEnabled} onClick={()=>{vibrate(); toggleNotifications();}}/>
@@ -1467,50 +1470,35 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                 ))}
               </div>
             )}
-          </div>
-        )}
+          </Row>
 
-        {openCard === "reminders" && (
-          <div style={{...groupCardStyle, padding:"14px", marginBottom:14}}>
-            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: studyRemindersEnabled ? 14 : 0}}>
-              <span style={{fontSize:13, fontWeight:700, color:textMain}}>{isBn ? "দৈনিক স্টাডি রিমাইন্ডার" : "Daily study reminder"}</span>
-              <Toggle on={studyRemindersEnabled} onClick={toggleStudyReminders}/>
-            </div>
-            {studyRemindersEnabled && (
-              <div>
-                <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{isBn ? "রিমাইন্ডারের সময়" : "Reminder time"}</div>
-                <SettingsDropdown value={studyReminderHour} options={[6,7,8,9,10,17,18,19,20,21,22].map(h => ({value:h, label:hourLabel(h)}))} onChange={setReminderHour}
-                  dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
+          <Row Icon={soundEnabled ? Volume2 : VolumeX} title={isBn ? "সাউন্ড ও ভাইব্রেশন" : "Sound & Haptics"}
+            subtitle={soundEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")} expandKey="sound">
+            <div style={{display:"flex", flexDirection:"column", gap:14}}>
+              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+                <span style={{display:"flex", alignItems:"center", gap:10, fontSize:13, fontWeight:700, color:textMain}}><Music size={15} color={textMuted2}/>{isBn ? "অ্যাপ সাউন্ড এফেক্ট" : "App sound effects"}</span>
+                <Toggle on={soundEnabled} onClick={toggleSound}/>
               </div>
-            )}
-          </div>
-        )}
-
-        {openCard === "sound" && (
-          <div style={{...groupCardStyle, padding:"14px", marginBottom:14, display:"flex", flexDirection:"column", gap:14}}>
-            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-              <span style={{display:"flex", alignItems:"center", gap:10, fontSize:13, fontWeight:700, color:textMain}}><Music size={15} color={textMuted2}/>{isBn ? "অ্যাপ সাউন্ড এফেক্ট" : "App sound effects"}</span>
-              <Toggle on={soundEnabled} onClick={toggleSound}/>
+              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+                <span style={{display:"flex", alignItems:"center", gap:10, fontSize:13, fontWeight:700, color:textMain}}><Vibrate size={15} color={textMuted2}/>{t.hapticFeedback}</span>
+                <Toggle on={hapticsEnabled} onClick={toggleHaptics}/>
+              </div>
             </div>
-            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-              <span style={{display:"flex", alignItems:"center", gap:10, fontSize:13, fontWeight:700, color:textMain}}><Vibrate size={15} color={textMuted2}/>{t.hapticFeedback}</span>
-              <Toggle on={hapticsEnabled} onClick={toggleHaptics}/>
-            </div>
-          </div>
-        )}
+          </Row>
+        </div>
 
         {/* ---- Data & Sync ---- */}
         <div style={sectionHeadingStyle}>{isBn ? "ডেটা ও সিঙ্ক" : "Data & Sync"}</div>
         <div style={groupCardStyle}>
-          <GroupRow Icon={Cloud} iconBg={dark ? "#17324A":"#E6F1FB"} iconColor="#3184D6"
+          <Row Icon={Cloud} borderTop={false}
             title={isBn ? "ব্যাকআপ ও সিঙ্ক" : "Backup & Sync"}
             subtitle={isGuest ? (isBn ? "সাইন ইন করুন — সিঙ্ক বন্ধ আছে" : "Sign in to enable sync") : (isBn ? "সব ডিভাইসে অটো-সিঙ্ক চালু আছে" : "Auto-syncing across your devices")}
-            onClick={() => { vibrate(); onOpenProfile && onOpenProfile(); }}/>
-          <GroupRow Icon={UploadCloud} iconBg={dark ? "#2E2350":"#EDE4FB"} iconColor="#7C5CD9" borderTop
+            onClick={() => { onOpenProfile && onOpenProfile(); }}/>
+          <Row Icon={UploadCloud}
             title={isBn ? "এক্সপোর্ট ডেটা" : "Export Data"}
             subtitle={exportDone ? (isBn ? "ডাউনলোড হয়ে গেছে ✓" : "Downloaded ✓") : (isBn ? "নোট ও ডেটা এক্সপোর্ট করুন" : "Export your notes and data")}
             onClick={exportData}/>
-          <GroupRow Icon={UploadCloud} iconBg={dark ? "#1F3A2E":"#DCEFE4"} iconColor="#3F9A6E" borderTop
+          <Row Icon={UploadCloud}
             title={isBn ? "ইমপোর্ট ডেটা" : "Import Data"}
             subtitle={
               importState === "done" ? (isBn ? "রিস্টোর সম্পন্ন হয়েছে ✓" : "Restored ✓")
@@ -1541,19 +1529,10 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
         {/* ---- More ---- */}
         <div style={sectionHeadingStyle}>{isBn ? "আরও" : "More"}</div>
         <div style={groupCardStyle}>
-          <GroupRow Icon={Globe} iconBg={dark ? "#1F4A2C":"#DCEFDF"} iconColor="#3F9A54"
-            title={t.language} subtitle={lang === "bn" ? "বাংলা" : "English"}
-            right={<span style={{display:"flex", alignItems:"center", gap:6}}>
-              <span onClick={(e)=>{e.stopPropagation(); vibrate(); setLang(l=>l==="bn"?"en":"bn");}} style={{border:`1px solid ${cardBorder}`, background: dark?"#17151C":"#fff", color:textMain, borderRadius:999, padding:"4px 10px", fontSize:11.5, fontWeight:800}}>
-                {lang==="bn" ? "বাং" : "EN"}
-              </span>
-              {isBn ? <ChevronLeft size={16} color={textMuted2}/> : <ChevronRight size={16} color={textMuted2}/>}
-            </span>}
-            onClick={()=>{vibrate(); setLang(l=>l==="bn"?"en":"bn");}}/>
-          <GroupRow Icon={HelpCircle} iconBg={dark ? "#5A3A2A":"#FBE6D8"} iconColor="#D97757" borderTop
+          <Row Icon={HelpCircle} borderTop={false}
             title={isBn ? "সাহায্য ও সাপোর্ট" : "Help & Support"} subtitle={isBn ? "প্রশ্ন, মতামত ও সহায়তা" : "FAQs, feedback and help"}
             href={`mailto:mazharul.mrf@gmail.com?subject=${encodeURIComponent(t.feedbackSubject)}`}/>
-          <GroupRow Icon={Info} iconBg={dark ? "#2E2350":"#EDE4FB"} iconColor="#7C5CD9" borderTop
+          <Row Icon={Info}
             title={isBn ? "FocusGo সম্পর্কে" : "About FocusGo"} subtitle={`${t.version} 1.0.0`}
             onClick={()=>{vibrate(); setShowAbout(true);}}/>
         </div>
@@ -6138,7 +6117,7 @@ export default function FocusGo() {
                       {x.done && <Check size={13} color="#fff" strokeWidth={3}/>}
                     </button>
                     <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:13.5,fontWeight:700,color:x.done?textMain:textMain,textDecoration:x.done?"line-through":"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                      <div style={{fontSize:13.5,fontWeight:700,color:x.done?textMuted2:textMain,textDecoration:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                         {x.title}
                       </div>
                       {x.done && (
@@ -6291,13 +6270,9 @@ export default function FocusGo() {
           };
           const dueLabel = (dk) => {
             if (!dk) return null;
-            if (dk === todayKey) return { text: t.taskDueToday, color: accent };
-            if (dk < todayKey) return { text: t.taskOverdue, color: "#C0392B" };
-            if (dk === tomorrowKey) return { text: t.taskDueTomorrow, color: textMuted2 };
+            if (dk <= todayKey) return null;
             const d = new Date(dk + "T00:00:00");
-            const diffDays = Math.round((d - new Date(todayKey + "T00:00:00")) / 86400000);
-            if (diffDays > 1 && diffDays < 7) return { text: (lang==="bn" ? WEEKDAYS_BN : WEEKDAYS_EN)[d.getDay()], color: textMuted2 };
-            return { text: `${nf(d.getDate())} ${monthName(d.getMonth())}`, color: textMuted2 };
+            return { text: `${nf(d.getDate())}`, color: textMuted2 };
           };
 
           const overdueCount = tasks.filter(x => !x.done && bucketOf(x) === "overdue").length;
@@ -6324,20 +6299,18 @@ export default function FocusGo() {
                 background: cardBg,
                 border: `1px solid ${cardBorder}`,
                 borderRadius:14, padding:"9px 11px", display:"flex", alignItems:"flex-start", gap:9, position:"relative", cursor:"pointer",
-                transition:"background .15s ease",
+                transition:"background .15s ease", maxHeight:76,
               }}>
-                <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{width:19, height:19, marginTop:2, borderRadius:"50%", flexShrink:0, cursor:"pointer", border:`2px solid ${x.done ? "#6E8B5E" : cardBorder}`, background: x.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", padding:0}}>
-                  {x.done && <Check size={11} color="#fff" strokeWidth={3}/>}
+                <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{width:19, height:19, marginTop:2, borderRadius:"50%", flexShrink:0, cursor:"pointer", border:`2px solid ${x.done ? "#6E8B5E" : due ? accent : cardBorder}`, background: x.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", padding:0}}>
+                  {x.done ? <Check size={11} color="#fff" strokeWidth={3}/> : due ? <span style={{fontSize:7.5, fontWeight:800, color:accent, lineHeight:1}}>{due.text}</span> : null}
                 </button>
-                <div style={{flex:1, minWidth:0}}>
-                  <div style={{fontSize:13, fontWeight:800, color: x.done ? textMuted2 : textMain, textDecoration: x.done ? "line-through" : "none", wordBreak:"break-word", overflowWrap:"break-word", whiteSpace:"normal", lineHeight:1.3}}>
+                <div style={{flex:1, minWidth:0, maxHeight:58, overflow:"hidden"}}>
+                  <div style={{fontSize:13, fontWeight:800, color: x.done ? textMuted2 : textMain, textDecoration:"none", wordBreak:"break-word", overflowWrap:"break-word", lineHeight:1.3, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden"}}>
                     {x.title}
                   </div>
-                  {(x.reminderTime || due) && (
-                    <div style={{display:"flex", alignItems:"center", gap:5, marginTop:3, fontSize:10.5, color:textMuted2, fontWeight:600, flexWrap:"wrap"}}>
-                      {x.reminderTime && (<span>{x.reminderTime}</span>)}
-                      {x.reminderTime && due && <span style={{opacity:0.5}}>•</span>}
-                      {due && <span style={{color: due.color, fontWeight:700}}>{due.text}</span>}
+                  {x.reminderTime && (
+                    <div style={{display:"flex", alignItems:"center", gap:5, marginTop:3, fontSize:9.5, color:textMuted2, fontWeight:600, flexWrap:"wrap"}}>
+                      <span>{x.reminderTime}</span>
                     </div>
                   )}
                   {x.repeat && !x.done && (
@@ -6351,11 +6324,6 @@ export default function FocusGo() {
                   )}
                 </div>
                 <div style={{display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6, flexShrink:0}}>
-                  {!x.done && (
-                    <span style={{fontSize:10, fontWeight:800, color:prColor[pr], background:`${prColor[pr]}18`, borderRadius:999, padding:"3px 9px", whiteSpace:"nowrap"}}>
-                      {prLabel[pr]}
-                    </span>
-                  )}
                   <div style={{position:"relative"}} onClick={(e)=>e.stopPropagation()}>
                     <button onClick={(e)=>{ e.stopPropagation(); setTaskMenuOpenId(v => v===x.id ? null : x.id); setTaskDeleteConfirmId(null); }} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:10, margin:-6, display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation"}}>
                       <MoreVertical size={16}/>
