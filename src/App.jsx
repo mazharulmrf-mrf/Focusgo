@@ -873,8 +873,23 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
 function SettingsDropdown({ value, options, onChange, dark, cardBorder, textMain, textMuted2, accent }) {
   const [open, setOpen] = useState(false);
   const current = options.find(o => o.value === value);
+  const wrapRef = useRef(null);
+  // আগে এখানে ফুল-স্ক্রিন ইনভিজিবল ব্যাকড্রপ (position:fixed + onClick) দিয়ে "বাইরে ট্যাপ করলে বন্ধ" করা হতো।
+  // মোবাইল WebView-তে একটা ট্যাপে touchend-এর কিছুক্ষণ পর একটা দেরিতে আসা/ঘোস্ট click ইভেন্ট আবার একই
+  // কো-অর্ডিনেটে ফায়ার হয় — ততক্ষণে ব্যাকড্রপটা ঠিক সেই জায়গাতেই বসে যাওয়ায় সেটাই এই দ্বিতীয় ক্লিকটা ধরে
+  // dropdown সাথে সাথে (প্রায় ১০০ms-এর মধ্যেই) বন্ধ করে দিত — তাই অপশন লিস্ট এক পলকের জন্য দেখা যেত, ট্যাপ করার
+  // সময়ই পেত না কেউ। এখন salahMenuRef-এর মতো একই প্রমাণিত পদ্ধতি ব্যবহার করা হচ্ছে: ref + useEffect-এ
+  // document-level mousedown/touchstart লিসেনার, যেটা কমিট হওয়ার পরে বসে বলে dropdown খোলার সেই একই
+  // ট্যাপ/ক্লিকটা ধরে ফেলে না।
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    document.addEventListener("touchstart", handler);
+    return () => { document.removeEventListener("mousedown", handler); document.removeEventListener("touchstart", handler); };
+  }, [open]);
   return (
-    <div style={{position:"relative"}}>
+    <div ref={wrapRef} style={{position:"relative"}}>
       <button type="button" onClick={()=>setOpen(o=>!o)} style={{
         display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, width:"100%",
         border:`1px solid ${cardBorder}`, background: dark?"#0A0A0A":"#F8F5EE", color:textMain,
@@ -884,23 +899,20 @@ function SettingsDropdown({ value, options, onChange, dark, cardBorder, textMain
         <ChevronDown size={15} style={{transform: open ? "rotate(180deg)" : "none", transition:"transform .15s", flexShrink:0, color:textMuted2}}/>
       </button>
       {open && (
-        <>
-          <div style={{position:"fixed", inset:0, zIndex:59}} onClick={()=>setOpen(false)}/>
-          <div style={{position:"absolute", top:"calc(100% + 6px)", left:0, right:0, background: dark?"#121212":"#FFFFFF", border:`1px solid ${cardBorder}`, borderRadius:12, boxShadow:"0 8px 24px rgba(0,0,0,0.25)", zIndex:60, maxHeight:220, overflowY:"auto", padding:6}}>
-            {options.map(o => {
-              const selected = o.value === value;
-              return (
-                <button key={o.value} type="button" onClick={()=>{ onChange(o.value); setOpen(false); }} style={{
-                  width:"100%", textAlign:"left", border:"none", background: selected ? `${accent}1A` : "transparent",
-                  color: selected ? accent : textMain, borderRadius:8, padding:"9px 10px", fontSize:13, fontWeight:700, cursor:"pointer",
-                  display:"flex", alignItems:"center", justifyContent:"space-between"
-                }}>
-                  {o.label}{selected && <Check size={14} strokeWidth={3}/>}
-                </button>
-              );
-            })}
-          </div>
-        </>
+        <div style={{position:"absolute", top:"calc(100% + 6px)", left:0, right:0, background: dark?"#121212":"#FFFFFF", border:`1px solid ${cardBorder}`, borderRadius:12, boxShadow:"0 8px 24px rgba(0,0,0,0.25)", zIndex:60, maxHeight:220, overflowY:"auto", padding:6}}>
+          {options.map(o => {
+            const selected = o.value === value;
+            return (
+              <button key={o.value} type="button" onClick={()=>{ onChange(o.value); setOpen(false); }} style={{
+                width:"100%", textAlign:"left", border:"none", background: selected ? `${accent}1A` : "transparent",
+                color: selected ? accent : textMain, borderRadius:8, padding:"9px 10px", fontSize:13, fontWeight:700, cursor:"pointer",
+                display:"flex", alignItems:"center", justifyContent:"space-between"
+              }}>
+                {o.label}{selected && <Check size={14} strokeWidth={3}/>}
+              </button>
+            );
+          })}
+        </div>
       )}
     </div>
   );
