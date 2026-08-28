@@ -918,6 +918,50 @@ function SettingsDropdown({ value, options, onChange, dark, cardBorder, textMain
   );
 }
 
+// ---------- সেটিংসের এক লাইনের রো — আগে SettingsModal-এর ভেতরে ইনলাইন ডিফাইন করা হতো, যার ফলে
+// SettingsModal-এর প্রতিটা re-render-এ (accordion খোলা/বন্ধ, dropdown থেকে ভ্যালু বদল, ভাষা/থিম বদল —
+// এমনকি অন্য কোনো unrelated prop বদলালেও) Row একটা নতুন ফাংশন রেফারেন্স হয়ে যেত, আর React সেটাকে
+// সম্পূর্ণ নতুন কম্পোনেন্ট টাইপ ধরে পুরো সাবট্রি unmount+remount করত — এর ভেতরে থাকা SettingsDropdown-এর
+// নিজের "open" state-ও রিসেট হয়ে যেত, তাই ড্রপডাউন খুললেও তাৎক্ষণিক বন্ধ হয়ে যেত এবং অপশনে ট্যাপ
+// করলেও তা সিলেক্ট হওয়ার আগেই কম্পোনেন্ট রিমাউন্ট হয়ে বন্ধ হয়ে যেত। এখন এটাকে module-level-এ স্থিতিশীল
+// কম্পোনেন্ট হিসেবে বের করে আনা হলো, তাই পুরনো ইনস্ট্যান্স আর কখনো ধ্বংস হবে না — শুধু props বদলাবে।
+function SettingsRow({ Icon, title, subtitle, right, onClick, href, expandKey, children, borderTop = true,
+  cardBorder, textMain, textMuted2, iconBg, iconColor, openCard, toggleCard, vibrate, isBn }) {
+  const isExpandable = !!expandKey;
+  const open = isExpandable && openCard === expandKey;
+  const handleClick = () => {
+    vibrate();
+    if (isExpandable) { toggleCard(expandKey); return; }
+    if (onClick) onClick();
+  };
+  const inner = (
+    <div onClick={href ? undefined : handleClick} style={{
+        display:"flex", alignItems:"center", gap:12, padding:"13px 4px",
+        borderTop: borderTop ? `1px solid ${cardBorder}` : "none",
+        cursor: (onClick || href || isExpandable) ? "pointer" : "default",
+      }}>
+      <span style={{ width:34, height:34, borderRadius:10, background:iconBg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}><Icon size={16} color={iconColor}/></span>
+      <div style={{flex:1, minWidth:0}}>
+        <div style={{fontSize:14, fontWeight:700, color:textMain, marginBottom:1}}>{title}</div>
+        {subtitle && <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subtitle}</div>}
+      </div>
+      {right !== undefined ? right : (
+        isExpandable
+          ? <ChevronDown size={16} color={textMuted2} style={{transform: open ? "rotate(180deg)" : "none", transition:"transform .15s", flexShrink:0}}/>
+          : (isBn ? <ChevronLeft size={16} color={textMuted2} style={{flexShrink:0}}/> : <ChevronRight size={16} color={textMuted2} style={{flexShrink:0}}/>)
+      )}
+    </div>
+  );
+  return (
+    <>
+      {href ? <a href={href} onClick={()=>vibrate()} style={{textDecoration:"none", display:"block"}}>{inner}</a> : inner}
+      {isExpandable && open && children && (
+        <div style={{padding:"2px 4px 16px 46px"}}>{children}</div>
+      )}
+    </>
+  );
+}
+
 // ---------- Settings modal: Language, Theme, About Us ----------
 function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, setAccentKey, notificationsEnabled, setNotificationsEnabled,
   examNotifEnabled, setExamNotifEnabled, taskNotifEnabled, setTaskNotifEnabled, salahNotifEnabled, setSalahNotifEnabled, timerNotifEnabled, setTimerNotifEnabled,
@@ -1303,8 +1347,6 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
       return `${h12}:00 ${suffix}`;
     };
 
-    const softIconWrap = (bgTint) => ({ width:34, height:34, borderRadius:10, background:bgTint, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 });
-
     // ---- ছোট রি-ইউজেবল টগল সুইচ ----
     const Toggle = ({ on, onClick }) => (
       <button onClick={onClick} aria-pressed={on} style={{
@@ -1319,43 +1361,12 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
     const neutralIconBg = dark ? "#242229" : "#F0EEF5";
     const neutralIconColor = dark ? "#B0ABC2" : "#6E6B7A";
 
-    // ---- এক লাইনের সেটিংস রো — আইকন, টাইটেল, সাবটাইটেল, ডান পাশে হয় শেভরন নাহয় কাস্টম কন্টেন্ট ----
-    // expandKey দেওয়া থাকলে ক্লিক করলে accordion হিসেবে নিচে children খোলে; নাহলে onClick/href দিয়ে সরাসরি অ্যাকশন
-    const Row = ({ Icon, title, subtitle, right, onClick, href, expandKey, children, borderTop = true }) => {
-      const isExpandable = !!expandKey;
-      const open = isExpandable && openCard === expandKey;
-      const handleClick = () => {
-        vibrate();
-        if (isExpandable) { toggleCard(expandKey); return; }
-        if (onClick) onClick();
-      };
-      const inner = (
-        <div onClick={href ? undefined : handleClick} style={{
-            display:"flex", alignItems:"center", gap:12, padding:"13px 4px",
-            borderTop: borderTop ? `1px solid ${cardBorder}` : "none",
-            cursor: (onClick || href || isExpandable) ? "pointer" : "default",
-          }}>
-          <span style={softIconWrap(neutralIconBg)}><Icon size={16} color={neutralIconColor}/></span>
-          <div style={{flex:1, minWidth:0}}>
-            <div style={{fontSize:14, fontWeight:700, color:textMain, marginBottom:1}}>{title}</div>
-            {subtitle && <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subtitle}</div>}
-          </div>
-          {right !== undefined ? right : (
-            isExpandable
-              ? <ChevronDown size={16} color={textMuted2} style={{transform: open ? "rotate(180deg)" : "none", transition:"transform .15s", flexShrink:0}}/>
-              : (isBn ? <ChevronLeft size={16} color={textMuted2} style={{flexShrink:0}}/> : <ChevronRight size={16} color={textMuted2} style={{flexShrink:0}}/>)
-          )}
-        </div>
-      );
-      return (
-        <>
-          {href ? <a href={href} onClick={()=>vibrate()} style={{textDecoration:"none", display:"block"}}>{inner}</a> : inner}
-          {isExpandable && open && children && (
-            <div style={{padding:"2px 4px 16px 46px"}}>{children}</div>
-          )}
-        </>
-      );
-    };
+    // এক লাইনের সেটিংস রো — module-level SettingsRow কম্পোনেন্ট ব্যবহার হয় (উপরে দেখুন কেন — একটা
+    // ইনলাইন wrapper ফাংশন এখানে রাখলে সেটাও প্রতি render-এ নতুন রেফারেন্স হয়ে একই সমস্যা ফিরিয়ে আনত,
+    // তাই তার বদলে শুধু একটা plain props অবজেক্ট বানানো হলো — এটা কম্পোনেন্ট নয়, তাই re-render-এ
+    // নতুন অবজেক্ট বানালেও SettingsRow-এর component identity অপরিবর্তিত থাকে, remount হয় না)।
+    const rowCtx = { cardBorder, textMain, textMuted2, iconBg: neutralIconBg, iconColor: neutralIconColor,
+      openCard, toggleCard, vibrate, isBn };
 
     // overflow:"hidden" আগে এখানে ছিল, কিন্তু এই কার্ডের ভেতরের accordion (Focus Timer / Study Reminders)
     // খুললে SettingsDropdown-এর ফ্লাইআউট মেনু position:absolute হয়ে কার্ডের বর্ডারের বাইরে বসতে চায় —
@@ -1391,7 +1402,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
         {/* ---- Preferences — একটাই কার্ডে সব প্রেফারেন্স, প্রতিটা রো accordion হিসেবে খোলে ---- */}
         <div style={{...sectionHeadingStyle, marginTop:0}}>{isBn ? "পছন্দসমূহ" : "Preferences"}</div>
         <div style={groupCardStyle}>
-          <Row Icon={Palette} title={isBn ? "অ্যাপিয়ারেন্স" : "Appearance"} subtitle={currentThemeLabel} expandKey="appearance" borderTop={false}>
+          <SettingsRow {...rowCtx} Icon={Palette} title={isBn ? "অ্যাপিয়ারেন্স" : "Appearance"} subtitle={currentThemeLabel} expandKey="appearance" borderTop={false}>
             <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
               {themeInlineOptions.map(({key, label}) => {
                 const selected = themeMode === key;
@@ -1409,9 +1420,9 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                 );
               })}
             </div>
-          </Row>
+          </SettingsRow>
 
-          <Row Icon={Globe} title={t.language} subtitle={lang === "bn" ? "বাংলা" : "English"}
+          <SettingsRow {...rowCtx} Icon={Globe} title={t.language} subtitle={lang === "bn" ? "বাংলা" : "English"}
             right={<span style={{display:"flex", alignItems:"center", gap:6}}>
               <span onClick={(e)=>{e.stopPropagation(); vibrate(); setLang(l=>l==="bn"?"en":"bn");}} style={{border:`1px solid ${cardBorder}`, background: dark?"#0A0A0A":"#fff", color:textMain, borderRadius:999, padding:"4px 10px", fontSize:11.5, fontWeight:800}}>
                 {lang==="bn" ? "বাং" : "EN"}
@@ -1419,15 +1430,15 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             </span>}
             onClick={()=>{vibrate(); setLang(l=>l==="bn"?"en":"bn");}}/>
 
-          <Row Icon={CalendarRange} title={t.weekStartsOn} subtitle={weekStartDayLabel(weekStartDay)} expandKey="weekStart">
+          <SettingsRow {...rowCtx} Icon={CalendarRange} title={t.weekStartsOn} subtitle={weekStartDayLabel(weekStartDay)} expandKey="weekStart">
             <SettingsDropdown
               value={weekStartDay}
               options={[6,0,1,2,3,4,5].map(d => ({ value: d, label: weekStartDayLabel(d) }))}
               onChange={(v)=>{ vibrate(); setWeekStartDay(v); }}
               dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
-          </Row>
+          </SettingsRow>
 
-          <Row Icon={Hourglass} title={isBn ? "ফোকাস টাইমার" : "Focus Timer"} subtitle={`${focusMinutes} / ${breakMinutes} ${t.minutes}`} expandKey="timer">
+          <SettingsRow {...rowCtx} Icon={Hourglass} title={isBn ? "ফোকাস টাইমার" : "Focus Timer"} subtitle={`${focusMinutes} / ${breakMinutes} ${t.minutes}`} expandKey="timer">
             <div style={{display:"flex", gap:10}}>
               <div style={{flex:1, minWidth:0}}>
                 <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.focusLabel}</div>
@@ -1440,9 +1451,9 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                   dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
               </div>
             </div>
-          </Row>
+          </SettingsRow>
 
-          <Row Icon={CalendarDays} title={isBn ? "স্টাডি রিমাইন্ডার" : "Study Reminders"}
+          <SettingsRow {...rowCtx} Icon={CalendarDays} title={isBn ? "স্টাডি রিমাইন্ডার" : "Study Reminders"}
             subtitle={studyRemindersEnabled ? (isBn ? "প্রতিদিনের রিমাইন্ডার" : "Daily reminders") : (isBn ? "বন্ধ" : "Off")} expandKey="reminders">
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: studyRemindersEnabled ? 14 : 0}}>
               <span style={{fontSize:13, fontWeight:700, color:textMain}}>{isBn ? "দৈনিক স্টাডি রিমাইন্ডার" : "Daily study reminder"}</span>
@@ -1455,9 +1466,9 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                   dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
               </div>
             )}
-          </Row>
+          </SettingsRow>
 
-          <Row Icon={Bell} title={t.notifications} subtitle={notificationsEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")} expandKey="notifications">
+          <SettingsRow {...rowCtx} Icon={Bell} title={t.notifications} subtitle={notificationsEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")} expandKey="notifications">
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: notificationsEnabled ? 14 : 0}}>
               <span style={{fontSize:13, fontWeight:700, color:textMain}}>{isBn ? "সব নোটিফিকেশন" : "All notifications"}</span>
               <Toggle on={notificationsEnabled} onClick={()=>{vibrate(); toggleNotifications();}}/>
@@ -1477,9 +1488,9 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                 ))}
               </div>
             )}
-          </Row>
+          </SettingsRow>
 
-          <Row Icon={soundEnabled ? Volume2 : VolumeX} title={isBn ? "সাউন্ড ও ভাইব্রেশন" : "Sound & Haptics"}
+          <SettingsRow {...rowCtx} Icon={soundEnabled ? Volume2 : VolumeX} title={isBn ? "সাউন্ড ও ভাইব্রেশন" : "Sound & Haptics"}
             subtitle={soundEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")} expandKey="sound">
             <div style={{display:"flex", flexDirection:"column", gap:14}}>
               <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
@@ -1491,21 +1502,21 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                 <Toggle on={hapticsEnabled} onClick={toggleHaptics}/>
               </div>
             </div>
-          </Row>
+          </SettingsRow>
         </div>
 
         {/* ---- Data & Sync ---- */}
         <div style={sectionHeadingStyle}>{isBn ? "ডেটা ও সিঙ্ক" : "Data & Sync"}</div>
         <div style={groupCardStyle}>
-          <Row Icon={Cloud} borderTop={false}
+          <SettingsRow {...rowCtx} Icon={Cloud} borderTop={false}
             title={isBn ? "ব্যাকআপ ও সিঙ্ক" : "Backup & Sync"}
             subtitle={isGuest ? (isBn ? "সাইন ইন করুন — সিঙ্ক বন্ধ আছে" : "Sign in to enable sync") : (isBn ? "সব ডিভাইসে অটো-সিঙ্ক চালু আছে" : "Auto-syncing across your devices")}
             onClick={() => { onOpenProfile && onOpenProfile(); }}/>
-          <Row Icon={UploadCloud}
+          <SettingsRow {...rowCtx} Icon={UploadCloud}
             title={isBn ? "এক্সপোর্ট ডেটা" : "Export Data"}
             subtitle={exportDone ? (isBn ? "ডাউনলোড হয়ে গেছে ✓" : "Downloaded ✓") : (isBn ? "নোট ও ডেটা এক্সপোর্ট করুন" : "Export your notes and data")}
             onClick={exportData}/>
-          <Row Icon={UploadCloud}
+          <SettingsRow {...rowCtx} Icon={UploadCloud}
             title={isBn ? "ইমপোর্ট ডেটা" : "Import Data"}
             subtitle={
               importState === "done" ? (isBn ? "রিস্টোর সম্পন্ন হয়েছে ✓" : "Restored ✓")
@@ -1536,10 +1547,10 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
         {/* ---- More ---- */}
         <div style={sectionHeadingStyle}>{isBn ? "আরও" : "More"}</div>
         <div style={groupCardStyle}>
-          <Row Icon={HelpCircle} borderTop={false}
+          <SettingsRow {...rowCtx} Icon={HelpCircle} borderTop={false}
             title={isBn ? "সাহায্য ও সাপোর্ট" : "Help & Support"} subtitle={isBn ? "প্রশ্ন, মতামত ও সহায়তা" : "FAQs, feedback and help"}
             href={`mailto:mazharul.mrf@gmail.com?subject=${encodeURIComponent(t.feedbackSubject)}`}/>
-          <Row Icon={Info}
+          <SettingsRow {...rowCtx} Icon={Info}
             title={isBn ? "FocusGo সম্পর্কে" : "About FocusGo"} subtitle={`${t.version} 1.0.0`}
             onClick={()=>{vibrate(); setShowAbout(true);}}/>
         </div>
