@@ -5889,34 +5889,6 @@ export default function FocusGo() {
               )}
             </div>
 
-            {/* Decorative dashed progress ring with hourglass — kept, but shrunk + centered below controls for a compact layout */}
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", marginTop:12}}>
-              {(() => {
-                const ringSize = 56;
-                const stroke = 3;
-                const r = 21;
-                const c = 2 * Math.PI * r;
-                const dashLen = 3, gapLen = 2.4;
-                const elapsedFrac = focusMode === "timer"
-                  ? (timerTotal > 0 ? Math.min(1, Math.max(0, (timerTotal - timerSeconds) / timerTotal)) : 0)
-                  : ((stopwatchSeconds % 60) / 60);
-                const ringColor = focusMode === "timer" && sessionType === "break" ? inkColor : accent;
-                const running = focusMode === "timer" ? timerRunning : stopwatchRunning;
-                return (
-                  <div style={{position:"relative", width:ringSize, height:ringSize, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                    <svg width={ringSize} height={ringSize} viewBox="0 0 60 60" style={{position:"absolute", inset:0, transform:"rotate(-90deg)"}}>
-                      <circle cx="30" cy="30" r={r} fill="none" stroke={`${ringColor}33`} strokeWidth={stroke} strokeDasharray={`${dashLen} ${gapLen}`}/>
-                      <circle cx="30" cy="30" r={r} fill="none" stroke={ringColor} strokeWidth={stroke} strokeDasharray={`${dashLen} ${gapLen}`}
-                        strokeDashoffset={c * (1 - elapsedFrac)}
-                        style={{transition:"stroke-dashoffset 1s linear"}}/>
-                    </svg>
-                    <div className={running ? "fg-timer-running" : undefined} style={{width:30, height:30, borderRadius:"50%", background: dark ? `${ringColor}1c` : `${ringColor}12`, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                      <Hourglass size={13} color={ringColor} strokeWidth={2}/>
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
           </div>
         </div>
         )}
