@@ -5629,7 +5629,7 @@ export default function FocusGo() {
                   <GraduationCap size={22} color={accent} strokeWidth={2.2}/>
                 </div>
                 <div style={{minWidth:0}}>
-                  <div style={{fontSize:20, fontWeight:700, letterSpacing:-0.4, color:textMain}}>{lang==="bn" ? "স্টাডি" : "Study"}</div>
+                  <div style={{fontSize:20, fontWeight:600, letterSpacing:-0.4, color:textMain}}>{lang==="bn" ? "স্টাডি" : "Study"}</div>
                   <div style={{fontSize:12, color:textMuted2, marginTop:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
                     {lang==="bn" ? "তোমার পড়াশোনার যাত্রা ট্র্যাক করো" : "Track your learning journey"}
                   </div>
@@ -5638,7 +5638,7 @@ export default function FocusGo() {
               <button onClick={()=>{vibrate(); setShowExamSchedule(true);}} style={{
                 display:"flex", alignItems:"center", gap:6, whiteSpace:"nowrap",
                 border:`1px solid ${accent}55`, background: dark ? `${accent}22` : `${accent}14`,
-                color:accent, borderRadius:14, padding:"9px 14px", fontSize:12.5, fontWeight:700,
+                color:accent, borderRadius:14, padding:"9px 14px", fontSize:12.5, fontWeight:600,
                 cursor:"pointer", flexShrink:0, position:"relative"
               }}>
                 <Calendar size={15} strokeWidth={2.3}/> {lang==="bn" ? "এক্সাম" : "Exam"}
@@ -5658,7 +5658,7 @@ export default function FocusGo() {
 
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", position:"relative", gap:8}}>
             <div style={{minWidth:0}}>
-              <div style={{fontSize:17, fontWeight:700, color:accent, letterSpacing:-0.2}}>{lang==="bn" ? "ফোকাস টাইমার" : "Focus Timer"}</div>
+              <div style={{fontSize:17, fontWeight:600, color:accent, letterSpacing:-0.2}}>{lang==="bn" ? "ফোকাস টাইমার" : "Focus Timer"}</div>
               <div style={{fontSize:11.5, color:textMuted2, marginTop:2}}>{lang==="bn" ? "মনোযোগী থাকো। বেশি কাজ শেষ করো।" : "Stay focused. Get more done."}</div>
             </div>
             <div style={{display:"flex", alignItems:"center", gap:4, flexShrink:0}}>
@@ -5684,7 +5684,7 @@ export default function FocusGo() {
                         return (
                           <button key={opt.id} onClick={()=>{ vibrate(); setWhiteNoiseSound(opt.id); }} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, border:`1px solid ${active ? accent : cardBorder}`, background: active ? `${accent}14` : "transparent", borderRadius:12, padding:"8px 4px", cursor:"pointer", color: active ? accent : textMain}}>
                             <OptIcon size={16}/>
-                            <span style={{fontSize:10, fontWeight:600, textAlign:"center"}}>{lang==="bn" ? opt.labelBn : opt.labelEn}</span>
+                            <span style={{fontSize:10, fontWeight:500, textAlign:"center"}}>{lang==="bn" ? opt.labelBn : opt.labelEn}</span>
                           </button>
                         );
                       })}
@@ -5724,13 +5724,13 @@ export default function FocusGo() {
                         onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
                         min={1}
                         max={180}
-                        style={{width:80, fontSize:28, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:1, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${textMain}`, outline:"none"}}
+                        style={{width:80, fontSize:28, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:1, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${textMain}`, outline:"none"}}
                       />
-                      <span style={{fontSize:14, fontWeight:600, color:textMuted2}}>{t.minutes}</span>
+                      <span style={{fontSize:14, fontWeight:500, color:textMuted2}}>{t.minutes}</span>
                     </div>
                   ) : (
                     <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined}
-                      style={{fontSize:36, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color:textMain, cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
+                      style={{fontSize:36, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color:textMain, cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
                       <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
                     </div>
                   )}
@@ -5738,11 +5738,11 @@ export default function FocusGo() {
                   {/* Mode pill (Pomodoro/Stopwatch) + Focus/Break inline switch */}
                   <div style={{display:"flex", alignItems:"center", gap:8, marginTop:6, flexWrap:"wrap"}}>
                     <button onClick={()=>{ if (timerRunning) return; vibrate(); setFocusMode("stopwatch"); }} disabled={timerRunning}
-                      style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#14121A":"#fff", color:textMain, borderRadius:999, padding:"6px 12px", fontSize:12, fontWeight:700, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
+                      style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#14121A":"#fff", color:textMain, borderRadius:999, padding:"6px 12px", fontSize:12, fontWeight:600, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
                       {t.timerMode} <ChevronDown size={12}/>
                     </button>
                     <button onClick={()=>changeSessionType(sessionType==="focus" ? "break" : "focus")} disabled={timerRunning} title={t.sessionTypeLabel} style={{
-                      border:"none", background:"transparent", padding:0, fontSize:11.5, fontWeight:600,
+                      border:"none", background:"transparent", padding:0, fontSize:11.5, fontWeight:500,
                       cursor: timerRunning ? "default" : "pointer",
                       color: sessionType==="focus" ? accent : textMuted2,
                       opacity: sessionType==="focus" ? 1 : 0.7,
@@ -5753,7 +5753,7 @@ export default function FocusGo() {
                   <div style={{display:"flex", gap:7, marginTop:9}}>
                     <button
                       onClick={toggleTimerRunning}
-                      style={{display:"flex", alignItems:"center", justifyContent:"center", gap:6, flex:"1 1 auto", minWidth:0, background: accent, border:"none", borderRadius:14, padding:"11px 14px", color:"#fff", fontWeight:700, fontSize:13.5, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                      style={{display:"flex", alignItems:"center", justifyContent:"center", gap:6, flex:"1 1 auto", minWidth:0, background: accent, border:"none", borderRadius:14, padding:"11px 14px", color:"#fff", fontWeight:600, fontSize:13.5, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                       {timerRunning ? <Pause size={15} fill="#fff" style={{flexShrink:0}}/> : <Play size={15} fill="#fff" style={{flexShrink:0}}/>} <span style={{overflow:"hidden", textOverflow:"ellipsis"}}>{timerRunning ? t.pause : t.start}</span>
                     </button>
                     <button onClick={()=>{ if (timerRunning) return; vibrate(); startEditDuration(); }} disabled={timerRunning}
@@ -5787,11 +5787,11 @@ export default function FocusGo() {
                     )}
                     {!timerRunning && showTopicPicker && (
                       <div style={{display:"flex", flexWrap:"wrap", gap:6, marginTop:8}}>
-                        <button onClick={()=>{ vibrate(); setTimerTopicId(null); setFreeSessionTouched(true); }} style={{border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:600, cursor:"pointer"}}>
+                        <button onClick={()=>{ vibrate(); setTimerTopicId(null); setFreeSessionTouched(true); }} style={{border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer"}}>
                           {t.freeSessionOption}
                         </button>
                         {todayTopics.filter(x=>!x.done).map(x => (
-                          <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:600, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                          <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                             {x.topic}
                           </button>
                         ))}
@@ -5802,7 +5802,7 @@ export default function FocusGo() {
                         {(sessionType === "focus" ? [25,30,45,50,60] : [5,10,15]).map(mins => {
                           const active = Math.round(timerTotal/60) === mins;
                           return (
-                            <button key={mins} onClick={()=>setPresetDuration(mins)} style={{border:`1px solid ${active ? inkColor : cardBorder}`, background: active ? inkA(0.10) : "transparent", color: active ? inkColor : textMuted2, borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:600, cursor:"pointer"}}>
+                            <button key={mins} onClick={()=>setPresetDuration(mins)} style={{border:`1px solid ${active ? inkColor : cardBorder}`, background: active ? inkA(0.10) : "transparent", color: active ? inkColor : textMuted2, borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:500, cursor:"pointer"}}>
                               <Num>{nf(mins)}</Num> {t.minutes}
                             </button>
                           );
@@ -5813,7 +5813,7 @@ export default function FocusGo() {
 
                   {/* Pomodoro cycle progress: Session X/N + ●●○○○ */}
                   <div style={{display:"flex", flexDirection:"column", gap:4, marginTop:8}}>
-                    <div style={{fontSize:11, fontWeight:600, color:textMuted2}}>
+                    <div style={{fontSize:11, fontWeight:500, color:textMuted2}}>
                       {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num>
                     </div>
                     <div style={{display:"flex", alignItems:"center", gap:5, flexWrap:"wrap"}}>
@@ -5831,7 +5831,7 @@ export default function FocusGo() {
                       })}
                     </div>
                     {timerTargetMinutes && (
-                      <div style={{fontSize:11, color:textMuted2, fontWeight:600, opacity:0.75}}>
+                      <div style={{fontSize:11, color:textMuted2, fontWeight:500, opacity:0.75}}>
                         <Num>{nf(timerElapsedMinutes)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
                       </div>
                     )}
@@ -5839,13 +5839,13 @@ export default function FocusGo() {
                 </>
               ) : (
                 <>
-                  <div className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:36, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, lineHeight:1}}>
+                  <div className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:36, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, lineHeight:1}}>
                     <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
                   </div>
 
                   <div style={{display:"flex", alignItems:"center", gap:8, marginTop:6, flexWrap:"wrap"}}>
                     <button onClick={()=>{ if (stopwatchRunning) return; vibrate(); setFocusMode("timer"); }} disabled={stopwatchRunning}
-                      style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#14121A":"#fff", color:textMain, borderRadius:999, padding:"6px 12px", fontSize:12, fontWeight:700, cursor: stopwatchRunning ? "default" : "pointer", opacity: stopwatchRunning ? 0.6 : 1}}>
+                      style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#14121A":"#fff", color:textMain, borderRadius:999, padding:"6px 12px", fontSize:12, fontWeight:600, cursor: stopwatchRunning ? "default" : "pointer", opacity: stopwatchRunning ? 0.6 : 1}}>
                       {t.stopwatchMode} <ChevronDown size={12}/>
                     </button>
                   </div>
@@ -5853,7 +5853,7 @@ export default function FocusGo() {
                   <div style={{display:"flex", gap:8, marginTop:9}}>
                     <button
                       onClick={toggleStopwatchRunning}
-                      style={{display:"flex", alignItems:"center", gap:7, background: accent, border:"none", borderRadius:14, padding:"11px 16px", color:"#fff", fontWeight:700, fontSize:13.5, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`, flexShrink:0}}>
+                      style={{display:"flex", alignItems:"center", gap:7, background: accent, border:"none", borderRadius:14, padding:"11px 16px", color:"#fff", fontWeight:600, fontSize:13.5, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`, flexShrink:0}}>
                       {stopwatchRunning ? <Pause size={15} fill="#fff"/> : <Play size={15} fill="#fff"/>} {stopwatchRunning ? t.pause : t.start}
                     </button>
                     <button onClick={()=>{setStopwatchRunning(false); setStopwatchSeconds(0);}} title={t.reset} style={{background: dark?"#332E25":"#F0DCC9", border:"none", borderRadius:14, width:38, flexShrink:0, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
@@ -5874,11 +5874,11 @@ export default function FocusGo() {
                     )}
                     {!stopwatchRunning && showTopicPicker && (
                       <div style={{display:"flex", flexWrap:"wrap", gap:6, marginTop:8}}>
-                        <button onClick={()=>selectTimerTopic(null)} style={{border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:600, cursor:"pointer"}}>
+                        <button onClick={()=>selectTimerTopic(null)} style={{border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer"}}>
                           {t.freeSessionOption}
                         </button>
                         {todayTopics.filter(x=>!x.done).map(x => (
-                          <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:600, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                          <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                             {x.topic}
                           </button>
                         ))}
@@ -5924,10 +5924,10 @@ export default function FocusGo() {
         {tab === "study" && (
           <div className="fg-tab-panel" style={{marginTop:12, marginBottom:-2}}>
             <div style={{display:"flex", gap:20, marginTop:0, borderBottom:`1px solid ${cardBorder}`}}>
-              <button onClick={()=>{vibrate(); setStudySection("plan");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 8px", fontSize:13.5, fontWeight:700, color: studySection==="plan" ? textMain : textMuted2, borderBottom: studySection==="plan" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
+              <button onClick={()=>{vibrate(); setStudySection("plan");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 8px", fontSize:13.5, fontWeight:600, color: studySection==="plan" ? textMain : textMuted2, borderBottom: studySection==="plan" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
                 {t.planViewStudy}
               </button>
-              <button onClick={()=>{vibrate(); setStudySection("stats");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 8px", fontSize:13.5, fontWeight:700, color: studySection==="stats" ? textMain : textMuted2, borderBottom: studySection==="stats" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
+              <button onClick={()=>{vibrate(); setStudySection("stats");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 8px", fontSize:13.5, fontWeight:600, color: studySection==="stats" ? textMain : textMuted2, borderBottom: studySection==="stats" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
                 {lang==="bn" ? "স্ট্যাটস" : "Stats"}
               </button>
             </div>
@@ -5953,8 +5953,8 @@ export default function FocusGo() {
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
                 size={48} stroke={5} accent={accent} trackColor={`${accent}40`} textMain={inkColor} nf={nf}/>
               <div style={{minWidth:0}}>
-                <div style={{fontSize:13, fontWeight:700, color:inkColor, marginBottom:4}}>{t.todaysProgress}</div>
-                <div style={{display:"flex", alignItems:"center", gap:7, fontSize:12, fontWeight:600, whiteSpace:"nowrap"}}>
+                <div style={{fontSize:13, fontWeight:600, color:inkColor, marginBottom:4}}>{t.todaysProgress}</div>
+                <div style={{display:"flex", alignItems:"center", gap:7, fontSize:12, fontWeight:500, whiteSpace:"nowrap"}}>
                   <span style={{display:"inline-flex", alignItems:"center", gap:3, color:inkA(0.82)}}>
                     <Check size={12} strokeWidth={3}/> <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.progressCompletedLabel}
                   </span>
@@ -5969,8 +5969,8 @@ export default function FocusGo() {
               <div style={{width:28, height:28, borderRadius:"50%", background: `${accent}22`, display:"flex", alignItems:"center", justifyContent:"center"}}>
                 <Flame size={14} color={accent} fill={`${accent}55`}/>
               </div>
-              <div style={{fontSize:14, fontWeight:700, color:inkColor, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
-              <div style={{fontSize:9.5, color:inkA(0.75), fontWeight:600, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
+              <div style={{fontSize:14, fontWeight:600, color:inkColor, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
+              <div style={{fontSize:9.5, color:inkA(0.75), fontWeight:500, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
             </div>
           </div>
           {/* Today's Tasks mini-summary — merged into the progress card so the card previews task progress at a glance, matching the home page mockup */}
@@ -5983,8 +5983,8 @@ export default function FocusGo() {
             return (
               <div style={{marginTop:8, paddingTop:8, borderTop:`1px solid ${accent}25`}}>
                 <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:5}}>
-                  <div style={{fontSize:12.5, fontWeight:700, color:inkColor}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
-                  <div style={{fontSize:10.5, fontWeight:600, color:inkA(0.75), whiteSpace:"nowrap"}}>
+                  <div style={{fontSize:12.5, fontWeight:600, color:inkColor}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
+                  <div style={{fontSize:10.5, fontWeight:500, color:inkA(0.75), whiteSpace:"nowrap"}}>
                     {!hasTasks ? (lang==="bn" ? "কোনো টাস্ক নেই" : "No tasks today") : cardLeft > 0 ? (lang==="bn" ? `${nf(cardDone)}/${nf(cardTodayTasks.length)} সম্পন্ন` : `${cardDone}/${cardTodayTasks.length} completed`) : t.taskAllDoneLabel}
                   </div>
                 </div>
@@ -6006,7 +6006,7 @@ export default function FocusGo() {
               style={{display:"flex", alignItems:"center", gap:7, maxWidth:"100%", border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:999, padding:"9px 14px", cursor:"pointer", boxShadow: dark ? "0 4px 10px rgba(0,0,0,0.18)" : "0 4px 10px rgba(0,0,0,0.05)"}}
             >
               <Moon size={14} color={accent} fill={`${accent}33`} strokeWidth={2.2}/>
-              <span style={{fontSize:12.5, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+              <span style={{fontSize:12.5, fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                 {lang === "bn" ? `${nextSalahCountdown.label} বাকি ${nextSalahCountdown.text}` : `${nextSalahCountdown.label} in ${nextSalahCountdown.text}`}
               </span>
             </button>
@@ -6030,14 +6030,14 @@ export default function FocusGo() {
               }}
             >
               <CalendarDays size={16} color="#fff" strokeWidth={2.2} style={{flexShrink:0}}/>
-              <span style={{fontSize:13.5, fontWeight:700, color:"#fff", flexShrink:0, marginLeft:9}}>
+              <span style={{fontSize:13.5, fontWeight:600, color:"#fff", flexShrink:0, marginLeft:9}}>
                 {lang==="bn" ? "পরীক্ষা" : "Exam"}
               </span>
               <span style={{width:1, alignSelf:"stretch", background:"rgba(255,255,255,0.28)", flexShrink:0, margin:"0 11px"}}/>
-              <span style={{flex:"1 1 auto", minWidth:0, fontSize:13, fontWeight:600, color:"rgba(255,255,255,0.88)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+              <span style={{flex:"1 1 auto", minWidth:0, fontSize:13, fontWeight:500, color:"rgba(255,255,255,0.88)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                 {nearestUpcomingExam.subject}
               </span>
-              <span style={{fontSize:11, fontWeight:700, color:"#fff", background:accent, borderRadius:999, padding:"6px 11px", whiteSpace:"nowrap", flexShrink:0, marginLeft:10}}>
+              <span style={{fontSize:11, fontWeight:600, color:"#fff", background:accent, borderRadius:999, padding:"6px 11px", whiteSpace:"nowrap", flexShrink:0, marginLeft:10}}>
                 {daysLabel}
               </span>
               <ChevronRight size={17} color="#fff" strokeWidth={2.2} style={{flexShrink:0, marginLeft:8, opacity:0.85}}/>
@@ -6054,7 +6054,7 @@ export default function FocusGo() {
               <span style={{width:26, height:26, borderRadius:9, background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                 <GraduationCap size={14} color={accent} strokeWidth={2.2}/>
               </span>
-              <div style={{fontSize:16, fontWeight:700, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
+              <div style={{fontSize:16, fontWeight:600, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
             </div>
             <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} title={t.addTopic} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
               <Plus size={17}/>
@@ -6086,11 +6086,11 @@ export default function FocusGo() {
                 <span style={{width:26, height:26, borderRadius:9, background: inkA(dark ? 0.2 : 0.12), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                   <ListChecks size={14} color={inkColor} strokeWidth={2.2}/>
                 </span>
-                <div style={{fontSize:16,fontWeight:700,letterSpacing:-0.3,color:textMain}}>
+                <div style={{fontSize:16,fontWeight:600,letterSpacing:-0.3,color:textMain}}>
                   {lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}
                 </div>
                 {homeTodayTasks.length > 0 && (
-                  <span style={{fontSize:12, fontWeight:700, color: homeTodayTasks.every(x=>x.done) ? "#6E8B5E" : textMuted2, background: inkA(dark?0.16:0.08), borderRadius:999, padding:"2px 8px"}}>
+                  <span style={{fontSize:12, fontWeight:600, color: homeTodayTasks.every(x=>x.done) ? "#6E8B5E" : textMuted2, background: inkA(dark?0.16:0.08), borderRadius:999, padding:"2px 8px"}}>
                     <Num>{nf(homeTodayTasks.filter(x=>x.done).length)}</Num>/<Num>{nf(homeTodayTasks.length)}</Num>
                   </span>
                 )}
@@ -6105,7 +6105,7 @@ export default function FocusGo() {
                   <ListChecks size={15} color={inkColor} strokeWidth={2}/>
                 </span>
                 <div style={{minWidth:0}}>
-                  <div style={{fontWeight:700, color:textMain, fontSize:13}}>{t.taskEmptyTodayHome}</div>
+                  <div style={{fontWeight:600, color:textMain, fontSize:13}}>{t.taskEmptyTodayHome}</div>
                   <div style={{color:textMuted2, fontSize:11.5, marginTop:2}}>{lang==="bn" ? "আজকের একটা টাস্ক যোগ করুন।" : "Add a task to plan your day."}</div>
                 </div>
               </div>
@@ -6117,11 +6117,11 @@ export default function FocusGo() {
                       {x.done && <Check size={13} color="#fff" strokeWidth={3}/>}
                     </button>
                     <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:13.5,fontWeight:600,color:x.done?textMuted2:textMain,textDecoration:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                      <div style={{fontSize:13.5,fontWeight:500,color:x.done?textMuted2:textMain,textDecoration:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                         {x.title}
                       </div>
                       {x.done && (
-                        <div style={{fontSize:11, fontWeight:600, color:"#6E8B5E", marginTop:2}}>
+                        <div style={{fontSize:11, fontWeight:500, color:"#6E8B5E", marginTop:2}}>
                           {lang==="bn" ? "সম্পন্ন হয়েছে" : "Completed"}
                         </div>
                       )}
@@ -6136,20 +6136,20 @@ export default function FocusGo() {
                           <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 4px 12px rgba(0,0,0,0.08)", zIndex:60, minWidth:150, overflow:"hidden"}}>
                             {taskDeleteConfirmId === x.id ? (
                               <>
-                                <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:600}}>{lang==="bn"?"টাস্কটি ডিলিট করবেন?":"Delete this task?"}</div>
-                                <button onClick={()=>{ closeTaskMenu(); vibrate(); deleteTask(x.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                                <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:500}}>{lang==="bn"?"টাস্কটি ডিলিট করবেন?":"Delete this task?"}</div>
+                                <button onClick={()=>{ closeTaskMenu(); vibrate(); deleteTask(x.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                   <Trash2 size={13}/> {lang==="bn"?"ডিলিট নিশ্চিত করুন":"Confirm delete"}
                                 </button>
-                                <button onClick={()=>setTaskDeleteConfirmId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                                <button onClick={()=>setTaskDeleteConfirmId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                   {t.cancel}
                                 </button>
                               </>
                             ) : (
                               <>
-                                <button onClick={()=>{closeTaskMenu(); setEditingTask(x);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                                <button onClick={()=>{closeTaskMenu(); setEditingTask(x);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                   <Pencil size={13}/> {lang==="bn"?"এডিট":"Edit"}
                                 </button>
-                                <button onClick={()=>setTaskDeleteConfirmId(x.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                                <button onClick={()=>setTaskDeleteConfirmId(x.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                   <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
                                 </button>
                               </>
@@ -6170,7 +6170,7 @@ export default function FocusGo() {
         {tab === "study" && studySection === "plan" && (
           <div key="plan" className="fg-tab-panel" style={{marginTop:12}}>
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8, marginBottom:10}}>
-              <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:600, opacity:0.85}}>
+              <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:500, opacity:0.85}}>
                 {lang === "bn" ? `পরের ${nf(planRange)} দিন` : `Next ${nf(planRange)} Days`}
               </div>
               {/* range selector: 7/15/30/60/90 দিনের মধ্যে বেছে নেওয়া যায়, পছন্দ মনে থাকে —
@@ -6178,7 +6178,7 @@ export default function FocusGo() {
               <div style={{display:"flex", gap:2, background: dark?"#211E19":"#F0EBDF", borderRadius:10, padding:2, flexShrink:0}}>
                 {[7,15,30,60,90].map(r => (
                   <button key={r} onClick={()=>{vibrate(); setPlanRange(r);}} style={{
-                    border:"none", cursor:"pointer", fontFamily:"inherit", fontWeight:600, fontSize:11,
+                    border:"none", cursor:"pointer", fontFamily:"inherit", fontWeight:500, fontSize:11,
                     padding:"4px 9px", borderRadius:8,
                     background: planRange===r ? accent : "transparent",
                     color: planRange===r ? "#FFFFFF" : textMuted2,
@@ -6200,8 +6200,8 @@ export default function FocusGo() {
                 const statusColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : inkColor);
                 return (
                   <div key={i} className="fg-card" onClick={()=>setPlanDate(d)} style={{textAlign:"center", cursor:"pointer", flex: planRange > 7 ? "0 0 40px" : 1, padding:"0 2px"}}>
-                    <div style={{fontSize:10, fontWeight:600, color: isSel ? accent : textMuted2, opacity: isSel ? 1 : 0.85, marginBottom:6, letterSpacing:0.3}}>{weekdayShort(d)}</div>
-                    <div style={{width:34,height:34, borderRadius:"50%", display:"flex",alignItems:"center",justifyContent:"center", margin:"0 auto", fontSize:13, fontWeight:700,
+                    <div style={{fontSize:10, fontWeight:500, color: isSel ? accent : textMuted2, opacity: isSel ? 1 : 0.85, marginBottom:6, letterSpacing:0.3}}>{weekdayShort(d)}</div>
+                    <div style={{width:34,height:34, borderRadius:"50%", display:"flex",alignItems:"center",justifyContent:"center", margin:"0 auto", fontSize:13, fontWeight:600,
                       transition:"background .18s ease, color .18s ease, box-shadow .18s ease", boxShadow: isSel ? `0 0 0 1.5px ${accent}` : "none",
                       background:"transparent", color: isSel ? accent : textMain}}>
                       <Num>{nf(d.getDate())}</Num>
@@ -6222,7 +6222,7 @@ export default function FocusGo() {
 
             <div style={{marginTop:14, marginBottom:9, paddingBottom:9, borderBottom:`0.5px solid ${cardBorder}`}}>
               <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8}}>
-                <div style={{fontSize:20, fontWeight:700, letterSpacing:-0.3}}>
+                <div style={{fontSize:20, fontWeight:600, letterSpacing:-0.3}}>
                   {isPlanToday ? t.todaysStudy : <>{weekdayName(planDate)}, <Num>{nf(planDate.getDate())}</Num> {monthName(planDate.getMonth())}</>}
                 </div>
                 <button onClick={()=>{setAddTargetKey(planKey); setShowAdd(true);}} title={t.addTopic} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
@@ -6233,8 +6233,8 @@ export default function FocusGo() {
                 const totalMin = planTopics.reduce((sum,x)=>sum+(x.duration||0), 0);
                 const h = Math.floor(totalMin/60), m = totalMin%60;
                 return (
-                  <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, marginTop:4}}>
-                    {t.totalPlannedLabel}: <span style={{color:textMain, fontWeight:700}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</span>
+                  <div style={{fontSize:11.5, color:textMuted2, fontWeight:500, marginTop:4}}>
+                    {t.totalPlannedLabel}: <span style={{color:textMain, fontWeight:600}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</span>
                   </div>
                 );
               })()}
@@ -6302,19 +6302,19 @@ export default function FocusGo() {
                 transition:"background .15s ease", maxHeight:76,
               }}>
                 <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{width:19, height:19, marginTop:2, borderRadius:"50%", flexShrink:0, cursor:"pointer", border:`2px solid ${x.done ? "#6E8B5E" : due ? accent : cardBorder}`, background: x.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", padding:0}}>
-                  {x.done ? <Check size={11} color="#fff" strokeWidth={3}/> : due ? <span style={{fontSize:7.5, fontWeight:700, color:accent, lineHeight:1}}>{due.text}</span> : null}
+                  {x.done ? <Check size={11} color="#fff" strokeWidth={3}/> : due ? <span style={{fontSize:7.5, fontWeight:600, color:accent, lineHeight:1}}>{due.text}</span> : null}
                 </button>
                 <div style={{flex:1, minWidth:0, maxHeight:58, overflow:"hidden"}}>
-                  <div style={{fontSize:13, fontWeight:700, color: x.done ? textMuted2 : textMain, textDecoration:"none", wordBreak:"break-word", overflowWrap:"break-word", lineHeight:1.3, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden"}}>
+                  <div style={{fontSize:13, fontWeight:600, color: x.done ? textMuted2 : textMain, textDecoration:"none", wordBreak:"break-word", overflowWrap:"break-word", lineHeight:1.3, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden"}}>
                     {x.title}
                   </div>
                   {x.reminderTime && (
-                    <div style={{display:"flex", alignItems:"center", gap:5, marginTop:3, fontSize:9.5, color:textMuted2, fontWeight:600, flexWrap:"wrap"}}>
+                    <div style={{display:"flex", alignItems:"center", gap:5, marginTop:3, fontSize:9.5, color:textMuted2, fontWeight:500, flexWrap:"wrap"}}>
                       <span>{x.reminderTime}</span>
                     </div>
                   )}
                   {x.repeat && !x.done && (
-                    <span title={t.taskRepeatBadge} style={{display:"inline-block", fontSize:9.5, fontWeight:700, color:accent, background:`${accent}14`, borderRadius:8, padding:"2px 6px", marginTop:4, whiteSpace:"nowrap"}}>
+                    <span title={t.taskRepeatBadge} style={{display:"inline-block", fontSize:9.5, fontWeight:600, color:accent, background:`${accent}14`, borderRadius:8, padding:"2px 6px", marginTop:4, whiteSpace:"nowrap"}}>
                       {x.dueDate && (() => {
                         const diffDays = Math.round((new Date(x.dueDate+"T00:00:00") - new Date(todayKey+"T00:00:00")) / 86400000);
                         const label = diffDays === 0 ? (lang==="bn" ? "আজ" : "Today") : diffDays > 0 ? `D-${diffDays}` : `D+${Math.abs(diffDays)}`;
@@ -6334,20 +6334,20 @@ export default function FocusGo() {
                         <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 4px 12px rgba(0,0,0,0.08)", zIndex:60, minWidth:150, overflow:"hidden"}}>
                           {taskDeleteConfirmId === x.id ? (
                             <>
-                              <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:600}}>{lang==="bn"?"টাস্কটি ডিলিট করবেন?":"Delete this task?"}</div>
-                              <button onClick={()=>{ closeTaskMenu(); vibrate(); deleteTask(x.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                              <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:500}}>{lang==="bn"?"টাস্কটি ডিলিট করবেন?":"Delete this task?"}</div>
+                              <button onClick={()=>{ closeTaskMenu(); vibrate(); deleteTask(x.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                 <Trash2 size={13}/> {lang==="bn"?"ডিলিট নিশ্চিত করুন":"Confirm delete"}
                               </button>
-                              <button onClick={()=>setTaskDeleteConfirmId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                              <button onClick={()=>setTaskDeleteConfirmId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                 {t.cancel}
                               </button>
                             </>
                           ) : (
                             <>
-                              <button onClick={()=>{closeTaskMenu(); setEditingTask(x);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                              <button onClick={()=>{closeTaskMenu(); setEditingTask(x);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                 <Pencil size={13}/> {lang==="bn"?"এডিট":"Edit"}
                               </button>
-                              <button onClick={()=>setTaskDeleteConfirmId(x.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                              <button onClick={()=>setTaskDeleteConfirmId(x.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                 <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
                               </button>
                             </>
@@ -6392,13 +6392,13 @@ export default function FocusGo() {
               <div>
                 <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12}}>
                   <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m-1,1));}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", display:"flex", padding:4}}><ChevronLeft size={18}/></button>
-                  <span style={{fontSize:14, fontWeight:700, color:textMain}}>{monthName(m)} <Num>{nf(y)}</Num></span>
+                  <span style={{fontSize:14, fontWeight:600, color:textMain}}>{monthName(m)} <Num>{nf(y)}</Num></span>
                   <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m+1,1));}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", display:"flex", padding:4}}><ChevronRight size={18}/></button>
                 </div>
 
                 <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 12px", marginBottom:10}}>
                   <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:8}}>
-                    {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:11, fontWeight:600, color:textMuted2}}>{d}</div>))}
+                    {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:11, fontWeight:500, color:textMuted2}}>{d}</div>))}
                   </div>
                   <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", rowGap:6}}>
                     {cells.map((d,i) => {
@@ -6427,7 +6427,7 @@ export default function FocusGo() {
                                   strokeDasharray={ringC} strokeDashoffset={ringC * (1 - dayPct)}/>
                               </svg>
                             )}
-                            <div style={{position:"relative", width:22, height:22, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:600,
+                            <div style={{position:"relative", width:22, height:22, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:500,
                               background: isSelected ? accent : "transparent",
                               border: isToday && !isSelected ? `1px solid ${accent}` : "none",
                               color: isSelected ? "#fff" : (hasOverdue ? "#C0392B" : textMain)}}>
@@ -6442,18 +6442,18 @@ export default function FocusGo() {
 
                 {/* Calendar legend — Stats-এর ক্যালেন্ডার legend-এর মতোই একই স্টাইল */}
                 <div style={{display:"flex", justifyContent:"center", alignItems:"center", gap:16, marginBottom:12, flexWrap:"wrap"}}>
-                  <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
+                  <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:500}}>
                     <span style={{width:7,height:7,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
                   </span>
-                  <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
+                  <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:500}}>
                     <span style={{width:7,height:7,borderRadius:"50%", background:inkColor}}/>{t.calendarLegendPlanned}
                   </span>
-                  <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
+                  <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:500}}>
                     <span style={{width:7,height:7,borderRadius:"50%", background:"#C0392B"}}/>{t.taskOverdue}
                   </span>
                 </div>
 
-                <div style={{fontSize:20, fontWeight:700, letterSpacing:-0.3, color:textMain, marginBottom:9}}>
+                <div style={{fontSize:20, fontWeight:600, letterSpacing:-0.3, color:textMain, marginBottom:9}}>
                   {selectedKey === todayKey ? (lang==="bn" ? "আজ" : "Today") : <>{weekdayName(selectedDateObj)}, <Num>{nf(selectedDateObj.getDate())}</Num> {monthName(selectedDateObj.getMonth())}</>}
                 </div>
                 {dayTasks.length === 0 ? (
@@ -6467,7 +6467,7 @@ export default function FocusGo() {
 
                 {noDateTasks.length > 0 && (
                   <div>
-                    <div style={{fontSize:11, fontWeight:700, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskCalNoDateTasks}</div>
+                    <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskCalNoDateTasks}</div>
                     <div style={{display:"flex", flexDirection:"column", gap:8}}>{noDateTasks.map(renderTask)}</div>
                   </div>
                 )}
@@ -6483,7 +6483,7 @@ export default function FocusGo() {
                   <ListChecks size={21} color={accent} strokeWidth={2.2}/>
                 </div>
                 <div style={{minWidth:0}}>
-                  <div style={{fontSize:20, fontWeight:700, letterSpacing:-0.3, color:textMain}}>{t.taskTitle}</div>
+                  <div style={{fontSize:20, fontWeight:600, letterSpacing:-0.3, color:textMain}}>{t.taskTitle}</div>
                   <div style={{fontSize:12, color:textMuted2, marginTop:2, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden", lineHeight:1.3}}>{t.taskSubtitle}</div>
                 </div>
               </div>
@@ -6495,7 +6495,7 @@ export default function FocusGo() {
                   return (
                     <button key={key} onClick={()=>{vibrate(); setTaskViewMode(key);}} style={{
                       display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", cursor:"pointer",
-                      padding:"0 0 8px", fontSize:14, fontWeight:700,
+                      padding:"0 0 8px", fontSize:14, fontWeight:600,
                       color: active ? textMain : textMuted2,
                       borderBottom: active ? `2px solid ${accent}` : "2px solid transparent",
                       marginBottom:-1, transition:"color .18s ease, border-color .18s ease",
@@ -6516,15 +6516,12 @@ export default function FocusGo() {
                           display:"flex", alignItems:"center", gap:5, padding:"7px 13px", borderRadius:20, cursor:"pointer", flexShrink:0,
                           border:"none",
                           background: taskFilter===key ? accent : (dark ? "#232127" : "#EFEBE3"),
-                          color: taskFilter===key ? "#fff" : textMain, fontWeight:700, fontSize:12.5, whiteSpace:"nowrap",
+                          color: taskFilter===key ? "#fff" : textMain, fontWeight:600, fontSize:12.5, whiteSpace:"nowrap",
                         }}>
                           {label} (<Num>{nf(count)}</Num>)
                         </button>
                       ))}
                       <div style={{width:1, flexShrink:0}}/>
-                    </div>
-                    <div style={{position:"absolute", right:0, top:0, bottom:0, width:22, display:"flex", alignItems:"center", justifyContent:"flex-end", pointerEvents:"none"}}>
-                      <ChevronRight size={14} color={textMuted2} strokeWidth={2.5}/>
                     </div>
                   </div>
 
@@ -6537,7 +6534,7 @@ export default function FocusGo() {
                         </div>
                       </div>
                       <div>
-                        <div style={{fontWeight:700, color:textMain, fontSize:15}}>{emptyMsg}</div>
+                        <div style={{fontWeight:600, color:textMain, fontSize:15}}>{emptyMsg}</div>
                         <div style={{color:textMuted2, fontSize:12.5, lineHeight:1.5, marginTop:5, maxWidth:230}}>{emptySub}</div>
                       </div>
                     </div>
@@ -6555,9 +6552,9 @@ export default function FocusGo() {
                             <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
                               <div style={{display:"flex", alignItems:"center", gap:7}}>
                                 <Sun size={15} color="#C08A2E" strokeWidth={2.3}/>
-                                <span style={{fontSize:15, fontWeight:700, color:textMain}}>{t.taskSectionToday}</span>
+                                <span style={{fontSize:15, fontWeight:600, color:textMain}}>{t.taskSectionToday}</span>
                               </div>
-                              <div style={{display:"flex", alignItems:"center", gap:5, fontSize:11.5, color:textMuted2, fontWeight:600}}>
+                              <div style={{display:"flex", alignItems:"center", gap:5, fontSize:11.5, color:textMuted2, fontWeight:500}}>
                                 <Calendar size={12}/> <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}, {weekdayShort(today)}
                               </div>
                             </div>
@@ -6566,13 +6563,13 @@ export default function FocusGo() {
                         )}
                         {upcomingBucket.length > 0 && (
                           <div style={{marginBottom: (nodateBucket.length || doneTodayBucket.length) ? 16 : 0}}>
-                            <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskSectionUpcoming}</div>
+                            <div style={{fontSize:11, fontWeight:500, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskSectionUpcoming}</div>
                             <div style={{display:"flex", flexDirection:"column", gap:8}}>{upcomingBucket.map(renderTask)}</div>
                           </div>
                         )}
                         {nodateBucket.length > 0 && (
                           <div style={{marginBottom: doneTodayBucket.length ? 16 : 0}}>
-                            <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskSectionNoDate}</div>
+                            <div style={{fontSize:11, fontWeight:500, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskSectionNoDate}</div>
                             <div style={{display:"flex", flexDirection:"column", gap:8}}>{nodateBucket.map(renderTask)}</div>
                           </div>
                         )}
@@ -6583,9 +6580,9 @@ export default function FocusGo() {
                                 <span style={{width:20, height:20, borderRadius:"50%", background:"#6E8B5E", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                                   <Check size={12} color="#fff" strokeWidth={3}/>
                                 </span>
-                                <span style={{fontSize:15, fontWeight:700, color:textMain}}>{t.taskSectionCompletedToday}</span>
+                                <span style={{fontSize:15, fontWeight:600, color:textMain}}>{t.taskSectionCompletedToday}</span>
                               </div>
-                              <button onClick={()=>{vibrate(); setTaskFilter("done");}} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:"#6E8B5E", fontSize:12, fontWeight:700, cursor:"pointer", padding:0}}>
+                              <button onClick={()=>{vibrate(); setTaskFilter("done");}} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:"#6E8B5E", fontSize:12, fontWeight:600, cursor:"pointer", padding:0}}>
                                 {lang==="bn" ? "সব দেখো" : "See all"} <ChevronRight size={13}/>
                               </button>
                             </div>
@@ -8449,7 +8446,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
           </span>
         )}
         <div style={{minWidth:0}}>
-          <div style={{fontWeight:700, color:textMain, fontSize:13}}>{emptyText}</div>
+          <div style={{fontWeight:600, color:textMain, fontSize:13}}>{emptyText}</div>
           {emptySubtext && <div style={{fontSize:11.5, color:textMuted2, marginTop:2, lineHeight:1.4}}>{emptySubtext}</div>}
         </div>
       </div>
@@ -8473,13 +8470,13 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
               {item.done ? <span key={`done-${item.id}`} className="fg-check-pop" style={{display:"flex"}}><Check size={16} color="#fff" strokeWidth={3}/></span> : <span style={{width:9,height:9,borderRadius:"50%", background:c.bg}}/>}
             </button>
             <div style={{flex:1, minWidth:0}}>
-              <span style={{display:"inline-block", fontSize:10, fontWeight:700, letterSpacing:ls(0.5), color:c.bg, background:c.bgSoft, borderRadius:8, padding:"2px 7px", marginBottom:3}}>{item.subject.toUpperCase()}</span>
-              <div style={{fontSize:14, fontWeight:600, wordBreak:"break-word", opacity: item.done ? 0.6 : 1}}>{item.topic}</div>
+              <span style={{display:"inline-block", fontSize:10, fontWeight:600, letterSpacing:ls(0.5), color:c.bg, background:c.bgSoft, borderRadius:8, padding:"2px 7px", marginBottom:3}}>{item.subject.toUpperCase()}</span>
+              <div style={{fontSize:14, fontWeight:500, wordBreak:"break-word", opacity: item.done ? 0.6 : 1}}>{item.topic}</div>
             </div>
             <div style={{textAlign:"right", flexShrink:0}}>
               {isActiveTimer ? (
-                <div className={timerRunning ? "fg-timer-running" : undefined} style={{fontSize:13, fontWeight:700, fontVariantNumeric:"tabular-nums", color:c.bg, whiteSpace:"nowrap"}}>
-                  <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num> <span style={{fontSize:10, fontWeight:600, opacity:0.85}}>{t.timeRemainingLabel}</span>
+                <div className={timerRunning ? "fg-timer-running" : undefined} style={{fontSize:13, fontWeight:600, fontVariantNumeric:"tabular-nums", color:c.bg, whiteSpace:"nowrap"}}>
+                  <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num> <span style={{fontSize:10, fontWeight:500, opacity:0.85}}>{t.timeRemainingLabel}</span>
                 </div>
               ) : (
                 <div style={{fontSize:12, fontWeight:500, color:textMuted2, opacity:0.85}}>
@@ -8518,23 +8515,23 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
                     <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 4px 12px rgba(0,0,0,0.08)", zIndex:60, minWidth:150, overflow:"hidden"}}>
                       {confirmDeleteId === item.id ? (
                         <>
-                          <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:600}}>{t.confirmDeleteTopic || t.deleteTopic}</div>
-                          <button onClick={()=>{ closeMenu(); onDelete(item.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                          <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:500}}>{t.confirmDeleteTopic || t.deleteTopic}</div>
+                          <button onClick={()=>{ closeMenu(); onDelete(item.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                             <Trash2 size={13}/> {t.confirmDelete || t.deleteTopic}
                           </button>
-                          <button onClick={()=>setConfirmDeleteId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                          <button onClick={()=>setConfirmDeleteId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                             {t.cancel}
                           </button>
                         </>
                       ) : (
                         <>
                           {onEdit && (
-                            <button onClick={()=>{closeMenu(); onEdit(item);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                            <button onClick={()=>{closeMenu(); onEdit(item);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                               <Pencil size={13}/> {t.edit}
                             </button>
                           )}
                           {onDelete && (
-                            <button onClick={()=>setConfirmDeleteId(item.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                            <button onClick={()=>setConfirmDeleteId(item.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                               <Trash2 size={13}/> {t.deleteTopic}
                             </button>
                           )}
