@@ -5708,13 +5708,13 @@ export default function FocusGo() {
             </div>
           </div>
 
-          <div style={{display:"flex", alignItems:"center", gap:16, marginTop:11, position:"relative"}}>
-            {/* LEFT column — digits, mode pill, and controls */}
-            <div style={{flex:1, minWidth:0}}>
+          <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:2, marginTop:14, position:"relative"}}>
+            {/* Digits, mode pill, and controls — centered, compact single column */}
+            <div style={{width:"100%", textAlign:"center"}}>
               {focusMode === "timer" ? (
                 <>
                   {editingDuration ? (
-                    <div style={{display:"flex", alignItems:"center", gap:4}}>
+                    <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4}}>
                       <input
                         type="number"
                         autoFocus
@@ -5736,7 +5736,7 @@ export default function FocusGo() {
                   )}
 
                   {/* Mode pill (Pomodoro/Stopwatch) + Focus/Break inline switch */}
-                  <div style={{display:"flex", alignItems:"center", gap:8, marginTop:6, flexWrap:"wrap"}}>
+                  <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:8, flexWrap:"wrap"}}>
                     <button onClick={()=>{ if (timerRunning) return; vibrate(); setFocusMode("stopwatch"); }} disabled={timerRunning}
                       style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, background: dark?"#14121A":"#FAF9F6", color:textMain, borderRadius:13, padding:"7px 13px", fontSize:12.5, fontWeight:600, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
                       {t.timerMode} <ChevronDown size={12}/>
@@ -5750,7 +5750,7 @@ export default function FocusGo() {
                   </div>
 
                   {/* Start / Custom Time / Reset buttons */}
-                  <div style={{display:"flex", gap:7, marginTop:9}}>
+                  <div style={{display:"flex", justifyContent:"center", gap:7, marginTop:10, maxWidth:260, marginLeft:"auto", marginRight:"auto"}}>
                     <button
                       onClick={toggleTimerRunning}
                       style={{display:"flex", alignItems:"center", justifyContent:"center", gap:7, flex:"1 1 auto", minWidth:0, background: accent, border:"none", borderRadius:16, padding:"12px 16px", color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", boxShadow:`0 10px 22px ${accent}45`, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
@@ -5767,7 +5767,7 @@ export default function FocusGo() {
                   </div>
 
                   {/* Topic picker */}
-                  <div style={{marginTop:8}}>
+                  <div style={{marginTop:10, display:"flex", flexDirection:"column", alignItems:"center"}}>
                     {timerTopic ? (
                       !timerRunning ? (
                         <button onClick={()=>{ const next=!showTopicPicker; setShowTopicPicker(next); if (next) setFreeSessionTouched(false); }} style={{display:"inline-flex", alignItems:"center", gap:4, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, padding:0}}>
@@ -5786,7 +5786,7 @@ export default function FocusGo() {
                       )
                     )}
                     {!timerRunning && showTopicPicker && (
-                      <div style={{display:"flex", flexWrap:"wrap", gap:6, marginTop:8}}>
+                      <div style={{display:"flex", justifyContent:"center", flexWrap:"wrap", gap:6, marginTop:8}}>
                         <button onClick={()=>{ vibrate(); setTimerTopicId(null); setFreeSessionTouched(true); }} style={{border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer"}}>
                           {t.freeSessionOption}
                         </button>
@@ -5798,7 +5798,7 @@ export default function FocusGo() {
                       </div>
                     )}
                     {!timerRunning && showTopicPicker && freeSessionTouched && (
-                      <div style={{display:"flex", gap:6, marginTop:6, flexWrap:"wrap"}}>
+                      <div style={{display:"flex", justifyContent:"center", gap:6, marginTop:6, flexWrap:"wrap"}}>
                         {(sessionType === "focus" ? [25,30,45,50,60] : [5,10,15]).map(mins => {
                           const active = Math.round(timerTotal/60) === mins;
                           return (
@@ -5812,11 +5812,11 @@ export default function FocusGo() {
                   </div>
 
                   {/* Pomodoro cycle progress: Session X/N + ●●○○○ */}
-                  <div style={{display:"flex", flexDirection:"column", gap:4, marginTop:8}}>
+                  <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, marginTop:10}}>
                     <div style={{fontSize:11, fontWeight:500, color:textMuted2}}>
                       {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num>
                     </div>
-                    <div style={{display:"flex", alignItems:"center", gap:5, flexWrap:"wrap"}}>
+                    <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:5, flexWrap:"wrap"}}>
                       {Array.from({length:pomodoroTotalSessions}, (_,i)=>i+1).map(i => {
                         const state = i < pomodoroSession ? "done" : (i === pomodoroSession ? "current" : "upcoming");
                         return (
@@ -5843,14 +5843,14 @@ export default function FocusGo() {
                     <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
                   </div>
 
-                  <div style={{display:"flex", alignItems:"center", gap:8, marginTop:6, flexWrap:"wrap"}}>
+                  <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:8, flexWrap:"wrap"}}>
                     <button onClick={()=>{ if (stopwatchRunning) return; vibrate(); setFocusMode("timer"); }} disabled={stopwatchRunning}
                       style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, background: dark?"#14121A":"#FAF9F6", color:textMain, borderRadius:13, padding:"7px 13px", fontSize:12.5, fontWeight:600, cursor: stopwatchRunning ? "default" : "pointer", opacity: stopwatchRunning ? 0.6 : 1}}>
                       {t.stopwatchMode} <ChevronDown size={12}/>
                     </button>
                   </div>
 
-                  <div style={{display:"flex", gap:7, marginTop:9}}>
+                  <div style={{display:"flex", justifyContent:"center", gap:7, marginTop:10}}>
                     <button
                       onClick={toggleStopwatchRunning}
                       style={{display:"flex", alignItems:"center", gap:7, background: accent, border:"none", borderRadius:16, padding:"12px 18px", color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", boxShadow:`0 10px 22px ${accent}45`, flexShrink:0}}>
@@ -5861,7 +5861,7 @@ export default function FocusGo() {
                     </button>
                   </div>
 
-                  <div style={{marginTop:8}}>
+                  <div style={{marginTop:10, display:"flex", flexDirection:"column", alignItems:"center"}}>
                     {!stopwatchRunning ? (
                       <button onClick={()=>setShowTopicPicker(v=>!v)} style={{display:"inline-flex", alignItems:"center", gap:4, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, padding:0}}>
                         {timerTopic ? `${timerTopic.subject} — ${timerTopic.topic}` : t.pickTopicForTimer}
@@ -5873,7 +5873,7 @@ export default function FocusGo() {
                       </div>
                     )}
                     {!stopwatchRunning && showTopicPicker && (
-                      <div style={{display:"flex", flexWrap:"wrap", gap:6, marginTop:8}}>
+                      <div style={{display:"flex", justifyContent:"center", flexWrap:"wrap", gap:6, marginTop:8}}>
                         <button onClick={()=>selectTimerTopic(null)} style={{border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer"}}>
                           {t.freeSessionOption}
                         </button>
@@ -5889,14 +5889,14 @@ export default function FocusGo() {
               )}
             </div>
 
-            {/* RIGHT column — decorative dashed progress ring with hourglass, matches the mockup (বড় করা হয়েছে, "You've got this" ক্যাপশন বাদ) */}
-            <div style={{flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center", gap:10, width:132}}>
+            {/* Decorative dashed progress ring with hourglass — kept, but shrunk + centered below controls for a compact layout */}
+            <div style={{display:"flex", flexDirection:"column", alignItems:"center", marginTop:12}}>
               {(() => {
-                const ringSize = 132;
-                const stroke = 5;
-                const r = 47;
+                const ringSize = 56;
+                const stroke = 3;
+                const r = 21;
                 const c = 2 * Math.PI * r;
-                const dashLen = 5.5, gapLen = 4.5;
+                const dashLen = 3, gapLen = 2.4;
                 const elapsedFrac = focusMode === "timer"
                   ? (timerTotal > 0 ? Math.min(1, Math.max(0, (timerTotal - timerSeconds) / timerTotal)) : 0)
                   : ((stopwatchSeconds % 60) / 60);
@@ -5904,14 +5904,14 @@ export default function FocusGo() {
                 const running = focusMode === "timer" ? timerRunning : stopwatchRunning;
                 return (
                   <div style={{position:"relative", width:ringSize, height:ringSize, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                    <svg width={ringSize} height={ringSize} viewBox="0 0 120 120" style={{position:"absolute", inset:0, transform:"rotate(-90deg)"}}>
-                      <circle cx="60" cy="60" r={r} fill="none" stroke={`${ringColor}33`} strokeWidth={stroke} strokeDasharray={`${dashLen} ${gapLen}`}/>
-                      <circle cx="60" cy="60" r={r} fill="none" stroke={ringColor} strokeWidth={stroke} strokeDasharray={`${dashLen} ${gapLen}`}
+                    <svg width={ringSize} height={ringSize} viewBox="0 0 60 60" style={{position:"absolute", inset:0, transform:"rotate(-90deg)"}}>
+                      <circle cx="30" cy="30" r={r} fill="none" stroke={`${ringColor}33`} strokeWidth={stroke} strokeDasharray={`${dashLen} ${gapLen}`}/>
+                      <circle cx="30" cy="30" r={r} fill="none" stroke={ringColor} strokeWidth={stroke} strokeDasharray={`${dashLen} ${gapLen}`}
                         strokeDashoffset={c * (1 - elapsedFrac)}
                         style={{transition:"stroke-dashoffset 1s linear"}}/>
                     </svg>
-                    <div className={running ? "fg-timer-running" : undefined} style={{width:68, height:68, borderRadius:"50%", background: dark ? `${ringColor}1c` : `${ringColor}12`, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                      <Hourglass size={29} color={ringColor} strokeWidth={2}/>
+                    <div className={running ? "fg-timer-running" : undefined} style={{width:30, height:30, borderRadius:"50%", background: dark ? `${ringColor}1c` : `${ringColor}12`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                      <Hourglass size={13} color={ringColor} strokeWidth={2}/>
                     </div>
                   </div>
                 );
@@ -6117,7 +6117,7 @@ export default function FocusGo() {
                       {x.done && <Check size={13} color="#fff" strokeWidth={3}/>}
                     </button>
                     <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:13.5,fontWeight:500,color:x.done?textMuted2:textMain,textDecoration:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                      <div style={{fontSize:13.5,fontWeight:500,color:x.done?textMuted2:textMain,textDecoration:"none",overflow:"visible",whiteSpace:"normal",wordBreak:"break-word",lineHeight:1.35}}>
                         {x.title}
                       </div>
                       {x.done && (
@@ -6307,6 +6307,9 @@ export default function FocusGo() {
                 <div style={{flex:1, minWidth:0, maxHeight:58, overflow:"hidden"}}>
                   <div style={{fontSize:13, fontWeight:600, color: x.done ? textMuted2 : textMain, textDecoration:"none", wordBreak:"break-word", overflowWrap:"break-word", lineHeight:1.3, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden"}}>
                     {x.title}
+                    {x.note && (
+                      <FileText size={12} color={textMuted2} style={{display:"inline", verticalAlign:"middle", marginLeft:5, opacity:0.75}}/>
+                    )}
                   </div>
                   {x.reminderTime && (
                     <div style={{display:"flex", alignItems:"center", gap:5, marginTop:3, fontSize:9.5, color:textMuted2, fontWeight:500, flexWrap:"wrap"}}>
@@ -6356,9 +6359,6 @@ export default function FocusGo() {
                       </>
                     )}
                   </div>
-                  {x.note && (
-                    <FileText size={13} color={textMuted2} style={{flexShrink:0, opacity:0.75}}/>
-                  )}
                 </div>
               </div>
             );
