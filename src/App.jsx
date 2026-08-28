@@ -3827,6 +3827,12 @@ export default function FocusGo() {
         } catch (e) {
           // Ignore broken/old local cache; Firestore remains the source of truth.
         }
+        // ক্যাশ থাকুক বা না থাকুক, এখনই UI দেখিয়ে দেওয়া হচ্ছে — নেটওয়ার্ক স্লো হলে বা এই ডিভাইসে
+        // এই ইউজারের কোনো cache আগে থেকে না থাকলে (প্রথমবার লগইন) আগে পুরো app Firestore-এর জন্য
+        // wait করত, যেটা "app খুলছে কিন্তু data আসতে সময় লাগছে" সমস্যার মূল কারণ ছিল। এখন app সাথে
+        // সাথেই খুলে যাবে (ক্যাশ না থাকলে খালি অবস্থা থেকে শুরু), আর নিচের onSnapshot listener ডেটা
+        // এলে নিজে থেকেই fill করে দেবে।
+        setLoaded(true);
       } else {
         // Sign out — remove the previous user's in-memory data (tasks/notes-ও, নাহলে একই ডিভাইসে
         // অন্য একাউন্টে লগইন করলে আগের ইউজারের টাস্ক/নোট দেখা যাওয়ার ঝুঁকি থাকে)
