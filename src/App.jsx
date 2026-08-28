@@ -909,7 +909,7 @@ function SettingsDropdown({ value, options, onChange, dark, cardBorder, textMain
 // ---------- Settings modal: Language, Theme, About Us ----------
 function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, setAccentKey, notificationsEnabled, setNotificationsEnabled,
   examNotifEnabled, setExamNotifEnabled, taskNotifEnabled, setTaskNotifEnabled, salahNotifEnabled, setSalahNotifEnabled, timerNotifEnabled, setTimerNotifEnabled,
-  weekStartDay, setWeekStartDay, focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes,
+  focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes,
   onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage,
   user, isGuest, onOpenProfile, notes, tasks, subjects, setNotes, setTasks, setSubjects }) {
   const [showAbout, setShowAbout] = useState(false);
@@ -1214,17 +1214,6 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
         </div>
       )}
 
-      {/* Week starts on — এখন কমপ্যাক্ট ড্রপডাউন, ক্যালেন্ডার ও সাপ্তাহিক ভিউতে প্রযোজ্য */}
-      <div style={{padding:"14px 2px", borderBottom:`1px solid ${cardBorder}`}}>
-        <div style={{...labelStyle, marginBottom:12}}><span style={iconWrapStyle}><CalendarDays size={15}/></span>{t.weekStartsOn}</div>
-        <SettingsDropdown
-          value={weekStartDay}
-          options={(isBn ? WEEKDAY_PICKER_LABELS.bn : WEEKDAY_PICKER_LABELS.en).map((label, key) => ({ value: key, label }))}
-          onChange={setWeekStartDay}
-          dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}
-        />
-      </div>
-
       {/* Default Focus/Break duration — এখন দুইটা কমপ্যাক্ট ড্রপডাউন পাশাপাশি, টাইমার শুরু করার সময় এই মানই ডিফল্ট হিসেবে বসবে */}
       <div style={{padding:"14px 2px", borderBottom:`1px solid ${cardBorder}`}}>
         <div style={{...labelStyle, marginBottom:12}}><span style={iconWrapStyle}><Clock size={15}/></span>{t.defaultTimerDuration}</div>
@@ -1441,15 +1430,6 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                   dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
               </div>
             )}
-          </Row>
-
-          <Row Icon={CalendarDays} title={t.weekStartsOn} subtitle={(isBn ? WEEKDAY_PICKER_LABELS.bn : WEEKDAY_PICKER_LABELS.en)[weekStartDay]} expandKey="weekstart">
-            <SettingsDropdown
-              value={weekStartDay}
-              options={(isBn ? WEEKDAY_PICKER_LABELS.bn : WEEKDAY_PICKER_LABELS.en).map((label, key) => ({ value: key, label }))}
-              onChange={setWeekStartDay}
-              dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}
-            />
           </Row>
 
           <Row Icon={Bell} title={t.notifications} subtitle={notificationsEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")} expandKey="notifications">
@@ -2260,8 +2240,7 @@ const holidayName = (dk, lang) => { const h = BD_HOLIDAYS_2026[dk]; if (!h) retu
 
 // ---------- সপ্তাহ কোন দিন থেকে শুরু হবে (রবি থেকে শনি — যেকোনো একদিন) — Settings থেকে পাল্টানো যায়, localStorage-এ সেভ থাকে ----------
 // মান 0-6 (0=রবি...6=শনি)। আগে শুধু রবি/সোম টগল ছিল ("0"/"1") — সেই পুরনো ভ্যালুগুলোও এখানে ঠিকঠাক পড়া যায় বলে migration লাগে না।
-const WEEK_START_KEY = "focusgo_week_starts_monday";
-const getWeekStartDay = () => { try { const v = parseInt(window.localStorage.getItem(WEEK_START_KEY), 10); return (v >= 0 && v <= 6) ? v : 0; } catch (e) { return 0; } };
+const getWeekStartDay = () => 5; // সপ্তাহ সবসময় শুক্রবার থেকে শুরু হবে — সেটিং থেকে বদলানো যাবে না
 const weekStartOffset = (jsDay) => { const s = getWeekStartDay(); return (jsDay - s + 7) % 7; };
 const WEEKDAY_PICKER_LABELS = {
   en: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
@@ -3317,9 +3296,8 @@ export default function FocusGo() {
   useEffect(() => { try { window.localStorage.setItem("focusgo_notif_salah", salahNotifEnabled ? "1" : "0"); } catch (e) {} }, [salahNotifEnabled]);
   const [timerNotifEnabled, setTimerNotifEnabled] = useState(() => { try { return window.localStorage.getItem("focusgo_notif_timer") !== "0"; } catch (e) { return true; } });
   useEffect(() => { try { window.localStorage.setItem("focusgo_notif_timer", timerNotifEnabled ? "1" : "0"); } catch (e) {} }, [timerNotifEnabled]);
-  // সপ্তাহ রবি নাকি সোম থেকে শুরু হবে — Settings থেকে বদলানো যায়, ক্যালেন্ডার গ্রিড ও উইকলি ভিউ সব জায়গায় প্রযোজ্য
-  const [weekStartDay, setWeekStartDay] = useState(() => getWeekStartDay());
-  useEffect(() => { try { window.localStorage.setItem(WEEK_START_KEY, String(weekStartDay)); } catch (e) {} }, [weekStartDay]);
+  // সপ্তাহ সবসময় শুক্রবার থেকে শুরু হবে — ক্যালেন্ডার গ্রিড ও উইকলি ভিউ সব জায়গায় প্রযোজ্য, সেটিং থেকে বদলানো যায় না
+  const weekStartDay = 5;
   // skipNative: Focus Timer-এর session/break/topic-done ইভেন্টগুলোর জন্য OS notification
   // আগে থেকেই scheduleTimerEndNotif দিয়ে শিডিউল করা থাকে, তাই এখানে আবার একই নোটিফিকেশন
   // পাঠালে ডুপ্লিকেট হয়ে যাবে — সেসব কল-সাইট থেকে skipNative=true পাঠানো হয়।
@@ -6661,7 +6639,6 @@ export default function FocusGo() {
             taskNotifEnabled={taskNotifEnabled} setTaskNotifEnabled={setTaskNotifEnabled}
             salahNotifEnabled={salahNotifEnabled} setSalahNotifEnabled={setSalahNotifEnabled}
             timerNotifEnabled={timerNotifEnabled} setTimerNotifEnabled={setTimerNotifEnabled}
-            weekStartDay={weekStartDay} setWeekStartDay={setWeekStartDay}
             focusMinutes={focusMinutes} setFocusMinutes={setFocusMinutes}
             breakMinutes={breakMinutes} setBreakMinutes={setBreakMinutes}
             user={user} isGuest={isGuest} onOpenProfile={() => setShowProfile(true)}
