@@ -909,12 +909,14 @@ function SettingsDropdown({ value, options, onChange, dark, cardBorder, textMain
 // ---------- Settings modal: Language, Theme, About Us ----------
 function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, setAccentKey, notificationsEnabled, setNotificationsEnabled,
   examNotifEnabled, setExamNotifEnabled, taskNotifEnabled, setTaskNotifEnabled, salahNotifEnabled, setSalahNotifEnabled, timerNotifEnabled, setTimerNotifEnabled,
-  focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes,
+  focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes, weekStartDay, setWeekStartDay,
   onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage,
   user, isGuest, onOpenProfile, notes, tasks, subjects, setNotes, setTasks, setSubjects }) {
   const [showAbout, setShowAbout] = useState(false);
   const [legalDoc, setLegalDoc] = useState(null); // null | "privacy" | "terms"
   const isBn = lang === "bn";
+  // সপ্তাহ শুরুর দিনের লেবেল — 0=রবি...6=শনি, ট্রান্সলেশনের weekStart* কী থেকে বসানো হয়
+  const weekStartDayLabel = (d) => ([t.weekStartSun, t.weekStartMon, t.weekStartTue, t.weekStartWed, t.weekStartThu, t.weekStartFri, t.weekStartSat][d]);
 
   // Notification sub-অপশনগুলো এখন ক্লিক করলে নিচে খুলবে (accordion) — মাস্টার টগলের সাথে সরাসরি বাঁধা নয়
   const [notifExpanded, setNotifExpanded] = useState(false);
@@ -1343,7 +1345,10 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
       );
     };
 
-    const groupCardStyle = { background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"0 12px", overflow:"hidden" };
+    // overflow:"hidden" আগে এখানে ছিল, কিন্তু এই কার্ডের ভেতরের accordion (Focus Timer / Study Reminders)
+    // খুললে SettingsDropdown-এর ফ্লাইআউট মেনু position:absolute হয়ে কার্ডের বর্ডারের বাইরে বসতে চায় —
+    // overflow hidden থাকায় সেটা ক্লিপ হয়ে যেত, তাই অপশনে ট্যাপ করলেও কিছু হতো না (ক্লিক অদৃশ্য অংশে পড়ত)
+    const groupCardStyle = { background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"0 12px", overflow:"visible" };
     const sectionHeadingStyle = { fontSize:12, fontWeight:800, color:textMuted2, letterSpacing:0.4, textTransform:"uppercase", opacity:0.75, margin:"22px 4px 8px" };
 
     return (
@@ -1401,6 +1406,14 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
               </span>
             </span>}
             onClick={()=>{vibrate(); setLang(l=>l==="bn"?"en":"bn");}}/>
+
+          <Row Icon={CalendarRange} title={t.weekStartsOn} subtitle={weekStartDayLabel(weekStartDay)} expandKey="weekStart">
+            <SettingsDropdown
+              value={weekStartDay}
+              options={[6,0,1,2,3,4,5].map(d => ({ value: d, label: weekStartDayLabel(d) }))}
+              onChange={(v)=>{ vibrate(); setWeekStartDay(v); }}
+              dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
+          </Row>
 
           <Row Icon={Hourglass} title={isBn ? "ফোকাস টাইমার" : "Focus Timer"} subtitle={`${focusMinutes} / ${breakMinutes} ${t.minutes}`} expandKey="timer">
             <div style={{display:"flex", gap:10}}>
@@ -2239,8 +2252,19 @@ const holidayName = (dk, lang) => { const h = BD_HOLIDAYS_2026[dk]; if (!h) retu
 
 
 // ---------- সপ্তাহ কোন দিন থেকে শুরু হবে (রবি থেকে শনি — যেকোনো একদিন) — Settings থেকে পাল্টানো যায়, localStorage-এ সেভ থাকে ----------
-// মান 0-6 (0=রবি...6=শনি)। আগে শুধু রবি/সোম টগল ছিল ("0"/"1") — সেই পুরনো ভ্যালুগুলোও এখানে ঠিকঠাক পড়া যায় বলে migration লাগে না।
-const getWeekStartDay = () => 5; // সপ্তাহ সবসময় শুক্রবার থেকে শুরু হবে — সেটিং থেকে বদলানো যাবে না
+// মান 0-6 (0=রবি...6=শনি)। localStorage থেকে সরাসরি পড়া হয় বলে Settings-এ বদলানোর পর যেকোনো
+// পরের রি-রেন্ডারেই (ট্যাব সুইচ, ক্যালেন্ডার খোলা ইত্যাদি) নতুন মান অনুযায়ী সপ্তাহ হিসাব হবে।
+const WEEK_START_DAY_KEY = "focusgo_week_start_day";
+const getWeekStartDay = () => {
+  try {
+    const v = parseInt(window.localStorage.getItem(WEEK_START_DAY_KEY), 10);
+    if (!isNaN(v) && v >= 0 && v <= 6) return v;
+  } catch (e) {}
+  return 5; // ডিফল্ট: শুক্রবার (বাংলাদেশে সাধারণত সপ্তাহ শুক্রবার থেকে ধরা হয়)
+};
+const setWeekStartDay = (v) => {
+  try { window.localStorage.setItem(WEEK_START_DAY_KEY, String(v)); } catch (e) {}
+};
 const weekStartOffset = (jsDay) => { const s = getWeekStartDay(); return (jsDay - s + 7) % 7; };
 const WEEKDAY_PICKER_LABELS = {
   en: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
@@ -2473,6 +2497,7 @@ const T = {
     sendFeedback: "Send Feedback", feedbackSubject: "FocusGo App Feedback",
     notifExam: "Exam reminders", notifTask: "Task reminders", notifSalah: "Prayer time alerts", notifTimer: "Timer end alerts",
     weekStartsOn: "Week Starts On", weekStartSun: "Sunday", weekStartMon: "Monday",
+    weekStartTue: "Tuesday", weekStartWed: "Wednesday", weekStartThu: "Thursday", weekStartFri: "Friday", weekStartSat: "Saturday",
     defaultTimerDuration: "Default Timer Duration", focusLabel: "Focus", breakLabel: "Break",
     aboutTagline: "Make every day count.",
     aboutBody: "FocusGo is a study companion built to help students plan, focus, and track their progress day by day.",
@@ -2630,6 +2655,7 @@ const T = {
     sendFeedback: "ফিডব্যাক পাঠান", feedbackSubject: "FocusGo অ্যাপ ফিডব্যাক",
     notifExam: "পরীক্ষার রিমাইন্ডার", notifTask: "টাস্ক রিমাইন্ডার", notifSalah: "নামাজের সময়ের নোটিফিকেশন", notifTimer: "টাইমার শেষের নোটিফিকেশন",
     weekStartsOn: "সপ্তাহ শুরু হবে", weekStartSun: "রবিবার", weekStartMon: "সোমবার",
+    weekStartTue: "মঙ্গলবার", weekStartWed: "বুধবার", weekStartThu: "বৃহস্পতিবার", weekStartFri: "শুক্রবার", weekStartSat: "শনিবার",
     defaultTimerDuration: "ডিফল্ট টাইমার সময়", focusLabel: "ফোকাস", breakLabel: "বিরতি",
     aboutTagline: "Make every day count.",
     aboutBody: "FocusGo একটি স্টাডি সঙ্গী — শিক্ষার্থীদের পরিকল্পনা করতে, মনোযোগী থাকতে, এবং দিন-প্রতিদিন অগ্রগতি ট্র্যাক করতে সাহায্য করার জন্য বানানো।",
@@ -3298,8 +3324,10 @@ export default function FocusGo() {
   useEffect(() => { try { window.localStorage.setItem("focusgo_notif_salah", salahNotifEnabled ? "1" : "0"); } catch (e) {} }, [salahNotifEnabled]);
   const [timerNotifEnabled, setTimerNotifEnabled] = useState(() => { try { return window.localStorage.getItem("focusgo_notif_timer") !== "0"; } catch (e) { return true; } });
   useEffect(() => { try { window.localStorage.setItem("focusgo_notif_timer", timerNotifEnabled ? "1" : "0"); } catch (e) {} }, [timerNotifEnabled]);
-  // সপ্তাহ সবসময় শুক্রবার থেকে শুরু হবে — ক্যালেন্ডার গ্রিড ও উইকলি ভিউ সব জায়গায় প্রযোজ্য, সেটিং থেকে বদলানো যায় না
-  const weekStartDay = 5;
+  // সপ্তাহ কোন দিন থেকে শুরু হবে — ক্যালেন্ডার গ্রিড ও উইকলি ভিউ সব জায়গায় প্রযোজ্য, Settings থেকে বদলানো যায়
+  // (React state হিসেবে রাখা হয়েছে যাতে Settings-এ বদলালে সাথে সাথে পুরো অ্যাপ রি-রেন্ডার হয়ে নতুন মান দেখায়)
+  const [weekStartDay, setWeekStartDayState] = useState(getWeekStartDay);
+  const changeWeekStartDay = (v) => { setWeekStartDay(v); setWeekStartDayState(v); };
   // skipNative: Focus Timer-এর session/break/topic-done ইভেন্টগুলোর জন্য OS notification
   // আগে থেকেই scheduleTimerEndNotif দিয়ে শিডিউল করা থাকে, তাই এখানে আবার একই নোটিফিকেশন
   // পাঠালে ডুপ্লিকেট হয়ে যাবে — সেসব কল-সাইট থেকে skipNative=true পাঠানো হয়।
@@ -6649,6 +6677,7 @@ export default function FocusGo() {
             timerNotifEnabled={timerNotifEnabled} setTimerNotifEnabled={setTimerNotifEnabled}
             focusMinutes={focusMinutes} setFocusMinutes={setFocusMinutes}
             breakMinutes={breakMinutes} setBreakMinutes={setBreakMinutes}
+            weekStartDay={weekStartDay} setWeekStartDay={changeWeekStartDay}
             user={user} isGuest={isGuest} onOpenProfile={() => setShowProfile(true)}
             notes={notes} tasks={tasks} subjects={subjects} setNotes={setNotes} setTasks={setTasks} setSubjects={setSubjects}
             cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
@@ -9077,18 +9106,23 @@ function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSe
 
 // ---------- Notes: subject/category রঙ প্যালেট (Keep-এর মতো প্রতিটা subject-এর নিজের রঙ) ----------
 const NOTE_COLOR_PALETTE = [
-  { bg: "#FDE7C8", bgDark: "#3A3120", text: "#7A5010" },
-  { bg: "#D9EAD3", bgDark: "#22301F", text: "#3E6B2E" },
-  { bg: "#CFE2F3", bgDark: "#1E2C36", text: "#2B5F8A" },
-  { bg: "#F4CCCC", bgDark: "#3A2323", text: "#A14444" },
-  { bg: "#E6D9F5", bgDark: "#2E2536", text: "#6B4A9E" },
-  { bg: "#D0ECE7", bgDark: "#1F332F", text: "#2E7D6E" },
-  { bg: "#FCE4EC", bgDark: "#332126", text: "#B03A63" },
-  { bg: "#FFF2CC", bgDark: "#332C1B", text: "#8A7217" },
+  { bg: "#FDE7C8", bgDark: "#3A3120", text: "#7A5010", textDark: "#F0C177" },
+  { bg: "#D9EAD3", bgDark: "#22301F", text: "#3E6B2E", textDark: "#8FCB7A" },
+  { bg: "#CFE2F3", bgDark: "#1E2C36", text: "#2B5F8A", textDark: "#7FB8E8" },
+  { bg: "#F4CCCC", bgDark: "#3A2323", text: "#A14444", textDark: "#E58A8A" },
+  { bg: "#E6D9F5", bgDark: "#2E2536", text: "#6B4A9E", textDark: "#C0A3EA" },
+  { bg: "#D0ECE7", bgDark: "#1F332F", text: "#2E7D6E", textDark: "#7FD1BE" },
+  { bg: "#FCE4EC", bgDark: "#332126", text: "#B03A63", textDark: "#EC8FAE" },
+  { bg: "#FFF2CC", bgDark: "#332C1B", text: "#8A7217", textDark: "#E8C862" },
 ];
 function noteColorFor(category, allCategories) {
   const idx = Math.max(0, (allCategories || []).indexOf(category));
   return NOTE_COLOR_PALETTE[idx % NOTE_COLOR_PALETTE.length];
+}
+// note.category-এর রঙ কার্ডে ব্যবহারের সময় (আইকন/চেকবক্স/লেবেল টেক্সট) — dark mode-এ হালকা টোন,
+// আগে সবসময় লাইট-মোডের গাঢ় "text" রঙ ব্যবহার হতো, তাই dark card-এর উপর লো-কনট্রাস্ট/অস্পষ্ট দেখাতো
+function noteAccentTextFor(col, dark) {
+  return dark ? (col.textDark || col.text) : col.text;
 }
 
 // ---------- Notes: নোট কার্ডের ব্যাকগ্রাউন্ড রঙ (ঐচ্ছিক) — প্রতি নোট আলাদা রঙ করে রাখা যাবে, যাতে চোখের দেখায় দ্রুত খুঁজে পাওয়া যায় ----------
@@ -9989,6 +10023,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         <div style={{width:1,alignSelf:"stretch",background:cardBorder,margin:"2px 1px",flexShrink:0}}/>
         {categories.map(cat => {
           const chipCol = noteColorFor(cat, categories);
+          const chipDot = noteAccentTextFor(chipCol, dark); // dark mode-এ হালকা টোন, নাহলে ডটটা cardBg-এর সাথে মিশে অস্পষ্ট দেখাত
           return (
           <div key={cat} style={{position:"relative",flexShrink:0}}>
             <button
@@ -9996,7 +10031,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               onMouseDown={()=>startCatPress(cat)} onMouseUp={cancelCatPress} onMouseLeave={cancelCatPress}
               onTouchStart={()=>startCatPress(cat)} onTouchEnd={cancelCatPress} onTouchMove={cancelCatPress}
               style={{display:"flex",alignItems:"center",gap:6,border:`1px solid ${activeFolder===cat?textMain:cardBorder}`,background:activeFolder===cat?textMain:cardBg,color:activeFolder===cat?(dark?"#0A0A0A":"#fff"):textMain,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
-              <span style={{width:7,height:7,borderRadius:"50%",background:chipCol.text,flexShrink:0}}/>
+              <span style={{width:7,height:7,borderRadius:"50%",background:chipDot,flexShrink:0}}/>
               {cat}
             </button>
             {categoryMenuFor === cat && (
@@ -10096,6 +10131,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           {filtered.map(note => {
             const isList = viewMode === "list";
             const col = noteColorFor(note.category || "General", categories);
+            const colText = noteAccentTextFor(col, dark); // dark mode-এ হালকা টোনের accent টেক্সট/আইকন রঙ
             // নোটের কভার (ছোট কার্ড অবস্থায়) — ইউজার নিজে রঙ বাছাই করে থাকলে সেটাই, নাহলে ডিফল্ট বেইজ/ডার্ক
             const coverBg = noteBgFor(note.color, dark);
             const coverText = noteTextFor(note.color, dark);
@@ -10114,13 +10150,13 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               style={{position:"relative",background:coverBg,border:isDropTarget?`2px dashed ${accent}`:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(33,29,24,0.06)"}`,borderRadius:"4px 14px 14px 14px",padding: isList ? "10px 14px 9px" : "12px 14px 10px",cursor:"pointer",display:"flex",flexDirection:"column",boxShadow:isDragging?"0 6px 16px rgba(0,0,0,.22)":"0 1px 2px rgba(33,29,24,.08)",opacity:isDragging?0.55:1,transform:isDragging?"scale(1.03)":"scale(1)",transition:"transform .12s, box-shadow .12s",touchAction:draggingId?"none":"pan-y",zIndex:isDragging?2:1}}
             >
               {/* সিগনেচার এলিমেন্ট: ক্যাটাগরির রঙে ছোট্ট "ভাঁজ করা" ট্যাব — পুরো কার্ড রঙ না করে শুধু একটা কোণায় ইঙ্গিত */}
-              <div style={{position:"absolute",top:-1,right:12,width:22,height:11,borderRadius:"0 0 4px 4px",background:col.text,opacity:dark?0.85:1}}/>
+              <div style={{position:"absolute",top:-1,right:12,width:22,height:11,borderRadius:"0 0 4px 4px",background:colText,opacity:dark?0.85:1}}/>
               {/* পিন করা নোটের বাম কিনারায় একটা পাতলা accent স্ট্রিপ */}
               {note.pinned && <div style={{position:"absolute",top:8,left:-1,width:3,height:20,background:accent,borderRadius:"0 3px 3px 0"}}/>}
               <div style={{display:"flex",justifyContent:"space-between",gap:6,alignItems:"flex-start"}}>
                 <div style={{minWidth:0,flex:1}}>
                   <div style={{display:"flex",alignItems:"center",gap:4}}>
-                    {note.sensitive && <EyeOff size={12} color={col.text}/>}
+                    {note.sensitive && <EyeOff size={12} color={colText}/>}
                     <div style={{fontSize:14,fontWeight:800,color:coverText,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{note.title}</div>
                   </div>
                 </div>
@@ -10130,14 +10166,14 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                       {/* ট্র্যাশে থাকা নোটে ট্যাপ করলে এডিটর খোলে না — শুধু ফিরিয়ে আনা বা চিরতরে ডিলিট করা যাবে */}
                       <button
                         onClick={(e)=>{e.stopPropagation();restoreNote(note.id);}}
-                        style={{border:"none",background:"transparent",color:col.text,cursor:"pointer",padding:4,borderRadius:8,display:"flex"}}
+                        style={{border:"none",background:"transparent",color:colText,cursor:"pointer",padding:4,borderRadius:8,display:"flex"}}
                         title={lang==="bn"?"ফিরিয়ে আনুন":"Restore"}
                       >
                         <RotateCcw size={15}/>
                       </button>
                       <button
                         onClick={(e)=>{e.stopPropagation();deleteForever(note.id);}}
-                        style={{border:"none",background:"transparent",color:col.text,cursor:"pointer",padding:4,borderRadius:8,display:"flex"}}
+                        style={{border:"none",background:"transparent",color:colText,cursor:"pointer",padding:4,borderRadius:8,display:"flex"}}
                         title={lang==="bn"?"চিরতরে ডিলিট":"Delete forever"}
                       >
                         <Trash2 size={15}/>
@@ -10148,14 +10184,14 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                       {/* কার্ডে ট্যাপ করলেই এডিট খোলে, তাই আলাদা এডিট বাটন রাখা হয়নি — শুধু Pin ও Delete, ছোট আইকন হিসেবে, ৩-ডট মেনু ছাড়াই */}
                       <button
                         onClick={(e)=>{e.stopPropagation();togglePin(note.id);}}
-                        style={{border:"none",background:"transparent",color:col.text,cursor:"pointer",padding:4,borderRadius:8,display:"flex"}}
+                        style={{border:"none",background:"transparent",color:colText,cursor:"pointer",padding:4,borderRadius:8,display:"flex"}}
                         title={note.pinned ? (lang==="bn"?"আনপিন":"Unpin") : (lang==="bn"?"পিন":"Pin")}
                       >
                         {note.pinned ? <PinOff size={15}/> : <Pin size={15}/>}
                       </button>
                       <button
                         onClick={(e)=>{e.stopPropagation();remove(note.id);}}
-                        style={{border:"none",background:"transparent",color:col.text,cursor:"pointer",padding:4,borderRadius:8,display:"flex"}}
+                        style={{border:"none",background:"transparent",color:colText,cursor:"pointer",padding:4,borderRadius:8,display:"flex"}}
                         title={lang==="bn"?"ডিলিট":"Delete"}
                       >
                         <Trash2 size={15}/>
@@ -10193,17 +10229,17 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                 <div style={{marginTop:8,display:"flex",flexDirection:"column",gap:4, ...(note.sensitive ? {filter:"blur(5px)", userSelect:"none"} : {})}}>
                   {note.checklist.slice(0,isList?2:3).map(item => (
                     <div key={item.id} style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:coverText,opacity:0.85}}>
-                      <span style={{width:12,height:12,borderRadius:4,border:`1px solid ${col.text}`,background:item.done?col.text:"transparent",display:"inline-flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:10,flexShrink:0}}>{item.done?"✓":""}</span>
+                      <span style={{width:12,height:12,borderRadius:4,border:`1px solid ${colText}`,background:item.done?colText:"transparent",display:"inline-flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:10,flexShrink:0}}>{item.done?"✓":""}</span>
                       <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.text}</span>
                     </div>
                   ))}
-                  {note.checklist.length > (isList?2:3) && <span style={{fontSize:10,color:col.text,fontWeight:700}}>+{note.checklist.length - (isList?2:3)} more</span>}
+                  {note.checklist.length > (isList?2:3) && <span style={{fontSize:10,color:colText,fontWeight:700}}>+{note.checklist.length - (isList?2:3)} more</span>}
                 </div>
               )}
 
               <div style={{marginTop: isList ? 7 : "auto",paddingTop: isList ? 6 : 9,borderTop: isList ? "none" : `1px dashed ${dark?"rgba(255,255,255,0.14)":"rgba(33,29,24,0.14)"}`,display:"flex",alignItems:"center",justifyContent:"space-between",gap:6}}>
-                <span style={{fontSize:9.5,fontWeight:700,letterSpacing:0.3,textTransform:"uppercase",color:col.text,opacity:0.9}}>{note.category || "General"}</span>
-                <span style={{fontSize:10,color:col.text,opacity:0.6,fontWeight:600}} title={fullDateTimeLabel(note.updatedAt, lang)}>{timeAgoLabel(note.updatedAt || note.createdAt, lang)}</span>
+                <span style={{fontSize:9.5,fontWeight:700,letterSpacing:0.3,textTransform:"uppercase",color:colText,opacity:0.9}}>{note.category || "General"}</span>
+                <span style={{fontSize:10,color:colText,opacity:0.6,fontWeight:600}} title={fullDateTimeLabel(note.updatedAt, lang)}>{timeAgoLabel(note.updatedAt || note.createdAt, lang)}</span>
               </div>
             </div>
           );})}
