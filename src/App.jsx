@@ -3698,14 +3698,10 @@ export default function FocusGo() {
     // করলে ক্লক ঘুরে যাবে (landscape/portrait দুটোতেই)। বন্ধ করলে আবার অ্যাপের normal portrait লক ফিরে আসে।
     if (Capacitor.isNativePlatform()) {
       if (focusFullscreen) {
-        ScreenOrientation.unlock()
-          .then(() => { try { alert("DEBUG: orientation unlock OK"); } catch(e){} })
-          .catch((err) => { try { alert("DEBUG: orientation unlock FAILED — " + (err && (err.message || JSON.stringify(err)))); } catch(e){} });
+        ScreenOrientation.unlock().catch(() => {});
       } else {
         ScreenOrientation.lock({ orientation: "portrait" }).catch(() => {});
       }
-    } else if (focusFullscreen) {
-      try { alert("DEBUG: Capacitor.isNativePlatform() = false (তাহলে এটা নেটিভ APK না, ওয়েব হিসেবে ধরা হচ্ছে)"); } catch(e){}
     }
     const el = document.documentElement;
     if (focusFullscreen) {
