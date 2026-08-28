@@ -220,8 +220,8 @@ function useWhiteNoise(soundId, volume, active) {
 function OnboardingScreen({ lang, dark, cardBg, textMain, textMuted2, accent, onDone }) {
   const [step, setStep] = useState(0);
   const isBn = lang === "bn";
-  const bg = dark ? "#14121A" : "#F7F6FA";
-  const border = dark ? "#2C2B33" : "#E7E5ED";
+  const bg = dark ? "#000000" : "#F7F6FA";
+  const border = dark ? "#242424" : "#E7E5ED";
 
   const slides = [
     {
@@ -625,7 +625,7 @@ function NotificationBell({ t, lang, notifications, onMarkAllRead, onClear, card
                 </div>
               )}
               {notifications.map(n => (
-                <div key={n.id} style={{ display: "flex", gap:8, padding: "10px 12px", borderBottom: `1px solid ${cardBorder}`, background: n.read ? "transparent" : (dark ? "#2C2B33" : "#F8F5EE") }}>
+                <div key={n.id} style={{ display: "flex", gap:8, padding: "10px 12px", borderBottom: `1px solid ${cardBorder}`, background: n.read ? "transparent" : (dark ? "#242424" : "#F8F5EE") }}>
                   <span style={{ width: 7, height: 7, borderRadius: "50%", background: accent, flexShrink: 0, marginTop: 5, opacity: n.read ? 0 : 1 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize:12, fontWeight: 700, color: textMain }}>{n.title}</div>
@@ -877,7 +877,7 @@ function SettingsDropdown({ value, options, onChange, dark, cardBorder, textMain
     <div style={{position:"relative"}}>
       <button type="button" onClick={()=>setOpen(o=>!o)} style={{
         display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, width:"100%",
-        border:`1px solid ${cardBorder}`, background: dark?"#14121A":"#F8F5EE", color:textMain,
+        border:`1px solid ${cardBorder}`, background: dark?"#0A0A0A":"#F8F5EE", color:textMain,
         borderRadius:10, padding:"10px 12px", fontSize:13, fontWeight:700, cursor:"pointer"
       }}>
         <span>{current ? current.label : ""}</span>
@@ -886,7 +886,7 @@ function SettingsDropdown({ value, options, onChange, dark, cardBorder, textMain
       {open && (
         <>
           <div style={{position:"fixed", inset:0, zIndex:59}} onClick={()=>setOpen(false)}/>
-          <div style={{position:"absolute", top:"calc(100% + 6px)", left:0, right:0, background: dark?"#1E1B26":"#FFFFFF", border:`1px solid ${cardBorder}`, borderRadius:12, boxShadow:"0 8px 24px rgba(0,0,0,0.25)", zIndex:60, maxHeight:220, overflowY:"auto", padding:6}}>
+          <div style={{position:"absolute", top:"calc(100% + 6px)", left:0, right:0, background: dark?"#121212":"#FFFFFF", border:`1px solid ${cardBorder}`, borderRadius:12, boxShadow:"0 8px 24px rgba(0,0,0,0.25)", zIndex:60, maxHeight:220, overflowY:"auto", padding:6}}>
             {options.map(o => {
               const selected = o.value === value;
               return (
@@ -1031,7 +1031,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
   const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:`1px solid ${cardBorder}` };
   const labelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14, fontWeight:700, color:textMain };
-  const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#B0ABC2" : "#6E6B7A" };
+  const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#B0ABC2" : "#6E6B7A" };
   // pill বাটন — নির্বাচিত হলে accent রঙে ভরাট থাকবে; Appearance সেকশনে (থিম ও অ্যাকসেন্ট) সরাসরি ইনলাইন ব্যবহার হয়
   const pillBase = { border:"1px solid transparent", borderRadius:999, padding:"9px 16px", fontSize:13.5, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" };
   // "System" সবার আগে দেখানো হয় — ডিভাইসের prefers-color-scheme অনুযায়ী লাইভ light/dark
@@ -1129,7 +1129,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
       {/* Language */}
       <div style={rowStyle}>
         <div style={labelStyle}><span style={iconWrapStyle}><span style={{fontSize:13, fontWeight:800}}>{lang==="bn"?"বাং":"EN"}</span></span>{t.language}</div>
-        <button onClick={()=>setLang(l=>l==="bn"?"en":"bn")} style={{border:`1px solid ${cardBorder}`, background: dark?"#14121A":"#F8F5EE", color:textMain, borderRadius:10, padding:"7px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+        <button onClick={()=>setLang(l=>l==="bn"?"en":"bn")} style={{border:`1px solid ${cardBorder}`, background: dark?"#0A0A0A":"#F8F5EE", color:textMain, borderRadius:10, padding:"7px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
           {lang==="bn" ? "English" : "বাংলা"}
         </button>
       </div>
@@ -1152,7 +1152,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                 ...pillBase,
                 display:"flex", alignItems:"center", gap:7,
                 border: `1px solid ${selected ? accent : cardBorder}`,
-                background: selected ? accent : (dark?"#14121A":"#F8F5EE"),
+                background: selected ? accent : (dark?"#0A0A0A":"#F8F5EE"),
                 color: selected ? "#fff" : textMain,
               }}>
                 {isSystem ? (
@@ -1357,7 +1357,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             ...groupCardStyle, padding:"12px 14px", width:"100%", display:"flex", alignItems:"center", gap:14,
             marginBottom:20, cursor:"pointer", textAlign:"left",
           }}>
-          <span style={{width:44, height:44, borderRadius:"50%", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden"}}>
+          <span style={{width:44, height:44, borderRadius:"50%", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden"}}>
             {user && user.photoURL ? (
               <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
             ) : (
@@ -1383,7 +1383,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                   <button key={key} onClick={()=>{vibrate(); setThemeMode(key);}} style={{
                     ...pillBase, display:"flex", alignItems:"center", gap:7,
                     border:`1px solid ${selected ? accent : cardBorder}`,
-                    background: selected ? accent : (dark?"#14121A":"#F8F5EE"),
+                    background: selected ? accent : (dark?"#0A0A0A":"#F8F5EE"),
                     color: selected ? "#fff" : textMain,
                   }}>
                     {isSystem ? <Contrast size={14} style={{flexShrink:0}}/> : <span style={{width:12, height:12, borderRadius:"50%", background:themeFor(key).cardBg, border:`1px solid ${selected ? "rgba(255,255,255,0.6)" : cardBorder}`, flexShrink:0}}/>}
@@ -1396,7 +1396,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
           <Row Icon={Globe} title={t.language} subtitle={lang === "bn" ? "বাংলা" : "English"}
             right={<span style={{display:"flex", alignItems:"center", gap:6}}>
-              <span onClick={(e)=>{e.stopPropagation(); vibrate(); setLang(l=>l==="bn"?"en":"bn");}} style={{border:`1px solid ${cardBorder}`, background: dark?"#14121A":"#fff", color:textMain, borderRadius:999, padding:"4px 10px", fontSize:11.5, fontWeight:800}}>
+              <span onClick={(e)=>{e.stopPropagation(); vibrate(); setLang(l=>l==="bn"?"en":"bn");}} style={{border:`1px solid ${cardBorder}`, background: dark?"#0A0A0A":"#fff", color:textMain, borderRadius:999, padding:"4px 10px", fontSize:11.5, fontWeight:800}}>
                 {lang==="bn" ? "বাং" : "EN"}
               </span>
             </span>}
@@ -1564,7 +1564,7 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
             <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
           </div>
           <div style={{display:"flex", alignItems:"center", gap:16, marginBottom:16}}>
-            <div style={{width:56, height:56, borderRadius:"50%", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+            <div style={{width:56, height:56, borderRadius:"50%", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
               <User size={24} color={dark ? "#B0ABC2" : "#6E6B7A"}/>
             </div>
             <div style={{fontSize:14, fontWeight:800}}>{gL.title}</div>
@@ -1651,11 +1651,11 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
     photoUploadErr: isBn ? "ছবি আপলোড করা যায়নি, আবার চেষ্টা করুন।" : "Couldn't upload the photo — please try again.",
   };
 
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const labelStyle = { fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6 };
   const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:`1px solid ${cardBorder}`, cursor:"pointer" };
   const menuLabelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14, fontWeight:700, color:textMain };
-  const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#B0ABC2" : "#6E6B7A" };
+  const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#B0ABC2" : "#6E6B7A" };
 
   const emailChanged = email.trim() !== (user.email || "");
 
@@ -1785,7 +1785,7 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
   };
 
   const AvatarCircle = ({ size }) => (
-    <div style={{width:size, height:size, borderRadius:"50%", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", flexShrink:0}}>
+    <div style={{width:size, height:size, borderRadius:"50%", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", flexShrink:0}}>
       {user.photoURL ? (
         <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
       ) : user.gender === "female" ? (
@@ -2806,7 +2806,7 @@ function shadeColor(hex, percent) {
 // Dark ও Graphite এই দুইটা "dark" গ্রুপে, বাকি তিনটা "light" গ্রুপে পড়ে।
 const THEME_PALETTES = {
   light:    { key:"light",    labelBn:"লাইট",     labelEn:"Light",    dark:false, bg:"#F7F6FA", cardBg:"#FFFFFF", cardBorder:"#E7E5ED", textMain:"#262433", textMuted2:"#79768A", subtleBg:"#F8F5EE" },
-  dark:     { key:"dark",     labelBn:"ডার্ক",     labelEn:"Dark",     dark:true,  bg:"#14121A", cardBg:"#1E1B26", cardBorder:"#332E40", textMain:"#F3F1F8", textMuted2:"#9B96AC", subtleBg:"#19161F" },
+  dark:     { key:"dark",     labelBn:"ডার্ক",     labelEn:"Dark",     dark:true,  bg:"#000000", cardBg:"#121212", cardBorder:"#242424", textMain:"#FFFFFF", textMuted2:"#9B9B9B", subtleBg:"#0A0A0A" },
   ivory:    { key:"ivory",    labelBn:"আইভরি",    labelEn:"Ivory",    dark:false, bg:"#FBF6EA", cardBg:"#FFFDF7", cardBorder:"#EDE6D6", textMain:"#2E2A22", textMuted2:"#8A8270", subtleBg:"#FAF3E4" },
   graphite: { key:"graphite", labelBn:"গ্র্যাফাইট", labelEn:"Graphite", dark:true,  bg:"#1D1E22", cardBg:"#24262B", cardBorder:"#34363C", textMain:"#ECEDEF", textMuted2:"#A0A3AA", subtleBg:"#1A1B1F" },
   mist:     { key:"mist",     labelBn:"মিস্ট",     labelEn:"Mist",     dark:false, bg:"#EFF4F6", cardBg:"#F5F8FA", cardBorder:"#DCE4E8", textMain:"#26333A", textMuted2:"#74858D", subtleBg:"#EDF3F5" },
@@ -2833,7 +2833,7 @@ function RecentTopicChips({ topics, onPick, accent, cardBorder, textMuted2, dark
           title={topic}
           style={{
             border: `1px solid ${cardBorder}`,
-            background: dark ? "#14121A" : "#F8F5EE",
+            background: dark ? "#0A0A0A" : "#F8F5EE",
             color: textMuted2,
             borderRadius:20,
             padding: "6px 12px",
@@ -5345,7 +5345,7 @@ export default function FocusGo() {
 
           <div style={{display:"flex", alignItems:"center", gap:6}}>
             {!isOnline && (
-              <div title={t.offlineNote} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#2C2B33":"#F8F5EE", color:textMuted2, borderRadius:20, padding:"5px 9px 5px 8px", fontSize:11, fontWeight:700, flexShrink:0}}>
+              <div title={t.offlineNote} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#242424":"#F8F5EE", color:textMuted2, borderRadius:20, padding:"5px 9px 5px 8px", fontSize:11, fontWeight:700, flexShrink:0}}>
                 <WifiOff size={12}/> {t.offlineBadge}
               </div>
             )}
@@ -5773,7 +5773,7 @@ export default function FocusGo() {
                   {/* Mode pill (Pomodoro/Stopwatch) + Focus/Break inline switch */}
                   <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:8, flexWrap:"wrap"}}>
                     <button onClick={()=>{ if (timerRunning) return; vibrate(); setFocusMode("stopwatch"); }} disabled={timerRunning}
-                      style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, background: dark?"#14121A":"#FAF9F6", color:textMain, borderRadius:13, padding:"7px 13px", fontSize:12.5, fontWeight:600, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
+                      style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, background: dark?"#0A0A0A":"#FAF9F6", color:textMain, borderRadius:13, padding:"7px 13px", fontSize:12.5, fontWeight:600, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
                       {t.timerMode} <ChevronDown size={12}/>
                     </button>
                     <button onClick={()=>changeSessionType(sessionType==="focus" ? "break" : "focus")} disabled={timerRunning} title={t.sessionTypeLabel} style={{
@@ -5880,7 +5880,7 @@ export default function FocusGo() {
 
                   <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:8, flexWrap:"wrap"}}>
                     <button onClick={()=>{ if (stopwatchRunning) return; vibrate(); setFocusMode("timer"); }} disabled={stopwatchRunning}
-                      style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, background: dark?"#14121A":"#FAF9F6", color:textMain, borderRadius:13, padding:"7px 13px", fontSize:12.5, fontWeight:600, cursor: stopwatchRunning ? "default" : "pointer", opacity: stopwatchRunning ? 0.6 : 1}}>
+                      style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, background: dark?"#0A0A0A":"#FAF9F6", color:textMain, borderRadius:13, padding:"7px 13px", fontSize:12.5, fontWeight:600, cursor: stopwatchRunning ? "default" : "pointer", opacity: stopwatchRunning ? 0.6 : 1}}>
                       {t.stopwatchMode} <ChevronDown size={12}/>
                     </button>
                   </div>
@@ -6429,7 +6429,7 @@ export default function FocusGo() {
                           <div style={{position:"relative", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center"}}>
                             {hasAny && !isSelected && (
                               <svg width={28} height={28} viewBox="0 0 28 28" style={{position:"absolute", inset:0, transform:"rotate(-90deg)"}}>
-                                <circle cx="14" cy="14" r={ringR} fill="none" stroke={dark?"#2C2B33":"#E7E5ED"} strokeWidth={2}/>
+                                <circle cx="14" cy="14" r={ringR} fill="none" stroke={dark?"#242424":"#E7E5ED"} strokeWidth={2}/>
                                 <circle cx="14" cy="14" r={ringR} fill="none" stroke={ringColor} strokeWidth={2} strokeLinecap="round"
                                   strokeDasharray={ringC} strokeDashoffset={ringC * (1 - dayPct)}/>
                               </svg>
@@ -6733,7 +6733,7 @@ export default function FocusGo() {
                               <div style={{fontSize:14, fontWeight:800, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subj}</div>
                               {v.total > 0 ? (
                                 <>
-                                  <div style={{height:5, borderRadius:8, background: dark?"#2C2B33":"#EFEBDF", overflow:"hidden", marginTop:6}}>
+                                  <div style={{height:5, borderRadius:8, background: dark?"#242424":"#EFEBDF", overflow:"hidden", marginTop:6}}>
                                     <div style={{width:`${pct}%`, height:"100%", borderRadius:8, background:c.bg, transition:"width .25s ease"}}/>
                                   </div>
                                   <div style={{fontSize:11, color:textMuted2, fontWeight:500, opacity:0.75, marginTop:4}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num> {t.complete}</div>
@@ -7071,7 +7071,7 @@ export default function FocusGo() {
       {/* Undo toast — যেকোনো ডিলিটের পর কয়েক সেকেন্ড দেখা যায়, চাপলে আগের অবস্থায় ফিরে যায় */}
       {undoToast && (
         <div style={{position:"fixed", left:"50%", bottom:isDesktop?24:88, transform:"translateX(-50%)", zIndex:80,
-          background: dark?"#2C2B33":"#262433", color:"#F3F1F8", borderRadius:12, padding:"11px 12px 11px 16px",
+          background: dark?"#242424":"#262433", color:"#F3F1F8", borderRadius:12, padding:"11px 12px 11px 16px",
           display:"flex", alignItems:"center", gap:16, boxShadow:"0 5px 16px rgba(0,0,0,0.16)",
           maxWidth:"calc(100vw - 32px)", animation:"fg-fade-up .2s cubic-bezier(0.16,1,0.3,1)"}}>
           <span style={{fontSize:13, fontWeight:600, whiteSpace:"nowrap"}}>{undoToast.message}</span>
@@ -7102,7 +7102,7 @@ export default function FocusGo() {
       {/* Exit toast — "Today" ট্যাবে ব্যাক বাটন চাপলে দেখা যায়; ২ সেকেন্ডের মধ্যে আবার চাপলে অ্যাপ বন্ধ হবে */}
       {showExitToast && (
         <div style={{position:"fixed", left:"50%", bottom:isDesktop?24:88, transform:"translateX(-50%)", zIndex:80,
-          background: dark?"#2C2B33":"#262433", color:"#F3F1F8", borderRadius:12, padding:"11px 16px",
+          background: dark?"#242424":"#262433", color:"#F3F1F8", borderRadius:12, padding:"11px 16px",
           display:"flex", alignItems:"center", boxShadow:"0 5px 16px rgba(0,0,0,0.16)",
           maxWidth:"calc(100vw - 32px)", animation:"fg-fade-up .2s cubic-bezier(0.16,1,0.3,1)"}}>
           <span style={{fontSize:13, fontWeight:600, whiteSpace:"nowrap"}}>
@@ -7461,8 +7461,8 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
     setEditingAttemptId(null);
   };
 
-  const smallInput = { width:56, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none" };
-  const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", flex:1 };
+  const smallInput = { width:56, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none" };
+  const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", flex:1 };
 
   return (
     <div className="fg-card" style={{background: completed ? (dark?"rgba(110,139,94,0.10)":"rgba(110,139,94,0.07)") : cardBg, border: completed ? `1px solid rgba(110,139,94,0.4)` : `1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px", transition:"background .2s ease, border-color .2s ease, transform .16s cubic-bezier(0.16,1,0.3,1), box-shadow .2s ease"}}>
@@ -7472,7 +7472,7 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
             <Folder size={14} style={{color:textMuted2, flexShrink:0}}/>
             <input autoFocus value={renameValue} onChange={e=>setRenameValue(e.target.value)}
               onKeyDown={e=>{ if (e.key==="Enter") submitRename(); if (e.key==="Escape") cancelRename(); }}
-              style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:13, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none"}}/>
+              style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:13, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none"}}/>
             <button onClick={submitRename} style={{border:"none", background:"transparent", cursor:"pointer", color:accent, flexShrink:0}}><Check size={16}/></button>
             <button onClick={cancelRename} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, flexShrink:0}}><X size={16}/></button>
           </div>
@@ -7595,7 +7595,7 @@ function AddTopicInline({ t, accent, cardBorder, textMuted2, dark, onAdd }) {
     <div style={{display:"flex", alignItems:"center", gap:6, background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:12, padding:8, animation:"fg-fade-up .18s cubic-bezier(0.16,1,0.3,1)"}}>
       <input autoFocus value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>{if(e.key==="Enter") submit(); if(e.key==="Escape"){setAdding(false); setName("");}}}
         placeholder={t.topicNamePlaceholder}
-        style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"7px 10px", fontSize:13, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none"}}/>
+        style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"7px 10px", fontSize:13, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none"}}/>
       <button onClick={submit} style={{border:"none", borderRadius:8, width:30, height:30, background:accent, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, boxShadow:`0 3px 8px ${accent}40`}}>
         <Check size={15}/>
       </button>
@@ -7643,8 +7643,8 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
     setEditingAttemptId(null);
   };
 
-  const smallInput = { width:56, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none" };
-  const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", flex:1 };
+  const smallInput = { width:56, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none" };
+  const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", flex:1 };
 
   return (
     <div className="fg-card" style={{background: hasAttempts ? (dark?"rgba(110,139,94,0.10)":"rgba(110,139,94,0.07)") : cardBg, border: hasAttempts ? `1px solid rgba(110,139,94,0.4)` : `1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px", transition:"background .2s ease, border-color .2s ease"}}>
@@ -7772,7 +7772,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
   const weekdayName = (d) => lang === "bn" ? WEEKDAYS_BN[d.getDay()] : WEEKDAYS_EN[d.getDay()];
   const typeLabel = (key) => { const o = EXAM_TYPE_OPTIONS.find(x => x.key === key); return o ? (lang === "bn" ? o.bn : o.en) : ""; };
 
-  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", width:"100%", boxSizing:"border-box" };
+  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", width:"100%", boxSizing:"border-box" };
 
   const resetForm = () => { setSubject(""); setExamType(""); setDate(""); setStartTime(""); setEndTime(""); setEditingId(null); };
 
@@ -7999,7 +7999,7 @@ function NextExamModal({ t, examSubjects, nextExam, onSave, onClose, cardBg, car
   const [date, setDate] = useState(nextExam?.date || "");
   const topicOptions = Object.keys(examSubjects[subject]?.topics || {});
 
-  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", width:"100%" };
+  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", width:"100%" };
 
   const submit = () => {
     if (!subject || !date) return;
@@ -8050,7 +8050,7 @@ function CombinedExamEditorModal({ t, allSubjects, editingCombinedExam, onSave, 
   const [type, setType] = useState(editingCombinedExam?.type || "weekly");
   const [picked, setPicked] = useState(editingCombinedExam?.subjects || []);
 
-  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", width:"100%" };
+  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", width:"100%" };
   const typeOptions = [
     { k:"daily", label:t.typeDaily }, { k:"weekly", label:t.typeWeekly }, { k:"monthly", label:t.typeMonthly },
   ];
@@ -8189,7 +8189,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
           <div style={{marginTop:16}}>
             <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.subjectBreakdown}</div>
             <div style={{border:`1px solid ${cardBorder}`, borderRadius:16, overflow:"hidden"}}>
-              <div style={{display:"grid", gridTemplateColumns:"1.6fr 0.8fr 0.8fr 0.8fr", padding:"8px 12px", background: dark?"#14121A":"#F8F5EE", fontSize:11, fontWeight:700, color:textMuted2}}>
+              <div style={{display:"grid", gridTemplateColumns:"1.6fr 0.8fr 0.8fr 0.8fr", padding:"8px 12px", background: dark?"#0A0A0A":"#F8F5EE", fontSize:11, fontWeight:700, color:textMuted2}}>
                 <span>{t.subjectLabel}</span><span style={{textAlign:"right"}}>{t.examsCol}</span><span style={{textAlign:"right"}}>{t.attemptsCol}</span><span style={{textAlign:"right"}}>{t.avgCol}</span>
               </div>
               {rows.map(([subj, d]) => {
@@ -8231,7 +8231,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
   const totalCount = effectiveEntries.length;
   const doneCount = effectiveEntries.filter(e => e.done).length;
   const overallPct = totalCount ? Math.round((doneCount/totalCount)*100) : 0;
-  const trackColor = dark ? "#2C2B33" : "#E7E5ED";
+  const trackColor = dark ? "#242424" : "#E7E5ED";
 
   const subjTotals = {};
   effectiveEntries.forEach(e => {
@@ -8291,7 +8291,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
                     <span style={{fontWeight:700, fontSize:13}}>{subj}</span>
                     <span style={{fontSize:12, fontWeight:700, color:c.bg}}>{formatDuration(mins, lang, nf)}</span>
                   </div>
-                  <div style={{height:6, borderRadius:4, background: dark? "#2C2B33":"#E7E5ED", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
+                  <div style={{height:6, borderRadius:4, background: dark? "#242424":"#E7E5ED", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
                     <div style={{height:"100%", width:`${pct}%`, background:c.bg, borderRadius:4, transition:"width .3s"}}/>
                   </div>
                 </div>
@@ -8316,7 +8316,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
                   <span style={{fontWeight:700, fontSize:13}}>{subj}</span>
                   <span style={{fontSize:12, fontWeight:700, color:c.bg}}><Num>{nf(pct)}</Num>%</span>
                 </div>
-                <div style={{height:6, borderRadius:4, background: dark? "#2C2B33":"#E7E5ED", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
+                <div style={{height:6, borderRadius:4, background: dark? "#242424":"#E7E5ED", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
                   <div style={{height:"100%", width:`${pct}%`, background:c.bg, borderRadius:4, transition:"width .3s"}}/>
                 </div>
               </div>
@@ -8565,7 +8565,7 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
   const [durationInput, setDurationInput] = useState(30);
   const [showSubjectPicker, setShowSubjectPicker] = useState(false); // সাবজেক্ট চিপ লিস্ট ডিফল্টে লুকানো থাকে (অনেকগুলো সাবজেক্ট থাকলে huge space নিত) — "Choose from list" চাপলেই খুলবে
   const [showTopicPicker, setShowTopicPicker] = useState(false); // টপিক চিপ লিস্টও এখন সাবজেক্টের মতোই ডিফল্টে লুকানো থাকে — "Choose from list" চাপলেই খুলবে
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const duration = useTime ? diffMinutes(startTime, endTime) : (useDuration ? (Number(durationInput) || 0) : 0);
   const canSubmit = subject.trim() && topic.trim();
   // Topic Bank quick-pick: not-yet-used topics first (still pending), then previously-used ones by recency —
@@ -8681,7 +8681,7 @@ function EditModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, item
   const [endTime, setEndTime] = useState(item.endTime || minutesToTime(timeToMinutes(item.time || "09:00") + (item.duration || 30)));
   const [useDuration, setUseDuration] = useState(!!item.duration);
   const [durationInput, setDurationInput] = useState(item.duration || 30);
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const duration = useTime ? diffMinutes(startTime, endTime) : (useDuration ? (Number(durationInput) || 0) : 0);
   const pickTopics = topicPickList(topicBank, entries, subject).filter(tp => tp !== item.topic);
   const submit = () => {
@@ -8762,7 +8762,7 @@ function SubjectsModal({ t, subjects, onAdd, onRemove, onRename, onClose, topicB
   const [editingSubject, setEditingSubject] = useState(null);
   const [editValue, setEditValue] = useState("");
   const [editError, setEditError] = useState("");
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const submit = () => {
     const v = name.trim();
     if (!v || subjects.includes(v)) return;
@@ -8841,7 +8841,7 @@ function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onR
   const [editingTopic, setEditingTopic] = useState(null);
   const [editValue, setEditValue] = useState("");
   const [editError, setEditError] = useState("");
-  const smallInput = { width:"100%", boxSizing:"border-box", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:10, padding:"8px 10px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit" };
+  const smallInput = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:10, padding:"8px 10px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit" };
   const addSingle = () => { const v = single.trim(); if (!v) return; onAddTopic(subject, v); setSingle(""); };
   const addBulk = () => { if (!bulkText.trim()) return; onAddTopicsBulk(subject, bulkText); setBulkText(""); setBulkOpen(false); };
   const startEdit = (tp) => { setEditingTopic(tp); setEditValue(tp); setEditError(""); };
@@ -8876,7 +8876,7 @@ function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onR
       <div style={{display:"flex", flexDirection:"column", gap:6}}>
         {topics.length === 0 && <div style={{fontSize:12, color:textMuted2, opacity:0.85}}>{t.noTopicsInSubject}</div>}
         {topics.map(tp => (
-          <div key={tp} style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:10, padding:"7px 10px"}}>
+          <div key={tp} style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:10, padding:"7px 10px"}}>
             {editingTopic === tp ? (
               <div style={{display:"flex", flexDirection:"column", gap:4, flex:1}}>
                 <div style={{display:"flex", gap:6, alignItems:"center"}}>
@@ -8909,7 +8909,7 @@ function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onR
 function ExamsModal({ t, nf, subjects, examSubjects, onAdd, onRemove, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const availableSubjects = subjects.filter(s => !examSubjects[s]);
   const [subject, setSubject] = useState(availableSubjects[0] || "");
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const submit = () => {
     if (!subject) return;
     onAdd(subject);
@@ -9088,7 +9088,7 @@ function noteColorFor(category, allCategories) {
 // ---------- Notes: নোট কার্ডের ব্যাকগ্রাউন্ড রঙ (ঐচ্ছিক) — প্রতি নোট আলাদা রঙ করে রাখা যাবে, যাতে চোখের দেখায় দ্রুত খুঁজে পাওয়া যায় ----------
 const NOTE_BG_PALETTE = [
   { key: null,     bg: null,      bgDark: null,      labelBn: "ডিফল্ট", labelEn: "Default" },
-  { key: "white",  bg: "#FFFFFF", bgDark: "#FFFFFF", labelBn: "সাদা",   labelEn: "White", ink: "#2C2B33", inkDark: "#2C2B33" },
+  { key: "white",  bg: "#FFFFFF", bgDark: "#FFFFFF", labelBn: "সাদা",   labelEn: "White", ink: "#242424", inkDark: "#242424" },
   { key: "black",  bg: "#1A1814", bgDark: "#1A1814", labelBn: "কালো",   labelEn: "Black", ink: "#F3F1F8", inkDark: "#F3F1F8" },
   { key: "yellow", bg: "#FFF3B0", bgDark: "#3A331A", labelBn: "হলুদ",   labelEn: "Yellow" },
   { key: "orange", bg: "#FCE0C4", bgDark: "#3A2C1B", labelBn: "কমলা",   labelEn: "Orange" },
@@ -9156,7 +9156,7 @@ function fullDateTimeLabel(iso, lang) {
 
 // নোট নিজেই সবসময় অফ-হোয়াইট (পেপার-এর মতো) থাকবে — অ্যাপের ডার্ক মোড থিম আলাদা, এটা শুধু নোটের জন্য
 const NOTE_PAPER_BG = "#F7F1E3";
-const NOTE_PAPER_TEXT = "#2C2B33";
+const NOTE_PAPER_TEXT = "#242424";
 const NOTE_PAPER_MUTED = "#7C7361";
 
 // নোটে যোগ করা ছবি সরাসরি Firestore-এর একটামাত্র ডকুমেন্টে (users/{uid}) সেভ হয়, যেটার সাইজ লিমিট ~1MB।
@@ -9976,7 +9976,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           {key:"Trash", label: (lang==="bn"?"ট্র্যাশ":"Trash")+(trashCount>0?` (${nf(trashCount)})`:""), icon:<Trash2 size={11}/>},
         ].map(f => (
           <button key={f.key} onClick={()=>setActiveFolder(f.key)}
-            style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,border:`1px solid ${activeFolder===f.key?textMain:cardBorder}`,background:activeFolder===f.key?textMain:cardBg,color:activeFolder===f.key?(dark?"#14121A":"#fff"):textMain,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
+            style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,border:`1px solid ${activeFolder===f.key?textMain:cardBorder}`,background:activeFolder===f.key?textMain:cardBg,color:activeFolder===f.key?(dark?"#0A0A0A":"#fff"):textMain,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
             {f.icon}{f.label}
           </button>
         ))}
@@ -9989,7 +9989,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               onClick={()=>{ if (justDraggedRef.current) return; setActiveFolder(cat); }}
               onMouseDown={()=>startCatPress(cat)} onMouseUp={cancelCatPress} onMouseLeave={cancelCatPress}
               onTouchStart={()=>startCatPress(cat)} onTouchEnd={cancelCatPress} onTouchMove={cancelCatPress}
-              style={{display:"flex",alignItems:"center",gap:6,border:`1px solid ${activeFolder===cat?textMain:cardBorder}`,background:activeFolder===cat?textMain:cardBg,color:activeFolder===cat?(dark?"#14121A":"#fff"):textMain,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
+              style={{display:"flex",alignItems:"center",gap:6,border:`1px solid ${activeFolder===cat?textMain:cardBorder}`,background:activeFolder===cat?textMain:cardBg,color:activeFolder===cat?(dark?"#0A0A0A":"#fff"):textMain,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
               <span style={{width:7,height:7,borderRadius:"50%",background:chipCol.text,flexShrink:0}}/>
               {cat}
             </button>
@@ -10058,7 +10058,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                   const hasNotes = hasNoteKeys.has(dk);
                   return (
                     <button key={i} onClick={()=>{setFilterDate(d);setShowDatePicker(false);}}
-                      style={{position:"relative", aspectRatio:"1", border: isSelected ? `1.5px solid ${accent}` : isToday ? `1px solid ${accent}` : "1px solid transparent", borderRadius:10, background: isSelected ? (dark?"#2B281F":"#FFF4DF") : (dark?"#14121A":"#F8F5EE"), cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2, color:textMain}}>
+                      style={{position:"relative", aspectRatio:"1", border: isSelected ? `1.5px solid ${accent}` : isToday ? `1px solid ${accent}` : "1px solid transparent", borderRadius:10, background: isSelected ? (dark?"#2B281F":"#FFF4DF") : (dark?"#0A0A0A":"#F8F5EE"), cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2, color:textMain}}>
                       <span style={{fontSize:12, fontWeight:600}}>{nf(d.getDate())}</span>
                       <span style={{width:4,height:4,borderRadius:"50%", background: hasNotes ? accent : "transparent"}}/>
                     </button>
@@ -10807,7 +10807,7 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
             return (
               <button key={i} onClick={()=>onSelectDay(d)} disabled={future && !hasAny}
                 title={isHoliday ? holidayName(dk, lang) : undefined}
-                style={{position:"relative", aspectRatio:"1", border: isToday ? `1.5px solid ${accent}` : "1px solid transparent", borderRadius:10, background: dark?"#14121A":"#F8F5EE", cursor:(future&&!hasAny)?"default":"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4, opacity: (future&&!hasAny)?0.4:1}}>
+                style={{position:"relative", aspectRatio:"1", border: isToday ? `1.5px solid ${accent}` : "1px solid transparent", borderRadius:10, background: dark?"#0A0A0A":"#F8F5EE", cursor:(future&&!hasAny)?"default":"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4, opacity: (future&&!hasAny)?0.4:1}}>
                 {isExam && <span style={{position:"absolute", top:4, right:4, width:5, height:5, borderRadius:"50%", background: dark ? "#F3F1F8" : "#1A1814"}}/>}
                 {isHoliday && <span style={{position:"absolute", top:4, left:4, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
                 <span style={{fontSize:12, fontWeight:600, color:textMain}}><Num>{nf(d.getDate())}</Num></span>
