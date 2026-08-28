@@ -5050,9 +5050,7 @@ export default function FocusGo() {
       // default (হালকা) রঙ দেখা যেতে পারে। Focus টাইমার ফুলস্ক্রিন (immersive) মোডে তাই status bar
       // রঙ বদলানোর বদলে সরাসরি হাইড করে দেওয়া হচ্ছে — ফলাফল: উপর-নিচ সবটাই পুরোপুরি কালো।
       if (focusFullscreen) {
-        StatusBar.hide()
-          .then(() => { try { alert("DEBUG: StatusBar.hide() OK"); } catch(e){} })
-          .catch((err) => { try { alert("DEBUG: StatusBar.hide() FAILED — " + (err && (err.message || JSON.stringify(err)))); } catch(e){} });
+        StatusBar.hide().catch(() => {});
       } else {
         StatusBar.show().catch(()=>{});
         StatusBar.setBackgroundColor({ color: themeColor }).catch(()=>{});
@@ -5064,7 +5062,7 @@ export default function FocusGo() {
       if (Capacitor.isNativePlatform()) {
         NavigationBar.setNavigationBarColor({ color: themeColor, darkButtons: !dark }).catch(()=>{});
       }
-    } catch (e) { try { alert("DEBUG: status-bar effect crashed — " + (e && (e.message || JSON.stringify(e)))); } catch(e2){} }
+    } catch (e) { /* status-bar effect failed — ignore */ }
   }, [dark, bg, focusFullscreen]);
 
   // Native app খুললে notification permission চাওয়া হবে (একবারই) —
