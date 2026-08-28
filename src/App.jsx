@@ -2691,15 +2691,17 @@ const T = {
   }
 };
 
+// রঙগুলো আগের চেয়ে কম saturated/softer করা হয়েছে (সব ট্যাবেই subject-tag, bar, badge ইত্যাদিতে
+// ব্যবহৃত হয় বলে এখানে বদলালেই পুরো অ্যাপ জুড়ে রঙ একটু মিইয়ে আসবে)
 const SUBJECT_COLORS = [
-  { bg: "#3B8686", bgSoft: "rgba(59,134,134,0.14)" },
-  { bg: "#6E8B5E", bgSoft: "rgba(110,139,94,0.14)" },
-  { bg: "#7E6EC9", bgSoft: "rgba(126,110,201,0.14)" },
-  { bg: "#C08A2E", bgSoft: "rgba(192,138,46,0.14)" },
-  { bg: "#4C8FA6", bgSoft: "rgba(76,143,166,0.14)" },
-  { bg: "#B25B8F", bgSoft: "rgba(178,91,143,0.14)" },
-  { bg: "#5C6BC0", bgSoft: "rgba(92,107,192,0.14)" },
-  { bg: "#8A7355", bgSoft: "rgba(138,115,85,0.14)" },
+  { bg: "#4F8181", bgSoft: "rgba(79,129,129,0.12)" },
+  { bg: "#798D6F", bgSoft: "rgba(121,141,111,0.12)" },
+  { bg: "#988FC1", bgSoft: "rgba(152,143,193,0.12)" },
+  { bg: "#B18D50", bgSoft: "rgba(177,141,80,0.12)" },
+  { bg: "#66919F", bgSoft: "rgba(102,145,159,0.12)" },
+  { bg: "#AA7996", bgSoft: "rgba(170,121,150,0.12)" },
+  { bg: "#7D86B5", bgSoft: "rgba(125,134,181,0.12)" },
+  { bg: "#8A7B67", bgSoft: "rgba(138,123,103,0.12)" },
 ];
 const colorForSubject = (name, subjects) => {
   // Position-ভিত্তিক index ব্যবহার করলে subject ডিলিট/reorder হলে বা derivedSubjects-এর
@@ -8477,42 +8479,40 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
             boxShadow: isActiveTimer ? "none" : "0 2px 8px rgba(0,0,0,0.04)",
             transition:"background .15s ease, border-color .15s ease",
           }}>
-            <button onClick={onToggle ? ()=>onToggle(item.id) : undefined} disabled={!onToggle}
-              style={{width:30,height:30, borderRadius:"50%", border:"none", flexShrink:0, cursor: onToggle?"pointer":"default", background: item.done ? "#6E8B5E" : c.bgSoft, display:"flex",alignItems:"center",justifyContent:"center", transition:"background-color .2s ease"}}>
-              {item.done ? <span key={`done-${item.id}`} className="fg-check-pop" style={{display:"flex"}}><Check size={16} color="#fff" strokeWidth={3}/></span> : <span style={{width:9,height:9,borderRadius:"50%", background:c.bg}}/>}
+            <button onClick={onToggle ? ()=>onToggle(item.id) : undefined} disabled={!onToggle} title={item.done ? t.markUndone || t.done : t.markDone || t.done}
+              style={{width:18, alignSelf:"stretch", minHeight:36, borderRadius:0, border:"none", background:"transparent", flexShrink:0, cursor: onToggle?"pointer":"default", padding:0, display:"flex", alignItems:"stretch", justifyContent:"center"}}>
+              <span style={{width:6, borderRadius:6, background: item.done ? "#6E8B5E" : c.bg, transition:"background-color .2s ease", alignSelf:"stretch"}}/>
             </button>
             <div style={{flex:1, minWidth:0}}>
-              <span style={{display:"inline-block", fontSize:10, fontWeight:600, letterSpacing:ls(0.5), color:c.bg, background:c.bgSoft, borderRadius:8, padding:"2px 7px", marginBottom:3}}>{item.subject.toUpperCase()}</span>
-              <div style={{fontSize:14, fontWeight:500, wordBreak:"break-word", opacity: item.done ? 0.6 : 1}}>{item.topic}</div>
-            </div>
-            <div style={{textAlign:"right", flexShrink:0}}>
+              <span style={{display:"inline-block", fontSize:10, fontWeight:700, letterSpacing:ls(0.4), textTransform:"uppercase", color:c.bg, background:c.bgSoft, borderRadius:6, padding:"2px 7px", marginBottom:4, maxWidth:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{item.subject.toUpperCase()}</span>
+              <div style={{fontSize:15, fontWeight:700, wordBreak:"break-word", opacity: item.done ? 0.6 : 1, lineHeight:1.3, marginBottom:2}}>{item.topic}</div>
               {isActiveTimer ? (
-                <div className={timerRunning ? "fg-timer-running" : undefined} style={{fontSize:13, fontWeight:600, fontVariantNumeric:"tabular-nums", color:c.bg, whiteSpace:"nowrap"}}>
+                <div className={timerRunning ? "fg-timer-running" : undefined} style={{fontSize:12, fontWeight:600, fontVariantNumeric:"tabular-nums", color:c.bg, whiteSpace:"nowrap"}}>
                   <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num> <span style={{fontSize:10, fontWeight:500, opacity:0.85}}>{t.timeRemainingLabel}</span>
                 </div>
               ) : (
-                <div style={{fontSize:12, fontWeight:500, color:textMuted2, opacity:0.85}}>
+                <div style={{fontSize:12, fontWeight:500, color:textMuted2}}>
                   {item.time ? (() => {
                     const st = parseTime12(item.time);
                     const et = item.endTime ? parseTime12(item.endTime) : null;
-                    if (!st) return <span style={{fontSize:10}}>{t.noTimeSet}</span>;
+                    if (!st) return <span style={{fontSize:11}}>{t.noTimeSet}</span>;
                     const stPart = <><Num>{nf(st.h12)}</Num>:<Num>{nf(pad2(st.m))}</Num> <span style={{fontSize:10}}>{st.pm ? t.pmLabel : t.amLabel}</span></>;
                     if (!et) return stPart;
                     const etPart = <><Num>{nf(et.h12)}</Num>:<Num>{nf(pad2(et.m))}</Num> <span style={{fontSize:10}}>{et.pm ? t.pmLabel : t.amLabel}</span></>;
                     return <>{stPart}–{etPart}</>;
-                  })() : <span style={{fontSize:10}}>{t.noTimeSet}</span>}
+                  })() : <span style={{fontSize:11}}>{t.noTimeSet}</span>}
+                  {!isActiveTimer && item.duration > 0 && <span style={{opacity:0.7}}> · <Num>{nf(item.duration)}</Num> {t.minutes}</span>}
                 </div>
               )}
-              {!isActiveTimer && item.duration > 0 && <div style={{fontSize:11, fontWeight:500, color:textMuted2, opacity:0.6, marginTop:2}}><Num>{nf(item.duration)}</Num> {t.minutes}</div>}
             </div>
             {onStartTimer && !item.done && (
               isActiveTimer ? (
-                <button onClick={onToggleRun} title={timerRunning ? t.pause : t.start} style={{width:30,height:30, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: c.bg, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                  {timerRunning ? <Pause size={13} fill="#fff" color="#fff"/> : <Play size={13} fill="#fff" color="#fff"/>}
+                <button onClick={onToggleRun} title={timerRunning ? t.pause : t.start} style={{width:34,height:34, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: c.bg, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 3px 8px ${c.bg}59`}}>
+                  {timerRunning ? <Pause size={14} fill="#fff" color="#fff"/> : <Play size={14} fill="#fff" color="#fff"/>}
                 </button>
               ) : (
-                <button onClick={()=>onStartTimer(item.id, item.duration)} title={t.start} style={{width:30,height:30, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: c.bg, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                  <Play size={13} fill="#fff" color="#fff"/>
+                <button onClick={()=>onStartTimer(item.id, item.duration)} title={t.start} style={{width:34,height:34, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: c.bg, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 3px 8px ${c.bg}59`}}>
+                  <Play size={14} fill="#fff" color="#fff"/>
                 </button>
               )
             )}
