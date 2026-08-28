@@ -3698,10 +3698,14 @@ export default function FocusGo() {
     // করলে ক্লক ঘুরে যাবে (landscape/portrait দুটোতেই)। বন্ধ করলে আবার অ্যাপের normal portrait লক ফিরে আসে।
     if (Capacitor.isNativePlatform()) {
       if (focusFullscreen) {
-        ScreenOrientation.unlock().catch(() => {});
+        ScreenOrientation.unlock()
+          .then(() => { try { alert("DEBUG: orientation unlock OK"); } catch(e){} })
+          .catch((err) => { try { alert("DEBUG: orientation unlock FAILED — " + (err && (err.message || JSON.stringify(err)))); } catch(e){} });
       } else {
         ScreenOrientation.lock({ orientation: "portrait" }).catch(() => {});
       }
+    } else if (focusFullscreen) {
+      try { alert("DEBUG: Capacitor.isNativePlatform() = false (তাহলে এটা নেটিভ APK না, ওয়েব হিসেবে ধরা হচ্ছে)"); } catch(e){}
     }
     const el = document.documentElement;
     if (focusFullscreen) {
@@ -5050,7 +5054,9 @@ export default function FocusGo() {
       // default (হালকা) রঙ দেখা যেতে পারে। Focus টাইমার ফুলস্ক্রিন (immersive) মোডে তাই status bar
       // রঙ বদলানোর বদলে সরাসরি হাইড করে দেওয়া হচ্ছে — ফলাফল: উপর-নিচ সবটাই পুরোপুরি কালো।
       if (focusFullscreen) {
-        StatusBar.hide().catch(()=>{});
+        StatusBar.hide()
+          .then(() => { try { alert("DEBUG: StatusBar.hide() OK"); } catch(e){} })
+          .catch((err) => { try { alert("DEBUG: StatusBar.hide() FAILED — " + (err && (err.message || JSON.stringify(err)))); } catch(e){} });
       } else {
         StatusBar.show().catch(()=>{});
         StatusBar.setBackgroundColor({ color: themeColor }).catch(()=>{});
@@ -5062,7 +5068,7 @@ export default function FocusGo() {
       if (Capacitor.isNativePlatform()) {
         NavigationBar.setNavigationBarColor({ color: themeColor, darkButtons: !dark }).catch(()=>{});
       }
-    } catch (e) { /* ignore */ }
+    } catch (e) { try { alert("DEBUG: status-bar effect crashed — " + (e && (e.message || JSON.stringify(e)))); } catch(e2){} }
   }, [dark, bg, focusFullscreen]);
 
   // Native app খুললে notification permission চাওয়া হবে (একবারই) —
