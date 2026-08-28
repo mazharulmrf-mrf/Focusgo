@@ -218,13 +218,13 @@ function useWhiteNoise(soundId, volume, active) {
 function OnboardingScreen({ lang, dark, cardBg, textMain, textMuted2, accent, onDone }) {
   const [step, setStep] = useState(0);
   const isBn = lang === "bn";
-  const bg = dark ? "#17151C" : "#F7F6FA";
+  const bg = dark ? "#14121A" : "#F7F6FA";
   const border = dark ? "#2C2B33" : "#E7E5ED";
 
   const slides = [
     {
       Icon: Clock,
-      ring: dark ? "#EDECF2" : "#1A1814",
+      ring: dark ? "#F3F1F8" : "#1A1814",
       title: isBn ? "পড়ার সময় ট্র্যাক করুন" : "Track your study time",
       body: isBn
         ? "বিষয় অনুযায়ী টাইমার চালিয়ে প্রতিদিন কতক্ষণ পড়লেন তা সহজেই দেখুন।"
@@ -875,7 +875,7 @@ function SettingsDropdown({ value, options, onChange, dark, cardBorder, textMain
     <div style={{position:"relative"}}>
       <button type="button" onClick={()=>setOpen(o=>!o)} style={{
         display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, width:"100%",
-        border:`1px solid ${cardBorder}`, background: dark?"#17151C":"#F8F5EE", color:textMain,
+        border:`1px solid ${cardBorder}`, background: dark?"#14121A":"#F8F5EE", color:textMain,
         borderRadius:10, padding:"10px 12px", fontSize:13, fontWeight:700, cursor:"pointer"
       }}>
         <span>{current ? current.label : ""}</span>
@@ -884,7 +884,7 @@ function SettingsDropdown({ value, options, onChange, dark, cardBorder, textMain
       {open && (
         <>
           <div style={{position:"fixed", inset:0, zIndex:59}} onClick={()=>setOpen(false)}/>
-          <div style={{position:"absolute", top:"calc(100% + 6px)", left:0, right:0, background: dark?"#201F26":"#FFFFFF", border:`1px solid ${cardBorder}`, borderRadius:12, boxShadow:"0 8px 24px rgba(0,0,0,0.25)", zIndex:60, maxHeight:220, overflowY:"auto", padding:6}}>
+          <div style={{position:"absolute", top:"calc(100% + 6px)", left:0, right:0, background: dark?"#1E1B26":"#FFFFFF", border:`1px solid ${cardBorder}`, borderRadius:12, boxShadow:"0 8px 24px rgba(0,0,0,0.25)", zIndex:60, maxHeight:220, overflowY:"auto", padding:6}}>
             {options.map(o => {
               const selected = o.value === value;
               return (
@@ -1029,7 +1029,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
   const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:`1px solid ${cardBorder}` };
   const labelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14, fontWeight:700, color:textMain };
-  const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#ADA9BB" : "#6E6B7A" };
+  const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#B0ABC2" : "#6E6B7A" };
   // pill বাটন — নির্বাচিত হলে accent রঙে ভরাট থাকবে; Appearance সেকশনে (থিম ও অ্যাকসেন্ট) সরাসরি ইনলাইন ব্যবহার হয়
   const pillBase = { border:"1px solid transparent", borderRadius:999, padding:"9px 16px", fontSize:13.5, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" };
   // "System" সবার আগে দেখানো হয় — ডিভাইসের prefers-color-scheme অনুযায়ী লাইভ light/dark
@@ -1127,7 +1127,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
       {/* Language */}
       <div style={rowStyle}>
         <div style={labelStyle}><span style={iconWrapStyle}><span style={{fontSize:13, fontWeight:800}}>{lang==="bn"?"বাং":"EN"}</span></span>{t.language}</div>
-        <button onClick={()=>setLang(l=>l==="bn"?"en":"bn")} style={{border:`1px solid ${cardBorder}`, background: dark?"#17151C":"#F8F5EE", color:textMain, borderRadius:10, padding:"7px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+        <button onClick={()=>setLang(l=>l==="bn"?"en":"bn")} style={{border:`1px solid ${cardBorder}`, background: dark?"#14121A":"#F8F5EE", color:textMain, borderRadius:10, padding:"7px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
           {lang==="bn" ? "English" : "বাংলা"}
         </button>
       </div>
@@ -1150,7 +1150,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                 ...pillBase,
                 display:"flex", alignItems:"center", gap:7,
                 border: `1px solid ${selected ? accent : cardBorder}`,
-                background: selected ? accent : (dark?"#17151C":"#F8F5EE"),
+                background: selected ? accent : (dark?"#14121A":"#F8F5EE"),
                 color: selected ? "#fff" : textMain,
               }}>
                 {isSystem ? (
@@ -1312,7 +1312,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
     // ---- মিনিমাল, মনোক্রোম আইকন র‍্যাপ — গ্রিডের বদলে এখন সব প্রেফারেন্স এক লিস্টে, রঙের ভ্যারাইটি বাদ দিয়ে একটাই নিউট্রাল টোন ----
     const neutralIconBg = dark ? "#242229" : "#F0EEF5";
-    const neutralIconColor = dark ? "#ADA9BB" : "#6E6B7A";
+    const neutralIconColor = dark ? "#B0ABC2" : "#6E6B7A";
 
     // ---- এক লাইনের সেটিংস রো — আইকন, টাইটেল, সাবটাইটেল, ডান পাশে হয় শেভরন নাহয় কাস্টম কন্টেন্ট ----
     // expandKey দেওয়া থাকলে ক্লিক করলে accordion হিসেবে নিচে children খোলে; নাহলে onClick/href দিয়ে সরাসরি অ্যাকশন
@@ -1366,11 +1366,11 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             ...groupCardStyle, padding:"12px 14px", width:"100%", display:"flex", alignItems:"center", gap:14,
             marginBottom:20, cursor:"pointer", textAlign:"left",
           }}>
-          <span style={{width:44, height:44, borderRadius:"50%", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden"}}>
+          <span style={{width:44, height:44, borderRadius:"50%", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden"}}>
             {user && user.photoURL ? (
               <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
             ) : (
-              <User size={18} color={dark ? "#ADA9BB" : "#6E6B7A"}/>
+              <User size={18} color={dark ? "#B0ABC2" : "#6E6B7A"}/>
             )}
           </span>
           <div style={{flex:1, minWidth:0}}>
@@ -1392,7 +1392,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                   <button key={key} onClick={()=>{vibrate(); setThemeMode(key);}} style={{
                     ...pillBase, display:"flex", alignItems:"center", gap:7,
                     border:`1px solid ${selected ? accent : cardBorder}`,
-                    background: selected ? accent : (dark?"#17151C":"#F8F5EE"),
+                    background: selected ? accent : (dark?"#14121A":"#F8F5EE"),
                     color: selected ? "#fff" : textMain,
                   }}>
                     {isSystem ? <Contrast size={14} style={{flexShrink:0}}/> : <span style={{width:12, height:12, borderRadius:"50%", background:themeFor(key).cardBg, border:`1px solid ${selected ? "rgba(255,255,255,0.6)" : cardBorder}`, flexShrink:0}}/>}
@@ -1405,7 +1405,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
           <Row Icon={Globe} title={t.language} subtitle={lang === "bn" ? "বাংলা" : "English"}
             right={<span style={{display:"flex", alignItems:"center", gap:6}}>
-              <span onClick={(e)=>{e.stopPropagation(); vibrate(); setLang(l=>l==="bn"?"en":"bn");}} style={{border:`1px solid ${cardBorder}`, background: dark?"#17151C":"#fff", color:textMain, borderRadius:999, padding:"4px 10px", fontSize:11.5, fontWeight:800}}>
+              <span onClick={(e)=>{e.stopPropagation(); vibrate(); setLang(l=>l==="bn"?"en":"bn");}} style={{border:`1px solid ${cardBorder}`, background: dark?"#14121A":"#fff", color:textMain, borderRadius:999, padding:"4px 10px", fontSize:11.5, fontWeight:800}}>
                 {lang==="bn" ? "বাং" : "EN"}
               </span>
             </span>}
@@ -1582,8 +1582,8 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
             <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
           </div>
           <div style={{display:"flex", alignItems:"center", gap:16, marginBottom:16}}>
-            <div style={{width:56, height:56, borderRadius:"50%", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-              <User size={24} color={dark ? "#ADA9BB" : "#6E6B7A"}/>
+            <div style={{width:56, height:56, borderRadius:"50%", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+              <User size={24} color={dark ? "#B0ABC2" : "#6E6B7A"}/>
             </div>
             <div style={{fontSize:14, fontWeight:800}}>{gL.title}</div>
           </div>
@@ -1669,11 +1669,11 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
     photoUploadErr: isBn ? "ছবি আপলোড করা যায়নি, আবার চেষ্টা করুন।" : "Couldn't upload the photo — please try again.",
   };
 
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const labelStyle = { fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6 };
   const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:`1px solid ${cardBorder}`, cursor:"pointer" };
   const menuLabelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14, fontWeight:700, color:textMain };
-  const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#ADA9BB" : "#6E6B7A" };
+  const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#B0ABC2" : "#6E6B7A" };
 
   const emailChanged = email.trim() !== (user.email || "");
 
@@ -1803,15 +1803,15 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
   };
 
   const AvatarCircle = ({ size }) => (
-    <div style={{width:size, height:size, borderRadius:"50%", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", flexShrink:0}}>
+    <div style={{width:size, height:size, borderRadius:"50%", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", flexShrink:0}}>
       {user.photoURL ? (
         <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
       ) : user.gender === "female" ? (
-        <Venus size={Math.round(size*0.43)} color={dark ? "#ADA9BB" : "#6E6B7A"}/>
+        <Venus size={Math.round(size*0.43)} color={dark ? "#B0ABC2" : "#6E6B7A"}/>
       ) : user.gender === "male" ? (
-        <Mars size={Math.round(size*0.43)} color={dark ? "#ADA9BB" : "#6E6B7A"}/>
+        <Mars size={Math.round(size*0.43)} color={dark ? "#B0ABC2" : "#6E6B7A"}/>
       ) : (
-        <User size={Math.round(size*0.43)} color={dark ? "#ADA9BB" : "#6E6B7A"}/>
+        <User size={Math.round(size*0.43)} color={dark ? "#B0ABC2" : "#6E6B7A"}/>
       )}
     </div>
   );
@@ -2825,7 +2825,7 @@ function shadeColor(hex, percent) {
 // Dark ও Graphite এই দুইটা "dark" গ্রুপে, বাকি তিনটা "light" গ্রুপে পড়ে।
 const THEME_PALETTES = {
   light:    { key:"light",    labelBn:"লাইট",     labelEn:"Light",    dark:false, bg:"#F7F6FA", cardBg:"#FFFFFF", cardBorder:"#E7E5ED", textMain:"#262433", textMuted2:"#79768A", subtleBg:"#F8F5EE" },
-  dark:     { key:"dark",     labelBn:"ডার্ক",     labelEn:"Dark",     dark:true,  bg:"#17151C", cardBg:"#201F26", cardBorder:"#3A3944", textMain:"#EDECF2", textMuted2:"#A6A3B3", subtleBg:"#17151C" },
+  dark:     { key:"dark",     labelBn:"ডার্ক",     labelEn:"Dark",     dark:true,  bg:"#14121A", cardBg:"#1E1B26", cardBorder:"#332E40", textMain:"#F3F1F8", textMuted2:"#9B96AC", subtleBg:"#19161F" },
   ivory:    { key:"ivory",    labelBn:"আইভরি",    labelEn:"Ivory",    dark:false, bg:"#FBF6EA", cardBg:"#FFFDF7", cardBorder:"#EDE6D6", textMain:"#2E2A22", textMuted2:"#8A8270", subtleBg:"#FAF3E4" },
   graphite: { key:"graphite", labelBn:"গ্র্যাফাইট", labelEn:"Graphite", dark:true,  bg:"#1D1E22", cardBg:"#24262B", cardBorder:"#34363C", textMain:"#ECEDEF", textMuted2:"#A0A3AA", subtleBg:"#1A1B1F" },
   mist:     { key:"mist",     labelBn:"মিস্ট",     labelEn:"Mist",     dark:false, bg:"#EFF4F6", cardBg:"#F5F8FA", cardBorder:"#DCE4E8", textMain:"#26333A", textMuted2:"#74858D", subtleBg:"#EDF3F5" },
@@ -2852,7 +2852,7 @@ function RecentTopicChips({ topics, onPick, accent, cardBorder, textMuted2, dark
           title={topic}
           style={{
             border: `1px solid ${cardBorder}`,
-            background: dark ? "#17151C" : "#F8F5EE",
+            background: dark ? "#14121A" : "#F8F5EE",
             color: textMuted2,
             borderRadius:20,
             padding: "6px 12px",
@@ -4938,11 +4938,11 @@ export default function FocusGo() {
   const accent = accentHexFor(accentKey, dark);
   // "মিড টিল" সরিয়ে সেকেন্ডারি স্ট্যাটাস কালার হিসেবে থিম-অ্যাডাপ্টিভ "কালো" ব্যবহার হচ্ছে (dark থিমে অফ-হোয়াইট, light থিমে near-black) —
   // এক্সাম মার্কারে আগে থেকেই এই একই কনভেনশন ছিল, এখন Planned/Study/Timer হাইলাইটেও সেটাই মিলিয়ে নেওয়া হলো
-  const inkColor = dark ? "#EDECF2" : "#1A1814";
-  const inkA = (o) => dark ? `rgba(237,236,242,${o})` : `rgba(26,24,20,${o})`;
+  const inkColor = dark ? "#F3F1F8" : "#1A1814";
+  const inkA = (o) => dark ? `rgba(243,241,248,${o})` : `rgba(26,24,20,${o})`;
   const accentLight = dark ? `${accent}22` : `${accent}14`; // primary light — নির্বাচিত accent-এর হালকা tint, active/selected state-এর background-এ ব্যবহার হবে
   const neutralIconBg = dark ? "#242229" : "#F0EEF5"; // decorative icon/avatar background — purple নয়, neutral lavender-gray
-  const neutralIconColor = dark ? "#ADA9BB" : "#6E6B7A"; // decorative icon color — muted purple-gray
+  const neutralIconColor = dark ? "#B0ABC2" : "#6E6B7A"; // decorative icon color — muted purple-gray
 
   // ডেস্কটপ (≥1024px): বাম সাইডবার নেভিগেশন থাকবে, bottom dock হাইড হবে, আর content column
   // single-column-এই থাকবে কিন্তু zoom দিয়ে গোটা কনটেন্ট একসাথে বড় দেখানো হয় (অন্য অ্যাপগুলোর মতো)
@@ -5358,7 +5358,7 @@ export default function FocusGo() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:16, border:`1px solid ${dark ? cardBorder : `${accent}1A`}`, borderBottom:"none", background: dark ? cardBg : `${accent}0A`, borderRadius:"20px 20px 0 0", padding:"12px 18px 4px", boxSizing:"border-box", boxShadow: dark ? "none" : `0 6px 16px ${accent}0A`}}>
+        <div style={{marginTop:10, border:`1px solid ${dark ? cardBorder : `${accent}1A`}`, borderBottom:"none", background: dark ? cardBg : `${accent}0A`, borderRadius:"20px 20px 0 0", padding:"9px 16px 3px", boxSizing:"border-box", boxShadow: dark ? "none" : `0 6px 16px ${accent}0A`}}>
           <div style={{marginBottom:2}}>
             {(() => {
               const fullName = (user?.displayName || "").trim();
@@ -5392,7 +5392,7 @@ export default function FocusGo() {
               // সময়ভিত্তিক subtle gradient + icon — greeting card-টাকে আরেকটু জীবন্ত করতে
               const greetTheme = {
                 morning:   { grad: dark ? "rgba(224,168,58,0.10)" : "#E0A83A0F", Icon: Sun,  iconColor: "#E0A83A" },
-                noon:      { grad: dark ? "rgba(237,236,242,0.10)" : "#1A18140F", Icon: Sun,  iconColor: dark ? "#EDECF2" : "#1A1814" },
+                noon:      { grad: dark ? "rgba(237,236,242,0.10)" : "#1A18140F", Icon: Sun,  iconColor: dark ? "#F3F1F8" : "#1A1814" },
                 afternoon: { grad: `${accent}${dark ? "18" : "0F"}`, Icon: Sun,  iconColor: accent },
                 evening:   { grad: dark ? "rgba(155,107,158,0.11)" : "#9B6B9E0F", Icon: Moon, iconColor: "#9B6B9E" },
                 night:     { grad: dark ? "rgba(75,90,150,0.12)" : "#4B5A960F", Icon: Moon, iconColor: dark ? "#8FA0E0" : "#4B5A96" },
@@ -5416,7 +5416,7 @@ export default function FocusGo() {
                       </div>
                     </div>
                   </div>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:6, paddingBottom:8, borderBottom:`1px solid ${accent}25`, position:"relative"}} ref={salahMenuRef}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:4, paddingBottom:6, borderBottom:`1px solid ${accent}25`, position:"relative"}} ref={salahMenuRef}>
                     <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
                       <span style={{width:30, height:30, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
                         <CalendarDays size={20} color={accent} strokeWidth={2}/>
@@ -5622,7 +5622,7 @@ export default function FocusGo() {
         )}
 
         {tab === "study" && (
-          <div className="fg-tab-panel" style={{marginTop:18, marginBottom:-2}}>
+          <div className="fg-tab-panel" style={{marginTop:12, marginBottom:-2}}>
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}>
               <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
                 <div style={{width:44, height:44, borderRadius:14, background: dark ? `${accent}30` : `${accent}1c`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
@@ -5653,7 +5653,7 @@ export default function FocusGo() {
         {/* Focus timer - main home of Study tab (Study Plan sub-section only) — redesigned to match the two-column
             mockup: title/subtitle + controls on the left, a decorative progress ring with an hourglass on the right */}
         {tab === "study" && studySection === "plan" && (
-        <div className="fg-tab-panel" style={{marginTop:14, background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:22, padding:"16px 18px 16px", color:textMain, boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.20)" : `0 6px 16px ${accent}14`, position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:10, background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:22, padding:"13px 16px 13px", color:textMain, boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.20)" : `0 6px 16px ${accent}14`, position:"relative", overflow:"hidden"}}>
           <div style={{position:"absolute", top:-50, right:-50, width:130, height:130, borderRadius:"50%", background:`${accent}14`, pointerEvents:"none"}}/>
 
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", position:"relative", gap:8}}>
@@ -5708,7 +5708,7 @@ export default function FocusGo() {
             </div>
           </div>
 
-          <div style={{display:"flex", alignItems:"center", gap:16, marginTop:14, position:"relative"}}>
+          <div style={{display:"flex", alignItems:"center", gap:16, marginTop:11, position:"relative"}}>
             {/* LEFT column — digits, mode pill, and controls */}
             <div style={{flex:1, minWidth:0}}>
               {focusMode === "timer" ? (
@@ -5736,9 +5736,9 @@ export default function FocusGo() {
                   )}
 
                   {/* Mode pill (Pomodoro/Stopwatch) + Focus/Break inline switch */}
-                  <div style={{display:"flex", alignItems:"center", gap:8, marginTop:8, flexWrap:"wrap"}}>
+                  <div style={{display:"flex", alignItems:"center", gap:8, marginTop:6, flexWrap:"wrap"}}>
                     <button onClick={()=>{ if (timerRunning) return; vibrate(); setFocusMode("stopwatch"); }} disabled={timerRunning}
-                      style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#17151C":"#fff", color:textMain, borderRadius:999, padding:"6px 12px", fontSize:12, fontWeight:800, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
+                      style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#14121A":"#fff", color:textMain, borderRadius:999, padding:"6px 12px", fontSize:12, fontWeight:800, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
                       {t.timerMode} <ChevronDown size={12}/>
                     </button>
                     <button onClick={()=>changeSessionType(sessionType==="focus" ? "break" : "focus")} disabled={timerRunning} title={t.sessionTypeLabel} style={{
@@ -5750,7 +5750,7 @@ export default function FocusGo() {
                   </div>
 
                   {/* Start / Custom Time / Reset buttons */}
-                  <div style={{display:"flex", gap:7, marginTop:12}}>
+                  <div style={{display:"flex", gap:7, marginTop:9}}>
                     <button
                       onClick={toggleTimerRunning}
                       style={{display:"flex", alignItems:"center", justifyContent:"center", gap:6, flex:"1 1 auto", minWidth:0, background: accent, border:"none", borderRadius:14, padding:"11px 14px", color:"#fff", fontWeight:800, fontSize:13.5, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
@@ -5767,7 +5767,7 @@ export default function FocusGo() {
                   </div>
 
                   {/* Topic picker */}
-                  <div style={{marginTop:10}}>
+                  <div style={{marginTop:8}}>
                     {timerTopic ? (
                       !timerRunning ? (
                         <button onClick={()=>{ const next=!showTopicPicker; setShowTopicPicker(next); if (next) setFreeSessionTouched(false); }} style={{display:"inline-flex", alignItems:"center", gap:4, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, padding:0}}>
@@ -5812,7 +5812,7 @@ export default function FocusGo() {
                   </div>
 
                   {/* Pomodoro cycle progress: Session X/N + ●●○○○ */}
-                  <div style={{display:"flex", flexDirection:"column", gap:4, marginTop:10}}>
+                  <div style={{display:"flex", flexDirection:"column", gap:4, marginTop:8}}>
                     <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>
                       {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num>
                     </div>
@@ -5843,14 +5843,14 @@ export default function FocusGo() {
                     <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
                   </div>
 
-                  <div style={{display:"flex", alignItems:"center", gap:8, marginTop:8, flexWrap:"wrap"}}>
+                  <div style={{display:"flex", alignItems:"center", gap:8, marginTop:6, flexWrap:"wrap"}}>
                     <button onClick={()=>{ if (stopwatchRunning) return; vibrate(); setFocusMode("timer"); }} disabled={stopwatchRunning}
-                      style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#17151C":"#fff", color:textMain, borderRadius:999, padding:"6px 12px", fontSize:12, fontWeight:800, cursor: stopwatchRunning ? "default" : "pointer", opacity: stopwatchRunning ? 0.6 : 1}}>
+                      style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#14121A":"#fff", color:textMain, borderRadius:999, padding:"6px 12px", fontSize:12, fontWeight:800, cursor: stopwatchRunning ? "default" : "pointer", opacity: stopwatchRunning ? 0.6 : 1}}>
                       {t.stopwatchMode} <ChevronDown size={12}/>
                     </button>
                   </div>
 
-                  <div style={{display:"flex", gap:8, marginTop:12}}>
+                  <div style={{display:"flex", gap:8, marginTop:9}}>
                     <button
                       onClick={toggleStopwatchRunning}
                       style={{display:"flex", alignItems:"center", gap:7, background: accent, border:"none", borderRadius:14, padding:"11px 16px", color:"#fff", fontWeight:800, fontSize:13.5, cursor:"pointer", boxShadow:`0 8px 18px ${accent}59`, flexShrink:0}}>
@@ -5861,7 +5861,7 @@ export default function FocusGo() {
                     </button>
                   </div>
 
-                  <div style={{marginTop:10}}>
+                  <div style={{marginTop:8}}>
                     {!stopwatchRunning ? (
                       <button onClick={()=>setShowTopicPicker(v=>!v)} style={{display:"inline-flex", alignItems:"center", gap:4, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, padding:0}}>
                         {timerTopic ? `${timerTopic.subject} — ${timerTopic.topic}` : t.pickTopicForTimer}
@@ -5922,12 +5922,12 @@ export default function FocusGo() {
         )}
 
         {tab === "study" && (
-          <div className="fg-tab-panel" style={{marginTop:18, marginBottom:-2}}>
+          <div className="fg-tab-panel" style={{marginTop:12, marginBottom:-2}}>
             <div style={{display:"flex", gap:20, marginTop:0, borderBottom:`1px solid ${cardBorder}`}}>
-              <button onClick={()=>{vibrate(); setStudySection("plan");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 10px", fontSize:13.5, fontWeight:800, color: studySection==="plan" ? textMain : textMuted2, borderBottom: studySection==="plan" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
+              <button onClick={()=>{vibrate(); setStudySection("plan");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 8px", fontSize:13.5, fontWeight:800, color: studySection==="plan" ? textMain : textMuted2, borderBottom: studySection==="plan" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
                 {t.planViewStudy}
               </button>
-              <button onClick={()=>{vibrate(); setStudySection("stats");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 10px", fontSize:13.5, fontWeight:800, color: studySection==="stats" ? textMain : textMuted2, borderBottom: studySection==="stats" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
+              <button onClick={()=>{vibrate(); setStudySection("stats");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 8px", fontSize:13.5, fontWeight:800, color: studySection==="stats" ? textMain : textMuted2, borderBottom: studySection==="stats" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
                 {lang==="bn" ? "স্ট্যাটস" : "Stats"}
               </button>
             </div>
@@ -5944,7 +5944,7 @@ export default function FocusGo() {
             borderTop: tab === "today" ? "none" : `1px solid ${dark ? cardBorder : `${accent}1A`}`,
             background: dark ? cardBg : `${accent}0A`,
             borderRadius: tab === "today" ? "0 0 20px 20px" : 20,
-            padding: tab === "today" ? "10px 18px 14px" : "16px 18px",
+            padding: tab === "today" ? "8px 16px 10px" : "16px 18px",
             position:"relative", overflow:"hidden",
             boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.28)" : `0 6px 16px ${accent}0A`
           }}>
@@ -5981,8 +5981,8 @@ export default function FocusGo() {
             const cardPct = hasTasks ? Math.round((cardDone / cardTodayTasks.length) * 100) : 0;
             const cardLeft = cardTodayTasks.length - cardDone;
             return (
-              <div style={{marginTop:10, paddingTop:10, borderTop:`1px solid ${accent}25`}}>
-                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
+              <div style={{marginTop:8, paddingTop:8, borderTop:`1px solid ${accent}25`}}>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:5}}>
                   <div style={{fontSize:12.5, fontWeight:800, color:inkColor}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
                   <div style={{fontSize:10.5, fontWeight:700, color:inkA(0.75), whiteSpace:"nowrap"}}>
                     {!hasTasks ? (lang==="bn" ? "কোনো টাস্ক নেই" : "No tasks today") : cardLeft > 0 ? (lang==="bn" ? `${nf(cardDone)}/${nf(cardTodayTasks.length)} সম্পন্ন` : `${cardDone}/${cardTodayTasks.length} completed`) : t.taskAllDoneLabel}
@@ -6025,7 +6025,7 @@ export default function FocusGo() {
               role="button" tabIndex={0}
               style={{
                 display:"flex", flexWrap:"nowrap", alignItems:"center", width:"100%", boxSizing:"border-box",
-                marginTop:12, background:"#141118", color:"#fff", borderRadius:16, padding:"13px 15px",
+                marginTop:8, background:"#141118", color:"#fff", borderRadius:16, padding:"10px 13px",
                 cursor:"pointer", boxShadow:"0 6px 16px rgba(0,0,0,0.28)",
               }}
             >
@@ -6048,8 +6048,8 @@ export default function FocusGo() {
 
         {/* Today's study list - Today tab + Study tab (shown above Study Plan/Exam) */}
         {(tab === "today" || (tab === "study" && studySection === "plan")) && (
-        <div className="fg-tab-panel" style={{marginTop:19}}>
-          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
+        <div className="fg-tab-panel" style={{marginTop:12}}>
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
             <div style={{display:"flex", alignItems:"center", gap:8}}>
               <span style={{width:26, height:26, borderRadius:9, background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                 <GraduationCap size={14} color={accent} strokeWidth={2.2}/>
@@ -6073,15 +6073,15 @@ export default function FocusGo() {
 
         {/* Section spacer — separates Today's Study above from the Next-Days plan below, only in Study tab */}
         {tab === "study" && studySection === "plan" && (
-        <div className="fg-tab-panel" style={{marginTop:23}}/>
+        <div className="fg-tab-panel" style={{marginTop:14}}/>
         )}
 
         {/* Today's Tasks — after Today's Study */}
         {tab === "today" && (() => {
           const homeTodayTasks = tasks.filter(x => x.dueDate === todayKey);
           return (
-          <div className="fg-tab-panel" style={{marginTop:19}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+          <div className="fg-tab-panel" style={{marginTop:12}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
               <div style={{display:"flex", alignItems:"center", gap:8}}>
                 <span style={{width:26, height:26, borderRadius:9, background: inkA(dark ? 0.2 : 0.12), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                   <ListChecks size={14} color={inkColor} strokeWidth={2.2}/>
@@ -6110,9 +6110,9 @@ export default function FocusGo() {
                 </div>
               </div>
             ) : (
-              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              <div style={{display:"flex",flexDirection:"column",gap:6}}>
                 {homeTodayTasks.map(x => (
-                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:11,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"10px 13px",boxSizing:"border-box",boxShadow: dark ? "none" : "0 2px 8px rgba(0,0,0,0.04)"}}>
+                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:11,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"8px 13px",boxSizing:"border-box",boxShadow: dark ? "none" : "0 2px 8px rgba(0,0,0,0.04)"}}>
                     <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:23,height:23,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
                       {x.done && <Check size={13} color="#fff" strokeWidth={3}/>}
                     </button>
@@ -6168,8 +6168,8 @@ export default function FocusGo() {
 
         {/* STUDY planning section */}
         {tab === "study" && studySection === "plan" && (
-          <div key="plan" className="fg-tab-panel" style={{marginTop:20}}>
-            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8, marginBottom:14}}>
+          <div key="plan" className="fg-tab-panel" style={{marginTop:12}}>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8, marginBottom:10}}>
               <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>
                 {lang === "bn" ? `পরের ${nf(planRange)} দিন` : `Next ${nf(planRange)} Days`}
               </div>
@@ -6189,7 +6189,7 @@ export default function FocusGo() {
                 ))}
               </div>
             </div>
-            <div style={{display:"flex", gap:2, padding:"6px 0 4px",
+            <div style={{display:"flex", gap:2, padding:"5px 0 3px",
               overflowX: planRange > 7 ? "auto" : "visible", WebkitOverflowScrolling:"touch"}}>
               {planDays.map((d,i) => {
                 const dk = dateKey(d);
@@ -6200,14 +6200,14 @@ export default function FocusGo() {
                 const statusColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : inkColor);
                 return (
                   <div key={i} className="fg-card" onClick={()=>setPlanDate(d)} style={{textAlign:"center", cursor:"pointer", flex: planRange > 7 ? "0 0 40px" : 1, padding:"0 2px"}}>
-                    <div style={{fontSize:10, fontWeight:700, color: isSel ? accent : textMuted2, opacity: isSel ? 1 : 0.85, marginBottom:8, letterSpacing:0.3}}>{weekdayShort(d)}</div>
+                    <div style={{fontSize:10, fontWeight:700, color: isSel ? accent : textMuted2, opacity: isSel ? 1 : 0.85, marginBottom:6, letterSpacing:0.3}}>{weekdayShort(d)}</div>
                     <div style={{width:34,height:34, borderRadius:"50%", display:"flex",alignItems:"center",justifyContent:"center", margin:"0 auto", fontSize:13, fontWeight:800,
                       transition:"background .18s ease, color .18s ease, box-shadow .18s ease", boxShadow: isSel ? `0 0 0 1.5px ${accent}` : "none",
                       background:"transparent", color: isSel ? accent : textMain}}>
                       <Num>{nf(d.getDate())}</Num>
                     </div>
                     {/* status dot — same legend colors as Calendar (green completed / blue planned) */}
-                    <div style={{marginTop:8, display:"flex", justifyContent:"center"}}>
+                    <div style={{marginTop:6, display:"flex", justifyContent:"center"}}>
                       <span style={{width:6, height:6, borderRadius:"50%", background: statusColor, opacity: hasAny ? 1 : 0.3}}/>
                     </div>
                   </div>
@@ -6215,12 +6215,12 @@ export default function FocusGo() {
               })}
             </div>
             {planRange > 7 && (
-              <div style={{marginTop:8, fontSize:11, color:textMuted2, textAlign:"center", opacity:0.8}}>
+              <div style={{marginTop:6, fontSize:11, color:textMuted2, textAlign:"center", opacity:0.8}}>
                 {lang === "bn" ? "← স্ক্রল করে বাকি দিনগুলো দেখো →" : "← scroll to see more days →"}
               </div>
             )}
 
-            <div style={{marginTop:20, marginBottom:12, paddingBottom:12, borderBottom:`0.5px solid ${cardBorder}`}}>
+            <div style={{marginTop:14, marginBottom:9, paddingBottom:9, borderBottom:`0.5px solid ${cardBorder}`}}>
               <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8}}>
                 <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3}}>
                   {isPlanToday ? t.todaysStudy : <>{weekdayName(planDate)}, <Num>{nf(planDate.getDate())}</Num> {monthName(planDate.getMonth())}</>}
@@ -6233,7 +6233,7 @@ export default function FocusGo() {
                 const totalMin = planTopics.reduce((sum,x)=>sum+(x.duration||0), 0);
                 const h = Math.floor(totalMin/60), m = totalMin%60;
                 return (
-                  <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, marginTop:6}}>
+                  <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, marginTop:4}}>
                     {t.totalPlannedLabel}: <span style={{color:textMain, fontWeight:800}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</span>
                   </div>
                 );
@@ -6396,7 +6396,7 @@ export default function FocusGo() {
                   <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m+1,1));}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", display:"flex", padding:4}}><ChevronRight size={18}/></button>
                 </div>
 
-                <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 12px", marginBottom:14}}>
+                <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 12px", marginBottom:10}}>
                   <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:8}}>
                     {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:11, fontWeight:700, color:textMuted2}}>{d}</div>))}
                   </div>
@@ -6441,7 +6441,7 @@ export default function FocusGo() {
                 </div>
 
                 {/* Calendar legend — Stats-এর ক্যালেন্ডার legend-এর মতোই একই স্টাইল */}
-                <div style={{display:"flex", justifyContent:"center", alignItems:"center", gap:16, marginBottom:18, flexWrap:"wrap"}}>
+                <div style={{display:"flex", justifyContent:"center", alignItems:"center", gap:16, marginBottom:12, flexWrap:"wrap"}}>
                   <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
                     <span style={{width:7,height:7,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
                   </span>
@@ -6453,21 +6453,21 @@ export default function FocusGo() {
                   </span>
                 </div>
 
-                <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:12}}>
+                <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:9}}>
                   {selectedKey === todayKey ? (lang==="bn" ? "আজ" : "Today") : <>{weekdayName(selectedDateObj)}, <Num>{nf(selectedDateObj.getDate())}</Num> {monthName(selectedDateObj.getMonth())}</>}
                 </div>
                 {dayTasks.length === 0 ? (
-                  <div style={{display:"flex", alignItems:"center", gap:8, padding:"10px 0 20px", color:textMuted2, fontSize:12.5, marginBottom: noDateTasks.length ? 8 : 0}}>
+                  <div style={{display:"flex", alignItems:"center", gap:8, padding:"8px 0 14px", color:textMuted2, fontSize:12.5, marginBottom: noDateTasks.length ? 8 : 0}}>
                     <Check size={16} color={textMuted2} strokeWidth={2}/>
                     <span style={{fontWeight:500}}>{t.taskCalEmptyDay}</span>
                   </div>
                 ) : (
-                  <div style={{display:"flex", flexDirection:"column", gap:8, marginBottom: noDateTasks.length ? 18 : 0}}>{dayTasks.map(renderTask)}</div>
+                  <div style={{display:"flex", flexDirection:"column", gap:8, marginBottom: noDateTasks.length ? 12 : 0}}>{dayTasks.map(renderTask)}</div>
                 )}
 
                 {noDateTasks.length > 0 && (
                   <div>
-                    <div style={{fontSize:11, fontWeight:800, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskCalNoDateTasks}</div>
+                    <div style={{fontSize:11, fontWeight:800, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskCalNoDateTasks}</div>
                     <div style={{display:"flex", flexDirection:"column", gap:8}}>{noDateTasks.map(renderTask)}</div>
                   </div>
                 )}
@@ -6477,8 +6477,8 @@ export default function FocusGo() {
 
           return (
             <>
-            <div key="task" className="fg-tab-panel" style={{marginTop:14}}>
-              <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:18}}>
+            <div key="task" className="fg-tab-panel" style={{marginTop:10}}>
+              <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:12}}>
                 <div style={{width:44, height:44, borderRadius:14, background: dark ? `${accent}30` : `${accent}1c`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                   <ListChecks size={21} color={accent} strokeWidth={2.2}/>
                 </div>
@@ -6489,13 +6489,13 @@ export default function FocusGo() {
               </div>
 
               {/* List / Calendar ভিউ টগল — Study Plan/Stats-এর মতো একই underline-tab স্টাইল */}
-              <div style={{display:"flex", gap:24, marginBottom:14, borderBottom:`1px solid ${cardBorder}`}}>
+              <div style={{display:"flex", gap:24, marginBottom:10, borderBottom:`1px solid ${cardBorder}`}}>
                 {[["list", t.taskViewList, List], ["calendar", t.taskViewCalendar, CalendarRange]].map(([key,label,Icon]) => {
                   const active = taskViewMode === key;
                   return (
                     <button key={key} onClick={()=>{vibrate(); setTaskViewMode(key);}} style={{
                       display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", cursor:"pointer",
-                      padding:"0 0 10px", fontSize:14, fontWeight:800,
+                      padding:"0 0 8px", fontSize:14, fontWeight:800,
                       color: active ? textMain : textMuted2,
                       borderBottom: active ? `2px solid ${accent}` : "2px solid transparent",
                       marginBottom:-1, transition:"color .18s ease, border-color .18s ease",
@@ -6509,11 +6509,11 @@ export default function FocusGo() {
 
               {taskViewMode === "list" ? (
                 <>
-                  <div style={{position:"relative", marginBottom:14}}>
+                  <div style={{position:"relative", marginBottom:10}}>
                     <div className="fg-chip-row" style={{display:"flex", gap:6, overflowX:"auto", WebkitMaskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)", maskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)"}}>
                       {filterChips.map(([key,label,Icon,count]) => (
                         <button key={key} onClick={()=>{vibrate(); setTaskFilter(key);}} style={{
-                          display:"flex", alignItems:"center", gap:5, padding:"9px 14px", borderRadius:20, cursor:"pointer", flexShrink:0,
+                          display:"flex", alignItems:"center", gap:5, padding:"7px 13px", borderRadius:20, cursor:"pointer", flexShrink:0,
                           border:"none",
                           background: taskFilter===key ? accent : (dark ? "#232127" : "#EFEBE3"),
                           color: taskFilter===key ? "#fff" : textMain, fontWeight:800, fontSize:12.5, whiteSpace:"nowrap",
@@ -6529,7 +6529,7 @@ export default function FocusGo() {
                   </div>
 
                   {filteredTasks.length === 0 && (
-                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:14, padding:"46px 24px 34px"}}>
+                    <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", gap:10, padding:"34px 24px 26px"}}>
                       <div style={{position:"relative", width:78, height:78, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                         <div style={{position:"absolute", inset:0, borderRadius:"50%", background: dark ? "rgba(110,139,94,0.14)" : "rgba(110,139,94,0.11)"}}/>
                         <div style={{width:52, height:52, borderRadius:"50%", background: dark ? "rgba(110,139,94,0.22)" : "rgba(110,139,94,0.14)", border:`1px solid rgba(110,139,94,0.32)`, display:"flex", alignItems:"center", justifyContent:"center"}}>
@@ -6551,8 +6551,8 @@ export default function FocusGo() {
                     return (
                       <>
                         {todayBucket.length > 0 && (
-                          <div style={{marginBottom: (upcomingBucket.length || nodateBucket.length || doneTodayBucket.length) ? 22 : 0}}>
-                            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
+                          <div style={{marginBottom: (upcomingBucket.length || nodateBucket.length || doneTodayBucket.length) ? 16 : 0}}>
+                            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
                               <div style={{display:"flex", alignItems:"center", gap:7}}>
                                 <Sun size={15} color="#C08A2E" strokeWidth={2.3}/>
                                 <span style={{fontSize:15, fontWeight:800, color:textMain}}>{t.taskSectionToday}</span>
@@ -6565,20 +6565,20 @@ export default function FocusGo() {
                           </div>
                         )}
                         {upcomingBucket.length > 0 && (
-                          <div style={{marginBottom: (nodateBucket.length || doneTodayBucket.length) ? 22 : 0}}>
-                            <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionUpcoming}</div>
+                          <div style={{marginBottom: (nodateBucket.length || doneTodayBucket.length) ? 16 : 0}}>
+                            <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskSectionUpcoming}</div>
                             <div style={{display:"flex", flexDirection:"column", gap:8}}>{upcomingBucket.map(renderTask)}</div>
                           </div>
                         )}
                         {nodateBucket.length > 0 && (
-                          <div style={{marginBottom: doneTodayBucket.length ? 22 : 0}}>
-                            <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:9}}>{t.taskSectionNoDate}</div>
+                          <div style={{marginBottom: doneTodayBucket.length ? 16 : 0}}>
+                            <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskSectionNoDate}</div>
                             <div style={{display:"flex", flexDirection:"column", gap:8}}>{nodateBucket.map(renderTask)}</div>
                           </div>
                         )}
                         {doneTodayBucket.length > 0 && (
                           <div>
-                            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
+                            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
                               <div style={{display:"flex", alignItems:"center", gap:7}}>
                                 <span style={{width:20, height:20, borderRadius:"50%", background:"#6E8B5E", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                                   <Check size={12} color="#fff" strokeWidth={3}/>
@@ -6693,7 +6693,7 @@ export default function FocusGo() {
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginTop:6, marginBottom:16}}>
               <div style={{display:"flex", alignItems:"center", gap:10, minWidth:0}}>
                 <div style={{width:36,height:36, borderRadius:12, background: dark?"#242229":"#F0EEF5", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                  <GraduationCap size={18} color={dark ? "#ADA9BB" : "#6E6B7A"}/>
+                  <GraduationCap size={18} color={dark ? "#B0ABC2" : "#6E6B7A"}/>
                 </div>
                 <div style={{minWidth:0}}>
                   <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.2, color:textMain}}>{t.syllabusProgress}</div>
@@ -6849,7 +6849,7 @@ export default function FocusGo() {
                 <span style={{width:7,height:7,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
               </span>
               <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
-                <span style={{width:7,height:7,borderRadius:"50%", background: dark ? "#EDECF2" : "#1A1814"}}/>{t.calendarLegendExam}
+                <span style={{width:7,height:7,borderRadius:"50%", background: dark ? "#F3F1F8" : "#1A1814"}}/>{t.calendarLegendExam}
               </span>
               <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
                 <span style={{width:7,height:7,borderRadius:"50%", background:inkColor}}/>{t.calendarLegendPlanned}
@@ -7068,7 +7068,7 @@ export default function FocusGo() {
       {/* Undo toast — যেকোনো ডিলিটের পর কয়েক সেকেন্ড দেখা যায়, চাপলে আগের অবস্থায় ফিরে যায় */}
       {undoToast && (
         <div style={{position:"fixed", left:"50%", bottom:isDesktop?24:88, transform:"translateX(-50%)", zIndex:80,
-          background: dark?"#2C2B33":"#262433", color:"#EDECF2", borderRadius:12, padding:"11px 12px 11px 16px",
+          background: dark?"#2C2B33":"#262433", color:"#F3F1F8", borderRadius:12, padding:"11px 12px 11px 16px",
           display:"flex", alignItems:"center", gap:16, boxShadow:"0 5px 16px rgba(0,0,0,0.16)",
           maxWidth:"calc(100vw - 32px)", animation:"fg-fade-up .2s cubic-bezier(0.16,1,0.3,1)"}}>
           <span style={{fontSize:13, fontWeight:600, whiteSpace:"nowrap"}}>{undoToast.message}</span>
@@ -7099,7 +7099,7 @@ export default function FocusGo() {
       {/* Exit toast — "Today" ট্যাবে ব্যাক বাটন চাপলে দেখা যায়; ২ সেকেন্ডের মধ্যে আবার চাপলে অ্যাপ বন্ধ হবে */}
       {showExitToast && (
         <div style={{position:"fixed", left:"50%", bottom:isDesktop?24:88, transform:"translateX(-50%)", zIndex:80,
-          background: dark?"#2C2B33":"#262433", color:"#EDECF2", borderRadius:12, padding:"11px 16px",
+          background: dark?"#2C2B33":"#262433", color:"#F3F1F8", borderRadius:12, padding:"11px 16px",
           display:"flex", alignItems:"center", boxShadow:"0 5px 16px rgba(0,0,0,0.16)",
           maxWidth:"calc(100vw - 32px)", animation:"fg-fade-up .2s cubic-bezier(0.16,1,0.3,1)"}}>
           <span style={{fontSize:13, fontWeight:600, whiteSpace:"nowrap"}}>
@@ -7458,8 +7458,8 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
     setEditingAttemptId(null);
   };
 
-  const smallInput = { width:56, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none" };
-  const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none", flex:1 };
+  const smallInput = { width:56, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none" };
+  const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", flex:1 };
 
   return (
     <div className="fg-card" style={{background: completed ? (dark?"rgba(110,139,94,0.10)":"rgba(110,139,94,0.07)") : cardBg, border: completed ? `1px solid rgba(110,139,94,0.4)` : `1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px", transition:"background .2s ease, border-color .2s ease, transform .16s cubic-bezier(0.16,1,0.3,1), box-shadow .2s ease"}}>
@@ -7469,7 +7469,7 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
             <Folder size={14} style={{color:textMuted2, flexShrink:0}}/>
             <input autoFocus value={renameValue} onChange={e=>setRenameValue(e.target.value)}
               onKeyDown={e=>{ if (e.key==="Enter") submitRename(); if (e.key==="Escape") cancelRename(); }}
-              style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:13, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none"}}/>
+              style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:13, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none"}}/>
             <button onClick={submitRename} style={{border:"none", background:"transparent", cursor:"pointer", color:accent, flexShrink:0}}><Check size={16}/></button>
             <button onClick={cancelRename} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, flexShrink:0}}><X size={16}/></button>
           </div>
@@ -7497,7 +7497,7 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
       {attempts.length > 0 && (
         <div style={{display:"flex", gap:10, marginTop:8, paddingLeft:22, fontSize:12, color:textMuted2, fontWeight:600, flexWrap:"wrap"}}>
           <span><Num>{nf(attempts.length)}</Num> {t.attemptsLabel}</span>
-          {avgPct !== null && <span style={{color:(dark ? "#EDECF2" : "#1A1814"), fontWeight:700}}>{t.average} <Num>{nf(avgPct)}</Num>%</span>}
+          {avgPct !== null && <span style={{color:(dark ? "#F3F1F8" : "#1A1814"), fontWeight:700}}>{t.average} <Num>{nf(avgPct)}</Num>%</span>}
         </div>
       )}
 
@@ -7592,7 +7592,7 @@ function AddTopicInline({ t, accent, cardBorder, textMuted2, dark, onAdd }) {
     <div style={{display:"flex", alignItems:"center", gap:6, background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:12, padding:8, animation:"fg-fade-up .18s cubic-bezier(0.16,1,0.3,1)"}}>
       <input autoFocus value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>{if(e.key==="Enter") submit(); if(e.key==="Escape"){setAdding(false); setName("");}}}
         placeholder={t.topicNamePlaceholder}
-        style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"7px 10px", fontSize:13, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none"}}/>
+        style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"7px 10px", fontSize:13, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none"}}/>
       <button onClick={submit} style={{border:"none", borderRadius:8, width:30, height:30, background:accent, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, boxShadow:`0 3px 8px ${accent}40`}}>
         <Check size={15}/>
       </button>
@@ -7640,8 +7640,8 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
     setEditingAttemptId(null);
   };
 
-  const smallInput = { width:56, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none" };
-  const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none", flex:1 };
+  const smallInput = { width:56, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none" };
+  const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", flex:1 };
 
   return (
     <div className="fg-card" style={{background: hasAttempts ? (dark?"rgba(110,139,94,0.10)":"rgba(110,139,94,0.07)") : cardBg, border: hasAttempts ? `1px solid rgba(110,139,94,0.4)` : `1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px", transition:"background .2s ease, border-color .2s ease"}}>
@@ -7664,7 +7664,7 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
       {hasAttempts && (
         <div style={{display:"flex", gap:10, marginTop:8, paddingLeft:22, fontSize:12, color:textMuted2, fontWeight:600}}>
           <span><Num>{nf(attempts.length)}</Num> {t.attemptsLabel}</span>
-          {avgPct !== null && <span style={{color:(dark ? "#EDECF2" : "#1A1814"), fontWeight:700}}>{t.average} <Num>{nf(avgPct)}</Num>%</span>}
+          {avgPct !== null && <span style={{color:(dark ? "#F3F1F8" : "#1A1814"), fontWeight:700}}>{t.average} <Num>{nf(avgPct)}</Num>%</span>}
         </div>
       )}
 
@@ -7769,7 +7769,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
   const weekdayName = (d) => lang === "bn" ? WEEKDAYS_BN[d.getDay()] : WEEKDAYS_EN[d.getDay()];
   const typeLabel = (key) => { const o = EXAM_TYPE_OPTIONS.find(x => x.key === key); return o ? (lang === "bn" ? o.bn : o.en) : ""; };
 
-  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none", width:"100%", boxSizing:"border-box" };
+  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", width:"100%", boxSizing:"border-box" };
 
   const resetForm = () => { setSubject(""); setExamType(""); setDate(""); setStartTime(""); setEndTime(""); setEditingId(null); };
 
@@ -7891,7 +7891,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
                 <datalist id="fg-exam-subject-list">
                   {allSubjects.map(s => <option key={s} value={s}/>)}
                 </datalist>
-                <select value={examType} onChange={e=>setExamType(e.target.value)} style={{...inputStyle, color: examType ? (dark?"#EDECF2":"#262433") : textMuted2}}>
+                <select value={examType} onChange={e=>setExamType(e.target.value)} style={{...inputStyle, color: examType ? (dark?"#F3F1F8":"#262433") : textMuted2}}>
                   <option value="">{lang==="bn"?"টাইপ বাছাই করুন":"Select type"}</option>
                   {EXAM_TYPE_OPTIONS.map(o => <option key={o.key} value={o.key}>{lang==="bn"?o.bn:o.en}</option>)}
                 </select>
@@ -7921,7 +7921,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
             </div>
             <div style={{display:"flex", gap:8}}>
               <StatCard icon={Calendar} value={total} label={lang==="bn"?"মোট":"Total"} color={accent}/>
-              <StatCard icon={Clock} value={upcoming.length} label={lang==="bn"?"আসন্ন":"Upcoming"} color={(dark ? "#EDECF2" : "#1A1814")}/>
+              <StatCard icon={Clock} value={upcoming.length} label={lang==="bn"?"আসন্ন":"Upcoming"} color={(dark ? "#F3F1F8" : "#1A1814")}/>
               <StatCard icon={Check} value={completed.length} label={lang==="bn"?"সম্পন্ন":"Completed"} color="#6E8B5E"/>
               <StatCard icon={TrendingUp} value={missed.length} label={lang==="bn"?"মিস":"Missed"} color="#C0392B"/>
             </div>
@@ -7996,7 +7996,7 @@ function NextExamModal({ t, examSubjects, nextExam, onSave, onClose, cardBg, car
   const [date, setDate] = useState(nextExam?.date || "");
   const topicOptions = Object.keys(examSubjects[subject]?.topics || {});
 
-  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none", width:"100%" };
+  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", width:"100%" };
 
   const submit = () => {
     if (!subject || !date) return;
@@ -8047,7 +8047,7 @@ function CombinedExamEditorModal({ t, allSubjects, editingCombinedExam, onSave, 
   const [type, setType] = useState(editingCombinedExam?.type || "weekly");
   const [picked, setPicked] = useState(editingCombinedExam?.subjects || []);
 
-  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#17151C":"#F8F5EE", color: dark?"#EDECF2":"#262433", outline:"none", width:"100%" };
+  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#14121A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", width:"100%" };
   const typeOptions = [
     { k:"daily", label:t.typeDaily }, { k:"weekly", label:t.typeWeekly }, { k:"monthly", label:t.typeMonthly },
   ];
@@ -8147,7 +8147,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
       <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
         <div style={{display:"flex", alignItems:"center", gap:8}}>
           <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.monthlySummaryExam}</div>
-          <span style={{fontSize:10, fontWeight:800, letterSpacing:0.3, padding:"2px 7px", borderRadius:10, background: dark?"#242229":"#F0EEF5", color: dark?"#ADA9BB":"#6E6B7A", flexShrink:0}}>
+          <span style={{fontSize:10, fontWeight:800, letterSpacing:0.3, padding:"2px 7px", borderRadius:10, background: dark?"#242229":"#F0EEF5", color: dark?"#B0ABC2":"#6E6B7A", flexShrink:0}}>
             {t.planViewExam}
           </span>
         </div>
@@ -8175,7 +8175,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
             </div>
             <div style={statBox}>
               <div style={{fontSize:11, color:textMuted2, fontWeight:700, letterSpacing:ls(0.5)}}>{t.avgScoreLabel}</div>
-              <div style={{fontSize:24, fontWeight:800, marginTop:4, color:(dark ? "#EDECF2" : "#1A1814")}}><Num>{nf(avgScorePct)}</Num>%</div>
+              <div style={{fontSize:24, fontWeight:800, marginTop:4, color:(dark ? "#F3F1F8" : "#1A1814")}}><Num>{nf(avgScorePct)}</Num>%</div>
             </div>
             <div style={statBox}>
               <div style={{fontSize:11, color:textMuted2, fontWeight:700, letterSpacing:ls(0.5)}}>{t.maxScoreLabel}</div>
@@ -8186,7 +8186,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
           <div style={{marginTop:16}}>
             <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.subjectBreakdown}</div>
             <div style={{border:`1px solid ${cardBorder}`, borderRadius:16, overflow:"hidden"}}>
-              <div style={{display:"grid", gridTemplateColumns:"1.6fr 0.8fr 0.8fr 0.8fr", padding:"8px 12px", background: dark?"#17151C":"#F8F5EE", fontSize:11, fontWeight:700, color:textMuted2}}>
+              <div style={{display:"grid", gridTemplateColumns:"1.6fr 0.8fr 0.8fr 0.8fr", padding:"8px 12px", background: dark?"#14121A":"#F8F5EE", fontSize:11, fontWeight:700, color:textMuted2}}>
                 <span>{t.subjectLabel}</span><span style={{textAlign:"right"}}>{t.examsCol}</span><span style={{textAlign:"right"}}>{t.attemptsCol}</span><span style={{textAlign:"right"}}>{t.avgCol}</span>
               </div>
               {rows.map(([subj, d]) => {
@@ -8199,7 +8199,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
                     </span>
                     <span style={{textAlign:"right"}}><Num>{nf(d.topics.size)}</Num></span>
                     <span style={{textAlign:"right"}}><Num>{nf(d.attempts)}</Num></span>
-                    <span style={{textAlign:"right", color:(dark ? "#EDECF2" : "#1A1814"), fontWeight:700}}><Num>{nf(avg)}</Num>%</span>
+                    <span style={{textAlign:"right", color:(dark ? "#F3F1F8" : "#1A1814"), fontWeight:700}}><Num>{nf(avg)}</Num>%</span>
                   </div>
                 );
               })}
@@ -8214,7 +8214,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
 
 function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBorder, textMuted2, accent, dark, allSubjects, mode, crossWeekResolve }) {
   const ls = (px) => (lang === "bn" ? 0 : px);
-  const textMain = dark ? "#EDECF2" : "#262433";
+  const textMain = dark ? "#F3F1F8" : "#262433";
   // Subject-level catch-up: if a subject has any completed entry in this range,
   // its not-yet-done entries in the same range are treated as caught up too.
   const doneSubjects = new Set(entries.filter(e => e.done).map(e => e.subject));
@@ -8266,7 +8266,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
             <div style={{height:"100%", width:`${overallPct}%`, background:accent, borderRadius:4, transition:"width .3s"}}/>
           </div>
         </div>
-        <PercentRing pct={overallPct} accent={accent} trackColor={trackColor} textMain={dark?"#EDECF2":"#262433"} nf={nf}/>
+        <PercentRing pct={overallPct} accent={accent} trackColor={trackColor} textMain={dark?"#F3F1F8":"#262433"} nf={nf}/>
       </div>
 
       {mode === "duration" ? (
@@ -8456,7 +8456,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
     );
   }
   return (
-    <div style={{display:"flex", flexDirection:"column", gap:10}}>
+    <div style={{display:"flex", flexDirection:"column", gap:8}}>
       {items.map(item => {
         const c = colorForSubject(item.subject, allSubjects);
         const isActiveTimer = activeTimerId && activeTimerId === item.id;
@@ -8464,7 +8464,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
           <div key={item.id} style={{
             background: isActiveTimer ? `${c.bg}0F` : cardBg,
             border: `1px solid ${isActiveTimer ? c.bg : cardBorder}`,
-            borderRadius:16, padding:"10px 13px", display:"flex", alignItems:"center", gap:11, position:"relative",
+            borderRadius:16, padding:"9px 13px", display:"flex", alignItems:"center", gap:11, position:"relative",
             boxShadow: isActiveTimer ? "none" : "0 2px 8px rgba(0,0,0,0.04)",
             transition:"background .15s ease, border-color .15s ease",
           }}>
@@ -8562,7 +8562,7 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
   const [durationInput, setDurationInput] = useState(30);
   const [showSubjectPicker, setShowSubjectPicker] = useState(false); // সাবজেক্ট চিপ লিস্ট ডিফল্টে লুকানো থাকে (অনেকগুলো সাবজেক্ট থাকলে huge space নিত) — "Choose from list" চাপলেই খুলবে
   const [showTopicPicker, setShowTopicPicker] = useState(false); // টপিক চিপ লিস্টও এখন সাবজেক্টের মতোই ডিফল্টে লুকানো থাকে — "Choose from list" চাপলেই খুলবে
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const duration = useTime ? diffMinutes(startTime, endTime) : (useDuration ? (Number(durationInput) || 0) : 0);
   const canSubmit = subject.trim() && topic.trim();
   // Topic Bank quick-pick: not-yet-used topics first (still pending), then previously-used ones by recency —
@@ -8678,7 +8678,7 @@ function EditModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, item
   const [endTime, setEndTime] = useState(item.endTime || minutesToTime(timeToMinutes(item.time || "09:00") + (item.duration || 30)));
   const [useDuration, setUseDuration] = useState(!!item.duration);
   const [durationInput, setDurationInput] = useState(item.duration || 30);
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const duration = useTime ? diffMinutes(startTime, endTime) : (useDuration ? (Number(durationInput) || 0) : 0);
   const pickTopics = topicPickList(topicBank, entries, subject).filter(tp => tp !== item.topic);
   const submit = () => {
@@ -8759,7 +8759,7 @@ function SubjectsModal({ t, subjects, onAdd, onRemove, onRename, onClose, topicB
   const [editingSubject, setEditingSubject] = useState(null);
   const [editValue, setEditValue] = useState("");
   const [editError, setEditError] = useState("");
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const submit = () => {
     const v = name.trim();
     if (!v || subjects.includes(v)) return;
@@ -8838,7 +8838,7 @@ function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onR
   const [editingTopic, setEditingTopic] = useState(null);
   const [editValue, setEditValue] = useState("");
   const [editError, setEditError] = useState("");
-  const smallInput = { width:"100%", boxSizing:"border-box", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:10, padding:"8px 10px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit" };
+  const smallInput = { width:"100%", boxSizing:"border-box", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:10, padding:"8px 10px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit" };
   const addSingle = () => { const v = single.trim(); if (!v) return; onAddTopic(subject, v); setSingle(""); };
   const addBulk = () => { if (!bulkText.trim()) return; onAddTopicsBulk(subject, bulkText); setBulkText(""); setBulkOpen(false); };
   const startEdit = (tp) => { setEditingTopic(tp); setEditValue(tp); setEditError(""); };
@@ -8873,7 +8873,7 @@ function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onR
       <div style={{display:"flex", flexDirection:"column", gap:6}}>
         {topics.length === 0 && <div style={{fontSize:12, color:textMuted2, opacity:0.85}}>{t.noTopicsInSubject}</div>}
         {topics.map(tp => (
-          <div key={tp} style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:10, padding:"7px 10px"}}>
+          <div key={tp} style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:10, padding:"7px 10px"}}>
             {editingTopic === tp ? (
               <div style={{display:"flex", flexDirection:"column", gap:4, flex:1}}>
                 <div style={{display:"flex", gap:6, alignItems:"center"}}>
@@ -8906,7 +8906,7 @@ function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onR
 function ExamsModal({ t, nf, subjects, examSubjects, onAdd, onRemove, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const availableSubjects = subjects.filter(s => !examSubjects[s]);
   const [subject, setSubject] = useState(availableSubjects[0] || "");
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#17151C":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#14121A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const submit = () => {
     if (!subject) return;
     onAdd(subject);
@@ -8970,7 +8970,7 @@ function WeekDayStrip({ days, entries, selectedKey, onSelectDay, todayKey, weekd
         const list = entries[dk] || [];
         const hasAny = list.length > 0;
         const doneAll = hasAny && list.every(x=>x.done);
-        const dotColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : (dark ? "#EDECF2" : "#1A1814"));
+        const dotColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : (dark ? "#F3F1F8" : "#1A1814"));
         return (
           <button key={i} onClick={()=>onSelectDay(d)} style={{
             flex:"0 0 auto", width:56, display:"flex", flexDirection:"column", alignItems:"center", gap:6,
@@ -9051,11 +9051,11 @@ function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSe
                   background: isSelected ? accent : "transparent",
                   border: isToday && !isSelected ? `1px solid ${accent}` : "none",
                   color: isSelected ? "#fff" : textMain}}>
-                  {isExam && <span style={{position:"absolute", top:-2, right:-2, width:5, height:5, borderRadius:"50%", background: dark ? "#EDECF2" : "#1A1814"}}/>}
+                  {isExam && <span style={{position:"absolute", top:-2, right:-2, width:5, height:5, borderRadius:"50%", background: dark ? "#F3F1F8" : "#1A1814"}}/>}
                   {isHoliday && <span style={{position:"absolute", top:-2, left:-2, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
                   <Num>{nf(d.getDate())}</Num>
                 </div>
-                <span style={{width:4, height:4, borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : (dark ? "#EDECF2" : "#1A1814"))}}/>
+                <span style={{width:4, height:4, borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : (dark ? "#F3F1F8" : "#1A1814"))}}/>
               </button>
             );
           })}
@@ -9086,7 +9086,7 @@ function noteColorFor(category, allCategories) {
 const NOTE_BG_PALETTE = [
   { key: null,     bg: null,      bgDark: null,      labelBn: "ডিফল্ট", labelEn: "Default" },
   { key: "white",  bg: "#FFFFFF", bgDark: "#FFFFFF", labelBn: "সাদা",   labelEn: "White", ink: "#2C2B33", inkDark: "#2C2B33" },
-  { key: "black",  bg: "#1A1814", bgDark: "#1A1814", labelBn: "কালো",   labelEn: "Black", ink: "#EDECF2", inkDark: "#EDECF2" },
+  { key: "black",  bg: "#1A1814", bgDark: "#1A1814", labelBn: "কালো",   labelEn: "Black", ink: "#F3F1F8", inkDark: "#F3F1F8" },
   { key: "yellow", bg: "#FFF3B0", bgDark: "#3A331A", labelBn: "হলুদ",   labelEn: "Yellow" },
   { key: "orange", bg: "#FCE0C4", bgDark: "#3A2C1B", labelBn: "কমলা",   labelEn: "Orange" },
   { key: "pink",   bg: "#FBD9E5", bgDark: "#35232B", labelBn: "গোলাপি", labelEn: "Pink" },
@@ -9105,7 +9105,7 @@ function noteBgFor(colorKey, dark) {
 function noteTextFor(colorKey, dark) {
   const found = NOTE_BG_PALETTE.find(c => c.key === (colorKey || null)) || NOTE_BG_PALETTE[0];
   if (found.ink) return dark ? (found.inkDark || found.ink) : found.ink;
-  return dark ? "#EDECF2" : NOTE_PAPER_TEXT;
+  return dark ? "#F3F1F8" : NOTE_PAPER_TEXT;
 }
 
 // ---------- Notes: লেখার রঙ (টেক্সট কালার) — সিলেক্ট করা অংশে প্রয়োগ হয়, কিছু সাধারণ রঙ যথেষ্ট ----------
@@ -9888,7 +9888,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
   return (
     <>
-    <div className="fg-tab-panel" style={{ marginTop: 20, paddingBottom: 30 }} onClick={() => { openMenu && setOpenMenu(null); fabOpen && setFabOpen(false); categoryMenuFor && setCategoryMenuFor(null); showSortMenu && setShowSortMenu(false); showCatMenu && setShowCatMenu(false); }}>
+    <div className="fg-tab-panel" style={{ marginTop: 12, paddingBottom: 30 }} onClick={() => { openMenu && setOpenMenu(null); fabOpen && setFabOpen(false); categoryMenuFor && setCategoryMenuFor(null); showSortMenu && setShowSortMenu(false); showCatMenu && setShowCatMenu(false); }}>
       {/* Bold/Italic/Underline/H1/H2 রিচ টেক্সট স্টাইল — নোট এডিটর ও নোট কার্ড প্রিভিউ, দুই জায়গাতেই কাজ করার জন্য একবারই বসানো */}
       <style>{`
         .fg-note-body h1{font-size:1.5em;font-weight:800;margin:0.5em 0 0.25em;line-height:1.25;}
@@ -9902,15 +9902,15 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         .fg-hide-scrollbar::-webkit-scrollbar{display:none;}
         .fg-hide-scrollbar{scrollbar-width:none;}
       `}</style>
-      <div style={{ fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:12 }}>{t.notesTitle}</div>
+      <div style={{ fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:9 }}>{t.notesTitle}</div>
 
-      <div style={{fontSize:11, fontWeight:800, letterSpacing: lang==="bn"?0:0.6, color:textMuted2, opacity:0.75, marginBottom:10, textTransform:"uppercase"}}>
+      <div style={{fontSize:11, fontWeight:800, letterSpacing: lang==="bn"?0:0.6, color:textMuted2, opacity:0.75, marginBottom:8, textTransform:"uppercase"}}>
         {lang==="bn" ? "সব নোট" : "All Notes"}
       </div>
 
       {/* সার্চ রো — squircle আইকন বাটন, তারপর সবসময়-দৃশ্যমান সার্চ পিল, Grid/List টগল, আর সর্ট/তারিখ */}
-      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:11,position:"relative"}}>
-        <div onClick={e=>e.stopPropagation()} style={{flex:1,minWidth:0,display:"flex",alignItems:"center",gap:8,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:"9px 14px"}}>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:9,position:"relative"}}>
+        <div onClick={e=>e.stopPropagation()} style={{flex:1,minWidth:0,display:"flex",alignItems:"center",gap:8,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:"7px 14px"}}>
           <Search size={15} color={textMuted2} style={{flexShrink:0}}/>
           <input
             ref={searchRef}
@@ -9966,14 +9966,14 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
       {/* ক্যাটাগরি/ফোল্ডার চিপ — এখন সরাসরি স্ক্রল করা যায়, হ্যামবার্গার মেনুর ভেতর ঢুকতে হয় না।
           কোনো ক্যাটাগরি চিপ চেপে ধরে রাখলে (long-press) Rename/Delete মেনু দেখা যায়। */}
-      <div onClick={e=>e.stopPropagation()} style={{display:"flex",gap:7,overflowX:"auto",paddingBottom:4,marginBottom:14,WebkitOverflowScrolling:"touch", WebkitMaskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)", maskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)"}} className="fg-hide-scrollbar">
+      <div onClick={e=>e.stopPropagation()} style={{display:"flex",gap:7,overflowX:"auto",paddingBottom:4,marginBottom:10,WebkitOverflowScrolling:"touch", WebkitMaskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)", maskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)"}} className="fg-hide-scrollbar">
         {[
           {key:"All Notes", label: lang==="bn"?"সব নোট":"All Notes"},
           {key:"Pinned", label: lang==="bn"?"পিন":"Pinned", icon:<Pin size={11}/>},
           {key:"Trash", label: (lang==="bn"?"ট্র্যাশ":"Trash")+(trashCount>0?` (${nf(trashCount)})`:""), icon:<Trash2 size={11}/>},
         ].map(f => (
           <button key={f.key} onClick={()=>setActiveFolder(f.key)}
-            style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,border:`1px solid ${activeFolder===f.key?textMain:cardBorder}`,background:activeFolder===f.key?textMain:cardBg,color:activeFolder===f.key?(dark?"#17151C":"#fff"):textMain,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
+            style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,border:`1px solid ${activeFolder===f.key?textMain:cardBorder}`,background:activeFolder===f.key?textMain:cardBg,color:activeFolder===f.key?(dark?"#14121A":"#fff"):textMain,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
             {f.icon}{f.label}
           </button>
         ))}
@@ -9986,7 +9986,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               onClick={()=>{ if (justDraggedRef.current) return; setActiveFolder(cat); }}
               onMouseDown={()=>startCatPress(cat)} onMouseUp={cancelCatPress} onMouseLeave={cancelCatPress}
               onTouchStart={()=>startCatPress(cat)} onTouchEnd={cancelCatPress} onTouchMove={cancelCatPress}
-              style={{display:"flex",alignItems:"center",gap:6,border:`1px solid ${activeFolder===cat?textMain:cardBorder}`,background:activeFolder===cat?textMain:cardBg,color:activeFolder===cat?(dark?"#17151C":"#fff"):textMain,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
+              style={{display:"flex",alignItems:"center",gap:6,border:`1px solid ${activeFolder===cat?textMain:cardBorder}`,background:activeFolder===cat?textMain:cardBg,color:activeFolder===cat?(dark?"#14121A":"#fff"):textMain,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
               <span style={{width:7,height:7,borderRadius:"50%",background:chipCol.text,flexShrink:0}}/>
               {cat}
             </button>
@@ -10055,7 +10055,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                   const hasNotes = hasNoteKeys.has(dk);
                   return (
                     <button key={i} onClick={()=>{setFilterDate(d);setShowDatePicker(false);}}
-                      style={{position:"relative", aspectRatio:"1", border: isSelected ? `1.5px solid ${accent}` : isToday ? `1px solid ${accent}` : "1px solid transparent", borderRadius:10, background: isSelected ? (dark?"#2B281F":"#FFF4DF") : (dark?"#17151C":"#F8F5EE"), cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2, color:textMain}}>
+                      style={{position:"relative", aspectRatio:"1", border: isSelected ? `1.5px solid ${accent}` : isToday ? `1px solid ${accent}` : "1px solid transparent", borderRadius:10, background: isSelected ? (dark?"#2B281F":"#FFF4DF") : (dark?"#14121A":"#F8F5EE"), cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2, color:textMain}}>
                       <span style={{fontSize:12, fontWeight:600}}>{nf(d.getDate())}</span>
                       <span style={{width:4,height:4,borderRadius:"50%", background: hasNotes ? accent : "transparent"}}/>
                     </button>
@@ -10077,13 +10077,13 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       {filtered.length === 0 ? (
         <div style={{textAlign:"center",padding:"40px 20px",background:cardBg,border:`1px dashed ${cardBorder}`,borderRadius:16}}>
           <div style={{width:52,height:52,borderRadius:16,background:dark?"#242229":"#F0EEF5",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}>
-            {activeFolder === "Trash" ? <Trash2 size={23} color={dark?"#ADA9BB":"#6E6B7A"}/> : <FileText size={23} color={dark?"#ADA9BB":"#6E6B7A"}/>}
+            {activeFolder === "Trash" ? <Trash2 size={23} color={dark?"#B0ABC2":"#6E6B7A"}/> : <FileText size={23} color={dark?"#B0ABC2":"#6E6B7A"}/>}
           </div>
           <div style={{fontSize:14,fontWeight:800,color:textMain}}>{activeFolder === "Trash" ? (lang==="bn"?"ট্র্যাশ খালি":"Trash is empty") : t.notesEmpty}</div>
           <div style={{fontSize:12,color:textMuted2,marginTop:5}}>{activeFolder === "Trash" ? (lang==="bn"?"ডিলিট করা নোট এখানে দেখা যাবে।":"Deleted notes will show up here.") : (lang==="bn"?"নিচের + বাটনে ট্যাপ করে একটা নোট বা লিস্ট শুরু করুন।":"Tap the + button below to start a note or list.")}</div>
         </div>
       ) : (
-        <div style={ viewMode==="list" ? {display:"flex",flexDirection:"column",gap:8} : {display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:10} }>
+        <div style={ viewMode==="list" ? {display:"flex",flexDirection:"column",gap:7} : {display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:8} }>
           {filtered.map(note => {
             const isList = viewMode === "list";
             const col = noteColorFor(note.category || "General", categories);
@@ -10102,7 +10102,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               onPointerUp={handleCardPointerUp}
               onPointerCancel={handleCardPointerUp}
               className="fg-card"
-              style={{position:"relative",background:coverBg,border:isDropTarget?`2px dashed ${accent}`:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(33,29,24,0.06)"}`,borderRadius:"4px 14px 14px 14px",padding: isList ? "12px 14px 11px" : "14px 14px 12px",cursor:"pointer",display:"flex",flexDirection:"column",boxShadow:isDragging?"0 6px 16px rgba(0,0,0,.22)":"0 1px 2px rgba(33,29,24,.08)",opacity:isDragging?0.55:1,transform:isDragging?"scale(1.03)":"scale(1)",transition:"transform .12s, box-shadow .12s",touchAction:draggingId?"none":"pan-y",zIndex:isDragging?2:1}}
+              style={{position:"relative",background:coverBg,border:isDropTarget?`2px dashed ${accent}`:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(33,29,24,0.06)"}`,borderRadius:"4px 14px 14px 14px",padding: isList ? "10px 14px 9px" : "12px 14px 10px",cursor:"pointer",display:"flex",flexDirection:"column",boxShadow:isDragging?"0 6px 16px rgba(0,0,0,.22)":"0 1px 2px rgba(33,29,24,.08)",opacity:isDragging?0.55:1,transform:isDragging?"scale(1.03)":"scale(1)",transition:"transform .12s, box-shadow .12s",touchAction:draggingId?"none":"pan-y",zIndex:isDragging?2:1}}
             >
               {/* সিগনেচার এলিমেন্ট: ক্যাটাগরির রঙে ছোট্ট "ভাঁজ করা" ট্যাব — পুরো কার্ড রঙ না করে শুধু একটা কোণায় ইঙ্গিত */}
               <div style={{position:"absolute",top:-1,right:12,width:22,height:11,borderRadius:"0 0 4px 4px",background:col.text,opacity:dark?0.85:1}}/>
@@ -10804,11 +10804,11 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
             return (
               <button key={i} onClick={()=>onSelectDay(d)} disabled={future && !hasAny}
                 title={isHoliday ? holidayName(dk, lang) : undefined}
-                style={{position:"relative", aspectRatio:"1", border: isToday ? `1.5px solid ${accent}` : "1px solid transparent", borderRadius:10, background: dark?"#17151C":"#F8F5EE", cursor:(future&&!hasAny)?"default":"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4, opacity: (future&&!hasAny)?0.4:1}}>
-                {isExam && <span style={{position:"absolute", top:4, right:4, width:5, height:5, borderRadius:"50%", background: dark ? "#EDECF2" : "#1A1814"}}/>}
+                style={{position:"relative", aspectRatio:"1", border: isToday ? `1.5px solid ${accent}` : "1px solid transparent", borderRadius:10, background: dark?"#14121A":"#F8F5EE", cursor:(future&&!hasAny)?"default":"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4, opacity: (future&&!hasAny)?0.4:1}}>
+                {isExam && <span style={{position:"absolute", top:4, right:4, width:5, height:5, borderRadius:"50%", background: dark ? "#F3F1F8" : "#1A1814"}}/>}
                 {isHoliday && <span style={{position:"absolute", top:4, left:4, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
                 <span style={{fontSize:12, fontWeight:600, color:textMain}}><Num>{nf(d.getDate())}</Num></span>
-                <span style={{width:5,height:5,borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : (dark ? "#EDECF2" : "#1A1814"))}}/>
+                <span style={{width:5,height:5,borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : (dark ? "#F3F1F8" : "#1A1814"))}}/>
               </button>
             );
           })}
@@ -10819,10 +10819,10 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
             <span style={{width:6,height:6,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
           </span>
           <span style={{display:"flex", alignItems:"center", gap:4, fontSize:10, color:textMuted2, fontWeight:600}}>
-            <span style={{width:6,height:6,borderRadius:"50%", background: dark ? "#EDECF2" : "#1A1814"}}/>{t.calendarLegendExam}
+            <span style={{width:6,height:6,borderRadius:"50%", background: dark ? "#F3F1F8" : "#1A1814"}}/>{t.calendarLegendExam}
           </span>
           <span style={{display:"flex", alignItems:"center", gap:4, fontSize:10, color:textMuted2, fontWeight:600}}>
-            <span style={{width:6,height:6,borderRadius:"50%", background:(dark ? "#EDECF2" : "#1A1814")}}/>{t.calendarLegendPlanned}
+            <span style={{width:6,height:6,borderRadius:"50%", background:(dark ? "#F3F1F8" : "#1A1814")}}/>{t.calendarLegendPlanned}
           </span>
           <span style={{display:"flex", alignItems:"center", gap:4, fontSize:10, color:textMuted2, fontWeight:600}}>
             <span style={{width:6,height:6,borderRadius:"50%", background:"#C0392B"}}/>{t.calendarLegendHoliday}
@@ -10864,7 +10864,7 @@ function DayDetailModal({ t, lang, nf, weekdayName, monthName, day, entries, all
               </div>
             )}
             {focusedMin > 0 && (
-              <div style={{display:"flex", alignItems:"center", gap:8, fontSize:13, fontWeight:600, color:(dark ? "#EDECF2" : "#1A1814")}}>
+              <div style={{display:"flex", alignItems:"center", gap:8, fontSize:13, fontWeight:600, color:(dark ? "#F3F1F8" : "#1A1814")}}>
                 <Clock size={14}/><span>{fh > 0 && <><Num>{nf(fh)}</Num>h </>}<Num>{nf(fm)}</Num>m {t.dayFocusedLabel}</span>
               </div>
             )}
