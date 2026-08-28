@@ -5,6 +5,8 @@ import { NavigationBar } from "@capgo/capacitor-navigation-bar";
 import { Capacitor } from "@capacitor/core";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Geolocation } from "@capacitor/geolocation";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
+import { NativeSettings, AndroidSettings, IOSSettings } from "capacitor-native-settings";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert, BookOpen, Hourglass, Flag, Lightbulb, Cloud, UploadCloud, Globe, HelpCircle } from "lucide-react";
@@ -3148,6 +3150,19 @@ export default function FocusGo() {
   const [showSalahDropdown, setShowSalahDropdown] = useState(false);
   const [salahLocLoading, setSalahLocLoading] = useState(false);
   const [salahLocError, setSalahLocError] = useState("");
+  // পারমিশন একবার "Don't ask again" সহ ডিনাই হয়ে গেলে Android আর নিজে থেকে পারমিশন ডায়ালগ দেখায় না —
+  // requestPermissions() চুপচাপ denied-ই ফেরত দেয়। তখন ইউজারকে বারবার নিজে থেকে অ্যাপ ইনফো > পারমিশন-এ
+  // গিয়ে অন করতে হতো। এই flag true হলে UI-তে "Open Settings" বাটন দেখিয়ে সরাসরি সেই স্ক্রিনে নিয়ে যাওয়া হবে।
+  const [salahPermDenied, setSalahPermDenied] = useState(false);
+  const openLocationSettings = () => {
+    vibrate();
+    try {
+      NativeSettings.open({
+        optionAndroid: AndroidSettings.ApplicationDetails,
+        optionIOS: IOSSettings.App,
+      }).catch(() => {});
+    } catch (e) { /* প্লাগিন না থাকলে বা ওয়েবে চললে চুপচাপ ইগনোর */ }
+  };
   // কোন দিনে কোন সালাত আদায় করা হয়েছে তার হিসাব — প্রতিদিন আলাদা, তারিখ অনুযায়ী সেভ থাকে
   const [salahCompleted, setSalahCompleted] = useState(() => {
     try { return JSON.parse(window.localStorage.getItem("focusgo_salah_completed") || "{}"); } catch (e) { return {}; }
@@ -3677,10 +3692,22 @@ export default function FocusGo() {
   // থাকলেও শুধু এই ফুলস্ক্রিন ভিউ-তে ফোন ঘোরালে স্ক্রিন ঘুরে যাবে (ল্যান্ডস্কেপে ক্লক-ও
   // বড় হয়ে দেখাবে, কারণ ক্লকের সাইজ vw-ভিত্তিক)। বন্ধ করলে আবার স্বাভাবিক অবস্থায় ফিরে আসে।
   useEffect(() => {
+    // নেটিভ অ্যাপে (Capacitor) ব্রাউজারের Screen Orientation API-এর বদলে @capacitor/screen-orientation
+    // প্লাগিন ব্যবহার করা হচ্ছে — এটা সরাসরি Android Activity-র requestedOrientation সেট করে, তাই
+    // ফোনের সিস্টেম "Auto-rotate" টগল বন্ধ থাকলেও শুধু এই ফুলস্ক্রিন ফোকাস টাইমার স্ক্রিনে ফোন কাত
+    // করলে ক্লক ঘুরে যাবে (landscape/portrait দুটোতেই)। বন্ধ করলে আবার অ্যাপের normal portrait লক ফিরে আসে।
+    if (Capacitor.isNativePlatform()) {
+      if (focusFullscreen) {
+        ScreenOrientation.unlock().catch(() => {});
+      } else {
+        ScreenOrientation.lock({ orientation: "portrait" }).catch(() => {});
+      }
+    }
     const el = document.documentElement;
     if (focusFullscreen) {
       const reqFs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
       const lockOrientation = () => {
+        if (Capacitor.isNativePlatform()) return; // নেটিভে উপরের ScreenOrientation প্লাগিনই যথেষ্ট
         try {
           // Chrome (regular, non-installed tab)-এ lock("any") ব্যর্থ হয়ে fullscreen-এর
           // orientation ফ্রিজ করে রাখে, তাই Chrome-এর ক্ষেত্রে regular ট্যাবে এটা স্কিপ
@@ -4787,6 +4814,7 @@ export default function FocusGo() {
   const requestSalahLocation = async () => {
     setSalahLocLoading(true);
     setSalahLocError("");
+    setSalahPermDenied(false);
     const saveCoords = (lat, lng) => {
       const coords = { lat, lng };
       setSalahCoords(coords);
@@ -4806,7 +4834,10 @@ export default function FocusGo() {
           status = await Geolocation.requestPermissions();
         }
         if (status.location !== "granted" && status.coarseLocation !== "granted") {
-          setSalahLocError(lang === "bn" ? "লোকেশন পারমিশন পাওয়া যায়নি" : "Location permission denied");
+          // status.location === "denied" মানে ইউজার আগে একবার "Don't allow"/"বন্ধ" চেপেছে —
+          // Android এখন থেকে আর নিজে থেকে পারমিশন ডায়ালগ দেখাবে না, তাই সরাসরি Settings-এ পাঠাতে হবে
+          setSalahPermDenied(status.location === "denied" || status.coarseLocation === "denied");
+          setSalahLocError(lang === "bn" ? "লোকেশন পারমিশন পাওয়া যায়নি — নিচের বাটনে ট্যাপ করে সেটিংস থেকে অন করুন" : "Location permission denied — tap below to enable it from Settings");
           setSalahLocLoading(false);
           return;
         }
@@ -4825,6 +4856,9 @@ export default function FocusGo() {
         }
         if (pos) saveCoords(pos.coords.latitude, pos.coords.longitude);
         else setSalahLocError(salahErrMsg(lastErr));
+        // এখানে পৌঁছালে মানে permission granted-ই ছিল, শুধু GPS/timeout জাতীয় সমস্যা —
+        // এইজন্য Settings বাটন আর দেখানোর দরকার নেই
+        setSalahPermDenied(false);
       } catch (e) {
         setSalahLocError(salahErrMsg(e));
       } finally {
@@ -4839,6 +4873,7 @@ export default function FocusGo() {
         setSalahLocLoading(false);
       },
       (err) => {
+        setSalahPermDenied(err && err.code === 1); // 1 = PERMISSION_DENIED
         setSalahLocError(lang === "bn" ? "লোকেশন পারমিশন পাওয়া যায়নি" : "Location permission denied");
         setSalahLocLoading(false);
       },
@@ -5010,8 +5045,17 @@ export default function FocusGo() {
       // Native Android status bar (Capacitor) — app এর dark/light theme এর সাথে মিলিয়ে
       // status bar background আর icon color (dark/light) সেট করা হচ্ছে।
       // ওয়েবে (browser/Vercel) চললে এই কলগুলো চুপচাপ fail করবে, তাই .catch() দিয়ে ignore করা হলো।
-      StatusBar.setBackgroundColor({ color: themeColor }).catch(()=>{});
-      StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light }).catch(()=>{});
+      // Android 15 (targetSdk 35)+ এ এজ-টু-এজ বাধ্যতামূলক হওয়ায় setBackgroundColor অনেক সময় আর
+      // কাজ করে না — status bar এর জায়গায় নিচের কনটেন্ট transparent হয়ে দেখা যায়, তাতে system-এর
+      // default (হালকা) রঙ দেখা যেতে পারে। Focus টাইমার ফুলস্ক্রিন (immersive) মোডে তাই status bar
+      // রঙ বদলানোর বদলে সরাসরি হাইড করে দেওয়া হচ্ছে — ফলাফল: উপর-নিচ সবটাই পুরোপুরি কালো।
+      if (focusFullscreen) {
+        StatusBar.hide().catch(()=>{});
+      } else {
+        StatusBar.show().catch(()=>{});
+        StatusBar.setBackgroundColor({ color: themeColor }).catch(()=>{});
+        StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light }).catch(()=>{});
+      }
 
       // নিচের Android navigation bar (গেসচার বার) — এটা StatusBar প্লাগিনের আওতায় পড়ে না,
       // তাই আলাদাভাবে থিমের সাথে মিলিয়ে সেট করা হচ্ছে, যাতে নিচে কালো ফাঁকা অংশ না দেখায়।
@@ -5520,6 +5564,19 @@ export default function FocusGo() {
                           )}
                           {salahCoords && salahLocError && (
                             <div style={{marginTop:10, fontSize:12.5, color:"#C0392B", lineHeight:1.5}}>{salahLocError}</div>
+                          )}
+                          {/* পারমিশন permanently denied থাকলে সরাসরি অ্যাপের সিস্টেম সেটিংস স্ক্রিনে নিয়ে যাওয়ার বাটন —
+                              ইউজারকে নিজে থেকে অ্যাপ ইনফো > পারমিশন-এ গিয়ে খুঁজে বের করতে হবে না */}
+                          {salahPermDenied && Capacitor.isNativePlatform() && (
+                            <button
+                              onClick={openLocationSettings}
+                              style={{
+                                marginTop:10, width:"100%", border:"none", borderRadius:12, padding:"10px 0",
+                                background: accent, color:"#fff", fontWeight:700, fontSize:12.5, cursor:"pointer",
+                              }}
+                            >
+                              {lang === "bn" ? "সেটিংস থেকে লোকেশন অন করুন" : "Enable location in Settings"}
+                            </button>
                           )}
 
                           {salahCoords && salahTimes && (
