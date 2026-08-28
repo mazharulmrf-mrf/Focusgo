@@ -8,6 +8,7 @@ import { Geolocation } from "@capacitor/geolocation";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { NativeSettings, AndroidSettings, IOSSettings } from "capacitor-native-settings";
 import { LocalNotifications } from "@capacitor/local-notifications";
+import { SplashScreen } from "@capacitor/splash-screen";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert, BookOpen, Hourglass, Flag, Lightbulb, Cloud, UploadCloud, Globe, HelpCircle } from "lucide-react";
 
@@ -20,6 +21,16 @@ const Mars = ({ size = 18, color = "currentColor" }) => (
 const Venus = ({ size = 18, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="9" r="6"/><path d="M12 15v7"/><path d="M9 19h6"/>
+  </svg>
+);
+// সেটিংসে "সালাত টাইমার" রো-এর আইকন — Today ট্যাবের মসজিদ আইকনের সাথে সামঞ্জস্যপূর্ণ
+const MosqueIcon = ({ size = 16, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 20h18"/>
+    <path d="M5 20v-6.5c0-.9.7-1.5 1.5-1.5S8 12.6 8 13.5V20"/>
+    <path d="M9.2 20v-9c0-1.5 1.2-3 2.8-3s2.8 1.5 2.8 3v9"/>
+    <path d="M16.5 20v-6.5c0-.9.7-1.5 1.5-1.5s1.5.6 1.5 1.5V20"/>
+    <circle cx="12" cy="4.5" r="1.3"/>
   </svg>
 );
 import { auth, db, googleProvider } from "./firebase";
@@ -965,6 +976,7 @@ function SettingsRow({ Icon, title, subtitle, right, onClick, href, expandKey, c
 // ---------- Settings modal: Language, Theme, About Us ----------
 function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, setAccentKey, notificationsEnabled, setNotificationsEnabled,
   examNotifEnabled, setExamNotifEnabled, taskNotifEnabled, setTaskNotifEnabled, salahNotifEnabled, setSalahNotifEnabled, timerNotifEnabled, setTimerNotifEnabled,
+  salahFeatureEnabled, setSalahFeatureEnabled,
   focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes, weekStartDay, setWeekStartDay,
   onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage,
   user, isGuest, onOpenProfile, notes, tasks, subjects, setNotes, setTasks, setSubjects }) {
@@ -1467,6 +1479,11 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
               </div>
             )}
           </SettingsRow>
+
+          <SettingsRow {...rowCtx} Icon={MosqueIcon} title={isBn ? "সালাতের সময়" : "Salah Timer"}
+            subtitle={salahFeatureEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")}
+            right={<Toggle on={salahFeatureEnabled} onClick={()=>{vibrate(); setSalahFeatureEnabled(v=>!v);}}/>}
+            onClick={()=>{vibrate(); setSalahFeatureEnabled(v=>!v);}}/>
 
           <SettingsRow {...rowCtx} Icon={Bell} title={t.notifications} subtitle={notificationsEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")} expandKey="notifications">
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: notificationsEnabled ? 14 : 0}}>
@@ -3197,6 +3214,13 @@ export default function FocusGo() {
   const [salahCompleted, setSalahCompleted] = useState(() => {
     try { return JSON.parse(window.localStorage.getItem("focusgo_salah_completed") || "{}"); } catch (e) { return {}; }
   });
+  // সালাত টাইমার ফিচার (Today ট্যাবের মসজিদ আইকন + সময়সূচি) পুরোপুরি অন/অফ — সেটিংস থেকে নিয়ন্ত্রিত
+  const [salahFeatureEnabled, setSalahFeatureEnabled] = useState(() => {
+    try { return window.localStorage.getItem("focusgo_salah_feature_enabled") !== "0"; } catch (e) { return true; }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("focusgo_salah_feature_enabled", salahFeatureEnabled ? "1" : "0"); } catch (e) {}
+  }, [salahFeatureEnabled]);
   useEffect(() => {
     try { window.localStorage.setItem("focusgo_salah_completed", JSON.stringify(salahCompleted)); } catch (e) {}
   }, [salahCompleted]);
@@ -3897,6 +3921,25 @@ export default function FocusGo() {
     });
     return () => unsubscribe();
   }, []);
+
+  // Native (Android) splash screen — capacitor.config.json-এ SplashScreen.launchAutoHide:false
+  // সেট করা আছে, তাই এটা নিজে থেকে সরে না। authChecked সত্যি হওয়া মাত্রই (Firebase auth স্টেট
+  // জানা হয়ে গেলেই) এখানে হাইড করা হয় — এর ফলে বুটের সময় native splash + এই ফাইলের নিজস্ব
+  // "FocusGo" লোগো স্ক্রিন (নিচে "!authChecked" ব্লক), এই দুইটা আলাদা লোগো স্ক্রিন পরপর দেখানোর
+  // বদলে একটাই নিরবচ্ছিন্ন লোডিং অভিজ্ঞতা হয়। ব্রাউজারে বা প্লাগইন না থাকলে এই কল চুপচাপ ignore হয়।
+  // Safety-net: কোনো কারণে Firebase auth আটকে গেলে (bug/নেটওয়ার্ক সমস্যা) splash যেন চিরকাল
+  // আটকে না থেকে সর্বোচ্চ ২ সেকেন্ড পরই নিজে থেকে সরে যায়।
+  useEffect(() => {
+    let hidden = false;
+    const doHide = async () => {
+      if (hidden) return;
+      hidden = true;
+      try { await SplashScreen.hide(); } catch (e) {}
+    };
+    const failSafeTimer = setTimeout(doHide, 2000);
+    if (authChecked) { clearTimeout(failSafeTimer); doHide(); }
+    return () => clearTimeout(failSafeTimer);
+  }, [authChecked]);
 
   // গেস্ট মোডে কোনো Firestore লোড নেই। ইনস্টল করা "অ্যাপ" হিসেবে চললে আগের সেভ করা গেস্ট ডেটা (localStorage) থাকলে সেটা লোড করা হয়;
   // ব্রাউজার/ওয়েব ভার্সনে এই ডেটা কখনোই সেভ হয় না, তাই সবসময় ফাঁকা অবস্থা থেকে শুরু হবে।
@@ -5212,7 +5255,7 @@ export default function FocusGo() {
         }
         const newIds = [];
         const toSchedule = [];
-        if (notificationsEnabled && salahNotifEnabled && salahTimes) {
+        if (notificationsEnabled && salahNotifEnabled && salahFeatureEnabled && salahTimes) {
           salahTimes.forEach(w => {
             if (!w.start || w.start.getTime() <= Date.now()) return; // সময় চলে গেলে আর শিডিউল করার দরকার নেই
             const id = strToNotifId(`salah_${w.key}_${todayKey}`);
@@ -5231,7 +5274,7 @@ export default function FocusGo() {
         scheduledSalahNotifIdsRef.current = newIds;
       } catch (e) { /* নেটিভ প্লাগইন না থাকলে (যেমন ব্রাউজারে) চুপচাপ ইগনোর করা হয় */ }
     })();
-  }, [salahTimes, todayKey, lang, loaded, notificationsEnabled, salahNotifEnabled]);
+  }, [salahTimes, todayKey, lang, loaded, notificationsEnabled, salahNotifEnabled, salahFeatureEnabled]);
 
 
   // Firebase এখনো auth স্টেট জানায়নি — একটা ছোট লোডিং স্ক্রিন
@@ -5522,36 +5565,38 @@ export default function FocusGo() {
                           <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
                         </span>
                       </span>
-                      <button
-                        onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
-                        style={{
-                          width:30, height:30, borderRadius:"50%", flexShrink:0,
-                          background:"transparent", border:"none",
-                          display:"flex", alignItems:"center", justifyContent:"center",
-                          cursor:"pointer", padding:0, position:"relative",
-                          marginTop:-4,
-                        }}
-                        title={lang === "bn" ? "সালাতের সময়" : "Salah times"}
-                      >
-                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M3 20h18"/>
-                          <path d="M5 20v-6.5c0-.9.7-1.5 1.5-1.5S8 12.6 8 13.5V20"/>
-                          <path d="M9.2 20v-9c0-1.5 1.2-3 2.8-3s2.8 1.5 2.8 3v9"/>
-                          <path d="M16.5 20v-6.5c0-.9.7-1.5 1.5-1.5s1.5.6 1.5 1.5V20"/>
-                          <circle cx="12" cy="4.5" r="1.3"/>
-                        </svg>
-                        {salahCoords && (
-                          <span style={{
-                            position:"absolute", top:3, right:3,
-                            width:6, height:6, borderRadius:"50%",
-                            background:accent,
-                            border:`1.5px solid ${cardBg}`,
-                          }}/>
-                        )}
-                      </button>
+                      {salahFeatureEnabled && (
+                        <button
+                          onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
+                          style={{
+                            width:30, height:30, borderRadius:"50%", flexShrink:0,
+                            background:"transparent", border:"none",
+                            display:"flex", alignItems:"center", justifyContent:"center",
+                            cursor:"pointer", padding:0, position:"relative",
+                            marginTop:-4,
+                          }}
+                          title={lang === "bn" ? "সালাতের সময়" : "Salah times"}
+                        >
+                          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 20h18"/>
+                            <path d="M5 20v-6.5c0-.9.7-1.5 1.5-1.5S8 12.6 8 13.5V20"/>
+                            <path d="M9.2 20v-9c0-1.5 1.2-3 2.8-3s2.8 1.5 2.8 3v9"/>
+                            <path d="M16.5 20v-6.5c0-.9.7-1.5 1.5-1.5s1.5.6 1.5 1.5V20"/>
+                            <circle cx="12" cy="4.5" r="1.3"/>
+                          </svg>
+                          {salahCoords && (
+                            <span style={{
+                              position:"absolute", top:3, right:3,
+                              width:6, height:6, borderRadius:"50%",
+                              background:accent,
+                              border:`1.5px solid ${cardBg}`,
+                            }}/>
+                          )}
+                        </button>
+                      )}
                     </span>
 
-                    {showSalahDropdown && (
+                    {salahFeatureEnabled && showSalahDropdown && (
                       <div onClick={() => setShowSalahDropdown(false)} style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:70}}>
                         <div onClick={(e) => e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:"85vh", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"22px 22px 0 0", padding:"8px 16px 18px", color:textMain}}>
                           <div style={{width:32, height:3.5, borderRadius:4, background:cardBorder, margin:"2px auto 10px"}}/>
@@ -6698,6 +6743,7 @@ export default function FocusGo() {
             taskNotifEnabled={taskNotifEnabled} setTaskNotifEnabled={setTaskNotifEnabled}
             salahNotifEnabled={salahNotifEnabled} setSalahNotifEnabled={setSalahNotifEnabled}
             timerNotifEnabled={timerNotifEnabled} setTimerNotifEnabled={setTimerNotifEnabled}
+            salahFeatureEnabled={salahFeatureEnabled} setSalahFeatureEnabled={setSalahFeatureEnabled}
             focusMinutes={focusMinutes} setFocusMinutes={setFocusMinutes}
             breakMinutes={breakMinutes} setBreakMinutes={setBreakMinutes}
             weekStartDay={weekStartDay} setWeekStartDay={changeWeekStartDay}
