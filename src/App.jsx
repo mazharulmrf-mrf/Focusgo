@@ -1422,25 +1422,31 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
         {/* ---- Preferences — একটাই কার্ডে সব প্রেফারেন্স, প্রতিটা রো accordion হিসেবে খোলে ---- */}
         <div style={{...sectionHeadingStyle, marginTop:0}}>{isBn ? "পছন্দসমূহ" : "Preferences"}</div>
         <div style={groupCardStyle}>
-          <SettingsRow {...rowCtx} Icon={Palette} title={isBn ? "অ্যাপিয়ারেন্স" : "Appearance"} subtitle={currentThemeLabel} expandKey="appearance" borderTop={false}>
-            <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
-              {themeInlineOptions.map(({key, label}) => {
-                const selected = themeMode === key;
-                const isSystem = key === "system";
-                return (
-                  <button key={key} onClick={()=>{vibrate(); setThemeMode(key);}} style={{
-                    ...pillBase, display:"flex", alignItems:"center", gap:7,
-                    border:`1px solid ${selected ? accent : cardBorder}`,
-                    background: selected ? accent : (dark?"#0A0A0A":"#F8F5EE"),
-                    color: selected ? "#fff" : textMain,
-                  }}>
-                    {isSystem ? <Contrast size={14} style={{flexShrink:0}}/> : <span style={{width:12, height:12, borderRadius:"50%", background:themeFor(key).cardBg, border:`1px solid ${selected ? "rgba(255,255,255,0.6)" : cardBorder}`, flexShrink:0}}/>}
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          </SettingsRow>
+          <SettingsRow {...rowCtx} Icon={Palette} title={isBn ? "অ্যাপিয়ারেন্স" : "Appearance"} borderTop={false}
+            right={
+              <div style={{display:"flex", alignItems:"center", gap:2, background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:999, padding:3, flexShrink:0}}>
+                {themeInlineOptions.map(({key, label}) => {
+                  const selected = themeMode === key;
+                  const SegIcon = key === "system" ? Contrast : (key === "light" ? Sun : Moon);
+                  return (
+                    <button
+                      key={key}
+                      onClick={(e) => { e.stopPropagation(); vibrate(); setThemeMode(key); }}
+                      title={label}
+                      aria-label={label}
+                      style={{
+                        width:30, height:30, borderRadius:999, border:"none", display:"flex", alignItems:"center", justifyContent:"center",
+                        background: selected ? accent : "transparent", color: selected ? "#fff" : textMuted2,
+                        cursor:"pointer", transition:"background .15s, color .15s", flexShrink:0,
+                      }}
+                    >
+                      <SegIcon size={14} strokeWidth={2.3}/>
+                    </button>
+                  );
+                })}
+              </div>
+            }
+          />
 
           <SettingsRow {...rowCtx} Icon={CalendarRange} title={t.weekStartsOn} subtitle={weekStartDayLabel(weekStartDay)} expandKey="weekStart">
             <SettingsDropdown
@@ -5660,7 +5666,7 @@ export default function FocusGo() {
                           {weatherData && weatherData.temp != null && (
                             <span
                               onClick={(e) => { e.stopPropagation(); vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                              style={{display:"inline-flex", alignItems:"center", fontSize:12, fontWeight:800, color:accent, cursor:"pointer"}}
+                              style={{display:"inline-flex", alignItems:"center", fontSize:12, fontWeight:700, color:textMuted2, cursor:"pointer"}}
                               title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
                             >
                               <Num>{nf(weatherData.temp)}</Num>°C
