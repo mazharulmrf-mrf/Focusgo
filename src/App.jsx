@@ -977,6 +977,7 @@ function SettingsRow({ Icon, title, subtitle, right, onClick, href, expandKey, c
 // ---------- Settings modal: Language, Theme, About Us ----------
 function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, setAccentKey, notificationsEnabled, setNotificationsEnabled,
   examNotifEnabled, setExamNotifEnabled, taskNotifEnabled, setTaskNotifEnabled, salahNotifEnabled, setSalahNotifEnabled, timerNotifEnabled, setTimerNotifEnabled,
+  alarmNotifEnabled, setAlarmNotifEnabled,
   salahFeatureEnabled, setSalahFeatureEnabled,
   studyFeatureEnabled, setStudyFeatureEnabled, tasksFeatureEnabled, setTasksFeatureEnabled, notesFeatureEnabled, setNotesFeatureEnabled,
   focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes, weekStartDay, setWeekStartDay,
@@ -1267,6 +1268,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             { label: t.notifTask, val: taskNotifEnabled, set: setTaskNotifEnabled },
             { label: t.notifSalah, val: salahNotifEnabled, set: setSalahNotifEnabled },
             { label: t.notifTimer, val: timerNotifEnabled, set: setTimerNotifEnabled },
+            { label: t.notifAlarm, val: alarmNotifEnabled, set: setAlarmNotifEnabled },
           ].map(({label, val, set}) => (
             <div key={label} style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
               <span style={{fontSize:12.5, fontWeight:600, color:textMuted2}}>{label}</span>
@@ -1528,6 +1530,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                   { label: t.notifTask, val: taskNotifEnabled, set: setTaskNotifEnabled },
                   { label: t.notifSalah, val: salahNotifEnabled, set: setSalahNotifEnabled },
                   { label: t.notifTimer, val: timerNotifEnabled, set: setTimerNotifEnabled },
+                  { label: t.notifAlarm, val: alarmNotifEnabled, set: setAlarmNotifEnabled },
                 ].map(({label, val, set}) => (
                   <div key={label} style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
                     <span style={{fontSize:12.5, fontWeight:600, color:textMuted2}}>{label}</span>
@@ -2565,7 +2568,9 @@ const T = {
     settings: "Settings", language: "Language", theme: "Theme",
     aboutUs: "About Us", appName: "FocusGo", version: "Version",
     sendFeedback: "Send Feedback", feedbackSubject: "FocusGo App Feedback",
-    notifExam: "Exam reminders", notifTask: "Task reminders", notifSalah: "Prayer time alerts", notifTimer: "Timer end alerts",
+    notifExam: "Exam reminders", notifTask: "Task reminders", notifSalah: "Prayer time alerts", notifTimer: "Timer end alerts", notifAlarm: "Alarm alerts",
+    alarmSetConfirm: "Alarm set for {time}", alarmWebWarning: "Note: alarms only show as notifications in the installed FocusGo app, not in this browser preview.",
+    alarmCancelBtn: "Cancel alarm", alarmCancelledMsg: "Alarm cancelled", nextAlarmLabel: "Alarm",
     weekStartsOn: "Week Starts On", weekStartSun: "Sunday", weekStartMon: "Monday",
     weekStartTue: "Tuesday", weekStartWed: "Wednesday", weekStartThu: "Thursday", weekStartFri: "Friday", weekStartSat: "Saturday",
     defaultTimerDuration: "Default Timer Duration", focusLabel: "Focus", breakLabel: "Break",
@@ -2722,7 +2727,9 @@ const T = {
     settings: "সেটিংস", language: "ভাষা", theme: "থিম",
     aboutUs: "আমাদের সম্পর্কে", appName: "FocusGo", version: "ভার্সন",
     sendFeedback: "ফিডব্যাক পাঠান", feedbackSubject: "FocusGo অ্যাপ ফিডব্যাক",
-    notifExam: "পরীক্ষার রিমাইন্ডার", notifTask: "টাস্ক রিমাইন্ডার", notifSalah: "নামাজের সময়ের নোটিফিকেশন", notifTimer: "টাইমার শেষের নোটিফিকেশন",
+    notifExam: "পরীক্ষার রিমাইন্ডার", notifTask: "টাস্ক রিমাইন্ডার", notifSalah: "নামাজের সময়ের নোটিফিকেশন", notifTimer: "টাইমার শেষের নোটিফিকেশন", notifAlarm: "অ্যালার্ম নোটিফিকেশন",
+    alarmSetConfirm: "{time}-এ অ্যালার্ম সেট হয়েছে", alarmWebWarning: "খেয়াল করুন: অ্যালার্ম নোটিফিকেশন শুধু ইনস্টল করা FocusGo অ্যাপেই দেখাবে, এই ব্রাউজার প্রিভিউতে দেখাবে না।",
+    alarmCancelBtn: "অ্যালার্ম বাতিল করুন", alarmCancelledMsg: "অ্যালার্ম বাতিল হয়েছে", nextAlarmLabel: "অ্যালার্ম",
     weekStartsOn: "সপ্তাহ শুরু হবে", weekStartSun: "রবিবার", weekStartMon: "সোমবার",
     weekStartTue: "মঙ্গলবার", weekStartWed: "বুধবার", weekStartThu: "বৃহস্পতিবার", weekStartFri: "শুক্রবার", weekStartSat: "শনিবার",
     defaultTimerDuration: "ডিফল্ট টাইমার সময়", focusLabel: "ফোকাস", breakLabel: "বিরতি",
@@ -3430,6 +3437,8 @@ export default function FocusGo() {
   useEffect(() => { try { window.localStorage.setItem("focusgo_notif_salah", salahNotifEnabled ? "1" : "0"); } catch (e) {} }, [salahNotifEnabled]);
   const [timerNotifEnabled, setTimerNotifEnabled] = useState(() => { try { return window.localStorage.getItem("focusgo_notif_timer") !== "0"; } catch (e) { return true; } });
   useEffect(() => { try { window.localStorage.setItem("focusgo_notif_timer", timerNotifEnabled ? "1" : "0"); } catch (e) {} }, [timerNotifEnabled]);
+  const [alarmNotifEnabled, setAlarmNotifEnabled] = useState(() => { try { return window.localStorage.getItem("focusgo_notif_alarm") !== "0"; } catch (e) { return true; } });
+  useEffect(() => { try { window.localStorage.setItem("focusgo_notif_alarm", alarmNotifEnabled ? "1" : "0"); } catch (e) {} }, [alarmNotifEnabled]);
   // সপ্তাহ কোন দিন থেকে শুরু হবে — ক্যালেন্ডার গ্রিড ও উইকলি ভিউ সব জায়গায় প্রযোজ্য, Settings থেকে বদলানো যায়
   // (React state হিসেবে রাখা হয়েছে যাতে Settings-এ বদলালে সাথে সাথে পুরো অ্যাপ রি-রেন্ডার হয়ে নতুন মান দেখায়)
   const [weekStartDay, setWeekStartDayState] = useState(getWeekStartDay);
@@ -3477,6 +3486,25 @@ export default function FocusGo() {
   const [alarmHour, setAlarmHour] = useState(8);
   const [alarmMinute, setAlarmMinute] = useState(0);
   const [alarmAmPm, setAlarmAmPm] = useState("AM");
+  // যেই কুইক-অ্যালার্ম সেট করা আছে সেটা localStorage-এ থাকে, যাতে অ্যাপ রিলোড/রিওপেন করলেও
+  // হেডারের ঘড়ির জায়গায় "কোন সময়ে অ্যালার্ম সেট আছে" সেটা স্পষ্ট বোঝা যায় (আগে শুধু লাইভ ঘড়ি দেখাত,
+  // অ্যালার্ম সেট করার পর সেটা কোথাও দেখা যেত না)
+  const [activeAlarm, setActiveAlarm] = useState(() => {
+    try {
+      const raw = window.localStorage.getItem("focusgo_active_alarm");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.at && new Date(parsed.at).getTime() > Date.now()) return parsed;
+      return null;
+    } catch (e) { return null; }
+  });
+  const saveActiveAlarm = (alarmObj) => {
+    setActiveAlarm(alarmObj);
+    try {
+      if (alarmObj) window.localStorage.setItem("focusgo_active_alarm", JSON.stringify(alarmObj));
+      else window.localStorage.removeItem("focusgo_active_alarm");
+    } catch (e) {}
+  };
   const [showProfile, setShowProfile] = useState(false);
   // ডেস্কটপ সাইডবার collapse/expand করা যায় কিনা — চাইলে ইউজার লুকিয়ে রাখতে পারবে,
   // পছন্দটা localStorage-এ থেকে যায় (রিফ্রেশ করলেও মনে থাকবে)।
@@ -4190,6 +4218,14 @@ export default function FocusGo() {
     scheduleNext();
     return () => clearTimeout(id);
   }, []);
+
+  // প্রতি মিনিটের tick-এ চেক করা হয় সেট করা অ্যালার্মের সময় পার হয়ে গেছে কিনা — পার হয়ে গেলে
+  // হেডার থেকে অ্যালার্মের সময়টা সরিয়ে আবার লাইভ ঘড়ি দেখানো হয়
+  useEffect(() => {
+    if (activeAlarm && new Date(activeAlarm.at).getTime() <= Date.now()) {
+      saveActiveAlarm(null);
+    }
+  }, [now]);
 
   // Focus Timer শেষ হওয়ার exact সময়টা আগে থেকেই OS-এ একটা LocalNotification হিসেবে
   // শিডিউল করে রাখা হয় (ঠিক exam reminder-এর প্যাটার্নে) — তাই timer চলাকালীন অ্যাপ থেকে
@@ -5673,7 +5709,7 @@ export default function FocusGo() {
                             </span>
                           )}
                         </div>
-                        <div onClick={()=>{vibrate(); setShowProfile(true);}} style={{fontSize:23,fontWeight:800,letterSpacing:-0.6,color:textMain, cursor:"pointer", display:"inline-block"}}>
+                        <div style={{fontSize:23,fontWeight:800,letterSpacing:-0.6,color:textMain, display:"inline-block"}}>
                           {firstName}
                         </div>
                         <div style={{fontSize:12.5,color:textMuted2,marginTop:4,lineHeight:1.35}}>
@@ -5684,13 +5720,14 @@ export default function FocusGo() {
                         <button
                           onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
                           style={{
-                            border:"none", background:"transparent", padding:4, flexShrink:0,
+                            border:"none", background:`${accent}22`, padding:0, flexShrink:0,
+                            width:34, height:34, borderRadius:"50%",
                             display:"flex", alignItems:"center", justifyContent:"center",
                             cursor:"pointer", position:"relative",
                           }}
                           title={lang === "bn" ? "সালাতের সময়" : "Salah times"}
                         >
-                          <MosqueIcon size={19} color={accent}/>
+                          <MosqueIcon size={18} color={accent}/>
                         </button>
                       )}
                     </div>
@@ -5718,16 +5755,29 @@ export default function FocusGo() {
                         )}
                       </button>
                     </div>
-                    {/* ঘড়ির পাশে ছোট অ্যালার্ম আইকন — ট্যাপ করলে Salah dropdown-এর মতোই একটা bottom-sheet popup খুলে সময় সেট করা যায় */}
+                    {/* ঘড়ির পাশে ছোট অ্যালার্ম আইকন — ট্যাপ করলে Salah dropdown-এর মতোই একটা bottom-sheet popup খুলে সময় সেট করা যায়।
+                        একটা অ্যালার্ম অ্যাক্টিভ থাকলে এখানে লাইভ ঘড়ির বদলে সেট করা অ্যালার্মের সময়টা accent রঙে বোল্ড করে দেখানো হয়,
+                        যাতে ইউজার এক নজরে বুঝতে পারে কোন সময়ে অ্যালার্ম সেট আছে। */}
                     <button
-                      onClick={()=>{ vibrate(); setAlarmHour(((now.getHours()%12)||12)); setAlarmMinute(now.getMinutes()); setAlarmAmPm(now.getHours()>=12 ? "PM" : "AM"); setShowAlarmPicker(true); }}
+                      onClick={()=>{
+                        vibrate();
+                        if (activeAlarm) { setAlarmHour(activeAlarm.hour); setAlarmMinute(activeAlarm.minute); setAlarmAmPm(activeAlarm.ampm); }
+                        else { setAlarmHour(((now.getHours()%12)||12)); setAlarmMinute(now.getMinutes()); setAlarmAmPm(now.getHours()>=12 ? "PM" : "AM"); }
+                        setShowAlarmPicker(true);
+                      }}
                       style={{display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", padding:0, cursor:"pointer", flexShrink:0}}
-                      title={lang === "bn" ? "অ্যালার্ম সেট করুন" : "Set alarm"}
+                      title={activeAlarm ? `${t.nextAlarmLabel}: ${pad2(activeAlarm.hour)}:${pad2(activeAlarm.minute)} ${activeAlarm.ampm}` : (lang === "bn" ? "অ্যালার্ম সেট করুন" : "Set alarm")}
                     >
-                      <span style={{fontSize:13, color:textMuted2, fontWeight:500, fontVariantNumeric:"tabular-nums"}}>
-                        <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
-                      </span>
-                      <AlarmClock size={15} color={accent} strokeWidth={2.1}/>
+                      {activeAlarm ? (
+                        <span style={{fontSize:13, color:accent, fontWeight:800, fontVariantNumeric:"tabular-nums"}}>
+                          <Num>{nf(pad2(activeAlarm.hour))}</Num>:<Num>{nf(pad2(activeAlarm.minute))}</Num> {activeAlarm.ampm === "AM" ? t.amLabel : t.pmLabel}
+                        </span>
+                      ) : (
+                        <span style={{fontSize:13, color:textMuted2, fontWeight:500, fontVariantNumeric:"tabular-nums"}}>
+                          <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
+                        </span>
+                      )}
+                      <AlarmClock size={15} color={accent} strokeWidth={activeAlarm ? 2.6 : 2.1}/>
                     </button>
                   </div>
 
@@ -6036,6 +6086,20 @@ export default function FocusGo() {
                               ))}
                             </div>
                           </div>
+                          {/* মাস্টার নোটিফিকেশন অথবা Alarm ক্যাটাগরি বন্ধ থাকলে এখানেই জানিয়ে দেওয়া হয় —
+                              আগে চুপচাপ কিছু না ঘটায় ইউজার বুঝতে পারত না কেন অ্যালার্ম আসছে না */}
+                          {!(notificationsEnabled && alarmNotifEnabled) && (
+                            <div style={{fontSize:11.5, color:"#C0392B", fontWeight:600, marginBottom:12, lineHeight:1.5}}>
+                              {lang === "bn"
+                                ? "অ্যালার্ম নোটিফিকেশন সেটিংসে বন্ধ আছে। Settings ▸ Notifications থেকে \"Alarm\" চালু করুন।"
+                                : "Alarm notifications are turned off. Turn on \"Alarm alerts\" under Settings ▸ Notifications."}
+                            </div>
+                          )}
+                          {!Capacitor.isNativePlatform() && (
+                            <div style={{fontSize:11, color:textMuted2, fontWeight:500, marginBottom:12, lineHeight:1.5}}>
+                              {t.alarmWebWarning}
+                            </div>
+                          )}
                           <button
                             onClick={() => {
                               vibrate();
@@ -6044,7 +6108,8 @@ export default function FocusGo() {
                               if (alarmAmPm === "PM") h24 += 12;
                               const target = new Date(nowD.getFullYear(), nowD.getMonth(), nowD.getDate(), h24, alarmMinute, 0, 0);
                               if (target.getTime() <= nowD.getTime()) target.setDate(target.getDate() + 1);
-                              if (Capacitor.isNativePlatform() && notificationsEnabled) {
+                              const canNotify = notificationsEnabled && alarmNotifEnabled;
+                              if (Capacitor.isNativePlatform() && canNotify) {
                                 LocalNotifications.schedule({
                                   notifications: [{
                                     id: strToNotifId("focusgo_quick_alarm"),
@@ -6057,12 +6122,40 @@ export default function FocusGo() {
                                   }],
                                 }).catch(() => {});
                               }
+                              // অ্যাক্টিভ অ্যালার্ম localStorage-এ সেভ থাকে, যাতে হেডারে ঘড়ির জায়গায় সেট করা সময়টা দেখা যায়
+                              saveActiveAlarm({ hour: alarmHour, minute: alarmMinute, ampm: alarmAmPm, at: target.toISOString() });
                               setShowAlarmPicker(false);
+                              const timeLabel = `${pad2(alarmHour)}:${pad2(alarmMinute)} ${alarmAmPm}`;
+                              if (canNotify && Capacitor.isNativePlatform()) {
+                                window.alert(t.alarmSetConfirm.replace("{time}", timeLabel));
+                              } else if (!Capacitor.isNativePlatform()) {
+                                window.alert(`${t.alarmSetConfirm.replace("{time}", timeLabel)}\n\n${t.alarmWebWarning}`);
+                              } else {
+                                window.alert(lang === "bn"
+                                  ? `সময় মনে রাখা হলো (${timeLabel}), কিন্তু নোটিফিকেশন বন্ধ থাকায় কোনো অ্যালার্ট আসবে না।`
+                                  : `Time saved (${timeLabel}), but no alert will fire since notifications are off.`);
+                              }
                             }}
                             style={{width:"100%", border:"none", borderRadius:8, padding:"11px 0", background:accent, color:"#fff", fontWeight:700, fontSize:13.5, cursor:"pointer"}}
                           >
                             {lang === "bn" ? "অ্যালার্ম সেট করুন" : "Set alarm"}
                           </button>
+                          {activeAlarm && (
+                            <button
+                              onClick={() => {
+                                vibrate();
+                                if (Capacitor.isNativePlatform()) {
+                                  LocalNotifications.cancel({ notifications: [{ id: strToNotifId("focusgo_quick_alarm") }] }).catch(() => {});
+                                }
+                                saveActiveAlarm(null);
+                                setShowAlarmPicker(false);
+                                window.alert(t.alarmCancelledMsg);
+                              }}
+                              style={{width:"100%", border:"none", borderRadius:8, padding:"10px 0", background:"transparent", color:"#C0392B", fontWeight:700, fontSize:13, cursor:"pointer", marginTop:8}}
+                            >
+                              {t.alarmCancelBtn}
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}
@@ -7001,6 +7094,7 @@ export default function FocusGo() {
             taskNotifEnabled={taskNotifEnabled} setTaskNotifEnabled={setTaskNotifEnabled}
             salahNotifEnabled={salahNotifEnabled} setSalahNotifEnabled={setSalahNotifEnabled}
             timerNotifEnabled={timerNotifEnabled} setTimerNotifEnabled={setTimerNotifEnabled}
+            alarmNotifEnabled={alarmNotifEnabled} setAlarmNotifEnabled={setAlarmNotifEnabled}
             salahFeatureEnabled={salahFeatureEnabled} setSalahFeatureEnabled={setSalahFeatureEnabled}
             studyFeatureEnabled={studyFeatureEnabled} setStudyFeatureEnabled={setStudyFeatureEnabled}
             tasksFeatureEnabled={tasksFeatureEnabled} setTasksFeatureEnabled={setTasksFeatureEnabled}
