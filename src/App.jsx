@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { App as CapacitorApp } from "@capacitor/app";
 import { NavigationBar } from "@capgo/capacitor-navigation-bar";
@@ -5286,6 +5286,12 @@ export default function FocusGo() {
       // রঙ বদলানোর বদলে সরাসরি হাইড করে দেওয়া হচ্ছে — ফলাফল: উপর-নিচ সবটাই পুরোপুরি কালো।
       if (focusFullscreen) {
         StatusBar.hide().catch(() => {});
+        // Android 15+ এজ-টু-এজ ডিভাইসে মাঝে মাঝে hide() একাই status bar এরিয়া পুরোপুরি সরাতে
+        // পারে না (সিস্টেম ডিফল্ট হালকা রঙের একটা সরু স্ট্রিপ থেকে যেতে পারে)। তাই ব্যাকআপ হিসেবে
+        // overlaysWebView(true) করা হচ্ছে, যাতে WebView (এখন কালো ব্যাকগ্রাউন্ড) সরাসরি status bar
+        // এরিয়ার নিচ পর্যন্ত/মধ্য দিয়ে extend করে — hide() ব্যর্থ হলেও উপরটা কালোই দেখাবে।
+        StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {});
+        StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
       } else {
         StatusBar.show().catch(()=>{});
         StatusBar.setOverlaysWebView({ overlay: false }).catch(()=>{});
@@ -7633,6 +7639,19 @@ function BreakPromptModal({ t, nf, breakMinutes, accent, onAccept, onSkip }) {
 }
 
 function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, accent, dark, bg, textMain, textMuted2, onToggleRun, onReset, onClose, now, sessionType, pomodoroSession, pomodoroTotalSessions, timerTargetMinutes, timerElapsedMinutes }) {
+  // মাউন্ট হওয়ার সাথে সাথেই (রেন্ডারের আগেই, browser paint হওয়ার আগে) html/body-এর ব্যাকগ্রাউন্ড
+  // কালো করে দেওয়া হচ্ছে — যাতে উপরের status bar/notch এরিয়াতে আগের (হালকা রঙের) ব্যাকগ্রাউন্ডের
+  // এক ঝলক (flash) দেখা না যায়, যেটা মূল theme-color useEffect (parent-এ) একটু দেরিতে চালু হওয়ায় হতে পারত।
+  useLayoutEffect(() => {
+    const prevHtmlBg = document.documentElement.style.background;
+    const prevBodyBg = document.body.style.background;
+    document.documentElement.style.background = "#000000";
+    document.body.style.background = "#000000";
+    return () => {
+      document.documentElement.style.background = prevHtmlBg;
+      document.body.style.background = prevBodyBg;
+    };
+  }, []);
   const orientation = useOrientation();
   const stacked = orientation === "portrait"; // portrait -> mm উপরে/ss নিচে (বড় সংখ্যা), landscape -> পাশাপাশি
   const mm = pad2(Math.floor(Math.max(0,seconds)/60));
@@ -7709,8 +7728,8 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
   ) : null;
 
   return (
-    <div style={{position:"fixed", inset:0, zIndex:100, background:screenBg, color:fgMain, display:"flex", flexDirection:"column"}}>
-      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 20px 0"}}>
+    <div style={{position:"fixed", inset:0, zIndex:100, background:screenBg, color:fgMain, display:"flex", flexDirection:"column", isolation:"isolate", overflow:"hidden", WebkitBackfaceVisibility:"hidden"}}>
+      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"calc(14px + env(safe-area-inset-top, 0px)) 20px 0", flexShrink:0}}>
         <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:fgMuted, display:"flex", alignItems:"center", padding:6}}>
           <ChevronDown size={22}/>
         </button>
@@ -7719,7 +7738,7 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
       </div>
 
       {/* মূল কনটেন্ট এরিয়া উলম্বভাবে center করা — real-time ঘড়ি এখন এই ব্লকের অংশ, তাই স্ক্রিনের মাঝামাঝি বসে */}
-      <div style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16, padding:"0 24px"}}>
+      <div style={{flex:1, minHeight:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16, padding:"0 24px", overflow:"hidden"}}>
         {stacked ? (
           // ---- vertical/stacked layout: আগের মতোই — mm উপরে, ss নিচে, bar নিচে; শুধু real-time একটু নিচে নেমে এসেছে ----
           <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:0}}>
@@ -7759,7 +7778,7 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
 
       {/* portrait/vertical মোডে বাটন আগের মতোই নিচে থাকবে */}
       {stacked && (
-        <div style={{display:"flex", gap:16, padding:"0 30px 64px", justifyContent:"center", alignItems:"center"}}>
+        <div style={{display:"flex", gap:16, padding:"0 30px 64px", justifyContent:"center", alignItems:"center", flexShrink:0}}>
           <button onClick={onToggleRun} title={running ? t.pause : t.start} style={{background:accent, border:"none", borderRadius:14, width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
             {running ? <Pause size={20} fill="#fff" color="#fff"/> : <Play size={20} fill="#fff" color="#fff"/>}
           </button>
