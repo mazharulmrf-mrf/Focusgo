@@ -3146,28 +3146,6 @@ export default function FocusGo() {
     }
   }, []);
 
-  // পুরো অ্যাপ সামান্য (~৩%) বড় দেখানোর জন্য — কিন্তু আগেরবার এটা করতে গিয়ে উপরে বড় ফাঁকা
-  // জায়গা তৈরি হয়েছিল, কারণ zoom আর env(safe-area-inset-top) একসাথে থাকলে Android WebView
-  // ওই safe-area মানটা ভুলভাবে (দ্বিগুণের বেশি) হিসাব করে ফেলে। এখানে সেটা এড়ানো হচ্ছে এভাবে:
-  // ১) zoom বসানোর আগেই আসল safe-area-inset-top মাপ (raw px) বের করে নেওয়া হচ্ছে,
-  // ২) zoom বসানো হচ্ছে, ৩) সেই raw মাপ zoom দিয়ে ভাগ করে একটা CSS variable-এ বসানো হচ্ছে —
-  // এতে zoom সেটাকে আবার গুণ করলেও ফলাফল আসল সঠিক মাপেই ফিরে আসে, দ্বিগুণ হয় না।
-  useEffect(() => {
-    try {
-      const ZOOM = 1.03;
-      const probe = document.createElement("div");
-      probe.style.position = "absolute";
-      probe.style.visibility = "hidden";
-      probe.style.paddingTop = "env(safe-area-inset-top)";
-      document.body.appendChild(probe);
-      const rawInset = parseFloat(getComputedStyle(probe).paddingTop) || 0;
-      document.body.removeChild(probe);
-
-      document.documentElement.style.zoom = String(ZOOM);
-      document.documentElement.style.setProperty("--fg-safe-top", `${rawInset / ZOOM}px`);
-    } catch (e) { /* zoom না হলেও অ্যাপ স্বাভাবিকভাবে চলবে */ }
-  }, []);
-
 
   // ---------- Font loading (fixed) ----------
   // আগে ফন্টগুলো `@import` দিয়ে একটা <style> ট্যাগে লোড হতো, যেটা শুধু লগইন/লোডিং স্ক্রিন পার হয়ে
