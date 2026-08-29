@@ -6294,7 +6294,6 @@ export default function FocusGo() {
             </div>
 
           </div>
-        </div>
         )}
 
         {tab === "study" && (
