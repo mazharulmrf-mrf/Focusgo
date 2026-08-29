@@ -23,14 +23,15 @@ const Venus = ({ size = 18, color = "currentColor" }) => (
     <circle cx="12" cy="9" r="6"/><path d="M12 15v7"/><path d="M9 19h6"/>
   </svg>
 );
-// সেটিংসে "সালাত টাইমার" রো-এর আইকন — Today ট্যাবের মসজিদ আইকনের সাথে সামঞ্জস্যপূর্ণ
+// সেটিংসে "সালাত টাইমার" রো ও Today ট্যাবের হেডারে ব্যবহৃত মসজিদ আইকন — গম্বুজ, দরজা, মিনার ও ক্রিসেন্ট চাঁদসহ
 const MosqueIcon = ({ size = 16, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 20h18"/>
-    <path d="M5 20v-6.5c0-.9.7-1.5 1.5-1.5S8 12.6 8 13.5V20"/>
-    <path d="M9.2 20v-9c0-1.5 1.2-3 2.8-3s2.8 1.5 2.8 3v9"/>
-    <path d="M16.5 20v-6.5c0-.9.7-1.5 1.5-1.5s1.5.6 1.5 1.5V20"/>
-    <circle cx="12" cy="4.5" r="1.3"/>
+    <path d="M2 21h20"/>
+    <path d="M7 21v-7M17 21v-7"/>
+    <path d="M7 14a5 5 0 0 1 10 0"/>
+    <path d="M10.5 21v-2.5a1.5 1.5 0 0 1 3 0V21"/>
+    <path d="M12 9V6"/>
+    <path d="M13.5 2.6a2 2 0 1 0 1.9 3.15A2.4 2.4 0 0 1 13.5 2.6z" fill={color} stroke="none"/>
   </svg>
 );
 import { auth, db, googleProvider } from "./firebase";
@@ -238,26 +239,26 @@ function OnboardingScreen({ lang, dark, cardBg, textMain, textMuted2, accent, on
     {
       Icon: Clock,
       ring: dark ? "#F3F1F8" : "#1A1814",
-      title: isBn ? "পড়ার সময় ট্র্যাক করুন" : "Track your study time",
+      title: isBn ? "একই জায়গায় সব সামলান" : "Everything in one place",
       body: isBn
-        ? "বিষয় অনুযায়ী টাইমার চালিয়ে প্রতিদিন কতক্ষণ পড়লেন তা সহজেই দেখুন।"
-        : "Run a timer per subject and see exactly how long you studied each day.",
+        ? "পড়াশোনা, টাস্ক আর নোট — দিনের সব কাজ এক অ্যাপ থেকেই পরিকল্পনা ও ট্র্যাক করুন।"
+        : "Study, tasks, and notes — plan and track your whole day from a single app.",
+    },
+    {
+      Icon: MosqueIcon,
+      ring: accent,
+      title: isBn ? "পরীক্ষা ও সালাতের খেয়াল রাখুন" : "Never miss what matters",
+      body: isBn
+        ? "পরীক্ষার কাউন্টডাউন আর সালাতের সময় — দুটোই থাকবে চোখের সামনে।"
+        : "Exam countdowns and salah times, always right where you can see them.",
     },
     {
       Icon: Flame,
-      ring: accent,
+      ring: "#6E8B5E",
       title: isBn ? "ধারাবাহিকতা ধরে রাখুন" : "Stay consistent",
       body: isBn
-        ? "ডেইলি স্ট্রিক আর ক্যালেন্ডারে প্রতিদিনের অগ্রগতি এক নজরে দেখুন।"
-        : "See your daily streak and progress calendar at a glance.",
-    },
-    {
-      Icon: BarChart3,
-      ring: "#6E8B5E",
-      title: isBn ? "অগ্রগতি বিশ্লেষণ করুন" : "See your progress",
-      body: isBn
-        ? "সাপ্তাহিক ও মাসিক রিপোর্ট দেখে বুঝুন কোন বিষয়ে আরও সময় দরকার।"
-        : "Weekly and monthly reports show where you need to focus more.",
+        ? "ডেইলি স্ট্রিক আর সাপ্তাহিক-মাসিক রিপোর্ট দেখে বুঝুন প্রতিদিন কতটা এগোলেন।"
+        : "See your daily streak and weekly/monthly reports to know how each day added up.",
     },
   ];
   const isLast = step === slides.length - 1;
@@ -318,7 +319,7 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
   const isBn = lang === "bn";
   const L = {
     title: "FocusGo",
-    subtitle: isBn ? "পড়াশোনার সময় ট্র্যাক করুন, যেকোনো ডিভাইস থেকে" : "Track your study time, from any device",
+    subtitle: isBn ? "পড়াশোনা, টাস্ক ও সালাতের সময় — সব একসাথে, যেকোনো ডিভাইস থেকে" : "Study, tasks, and salah times — all in one place, on any device",
     login: isBn ? "লগইন" : "Log In",
     signup: isBn ? "একাউন্ট খুলুন" : "Sign Up",
     name: isBn ? "নাম" : "Name",
@@ -853,7 +854,7 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
         <button key={k} onClick={() => { vibrate(); setTab(k); }} title={collapsed ? t.tabs[k] : undefined} style={{
           display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "flex-start", gap:12, border: "none", borderRadius:12,
           padding: collapsed ? "11px 0" : "11px 12px", fontSize:14, fontWeight: 700, cursor: "pointer", textAlign: "left",
-          background: tab === k ? "rgba(217,119,87,0.14)" : "transparent",
+          background: "transparent",
           color: tab === k ? accent : textMuted2,
           transition: "background .2s ease, color .2s ease",
         }}>
@@ -2463,7 +2464,7 @@ const MONTHS_BN = ["জানুয়ারি","ফেব্রুয়ার
 
 const T = {
   en: {
-    tagline: "Study Smarter",
+    tagline: "Make Every Day Count",
     tabs: { today: "Today", study: "Study", task: "Tasks", notes: "Notes", settings: "Settings", stats: "Stats", plan: "Plan", exam: "Exam" },
     planViewStudy: "Study Plan", planViewExam: "Exam",
     taskTitle: "Tasks", taskSubtitle: "All your tasks, in one place", taskAdd: "New task", taskEmpty: "No tasks in this list",
@@ -2563,7 +2564,7 @@ const T = {
     weekStartTue: "Tuesday", weekStartWed: "Wednesday", weekStartThu: "Thursday", weekStartFri: "Friday", weekStartSat: "Saturday",
     defaultTimerDuration: "Default Timer Duration", focusLabel: "Focus", breakLabel: "Break",
     aboutTagline: "Make every day count.",
-    aboutBody: "FocusGo is a study companion built to help students plan, focus, and track their progress day by day.",
+    aboutBody: "FocusGo is your all-in-one daily companion — plan your study and tasks, jot down notes, track exams and focus sessions, and stay on top of your salah times, all in one place to help you make every day count.",
     creatorLabel: "Creator",
     privacyPolicy: "Privacy Policy", termsOfUse: "Terms of Use", legalSection: "Legal",
     lastUpdated: "Last updated", effectiveDate: "August 16, 2026",
@@ -2620,7 +2621,7 @@ const T = {
     notifInactiveTitle: "We miss you", notifInactiveBody: "No study logged in a couple of days — come back and pick up where you left off.",
   },
   bn: {
-    tagline: "নিজের গতিতে পড়ো",
+    tagline: "প্রতিটা দিন অর্থবহ করে তোলো",
     tabs: { today: "আজ", study: "স্টাডি", task: "টাস্ক", notes: "নোট", settings: "সেটিংস", stats: "স্ট্যাটস", plan: "প্ল্যান", exam: "এক্সাম" },
     planViewStudy: "স্টাডি প্ল্যান", planViewExam: "এক্সাম",
     taskTitle: "টাস্ক", taskSubtitle: "সব কাজ, এক জায়গায়", taskAdd: "নতুন টাস্ক", taskEmpty: "এই তালিকায় কোনো টাস্ক নেই",
@@ -2720,7 +2721,7 @@ const T = {
     weekStartTue: "মঙ্গলবার", weekStartWed: "বুধবার", weekStartThu: "বৃহস্পতিবার", weekStartFri: "শুক্রবার", weekStartSat: "শনিবার",
     defaultTimerDuration: "ডিফল্ট টাইমার সময়", focusLabel: "ফোকাস", breakLabel: "বিরতি",
     aboutTagline: "Make every day count.",
-    aboutBody: "FocusGo একটি স্টাডি সঙ্গী — শিক্ষার্থীদের পরিকল্পনা করতে, মনোযোগী থাকতে, এবং দিন-প্রতিদিন অগ্রগতি ট্র্যাক করতে সাহায্য করার জন্য বানানো।",
+    aboutBody: "FocusGo একটি অল-ইন-ওয়ান দৈনন্দিন সঙ্গী — পড়াশোনা ও টাস্ক পরিকল্পনা করা, নোট রাখা, পরীক্ষা ও ফোকাস সেশন ট্র্যাক করা, আর সালাতের সময় মনে রাখা — সবকিছু এক জায়গায়, প্রতিটা দিনকে অর্থবহ করে তুলতে।",
     creatorLabel: "নির্মাতা",
     privacyPolicy: "প্রাইভেসি পলিসি", termsOfUse: "শর্তাবলি", legalSection: "লিগ্যাল",
     lastUpdated: "সর্বশেষ আপডেট", effectiveDate: "১৬ আগস্ট, ২০২৬",
@@ -3979,23 +3980,15 @@ export default function FocusGo() {
   }, []);
 
   // Native (Android) splash screen — capacitor.config.json-এ SplashScreen.launchAutoHide:false
-  // সেট করা আছে, তাই এটা নিজে থেকে সরে না। authChecked সত্যি হওয়া মাত্রই (Firebase auth স্টেট
-  // জানা হয়ে গেলেই) এখানে হাইড করা হয় — এর ফলে বুটের সময় native splash + এই ফাইলের নিজস্ব
-  // "FocusGo" লোগো স্ক্রিন (নিচে "!authChecked" ব্লক), এই দুইটা আলাদা লোগো স্ক্রিন পরপর দেখানোর
-  // বদলে একটাই নিরবচ্ছিন্ন লোডিং অভিজ্ঞতা হয়। ব্রাউজারে বা প্লাগইন না থাকলে এই কল চুপচাপ ignore হয়।
-  // Safety-net: কোনো কারণে Firebase auth আটকে গেলে (bug/নেটওয়ার্ক সমস্যা) splash যেন চিরকাল
-  // আটকে না থেকে সর্বোচ্চ ২ সেকেন্ড পরই নিজে থেকে সরে যায়।
+  // সেট করা আছে, তাই এটা নিজে থেকে সরে না। আগে এটা authChecked (Firebase auth স্টেট জানা হওয়া)
+  // পর্যন্ত অপেক্ষা করত, কিন্তু Firebase-এর network round-trip মাঝেমধ্যে ১-২ সেকেন্ড পর্যন্ত সময়
+  // নিতে পারে — ততক্ষণ ইউজার শুধু স্ট্যাটিক লোগো দেখতেন, যেটাই "অ্যাপ লোড হতে দেরি হচ্ছে" মনে হওয়ার
+  // মূল কারণ। এখন component মাউন্ট হওয়ামাত্রই splash হাইড করা হয় — ততক্ষণে React নিজের
+  // "Loading your data…" স্ক্রিন (নিচে "!loaded" ব্লক, একই লোগো ব্যবহার করে) দেখানো শুরু করে দিয়েছে,
+  // তাই দুই স্ক্রিনের মধ্যে কোনো ফাঁক/ফ্ল্যাশ চোখে পড়ে না অথচ boot করতে যতটুকু সময় লাগার কথা ঠিক ততটুকুই লাগে।
   useEffect(() => {
-    let hidden = false;
-    const doHide = async () => {
-      if (hidden) return;
-      hidden = true;
-      try { await SplashScreen.hide(); } catch (e) {}
-    };
-    const failSafeTimer = setTimeout(doHide, 2000);
-    if (authChecked) { clearTimeout(failSafeTimer); doHide(); }
-    return () => clearTimeout(failSafeTimer);
-  }, [authChecked]);
+    SplashScreen.hide().catch(() => {});
+  }, []);
 
   // গেস্ট মোডে কোনো Firestore লোড নেই। ইনস্টল করা "অ্যাপ" হিসেবে চললে আগের সেভ করা গেস্ট ডেটা (localStorage) থাকলে সেটা লোড করা হয়;
   // ব্রাউজার/ওয়েব ভার্সনে এই ডেটা কখনোই সেভ হয় না, তাই সবসময় ফাঁকা অবস্থা থেকে শুরু হবে।
@@ -5199,7 +5192,7 @@ export default function FocusGo() {
   const containerPadding = isDesktop ? "24px 28px 36px" : breakpoint === "tablet" ? "22px 24px 28px" : "18px 16px 24px";
 
   const styles = {
-    page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column" },
+    page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column", paddingTop:"env(safe-area-inset-top)" },
     container: { maxWidth: containerMaxWidth, margin: "0 auto", padding: containerPadding, width:"100%", boxSizing:"border-box", flex:"1 0 auto", transition: "max-width .2s ease" },
   };
 
@@ -5260,6 +5253,7 @@ export default function FocusGo() {
         StatusBar.hide().catch(() => {});
       } else {
         StatusBar.show().catch(()=>{});
+        StatusBar.setOverlaysWebView({ overlay: false }).catch(()=>{});
         StatusBar.setBackgroundColor({ color: themeColor }).catch(()=>{});
         StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light }).catch(()=>{});
       }
@@ -5518,6 +5512,7 @@ export default function FocusGo() {
       <style>{`
         html, body { margin:0; padding:0; background:${bg}; }
         #root, #__next { background:${bg}; }
+        * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
 
         /* ---- subtle motion: tab switches, buttons, cards ---- */
         @keyframes fg-fade-up { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:translateY(0); } }
@@ -5611,7 +5606,6 @@ export default function FocusGo() {
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
         <div style={{marginTop:10, border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderBottom:"none", background: dark ? cardBg : "#FFFFFF", borderRadius:"14px 14px 0 0", padding:"12px 16px 5px", boxSizing:"border-box", boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.24)" : "0 14px 34px rgba(32,34,43,0.08)", position:"relative", overflow:"hidden"}}>
-          <div style={{position:"absolute", top:-50, right:-50, width:130, height:130, borderRadius:"50%", background:`${accent}0F`, pointerEvents:"none"}}/>
           <div style={{marginBottom:2, position:"relative"}}>
             {(() => {
               const fullName = (user?.displayName || "").trim();
@@ -5663,6 +5657,15 @@ export default function FocusGo() {
                         >
                           {lang === "bn" ? greetingBn : greetingEn}
                           <greetTheme.Icon size={14} color={accent} strokeWidth={2.3} fill={greetKey==="night" ? `${accent}33` : "none"}/>
+                          {weatherData && weatherData.temp != null && (
+                            <span
+                              onClick={(e) => { e.stopPropagation(); vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
+                              style={{display:"inline-flex", alignItems:"center", fontSize:12, fontWeight:800, color:accent, cursor:"pointer"}}
+                              title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
+                            >
+                              <Num>{nf(weatherData.temp)}</Num>°C
+                            </span>
+                          )}
                         </div>
                         <div onClick={()=>{vibrate(); setShowProfile(true);}} style={{fontSize:23,fontWeight:800,letterSpacing:-0.6,color:textMain, cursor:"pointer", display:"inline-block"}}>
                           {firstName}
@@ -5681,13 +5684,7 @@ export default function FocusGo() {
                           }}
                           title={lang === "bn" ? "সালাতের সময়" : "Salah times"}
                         >
-                          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M3 20h18"/>
-                            <path d="M5 20v-6.5c0-.9.7-1.5 1.5-1.5S8 12.6 8 13.5V20"/>
-                            <path d="M9.2 20v-9c0-1.5 1.2-3 2.8-3s2.8 1.5 2.8 3v9"/>
-                            <path d="M16.5 20v-6.5c0-.9.7-1.5 1.5-1.5s1.5.6 1.5 1.5V20"/>
-                            <circle cx="12" cy="4.5" r="1.3"/>
-                          </svg>
+                          <MosqueIcon size={19} color={accent}/>
                         </button>
                       )}
                     </div>
@@ -5714,15 +5711,6 @@ export default function FocusGo() {
                           }}/>
                         )}
                       </button>
-                      {weatherData && weatherData.temp != null && (
-                        <span
-                          onClick={() => { vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                          style={{fontSize:12, fontWeight:700, color:textMuted2, letterSpacing:0, cursor:"pointer", flexShrink:0}}
-                          title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
-                        >
-                          · <Num>{nf(weatherData.temp)}</Num>°C
-                        </span>
-                      )}
                     </div>
                     {/* ঘড়ির পাশে ছোট অ্যালার্ম আইকন — ট্যাপ করলে Salah dropdown-এর মতোই একটা bottom-sheet popup খুলে সময় সেট করা যায় */}
                     <button
@@ -7265,7 +7253,7 @@ export default function FocusGo() {
 
       {/* Bottom nav — মোবাইল/ট্যাবলেটে; ডেস্কটপে সাইডবার থাকায় এটা হাইড */}
       {!isDesktop && (
-      <div style={{position:"sticky", left:0, right:0, bottom:0, display:"flex", justifyContent:"center", padding:"10px 16px 12px", zIndex:40, background: bg}}>
+      <div style={{position:"sticky", left:0, right:0, bottom:0, display:"flex", justifyContent:"center", padding:"10px 16px 12px", paddingBottom:"calc(12px + env(safe-area-inset-bottom))", zIndex:40, background: bg}}>
         <div style={{
           width:"100%", maxWidth:480, display:"flex",
           background: dark ? "rgba(18,17,16,0.6)" : "rgba(255,255,255,0.55)",
