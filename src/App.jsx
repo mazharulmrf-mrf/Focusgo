@@ -2497,7 +2497,7 @@ const T = {
     taskRepeatBadge: "Repeats", taskCalNoDate: "No due date", taskCalPickDay: "Tap a day to see its tasks",
     taskCalEmptyDay: "No tasks due this day", taskCalNoDateTasks: "Tasks without a due date",
     taskCalMonthOverview: "This Month", taskCalMonthTotal: "Total", taskCalMonthCompleted: "Completed", taskCalMonthOverdue: "Overdue",
-    focusTimer: "Focus Timer", start: "Start Focus", pause: "Pause", reset: "Reset",
+    focusTimer: "Focus Timer", start: "Start", pause: "Pause", reset: "Reset",
     pickTopicForTimer: "Pick a topic to focus on", freeSession: "Free Session",
     timerMode: "Timer", stopwatchMode: "Stopwatch",
     sessionTypeLabel: "Session Type", focusOption: "Focus", breakOption: "Break",
@@ -2656,7 +2656,7 @@ const T = {
     taskRepeatBadge: "রিপিট হয়", taskCalNoDate: "ডিউ ডেট নেই", taskCalPickDay: "কোনো দিনে ট্যাপ করে সেদিনের টাস্ক দেখুন",
     taskCalEmptyDay: "এই দিনে কোনো টাস্ক নেই", taskCalNoDateTasks: "ডিউ ডেট ছাড়া টাস্ক",
     taskCalMonthOverview: "এই মাস", taskCalMonthTotal: "মোট", taskCalMonthCompleted: "সম্পন্ন", taskCalMonthOverdue: "মেয়াদ শেষ",
-    focusTimer: "ফোকাস টাইমার", start: "ফোকাস শুরু", pause: "থামাও", reset: "রিসেট",
+    focusTimer: "ফোকাস টাইমার", start: "শুরু", pause: "থামাও", reset: "রিসেট",
     pickTopicForTimer: "ফোকাস করার জন্য একটা টপিক বাছাই করো", freeSession: "ফ্রি সেশন",
     timerMode: "টাইমার", stopwatchMode: "স্টপওয়াচ",
     sessionTypeLabel: "সেশন টাইপ", focusOption: "ফোকাস", breakOption: "ব্রেক",
@@ -3270,13 +3270,6 @@ export default function FocusGo() {
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherError, setWeatherError] = useState("");
   const salahMenuRef = useRef(null);
-  useEffect(() => {
-    if (!showSalahDropdown) return;
-    const handler = (e) => { if (salahMenuRef.current && !salahMenuRef.current.contains(e.target)) setShowSalahDropdown(false); };
-    document.addEventListener("mousedown", handler);
-    document.addEventListener("touchstart", handler);
-    return () => { document.removeEventListener("mousedown", handler); document.removeEventListener("touchstart", handler); };
-  }, [showSalahDropdown]);
 
   const [tab, setTab] = useState("today");
   // Visible Tabs — Study/Tasks/Notes বটম ন্যাভ থেকে দেখানো/লুকানো যায় (Today ও Settings সবসময় থাকে)।
@@ -6339,7 +6332,7 @@ export default function FocusGo() {
                   </div>
                 ) : (
                   <div style={{display:"flex", gap:6, overflowX:"auto", WebkitOverflowScrolling:"touch", justifyContent: (todayTopics.filter(x=>!x.done).length < 3) ? "center" : "flex-start", paddingBottom:2}}>
-                    <button onClick={()=>selectTimerTopic(null)} style={{flexShrink:0, border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:14, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer", whiteSpace:"nowrap"}}>
+                    <button onClick={()=>{ selectTimerTopic(null); setTimerRunning(true); setFocusFullscreen(true); playStartSound(); }} style={{flexShrink:0, border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:14, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer", whiteSpace:"nowrap"}}>
                       {t.freeSessionOption}
                     </button>
                     {todayTopics.filter(x=>!x.done).map(x => (
