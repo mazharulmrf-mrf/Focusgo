@@ -5480,8 +5480,9 @@ export default function FocusGo() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:10, border:`1px solid ${dark ? cardBorder : `${accent}1A`}`, borderBottom:"none", background: dark ? cardBg : `${accent}0A`, borderRadius:"20px 20px 0 0", padding:"9px 16px 3px", boxSizing:"border-box", boxShadow: dark ? "none" : `0 6px 16px ${accent}0A`}}>
-          <div style={{marginBottom:2}}>
+        <div style={{marginTop:10, border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderBottom:"none", background: dark ? cardBg : "#FFFFFF", borderRadius:"26px 26px 0 0", padding:"14px 18px 6px", boxSizing:"border-box", boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.24)" : "0 14px 34px rgba(32,34,43,0.08)", position:"relative", overflow:"hidden"}}>
+          <div style={{position:"absolute", top:-50, right:-50, width:130, height:130, borderRadius:"50%", background:`${accent}0F`, pointerEvents:"none"}}/>
+          <div style={{marginBottom:2, position:"relative"}}>
             {(() => {
               const fullName = (user?.displayName || "").trim();
               const parts = fullName.split(/\s+/).filter(Boolean);
@@ -5846,183 +5847,128 @@ export default function FocusGo() {
           </div>
 
           <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:2, marginTop:14, position:"relative"}}>
-            {/* Digits, mode pill, and controls — centered, compact single column */}
+            {/* Digits, mode toggle, and controls — simplified to fewer stacked rows */}
             <div style={{width:"100%", textAlign:"center"}}>
               {focusMode === "timer" ? (
-                <>
-                  {editingDuration ? (
-                    <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4}}>
-                      <input
-                        type="number"
-                        autoFocus
-                        value={durationInput}
-                        onChange={(e)=>setDurationInput(e.target.value)}
-                        onBlur={commitDurationEdit}
-                        onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
-                        min={1}
-                        max={180}
-                        style={{width:80, fontSize:32, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:1, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${accent}`, outline:"none"}}
-                      />
-                      <span style={{fontSize:14, fontWeight:500, color:textMuted2}}>{t.minutes}</span>
-                    </div>
-                  ) : (
+                editingDuration ? (
+                  <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4}}>
+                    <input
+                      type="number"
+                      autoFocus
+                      value={durationInput}
+                      onChange={(e)=>setDurationInput(e.target.value)}
+                      onBlur={commitDurationEdit}
+                      onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
+                      min={1}
+                      max={180}
+                      style={{width:80, fontSize:32, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:1, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${accent}`, outline:"none"}}
+                    />
+                    <span style={{fontSize:14, fontWeight:500, color:textMuted2}}>{t.minutes}</span>
+                  </div>
+                ) : (
+                  <>
                     <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined}
                       style={{fontSize:42, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color:textMain, cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
                       <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
                     </div>
-                  )}
-
-                  {/* Mode pill (Pomodoro/Stopwatch) + Focus/Break inline switch */}
-                  <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:8, flexWrap:"wrap"}}>
-                    <button onClick={()=>{ if (timerRunning) return; vibrate(); setFocusMode("stopwatch"); }} disabled={timerRunning}
-                      style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, background: dark?"#0A0A0A":"#FAF9F6", color:textMain, borderRadius:13, padding:"7px 13px", fontSize:12.5, fontWeight:600, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
-                      {t.timerMode} <ChevronDown size={12}/>
-                    </button>
-                    <button onClick={()=>changeSessionType(sessionType==="focus" ? "break" : "focus")} disabled={timerRunning} title={t.sessionTypeLabel} style={{
-                      border:"none", background:"transparent", padding:0, fontSize:11.5, fontWeight:500,
-                      cursor: timerRunning ? "default" : "pointer",
-                      color: sessionType==="focus" ? accent : textMuted2,
-                      opacity: sessionType==="focus" ? 1 : 0.7,
-                    }}>{sessionType==="focus" ? t.focusOption : t.breakOption}</button>
-                  </div>
-
-                  {/* Start / Custom Time / Reset buttons */}
-                  <div style={{display:"flex", justifyContent:"center", gap:7, marginTop:10, maxWidth:260, marginLeft:"auto", marginRight:"auto"}}>
-                    <button
-                      onClick={toggleTimerRunning}
-                      style={{display:"flex", alignItems:"center", justifyContent:"center", gap:7, flex:"1 1 auto", minWidth:0, background: accent, border:"none", borderRadius:16, padding:"12px 16px", color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", boxShadow:`0 10px 22px ${accent}45`, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-                      {timerRunning ? <Pause size={15} fill="#fff" style={{flexShrink:0}}/> : <Play size={15} fill="#fff" style={{flexShrink:0}}/>} <span style={{overflow:"hidden", textOverflow:"ellipsis"}}>{timerRunning ? t.pause : t.start}</span>
-                    </button>
-                    <button onClick={()=>{ if (timerRunning) return; vibrate(); startEditDuration(); }} disabled={timerRunning}
-                      title={lang==="bn" ? "কাস্টম সময়" : "Custom Time"}
-                      style={{border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, background: dark ? "transparent" : "#FAF9F6", color:textMain, borderRadius:16, width:42, height:42, flexShrink:0, display:"flex",alignItems:"center",justifyContent:"center", cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.5 : 1}}>
-                      <Clock size={15}/>
-                    </button>
-                    <button onClick={()=>{setTimerRunning(false); setTimerSeconds(timerTotal);}} title={t.reset} style={{background: dark?"#332E25":"#FAF9F6", border:`1px solid ${dark ? "transparent" : "#F0EEE8"}`, borderRadius:16, width:42, height:42, flexShrink:0, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
-                      <RotateCcw size={15} color={textMain}/>
-                    </button>
-                  </div>
-
-                  {/* Topic picker */}
-                  <div style={{marginTop:10, display:"flex", flexDirection:"column", alignItems:"center"}}>
-                    {timerTopic ? (
-                      !timerRunning ? (
-                        <button onClick={()=>{ const next=!showTopicPicker; setShowTopicPicker(next); if (next) setFreeSessionTouched(false); }} style={{display:"inline-flex", alignItems:"center", gap:4, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, padding:0}}>
-                          {`${timerTopic.subject} — ${timerTopic.topic}`}
-                          <ChevronDown size={12} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
-                        </button>
-                      ) : (
-                        <div style={{fontSize:12, color:textMuted2}}>{`${timerTopic.subject} — ${timerTopic.topic}`}</div>
-                      )
-                    ) : (
-                      !timerRunning && (
-                        <button onClick={()=>{ const next=!showTopicPicker; setShowTopicPicker(next); if (next) setFreeSessionTouched(false); }} style={{display:"inline-flex", alignItems:"center", gap:4, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, padding:0}}>
-                          {t.pickTopicForTimer}
-                          <ChevronDown size={12} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
-                        </button>
-                      )
-                    )}
-                    {!timerRunning && showTopicPicker && (
-                      <div style={{display:"flex", justifyContent:"center", flexWrap:"wrap", gap:6, marginTop:8}}>
-                        <button onClick={()=>{ vibrate(); setTimerTopicId(null); setFreeSessionTouched(true); }} style={{border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer"}}>
-                          {t.freeSessionOption}
-                        </button>
-                        {todayTopics.filter(x=>!x.done).map(x => (
-                          <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-                            {x.topic}
-                          </button>
-                        ))}
+                    {!timerRunning && (
+                      <div style={{fontSize:10.5, color:textMuted2, marginTop:3, fontWeight:500}}>
+                        {lang==="bn" ? "কাস্টম সময়ের জন্য উপরে ট্যাপ করো" : "Tap the time to customize"}
                       </div>
                     )}
-                    {!timerRunning && showTopicPicker && freeSessionTouched && (
-                      <div style={{display:"flex", justifyContent:"center", gap:6, marginTop:6, flexWrap:"wrap"}}>
-                        {(sessionType === "focus" ? [25,30,45,50,60] : [5,10,15]).map(mins => {
-                          const active = Math.round(timerTotal/60) === mins;
-                          return (
-                            <button key={mins} onClick={()=>setPresetDuration(mins)} style={{border:`1px solid ${active ? inkColor : cardBorder}`, background: active ? inkA(0.10) : "transparent", color: active ? inkColor : textMuted2, borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:500, cursor:"pointer"}}>
-                              <Num>{nf(mins)}</Num> {t.minutes}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Pomodoro cycle progress: Session X/N + ●●○○○ */}
-                  <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, marginTop:10}}>
-                    <div style={{fontSize:11, fontWeight:500, color:textMuted2}}>
-                      {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num>
-                    </div>
-                    <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:5, flexWrap:"wrap"}}>
-                      {Array.from({length:pomodoroTotalSessions}, (_,i)=>i+1).map(i => {
-                        const state = i < pomodoroSession ? "done" : (i === pomodoroSession ? "current" : "upcoming");
-                        return (
-                          <span key={i} style={{
-                            width: state === "current" ? 8 : 6, height: state === "current" ? 8 : 6, borderRadius:"50%",
-                            background: state === "upcoming" ? "transparent" : accent,
-                            border: state === "upcoming" ? `1.5px solid ${textMuted2}` : "none",
-                            opacity: state === "done" ? 0.55 : 1,
-                            transition:"all .2s ease"
-                          }}/>
-                        );
-                      })}
-                    </div>
-                    {timerTargetMinutes && (
-                      <div style={{fontSize:11, color:textMuted2, fontWeight:500, opacity:0.75}}>
-                        <Num>{nf(timerElapsedMinutes)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
-                      </div>
-                    )}
-                  </div>
-                </>
+                  </>
+                )
               ) : (
-                <>
-                  <div className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:42, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, lineHeight:1}}>
-                    <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
-                  </div>
+                <div className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:42, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, lineHeight:1}}>
+                  <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
+                </div>
+              )}
 
-                  <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:8, flexWrap:"wrap"}}>
-                    <button onClick={()=>{ if (stopwatchRunning) return; vibrate(); setFocusMode("timer"); }} disabled={stopwatchRunning}
-                      style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, background: dark?"#0A0A0A":"#FAF9F6", color:textMain, borderRadius:13, padding:"7px 13px", fontSize:12.5, fontWeight:600, cursor: stopwatchRunning ? "default" : "pointer", opacity: stopwatchRunning ? 0.6 : 1}}>
-                      {t.stopwatchMode} <ChevronDown size={12}/>
+              {/* Mode toggle: Timer/Stopwatch and Focus/Break — both plain segmented switches, same visual language */}
+              <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:10, flexWrap:"wrap"}}>
+                <div style={{display:"flex", border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderRadius:13, overflow:"hidden"}}>
+                  <button onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setFocusMode("timer"); }} disabled={timerRunning || stopwatchRunning}
+                    style={{border:"none", background: focusMode==="timer" ? (dark ? `${accent}30` : `${accent}18`) : "transparent", color: focusMode==="timer" ? accent : textMuted2, padding:"7px 13px", fontSize:12, fontWeight:600, cursor: (timerRunning||stopwatchRunning) ? "default" : "pointer"}}>
+                    {t.timerMode}
+                  </button>
+                  <button onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setFocusMode("stopwatch"); }} disabled={timerRunning || stopwatchRunning}
+                    style={{border:"none", background: focusMode==="stopwatch" ? (dark ? `${accent}30` : `${accent}18`) : "transparent", color: focusMode==="stopwatch" ? accent : textMuted2, padding:"7px 13px", fontSize:12, fontWeight:600, cursor: (timerRunning||stopwatchRunning) ? "default" : "pointer"}}>
+                    {t.stopwatchMode}
+                  </button>
+                </div>
+                {focusMode === "timer" && (
+                  <div style={{display:"flex", border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderRadius:13, overflow:"hidden"}}>
+                    <button onClick={()=>{ if (timerRunning) return; changeSessionType("focus"); }} disabled={timerRunning}
+                      style={{border:"none", background: sessionType==="focus" ? (dark ? `${accent}30` : `${accent}18`) : "transparent", color: sessionType==="focus" ? accent : textMuted2, padding:"7px 13px", fontSize:12, fontWeight:600, cursor: timerRunning ? "default" : "pointer"}}>
+                      {t.focusOption}
+                    </button>
+                    <button onClick={()=>{ if (timerRunning) return; changeSessionType("break"); }} disabled={timerRunning}
+                      style={{border:"none", background: sessionType==="break" ? (dark ? `${accent}30` : `${accent}18`) : "transparent", color: sessionType==="break" ? accent : textMuted2, padding:"7px 13px", fontSize:12, fontWeight:600, cursor: timerRunning ? "default" : "pointer"}}>
+                      {t.breakOption}
                     </button>
                   </div>
+                )}
+              </div>
 
-                  <div style={{display:"flex", justifyContent:"center", gap:7, marginTop:10}}>
-                    <button
-                      onClick={toggleStopwatchRunning}
-                      style={{display:"flex", alignItems:"center", gap:7, background: accent, border:"none", borderRadius:16, padding:"12px 18px", color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", boxShadow:`0 10px 22px ${accent}45`, flexShrink:0}}>
-                      {stopwatchRunning ? <Pause size={15} fill="#fff"/> : <Play size={15} fill="#fff"/>} {stopwatchRunning ? t.pause : t.start}
-                    </button>
-                    <button onClick={()=>{setStopwatchRunning(false); setStopwatchSeconds(0);}} title={t.reset} style={{background: dark?"#332E25":"#FAF9F6", border:`1px solid ${dark ? "transparent" : "#F0EEE8"}`, borderRadius:16, width:42, flexShrink:0, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
-                      <RotateCcw size={15} color={textMain}/>
-                    </button>
+              {/* Start + Reset — Custom Time removed since tapping the digits already edits duration */}
+              <div style={{display:"flex", justifyContent:"center", gap:7, marginTop:10, maxWidth:260, marginLeft:"auto", marginRight:"auto"}}>
+                <button
+                  onClick={focusMode==="timer" ? toggleTimerRunning : toggleStopwatchRunning}
+                  style={{display:"flex", alignItems:"center", justifyContent:"center", gap:7, flex:"1 1 auto", minWidth:0, background: accent, border:"none", borderRadius:16, padding:"12px 16px", color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", boxShadow:`0 10px 22px ${accent}45`, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                  {(focusMode==="timer" ? timerRunning : stopwatchRunning) ? <Pause size={15} fill="#fff" style={{flexShrink:0}}/> : <Play size={15} fill="#fff" style={{flexShrink:0}}/>} <span style={{overflow:"hidden", textOverflow:"ellipsis"}}>{(focusMode==="timer" ? timerRunning : stopwatchRunning) ? t.pause : t.start}</span>
+                </button>
+                <button onClick={()=>{ if (focusMode==="timer") { setTimerRunning(false); setTimerSeconds(timerTotal); } else { setStopwatchRunning(false); setStopwatchSeconds(0); } }} title={t.reset}
+                  style={{background: dark?"#332E25":"#FAF9F6", border:`1px solid ${dark ? "transparent" : "#F0EEE8"}`, borderRadius:16, width:42, height:42, flexShrink:0, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+                  <RotateCcw size={15} color={textMain}/>
+                </button>
+              </div>
+
+              {/* Topic — always-visible horizontal chip row instead of a hidden picker menu; no preset-minute chips */}
+              <div style={{marginTop:10}}>
+                {(focusMode==="timer" ? timerRunning : stopwatchRunning) ? (
+                  <div style={{fontSize:12, color:textMuted2}}>
+                    {timerTopic ? `${timerTopic.subject} — ${timerTopic.topic}` : t.freeSessionOption}
                   </div>
-
-                  <div style={{marginTop:10, display:"flex", flexDirection:"column", alignItems:"center"}}>
-                    {!stopwatchRunning ? (
-                      <button onClick={()=>setShowTopicPicker(v=>!v)} style={{display:"inline-flex", alignItems:"center", gap:4, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, padding:0}}>
-                        {timerTopic ? `${timerTopic.subject} — ${timerTopic.topic}` : t.pickTopicForTimer}
-                        <ChevronDown size={12} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+                ) : (
+                  <div style={{display:"flex", gap:6, overflowX:"auto", WebkitOverflowScrolling:"touch", justifyContent: (todayTopics.filter(x=>!x.done).length < 3) ? "center" : "flex-start", paddingBottom:2}}>
+                    <button onClick={()=>selectTimerTopic(null)} style={{flexShrink:0, border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer", whiteSpace:"nowrap"}}>
+                      {t.freeSessionOption}
+                    </button>
+                    {todayTopics.filter(x=>!x.done).map(x => (
+                      <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{flexShrink:0, border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                        {x.topic}
                       </button>
-                    ) : (
-                      <div style={{fontSize:12, color:textMuted2}}>
-                        {timerTopic ? `${timerTopic.subject} — ${timerTopic.topic}` : t.pickTopicForTimer}
-                      </div>
-                    )}
-                    {!stopwatchRunning && showTopicPicker && (
-                      <div style={{display:"flex", justifyContent:"center", flexWrap:"wrap", gap:6, marginTop:8}}>
-                        <button onClick={()=>selectTimerTopic(null)} style={{border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer"}}>
-                          {t.freeSessionOption}
-                        </button>
-                        {todayTopics.filter(x=>!x.done).map(x => (
-                          <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-                            {x.topic}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    ))}
                   </div>
-                </>
+                )}
+              </div>
+
+              {/* Session progress — merged into a single line */}
+              {focusMode === "timer" && (
+                <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:10, flexWrap:"wrap"}}>
+                  <span style={{fontSize:11, fontWeight:500, color:textMuted2}}>
+                    {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num>
+                  </span>
+                  <span style={{display:"flex", alignItems:"center", gap:5}}>
+                    {Array.from({length:pomodoroTotalSessions}, (_,i)=>i+1).map(i => {
+                      const state = i < pomodoroSession ? "done" : (i === pomodoroSession ? "current" : "upcoming");
+                      return (
+                        <span key={i} style={{
+                          width: state === "current" ? 8 : 6, height: state === "current" ? 8 : 6, borderRadius:"50%",
+                          background: state === "upcoming" ? "transparent" : accent,
+                          border: state === "upcoming" ? `1.5px solid ${textMuted2}` : "none",
+                          opacity: state === "done" ? 0.55 : 1,
+                          transition:"all .2s ease"
+                        }}/>
+                      );
+                    })}
+                  </span>
+                  {timerTargetMinutes && (
+                    <span style={{fontSize:11, color:textMuted2, fontWeight:500, opacity:0.75}}>
+                      <Num>{nf(timerElapsedMinutes)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
+                    </span>
+                  )}
+                </div>
               )}
             </div>
 
@@ -6049,13 +5995,13 @@ export default function FocusGo() {
           return (
         <div className="fg-tab-panel" style={{
             marginTop: tab === "today" ? 0 : 16,
-            border:`1px solid ${dark ? cardBorder : `${accent}1A`}`,
+            border:`1px solid ${dark ? cardBorder : (tab === "today" ? "#F0EEE8" : `${accent}1A`)}`,
             borderTop: tab === "today" ? "none" : `1px solid ${dark ? cardBorder : `${accent}1A`}`,
-            background: dark ? cardBg : `${accent}0A`,
-            borderRadius: tab === "today" ? "0 0 20px 20px" : 20,
-            padding: tab === "today" ? "8px 16px 10px" : "16px 18px",
+            background: dark ? cardBg : (tab === "today" ? "#FFFFFF" : `${accent}0A`),
+            borderRadius: tab === "today" ? "0 0 26px 26px" : 20,
+            padding: tab === "today" ? "10px 18px 14px" : "16px 18px",
             position:"relative", overflow:"hidden",
-            boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.28)" : `0 6px 16px ${accent}0A`
+            boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.24)" : (tab === "today" ? "0 14px 34px rgba(32,34,43,0.08)" : `0 6px 16px ${accent}0A`)
           }}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:10, minWidth:0}}>
@@ -10522,51 +10468,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               </div>
             )}
 
-            {/* Category পিকার — বটম টুলবারের Tag আইকন দিয়ে টগল হয়, নাম-সহ চিপ যাতে বোঝা যায় কোনটা সিলেক্ট করা আছে; চেপে ধরলে Rename/Delete */}
-            {showColorPicker && (
-              <div onClick={e=>e.stopPropagation()} style={{display:"flex",flexWrap:"wrap",gap:8,paddingTop:6,paddingBottom:2}}>
-                {categories.map(cat => {
-                  const c = noteColorFor(cat, categories);
-                  const selected = category === cat;
-                  return (
-                    <div key={cat} style={{position:"relative"}}>
-                      <button
-                        onClick={()=>setCategory(cat)}
-                        onMouseDown={()=>startCatPress(cat)}
-                        onMouseUp={cancelCatPress}
-                        onMouseLeave={cancelCatPress}
-                        onTouchStart={()=>startCatPress(cat)}
-                        onTouchEnd={cancelCatPress}
-                        onTouchMove={cancelCatPress}
-                        style={{
-                        display:"flex",alignItems:"center",gap:4,
-                        background:c.bg, color:c.text,
-                        border: selected ? `1.5px solid ${paperText}` : "1px solid transparent",
-                        borderRadius:999,padding:"6px 12px",fontSize:12,fontWeight:800,cursor:"pointer"
-                      }}>
-                        {selected && <Check size={12}/>}
-                        {cat}
-                      </button>
-                      {categoryMenuFor === cat && (
-                        <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:"calc(100% + 4px)",left:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:4,boxShadow:"0 6px 16px rgba(0,0,0,0.11)",zIndex:30,display:"flex",flexDirection:"column",minWidth:128}}>
-                          <button onClick={()=>{renameCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12,fontWeight:700,color:textMain,cursor:"pointer",borderRadius:8}}>
-                            <Pencil size={13}/> {lang==="bn"?"নাম পরিবর্তন":"Rename"}
-                          </button>
-                          {cat !== "General" && (
-                            <button onClick={()=>{deleteCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12,fontWeight:700,color:"#C54B4B",cursor:"pointer",borderRadius:8}}>
-                              <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-                <button onClick={addCategory} style={{flex:"0 0 auto",border:`1.5px dashed ${paperText}`,background:"transparent",color:paperText,borderRadius:999,padding:"6px 12px",fontSize:12,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>
-                  <Plus size={12}/> {lang==="bn"?"নতুন":"New"}
-                </button>
-              </div>
-            )}
+            {/* Category পিকার এখন নিচের "General" পিল-এ ট্যাপ করলে ভাসমান প্যানেল হিসেবে খোলে (দেখুন নিচে bottom toolbar-এর কাছে) */}
 
             {/* নোট কার্ডের ব্যাকগ্রাউন্ড রঙ পিকার — বটম টুলবারের নতুন Palette আইকন দিয়ে টগল হয়; নিজের ইচ্ছামতো রঙ করে রাখলে পরে চোখের দেখায় দ্রুত খুঁজে পাওয়া যায় */}
             {showBgColorPicker && (
@@ -10634,10 +10536,6 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               style={{border:"none",background:showFormatBar?toolbarActiveBg:"transparent",color:showFormatBar?accent:iconColor,cursor:"pointer",padding:"9px 10px",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:13,fontFamily:"inherit"}}>
               Aa
             </button>
-            <button onClick={()=>{setShowColorPicker(v=>!v);setShowChecklist(false);setShowBgColorPicker(false);}} title={lang==="bn"?"ক্যাটাগরি":"Category"}
-              style={{border:"none",background:showColorPicker?toolbarActiveBg:"transparent",color:iconColor,cursor:"pointer",padding:8,borderRadius:"50%",display:"flex"}}>
-              <Tag size={19}/>
-            </button>
             <button onClick={()=>{setShowBgColorPicker(v=>!v);setShowChecklist(false);setShowColorPicker(false);}} title={lang==="bn"?"নোটের রঙ":"Note color"}
               style={{border:"none",background:showBgColorPicker?toolbarActiveBg:"transparent",color:iconColor,cursor:"pointer",padding:8,borderRadius:"50%",display:"flex"}}>
               <Palette size={19}/>
@@ -10659,7 +10557,60 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               </button>
             </div>
             <div style={{flex:1}}/>
-            <span style={{fontSize:11,fontWeight:800,color:noteCol.text,background:noteCol.bg,padding:"4px 11px",borderRadius:20}}>{category}</span>
+            <div style={{position:"relative"}}>
+              <button onClick={()=>{setShowColorPicker(v=>!v);setShowChecklist(false);setShowBgColorPicker(false);}}
+                style={{border:"none",fontSize:11,fontWeight:800,color:noteCol.text,background:noteCol.bg,padding:"4px 11px",borderRadius:20,cursor:"pointer"}}>
+                {category}
+              </button>
+              {/* ক্যাটাগরি লিস্ট — "General" পিলে ট্যাপ করলে ভাসমান প্যানেল হিসেবে উপরে খোলে; চেপে ধরলে Rename/Delete */}
+              {showColorPicker && (
+                <>
+                  <div onClick={(e)=>{e.stopPropagation();setShowColorPicker(false);}} style={{position:"fixed",inset:0,zIndex:29}}/>
+                  <div onClick={e=>e.stopPropagation()} style={{position:"absolute",bottom:"calc(100% + 8px)",right:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:8,boxShadow:"0 8px 22px rgba(0,0,0,0.18)",zIndex:30,display:"flex",flexWrap:"wrap",gap:8,maxWidth:240}}>
+                    {categories.map(cat => {
+                      const c = noteColorFor(cat, categories);
+                      const selected = category === cat;
+                      return (
+                        <div key={cat} style={{position:"relative"}}>
+                          <button
+                            onClick={()=>{setCategory(cat);setShowColorPicker(false);}}
+                            onMouseDown={()=>startCatPress(cat)}
+                            onMouseUp={cancelCatPress}
+                            onMouseLeave={cancelCatPress}
+                            onTouchStart={()=>startCatPress(cat)}
+                            onTouchEnd={cancelCatPress}
+                            onTouchMove={cancelCatPress}
+                            style={{
+                            display:"flex",alignItems:"center",gap:4,
+                            background:c.bg, color:c.text,
+                            border: selected ? `1.5px solid ${paperText}` : "1px solid transparent",
+                            borderRadius:999,padding:"6px 12px",fontSize:12,fontWeight:800,cursor:"pointer",whiteSpace:"nowrap"
+                          }}>
+                            {selected && <Check size={12}/>}
+                            {cat}
+                          </button>
+                          {categoryMenuFor === cat && (
+                            <div onClick={e=>e.stopPropagation()} style={{position:"absolute",bottom:"calc(100% + 4px)",left:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:4,boxShadow:"0 6px 16px rgba(0,0,0,0.11)",zIndex:31,display:"flex",flexDirection:"column",minWidth:128}}>
+                              <button onClick={()=>{renameCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12,fontWeight:700,color:textMain,cursor:"pointer",borderRadius:8}}>
+                                <Pencil size={13}/> {lang==="bn"?"নাম পরিবর্তন":"Rename"}
+                              </button>
+                              {cat !== "General" && (
+                                <button onClick={()=>{deleteCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12,fontWeight:700,color:"#C54B4B",cursor:"pointer",borderRadius:8}}>
+                                  <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    <button onClick={addCategory} style={{flex:"0 0 auto",border:`1.5px dashed ${paperText}`,background:"transparent",color:paperText,borderRadius:999,padding:"6px 12px",fontSize:12,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",gap:4,whiteSpace:"nowrap"}}>
+                      <Plus size={12}/> {lang==="bn"?"নতুন":"New"}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       );})()}
