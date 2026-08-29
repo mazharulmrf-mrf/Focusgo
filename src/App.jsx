@@ -441,7 +441,7 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
 
   const inputStyle = {
     width: "100%", boxSizing: "border-box", border: `1px solid ${cardBorder}`, background: dark ? "#242229" : "#FFFFFF",
-    color: textMain, borderRadius:12, padding: "12px 14px", fontSize:14, outline: "none",
+    color: textMain, borderRadius:12, padding: "12px 14px", fontSize:15, outline: "none",
   };
 
   // আলাদা "পাসওয়ার্ড রিসেট" স্ক্রিন — লগইন/সাইন-আপ ফর্ম থেকে সম্পূর্ণ আলাদা, শুধু ইমেইল চাওয়া হয়
@@ -454,25 +454,25 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
               style={{ border: "none", background: "transparent", cursor: "pointer", color: textMuted2, padding:4, display: "flex" }}>
               <ChevronLeft size={20} />
             </button>
-            <div style={{ fontSize:16, fontWeight: 800 }}>{L.forgotTitle}</div>
+            <div style={{ fontSize:17, fontWeight: 800 }}>{L.forgotTitle}</div>
           </div>
 
-          {!info && <div style={{ fontSize:13, color: textMuted2, marginBottom: 16, lineHeight: 1.6 }}>{L.forgotSubtitle}</div>}
+          {!info && <div style={{ fontSize:14, color: textMuted2, marginBottom: 16, lineHeight: 1.6 }}>{L.forgotSubtitle}</div>}
 
           <form onSubmit={handleForgot} style={{ display: "flex", flexDirection: "column", gap:10 }}>
             <input type="email" placeholder={L.email} value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} style={inputStyle} required disabled={!!info} />
-            {error && <div style={{ fontSize:12, color: "#C0553F", fontWeight: 600 }}>{error}</div>}
-            {info && <div style={{ fontSize:12, color: "#6E8B5E", fontWeight: 600 }}>{info}</div>}
+            {error && <div style={{ fontSize:13, color: "#C0553F", fontWeight: 600 }}>{error}</div>}
+            {info && <div style={{ fontSize:13, color: "#6E8B5E", fontWeight: 600 }}>{info}</div>}
             {!info && (
               <button type="submit" disabled={busy} style={{
-                marginTop: 4, border: "none", borderRadius:12, padding: "12px 0", fontSize:14, fontWeight: 800,
+                marginTop: 4, border: "none", borderRadius:12, padding: "12px 0", fontSize:15, fontWeight: 800,
                 background: accent, color: "#fff", cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1,
               }}>
                 {busy ? "..." : L.sendResetLink}
               </button>
             )}
             <button type="button" onClick={() => { setMode("login"); setError(""); setInfo(""); setForgotEmail(""); }}
-              style={{ background: "transparent", border: "none", color: textMuted2, fontSize:12, cursor: "pointer", textAlign: "center", marginTop: info ? 4 : 0 }}>
+              style={{ background: "transparent", border: "none", color: textMuted2, fontSize:13, cursor: "pointer", textAlign: "center", marginTop: info ? 4 : 0 }}>
               {L.backToLogin}
             </button>
           </form>
@@ -486,18 +486,18 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
       <div style={{ width: "100%", maxWidth: cardMaxWidth, background: cardBg, border: `1px solid ${cardBorder}`, borderRadius:14, padding: "28px 24px" }}>
         <div style={{ textAlign: "center", marginBottom: 20 }}>
           <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt="FocusGo" style={{height:30, width:"auto", objectFit:"contain", display:"block", margin:"0 auto"}}/>
-          <div style={{ fontSize:12, color: textMuted2, marginTop: 8 }}>{L.subtitle}</div>
+          <div style={{ fontSize:13, color: textMuted2, marginTop: 8 }}>{L.subtitle}</div>
         </div>
 
         <div style={{ display: "flex", gap:8, marginBottom: 18 }}>
           <button type="button" onClick={() => { setMode("login"); setError(""); setInfo(""); }}
-            style={{ flex: 1, padding: "9px 0", borderRadius:10, fontSize:13, fontWeight: 700, cursor: "pointer",
+            style={{ flex: 1, padding: "9px 0", borderRadius:10, fontSize:14, fontWeight: 700, cursor: "pointer",
               border: `1px solid ${mode === "login" ? accent : cardBorder}`,
               background: mode === "login" ? accent : "transparent", color: mode === "login" ? "#fff" : textMuted2 }}>
             {L.login}
           </button>
           <button type="button" onClick={() => { setMode("signup"); setError(""); setInfo(""); }}
-            style={{ flex: 1, padding: "9px 0", borderRadius:10, fontSize:13, fontWeight: 700, cursor: "pointer",
+            style={{ flex: 1, padding: "9px 0", borderRadius:10, fontSize:14, fontWeight: 700, cursor: "pointer",
               border: `1px solid ${mode === "signup" ? accent : cardBorder}`,
               background: mode === "signup" ? accent : "transparent", color: mode === "signup" ? "#fff" : textMuted2 }}>
             {L.signup}
@@ -511,21 +511,21 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
           <input type="email" placeholder={L.email} value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} required />
           <PasswordField placeholder={L.password} value={password} onChange={e => setPassword(e.target.value)} style={inputStyle} required minLength={8} textMuted2={textMuted2} autoComplete={mode === "signup" ? "new-password" : "current-password"} />
           {mode === "signup" && (
-            <div style={{ fontSize:11, color: textMuted2, marginTop: -4 }}>{L.pwHint}</div>
+            <div style={{ fontSize:12, color: textMuted2, marginTop: -4 }}>{L.pwHint}</div>
           )}
 
-          {error && <div style={{ fontSize:12, color: "#C0553F", fontWeight: 600 }}>{error}</div>}
-          {info && <div style={{ fontSize:12, color: "#6E8B5E", fontWeight: 600 }}>{info}</div>}
+          {error && <div style={{ fontSize:13, color: "#C0553F", fontWeight: 600 }}>{error}</div>}
+          {info && <div style={{ fontSize:13, color: "#6E8B5E", fontWeight: 600 }}>{info}</div>}
 
           <button type="submit" disabled={busy} style={{
-            marginTop: 4, border: "none", borderRadius:12, padding: "12px 0", fontSize:14, fontWeight: 800,
+            marginTop: 4, border: "none", borderRadius:12, padding: "12px 0", fontSize:15, fontWeight: 800,
             background: accent, color: "#fff", cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1,
           }}>
             {busy ? "..." : (mode === "signup" ? L.submitSignup : L.submitLogin)}
           </button>
 
           {mode === "login" && (
-            <button type="button" onClick={() => { setMode("forgot"); setForgotEmail(email); setError(""); setInfo(""); }} style={{ background: "transparent", border: "none", color: textMuted2, fontSize:12, cursor: "pointer", textAlign: "center" }}>
+            <button type="button" onClick={() => { setMode("forgot"); setForgotEmail(email); setError(""); setInfo(""); }} style={{ background: "transparent", border: "none", color: textMuted2, fontSize:13, cursor: "pointer", textAlign: "center" }}>
               {L.forgot}
             </button>
           )}
@@ -533,24 +533,24 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
 
         <div style={{ display: "flex", alignItems: "center", gap:10, margin: "18px 0" }}>
           <div style={{ flex: 1, height: 1, background: cardBorder }} />
-          <div style={{ fontSize:11, color: textMuted2 }}>{L.or}</div>
+          <div style={{ fontSize:12, color: textMuted2 }}>{L.or}</div>
           <div style={{ flex: 1, height: 1, background: cardBorder }} />
         </div>
 
         <button type="button" onClick={handleGoogle} disabled={busy} style={{
           width: "100%", border: `1px solid ${cardBorder}`, background: "transparent", color: textMain,
-          borderRadius:12, padding: "11px 0", fontSize:13, fontWeight: 700, cursor: "pointer",
+          borderRadius:12, padding: "11px 0", fontSize:14, fontWeight: 700, cursor: "pointer",
         }}>
           {L.google}
         </button>
 
         <button type="button" onClick={onGuest} disabled={busy} style={{
           width: "100%", border: "none", background: "transparent", color: textMuted2,
-          borderRadius:12, padding: "12px 0 2px", fontSize:13, fontWeight: 700, cursor: "pointer", textAlign: "center",
+          borderRadius:12, padding: "12px 0 2px", fontSize:14, fontWeight: 700, cursor: "pointer", textAlign: "center",
         }}>
           {L.guest}
         </button>
-        <div style={{ fontSize:11, color: textMuted2, textAlign: "center", marginTop: 4, lineHeight: 1.5, opacity: 0.8 }}>
+        <div style={{ fontSize:12, color: textMuted2, textAlign: "center", marginTop: 4, lineHeight: 1.5, opacity: 0.8 }}>
           {L.guestNote}
         </div>
       </div>
@@ -578,10 +578,10 @@ function UserMenu({ onOpenProfile, onOpenSettings, cardBorder, cardBg, textMain,
         <>
           <div onClick={() => setOpen(false)} style={{position:"fixed", inset:0, zIndex:59}}/>
           <div style={{position:"absolute", right:0, top:"100%", marginTop:6, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, boxShadow:"0 4px 14px rgba(0,0,0,0.10)", zIndex:60, minWidth:160, overflow:"hidden", padding:4}}>
-            <button onClick={() => { setOpen(false); onOpenProfile(); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:8, padding:"9px 10px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+            <button onClick={() => { setOpen(false); onOpenProfile(); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:8, padding:"9px 10px", fontSize:14, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
               <User size={14} color={textMuted2}/> {profileLabel}
             </button>
-            <button onClick={() => { setOpen(false); onOpenSettings(); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:8, padding:"9px 10px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+            <button onClick={() => { setOpen(false); onOpenSettings(); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:8, padding:"9px 10px", fontSize:14, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
               <Settings size={14} color={textMuted2}/> {settingsLabel}
             </button>
           </div>
@@ -624,25 +624,25 @@ function NotificationBell({ t, lang, notifications, onMarkAllRead, onClear, card
           <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 59 }} />
           <div style={{ position: "absolute", right: 0, top: "100%", marginTop: 6, background: cardBg, border: `1px solid ${cardBorder}`, borderRadius:14, boxShadow: "0 4px 14px rgba(0,0,0,0.10)", zIndex: 60, width: 300, maxWidth: "88vw", maxHeight: 360, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderBottom: `1px solid ${cardBorder}` }}>
-              <span style={{ fontSize:13, fontWeight: 800, color: textMain }}>{t.notifications}</span>
+              <span style={{ fontSize:14, fontWeight: 800, color: textMain }}>{t.notifications}</span>
               {notifications.length > 0 && (
-                <button onClick={onClear} style={{ border: "none", background: "transparent", color: textMuted2, fontSize:11, fontWeight: 700, cursor: "pointer", padding: 4 }}>{t.clearAll}</button>
+                <button onClick={onClear} style={{ border: "none", background: "transparent", color: textMuted2, fontSize:12, fontWeight: 700, cursor: "pointer", padding: 4 }}>{t.clearAll}</button>
               )}
             </div>
             <div style={{ overflowY: "auto" }}>
               {notifications.length === 0 && (
                 <div style={{ padding: "28px 12px", textAlign: "center" }}>
                   <Bell size={20} color={textMuted2} strokeWidth={1.6} style={{opacity:0.5, marginBottom:8}}/>
-                  <div style={{ fontSize:12, color: textMuted2 }}>{t.noNotifications}</div>
+                  <div style={{ fontSize:13, color: textMuted2 }}>{t.noNotifications}</div>
                 </div>
               )}
               {notifications.map(n => (
                 <div key={n.id} style={{ display: "flex", gap:8, padding: "10px 12px", borderBottom: `1px solid ${cardBorder}`, background: n.read ? "transparent" : (dark ? "#242424" : "#F8F5EE") }}>
                   <span style={{ width: 7, height: 7, borderRadius: "50%", background: accent, flexShrink: 0, marginTop: 5, opacity: n.read ? 0 : 1 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize:12, fontWeight: 700, color: textMain }}>{n.title}</div>
-                    <div style={{ fontSize:11, color: textMuted2, marginTop: 2, lineHeight: 1.4 }}>{n.body}</div>
-                    <div style={{ fontSize:10, color: textMuted2, opacity: 0.7, marginTop: 3 }}>{timeAgoLabel(n.time, lang)}</div>
+                    <div style={{ fontSize:13, fontWeight: 700, color: textMain }}>{n.title}</div>
+                    <div style={{ fontSize:12, color: textMuted2, marginTop: 2, lineHeight: 1.4 }}>{n.body}</div>
+                    <div style={{ fontSize:11, color: textMuted2, opacity: 0.7, marginTop: 3 }}>{timeAgoLabel(n.time, lang)}</div>
                   </div>
                 </div>
               ))}
@@ -853,7 +853,7 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
       {items.map(({ k, Icon }) => (
         <button key={k} onClick={() => { vibrate(); setTab(k); }} title={collapsed ? t.tabs[k] : undefined} style={{
           display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "flex-start", gap:12, border: "none", borderRadius:12,
-          padding: collapsed ? "11px 0" : "11px 12px", fontSize:14, fontWeight: 700, cursor: "pointer", textAlign: "left",
+          padding: collapsed ? "11px 0" : "11px 12px", fontSize:15, fontWeight: 700, cursor: "pointer", textAlign: "left",
           background: "transparent",
           color: tab === k ? accent : textMuted2,
           transition: "background .2s ease, color .2s ease",
@@ -905,7 +905,7 @@ function SettingsDropdown({ value, options, onChange, dark, cardBorder, textMain
       <button type="button" onClick={()=>setOpen(o=>!o)} style={{
         display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, width:"100%",
         border:`1px solid ${cardBorder}`, background: dark?"#0A0A0A":"#F8F5EE", color:textMain,
-        borderRadius:10, padding:"10px 12px", fontSize:13, fontWeight:700, cursor:"pointer"
+        borderRadius:10, padding:"10px 12px", fontSize:14, fontWeight:700, cursor:"pointer"
       }}>
         <span>{current ? current.label : ""}</span>
         <ChevronDown size={15} style={{transform: open ? "rotate(180deg)" : "none", transition:"transform .15s", flexShrink:0, color:textMuted2}}/>
@@ -917,7 +917,7 @@ function SettingsDropdown({ value, options, onChange, dark, cardBorder, textMain
             return (
               <button key={o.value} type="button" onClick={()=>{ onChange(o.value); setOpen(false); }} style={{
                 width:"100%", textAlign:"left", border:"none", background: selected ? `${accent}1A` : "transparent",
-                color: selected ? accent : textMain, borderRadius:8, padding:"9px 10px", fontSize:13, fontWeight:700, cursor:"pointer",
+                color: selected ? accent : textMain, borderRadius:8, padding:"9px 10px", fontSize:14, fontWeight:700, cursor:"pointer",
                 display:"flex", alignItems:"center", justifyContent:"space-between"
               }}>
                 {o.label}{selected && <Check size={14} strokeWidth={3}/>}
@@ -954,8 +954,8 @@ function SettingsRow({ Icon, title, subtitle, right, onClick, href, expandKey, c
       }}>
       <span style={{ width:34, height:34, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}><Icon size={19} color={iconColor}/></span>
       <div style={{flex:1, minWidth:0}}>
-        <div style={{fontSize:14, fontWeight:700, color:textMain, marginBottom:1}}>{title}</div>
-        {subtitle && <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subtitle}</div>}
+        <div style={{fontSize:15, fontWeight:700, color:textMain, marginBottom:1}}>{title}</div>
+        {subtitle && <div style={{fontSize:12.5, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subtitle}</div>}
       </div>
       {right !== undefined ? right : (
         isExpandable
@@ -1103,10 +1103,10 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
 
   const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:`1px solid ${cardBorder}` };
-  const labelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14, fontWeight:700, color:textMain };
+  const labelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:15, fontWeight:700, color:textMain };
   const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#B0ABC2" : "#6E6B7A" };
   // pill বাটন — নির্বাচিত হলে accent রঙে ভরাট থাকবে; Appearance সেকশনে (থিম ও অ্যাকসেন্ট) সরাসরি ইনলাইন ব্যবহার হয়
-  const pillBase = { border:"1px solid transparent", borderRadius:999, padding:"9px 16px", fontSize:13.5, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" };
+  const pillBase = { border:"1px solid transparent", borderRadius:999, padding:"9px 16px", fontSize:14.5, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" };
   // "System" সবার আগে দেখানো হয় — ডিভাইসের prefers-color-scheme অনুযায়ী লাইভ light/dark
   const themeInlineOptions = [{ key: "system", label: t.themeSystem }, ...THEME_ORDER.map(key => ({
     key,
@@ -1124,16 +1124,16 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             <button onClick={()=>setLegalDoc(null)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
               <ChevronLeft size={20}/>
             </button>
-            <div style={{fontSize:18, fontWeight:800, flex:1}}>{title}</div>
+            <div style={{fontSize:19, fontWeight:800, flex:1}}>{title}</div>
             <button onClick={()=>setLegalDoc(null)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
           </div>
-          <div style={{fontSize:11, color:textMuted2, fontWeight:600, marginBottom:14, paddingLeft:32}}>{t.lastUpdated}: {t.effectiveDate}</div>
+          <div style={{fontSize:12, color:textMuted2, fontWeight:600, marginBottom:14, paddingLeft:32}}>{t.lastUpdated}: {t.effectiveDate}</div>
           <div style={{overflowY:"auto", paddingRight:2}}>
             {sections.map((sec, i) => (
               <div key={i} style={{marginBottom:18}}>
-                <div style={{fontSize:14, fontWeight:800, marginBottom:6, color:textMain}}>{sec.title}</div>
+                <div style={{fontSize:15, fontWeight:800, marginBottom:6, color:textMain}}>{sec.title}</div>
                 {sec.body.split("\n\n").map((para, j) => (
-                  <div key={j} style={{fontSize:13, color:textMain, lineHeight:1.7, marginBottom:8, opacity:0.9}}>{para}</div>
+                  <div key={j} style={{fontSize:14, color:textMain, lineHeight:1.7, marginBottom:8, opacity:0.9}}>{para}</div>
                 ))}
               </div>
             ))}
@@ -1151,16 +1151,16 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             <button onClick={()=>setShowAbout(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
               <ChevronLeft size={20}/>
             </button>
-            <div style={{fontSize:18, fontWeight:800, flex:1}}>{t.aboutUs}</div>
+            <div style={{fontSize:19, fontWeight:800, flex:1}}>{t.aboutUs}</div>
             <button onClick={()=>setShowAbout(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
           </div>
           <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", padding:"8px 0 20px"}}>
             <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt={t.appName} style={{height:34, width:"auto", objectFit:"contain", marginBottom:16}}/>
-            <div style={{fontSize:13, color:textMain, lineHeight:1.7, textAlign:"center"}}>{t.aboutBody}</div>
+            <div style={{fontSize:14, color:textMain, lineHeight:1.7, textAlign:"center"}}>{t.aboutBody}</div>
 
             <div style={{width:"100%", borderTop:`1px solid ${cardBorder}`, marginTop:20, paddingTop:18}}>
-              <div style={{fontSize:11, letterSpacing: isBn ? 0 : "1.3px", color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:8}}>{t.creatorLabel}</div>
-              <div style={{fontSize:16, fontWeight:800, color:textMain, marginBottom:14}}>Md. Mazharul Islam Maruf</div>
+              <div style={{fontSize:12, letterSpacing: isBn ? 0 : "1.3px", color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:8}}>{t.creatorLabel}</div>
+              <div style={{fontSize:17, fontWeight:800, color:textMain, marginBottom:14}}>Md. Mazharul Islam Maruf</div>
 
               <div style={{display:"flex", justifyContent:"center", gap:10, marginBottom:14}}>
                 <a href="https://www.linkedin.com/in/mazharulmrf" target="_blank" rel="noopener noreferrer" title="LinkedIn"
@@ -1171,24 +1171,24 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                   style={{...iconWrapStyle, textDecoration:"none"}}><BehanceIcon size={15}/></a>
               </div>
 
-              <a href="mailto:mazharul.mrf@gmail.com" style={{display:"inline-flex", alignItems:"center", gap:8, textDecoration:"none", color:textMuted2, fontSize:13, fontWeight:600}}>
+              <a href="mailto:mazharul.mrf@gmail.com" style={{display:"inline-flex", alignItems:"center", gap:8, textDecoration:"none", color:textMuted2, fontSize:14, fontWeight:600}}>
                 <Mail size={14}/> mazharul.mrf@gmail.com
               </a>
             </div>
 
             <div style={{width:"100%", borderTop:`1px solid ${cardBorder}`, marginTop:20, paddingTop:6}}>
-              <div style={{fontSize:11, letterSpacing: isBn ? 0 : "1.3px", color:textMuted2, fontWeight:700, opacity:0.85, margin:"12px 0 2px", textAlign:"left"}}>{t.legalSection}</div>
+              <div style={{fontSize:12, letterSpacing: isBn ? 0 : "1.3px", color:textMuted2, fontWeight:700, opacity:0.85, margin:"12px 0 2px", textAlign:"left"}}>{t.legalSection}</div>
               <button onClick={()=>setLegalDoc("privacy")} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", padding:"12px 0", display:"flex", alignItems:"center", justifyContent:"space-between", color:textMain}}>
-                <span style={{fontSize:14, fontWeight:700}}>{t.privacyPolicy}</span>
+                <span style={{fontSize:15, fontWeight:700}}>{t.privacyPolicy}</span>
                 <ChevronRight size={16} style={{color:textMuted2}}/>
               </button>
               <button onClick={()=>setLegalDoc("terms")} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", padding:"12px 0", display:"flex", alignItems:"center", justifyContent:"space-between", color:textMain, borderTop:`1px solid ${cardBorder}`}}>
-                <span style={{fontSize:14, fontWeight:700}}>{t.termsOfUse}</span>
+                <span style={{fontSize:15, fontWeight:700}}>{t.termsOfUse}</span>
                 <ChevronRight size={16} style={{color:textMuted2}}/>
               </button>
             </div>
           </div>
-          <div style={{display:"flex", justifyContent:"space-between", fontSize:12, color:textMuted2, paddingTop:14, borderTop:`1px solid ${cardBorder}`}}>
+          <div style={{display:"flex", justifyContent:"space-between", fontSize:13, color:textMuted2, paddingTop:14, borderTop:`1px solid ${cardBorder}`}}>
             <span>{t.version}</span>
             <span>1.0.0</span>
           </div>
@@ -1201,8 +1201,8 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
     <>
       {/* Language */}
       <div style={rowStyle}>
-        <div style={labelStyle}><span style={iconWrapStyle}><span style={{fontSize:13, fontWeight:800}}>{lang==="bn"?"বাং":"EN"}</span></span>{t.language}</div>
-        <button onClick={()=>setLang(l=>l==="bn"?"en":"bn")} style={{border:`1px solid ${cardBorder}`, background: dark?"#0A0A0A":"#F8F5EE", color:textMain, borderRadius:10, padding:"7px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+        <div style={labelStyle}><span style={iconWrapStyle}><span style={{fontSize:14, fontWeight:800}}>{lang==="bn"?"বাং":"EN"}</span></span>{t.language}</div>
+        <button onClick={()=>setLang(l=>l==="bn"?"en":"bn")} style={{border:`1px solid ${cardBorder}`, background: dark?"#0A0A0A":"#F8F5EE", color:textMain, borderRadius:10, padding:"7px 12px", fontSize:13, fontWeight:700, cursor:"pointer"}}>
           {lang==="bn" ? "English" : "বাংলা"}
         </button>
       </div>
@@ -1271,7 +1271,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             { label: t.notifAlarm, val: alarmNotifEnabled, set: setAlarmNotifEnabled },
           ].map(({label, val, set}) => (
             <div key={label} style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-              <span style={{fontSize:12.5, fontWeight:600, color:textMuted2}}>{label}</span>
+              <span style={{fontSize:13.5, fontWeight:600, color:textMuted2}}>{label}</span>
               <button onClick={()=>set(v=>!v)} aria-pressed={val} style={{
                   width:36, height:21, borderRadius:11, border:"none", cursor:"pointer", padding:0,
                   background: val ? accent : (dark ? "#3A362E" : "#DCD5C4"),
@@ -1293,7 +1293,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
         <div style={{...labelStyle, marginBottom:12}}><span style={iconWrapStyle}><Clock size={15}/></span>{t.defaultTimerDuration}</div>
         <div style={{display:"flex", gap:10}}>
           <div style={{flex:1, minWidth:0}}>
-            <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.focusLabel}</div>
+            <div style={{fontSize:12, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.focusLabel}</div>
             <SettingsDropdown
               value={focusMinutes}
               options={[15,20,25,30,45,60].map(mins => ({ value: mins, label: `${mins} ${t.minutes}` }))}
@@ -1302,7 +1302,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             />
           </div>
           <div style={{flex:1, minWidth:0}}>
-            <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.breakLabel}</div>
+            <div style={{fontSize:12, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.breakLabel}</div>
             <SettingsDropdown
               value={breakMinutes}
               options={[5,10,15].map(mins => ({ value: mins, label: `${mins} ${t.minutes}` }))}
@@ -1388,7 +1388,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
     // খুললে SettingsDropdown-এর ফ্লাইআউট মেনু position:absolute হয়ে কার্ডের বর্ডারের বাইরে বসতে চায় —
     // overflow hidden থাকায় সেটা ক্লিপ হয়ে যেত, তাই অপশনে ট্যাপ করলেও কিছু হতো না (ক্লিক অদৃশ্য অংশে পড়ত)
     const groupCardStyle = { background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"0 12px", overflow:"visible" };
-    const sectionHeadingStyle = { fontSize:12, fontWeight:800, color:textMuted2, letterSpacing:0.4, textTransform:"uppercase", opacity:0.75, margin:"22px 4px 8px" };
+    const sectionHeadingStyle = { fontSize:13, fontWeight:800, color:textMuted2, letterSpacing:0.4, textTransform:"uppercase", opacity:0.75, margin:"22px 4px 8px" };
 
     return (
       <div className="fg-tab-panel" style={{marginTop:18, paddingBottom:8}}>
@@ -1396,8 +1396,8 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
         {/* ---- হেডার — ছোট, একরঙা, বাড়তি সাবটেক্সট ছাড়া; ডানপাশে ভাষা পিল — Preferences লিস্ট থেকে
              আলাদা রো সরিয়ে এখানে আনা হলো, যাতে লিস্টে একটা আইটেম কমে আর ভাষা সবসময় এক ট্যাপে বদলানো যায় ---- */}
         <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18}}>
-          <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.settings}</div>
-          <span onClick={()=>{vibrate(); setLang(l=>l==="bn"?"en":"bn");}} style={{border:`1px solid ${cardBorder}`, background: dark?"#0A0A0A":"#fff", color:textMain, borderRadius:999, padding:"6px 14px", fontSize:12.5, fontWeight:800, cursor:"pointer", flexShrink:0}}>
+          <div style={{fontSize:21, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.settings}</div>
+          <span onClick={()=>{vibrate(); setLang(l=>l==="bn"?"en":"bn");}} style={{border:`1px solid ${cardBorder}`, background: dark?"#0A0A0A":"#fff", color:textMain, borderRadius:999, padding:"6px 14px", fontSize:13.5, fontWeight:800, cursor:"pointer", flexShrink:0}}>
             {lang==="bn" ? "বাং" : "EN"}
           </span>
         </div>
@@ -1415,8 +1415,8 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             )}
           </span>
           <div style={{flex:1, minWidth:0}}>
-            <div style={{fontSize:14.5, fontWeight:800, color:textMain, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayName}</div>
-            <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayEmail}</div>
+            <div style={{fontSize:15.5, fontWeight:800, color:textMain, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayName}</div>
+            <div style={{fontSize:12.5, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayEmail}</div>
           </div>
           <ChevronRight size={17} color={textMuted2} style={{flexShrink:0}}/>
         </button>
@@ -1461,12 +1461,12 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
           <SettingsRow {...rowCtx} Icon={Hourglass} title={isBn ? "ফোকাস টাইমার" : "Focus Timer"} subtitle={`${focusMinutes} / ${breakMinutes} ${t.minutes}`} expandKey="timer">
             <div style={{display:"flex", gap:10}}>
               <div style={{flex:1, minWidth:0}}>
-                <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.focusLabel}</div>
+                <div style={{fontSize:12, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.focusLabel}</div>
                 <SettingsDropdown value={focusMinutes} options={[15,20,25,30,45,60].map(m => ({value:m, label:`${m} ${t.minutes}`}))} onChange={setFocusMinutes}
                   dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
               </div>
               <div style={{flex:1, minWidth:0}}>
-                <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.breakLabel}</div>
+                <div style={{fontSize:12, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.breakLabel}</div>
                 <SettingsDropdown value={breakMinutes} options={[5,10,15].map(m => ({value:m, label:`${m} ${t.minutes}`}))} onChange={setBreakMinutes}
                   dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
               </div>
@@ -1476,12 +1476,12 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
           <SettingsRow {...rowCtx} Icon={CalendarDays} title={isBn ? "স্টাডি রিমাইন্ডার" : "Study Reminders"}
             subtitle={studyRemindersEnabled ? (isBn ? "প্রতিদিনের রিমাইন্ডার" : "Daily reminders") : (isBn ? "বন্ধ" : "Off")} expandKey="reminders">
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: studyRemindersEnabled ? 14 : 0}}>
-              <span style={{fontSize:13, fontWeight:700, color:textMain}}>{isBn ? "দৈনিক স্টাডি রিমাইন্ডার" : "Daily study reminder"}</span>
+              <span style={{fontSize:14, fontWeight:700, color:textMain}}>{isBn ? "দৈনিক স্টাডি রিমাইন্ডার" : "Daily study reminder"}</span>
               <Toggle on={studyRemindersEnabled} onClick={toggleStudyReminders}/>
             </div>
             {studyRemindersEnabled && (
               <div>
-                <div style={{fontSize:11, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{isBn ? "রিমাইন্ডারের সময়" : "Reminder time"}</div>
+                <div style={{fontSize:12, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{isBn ? "রিমাইন্ডারের সময়" : "Reminder time"}</div>
                 <SettingsDropdown value={studyReminderHour} options={[6,7,8,9,10,17,18,19,20,21,22].map(h => ({value:h, label:hourLabel(h)}))} onChange={setReminderHour}
                   dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
               </div>
@@ -1499,18 +1499,18 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             expandKey="visibleTabs">
             <div style={{display:"flex", flexDirection:"column", gap:12}}>
               <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-                <span style={{fontSize:13, fontWeight:700, color:textMain}}>{isBn ? "স্টাডি" : "Study"}</span>
+                <span style={{fontSize:14, fontWeight:700, color:textMain}}>{isBn ? "স্টাডি" : "Study"}</span>
                 <Toggle on={studyFeatureEnabled} onClick={()=>{vibrate(); setStudyFeatureEnabled(v=>!v);}}/>
               </div>
               <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-                <span style={{fontSize:13, fontWeight:700, color:textMain}}>{isBn ? "টাস্ক" : "Tasks"}</span>
+                <span style={{fontSize:14, fontWeight:700, color:textMain}}>{isBn ? "টাস্ক" : "Tasks"}</span>
                 <Toggle on={tasksFeatureEnabled} onClick={()=>{vibrate(); setTasksFeatureEnabled(v=>!v);}}/>
               </div>
               <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-                <span style={{fontSize:13, fontWeight:700, color:textMain}}>{isBn ? "নোটস" : "Notes"}</span>
+                <span style={{fontSize:14, fontWeight:700, color:textMain}}>{isBn ? "নোটস" : "Notes"}</span>
                 <Toggle on={notesFeatureEnabled} onClick={()=>{vibrate(); setNotesFeatureEnabled(v=>!v);}}/>
               </div>
-              <div style={{fontSize:11, color:textMuted2, lineHeight:1.5, paddingTop:10, borderTop:`1px dashed ${cardBorder}`}}>
+              <div style={{fontSize:12, color:textMuted2, lineHeight:1.5, paddingTop:10, borderTop:`1px dashed ${cardBorder}`}}>
                 {isBn
                   ? "বন্ধ করলে সেই ট্যাব বটম নেভিগেশন থেকে সরে যাবে। স্টাডি বন্ধ করলে Exam banner ও Today's Study কার্ডও Today ট্যাব থেকে লুকাবে; টাস্ক বন্ধ করলে Today's Tasks কার্ড লুকাবে।"
                   : "Turning one off removes it from the bottom navigation. Turning Study off also hides the Exam banner and Today's Study card from the Today tab; turning Tasks off hides the Today's Tasks card."}
@@ -1520,7 +1520,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
           <SettingsRow {...rowCtx} Icon={Bell} title={t.notifications} subtitle={notificationsEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")} expandKey="notifications">
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: notificationsEnabled ? 14 : 0}}>
-              <span style={{fontSize:13, fontWeight:700, color:textMain}}>{isBn ? "সব নোটিফিকেশন" : "All notifications"}</span>
+              <span style={{fontSize:14, fontWeight:700, color:textMain}}>{isBn ? "সব নোটিফিকেশন" : "All notifications"}</span>
               <Toggle on={notificationsEnabled} onClick={()=>{vibrate(); toggleNotifications();}}/>
             </div>
             {notificationsEnabled && (
@@ -1533,7 +1533,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                   { label: t.notifAlarm, val: alarmNotifEnabled, set: setAlarmNotifEnabled },
                 ].map(({label, val, set}) => (
                   <div key={label} style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-                    <span style={{fontSize:12.5, fontWeight:600, color:textMuted2}}>{label}</span>
+                    <span style={{fontSize:13.5, fontWeight:600, color:textMuted2}}>{label}</span>
                     <Toggle on={val} onClick={()=>{vibrate(); set(v=>!v);}}/>
                   </div>
                 ))}
@@ -1545,11 +1545,11 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             subtitle={soundEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")} expandKey="sound">
             <div style={{display:"flex", flexDirection:"column", gap:14}}>
               <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-                <span style={{display:"flex", alignItems:"center", gap:10, fontSize:13, fontWeight:700, color:textMain}}><Music size={15} color={textMuted2}/>{isBn ? "অ্যাপ সাউন্ড এফেক্ট" : "App sound effects"}</span>
+                <span style={{display:"flex", alignItems:"center", gap:10, fontSize:14, fontWeight:700, color:textMain}}><Music size={15} color={textMuted2}/>{isBn ? "অ্যাপ সাউন্ড এফেক্ট" : "App sound effects"}</span>
                 <Toggle on={soundEnabled} onClick={toggleSound}/>
               </div>
               <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-                <span style={{display:"flex", alignItems:"center", gap:10, fontSize:13, fontWeight:700, color:textMain}}><Vibrate size={15} color={textMuted2}/>{t.hapticFeedback}</span>
+                <span style={{display:"flex", alignItems:"center", gap:10, fontSize:14, fontWeight:700, color:textMain}}><Vibrate size={15} color={textMuted2}/>{t.hapticFeedback}</span>
                 <Toggle on={hapticsEnabled} onClick={toggleHaptics}/>
               </div>
             </div>
@@ -1581,15 +1581,15 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
         {importConfirm && (
           <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200, padding:20}} onClick={()=>setImportConfirm(null)}>
             <div onClick={(e)=>e.stopPropagation()} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:20, maxWidth:340, width:"100%"}}>
-              <div style={{fontSize:16, fontWeight:800, color:textMain, marginBottom:8}}>{isBn ? "ডেটা রিস্টোর করবেন?" : "Restore this backup?"}</div>
-              <div style={{fontSize:13, color:textMuted2, fontWeight:600, lineHeight:1.5, marginBottom:16}}>
+              <div style={{fontSize:17, fontWeight:800, color:textMain, marginBottom:8}}>{isBn ? "ডেটা রিস্টোর করবেন?" : "Restore this backup?"}</div>
+              <div style={{fontSize:14, color:textMuted2, fontWeight:600, lineHeight:1.5, marginBottom:16}}>
                 {isBn
                   ? "এটি আপনার বর্তমান নোট, টাস্ক ও সাবজেক্ট মুছে ব্যাকআপ ফাইলের ডেটা দিয়ে প্রতিস্থাপন করবে। এই কাজটি ফিরিয়ে নেওয়া যাবে না।"
                   : "This will replace your current notes, tasks, and subjects with the data from this backup file. This cannot be undone."}
               </div>
               <div style={{display:"flex", gap:10}}>
-                <button onClick={()=>setImportConfirm(null)} style={{flex:1, border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, borderRadius:12, padding:"10px 0", fontWeight:700, fontSize:13, cursor:"pointer"}}>{isBn ? "বাতিল" : "Cancel"}</button>
-                <button onClick={confirmImport} style={{flex:1, border:"none", background:accent, color:"#fff", borderRadius:12, padding:"10px 0", fontWeight:700, fontSize:13, cursor:"pointer"}}>{isBn ? "রিস্টোর করুন" : "Restore"}</button>
+                <button onClick={()=>setImportConfirm(null)} style={{flex:1, border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, borderRadius:12, padding:"10px 0", fontWeight:700, fontSize:14, cursor:"pointer"}}>{isBn ? "বাতিল" : "Cancel"}</button>
+                <button onClick={confirmImport} style={{flex:1, border:"none", background:accent, color:"#fff", borderRadius:12, padding:"10px 0", fontWeight:700, fontSize:14, cursor:"pointer"}}>{isBn ? "রিস্টোর করুন" : "Restore"}</button>
               </div>
             </div>
           </div>
@@ -1613,7 +1613,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
-          <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.settings}</div>
+          <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.2}}>{t.settings}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
         {settingsRows}
@@ -1647,17 +1647,17 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
       <div style={overlayStyle} onClick={onClose}>
         <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:sheetRadius, padding:"20px 20px 28px", color:textMain}}>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14}}>
-            <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.profile}</div>
+            <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.2}}>{t.profile}</div>
             <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
           </div>
           <div style={{display:"flex", alignItems:"center", gap:16, marginBottom:16}}>
             <div style={{width:56, height:56, borderRadius:"50%", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
               <User size={24} color={dark ? "#B0ABC2" : "#6E6B7A"}/>
             </div>
-            <div style={{fontSize:14, fontWeight:800}}>{gL.title}</div>
+            <div style={{fontSize:15, fontWeight:800}}>{gL.title}</div>
           </div>
-          <div style={{fontSize:13, color:textMuted2, lineHeight:1.6, marginBottom:20}}>{gL.body}</div>
-          <button onClick={onExitGuest} style={{width:"100%", border:"none", borderRadius:12, padding:"12px 0", fontSize:14, fontWeight:800, background:accent, color:"#fff", cursor:"pointer"}}>
+          <div style={{fontSize:14, color:textMuted2, lineHeight:1.6, marginBottom:20}}>{gL.body}</div>
+          <button onClick={onExitGuest} style={{width:"100%", border:"none", borderRadius:12, padding:"12px 0", fontSize:15, fontWeight:800, background:accent, color:"#fff", cursor:"pointer"}}>
             {gL.cta}
           </button>
         </div>
@@ -1738,10 +1738,10 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
     photoUploadErr: isBn ? "ছবি আপলোড করা যায়নি, আবার চেষ্টা করুন।" : "Couldn't upload the photo — please try again.",
   };
 
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
-  const labelStyle = { fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6 };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:15, color:textMain, outline:"none", fontFamily:"inherit" };
+  const labelStyle = { fontSize:12, fontWeight:700, color:textMuted2, marginBottom:6 };
   const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:`1px solid ${cardBorder}`, cursor:"pointer" };
-  const menuLabelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14, fontWeight:700, color:textMain };
+  const menuLabelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:15, fontWeight:700, color:textMain };
   const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#B0ABC2" : "#6E6B7A" };
 
   const emailChanged = email.trim() !== (user.email || "");
@@ -1890,7 +1890,7 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
       <button onClick={closeSection} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
         <ChevronLeft size={20}/>
       </button>
-      <div style={{fontSize:18, fontWeight:800, flex:1}}>{title}</div>
+      <div style={{fontSize:19, fontWeight:800, flex:1}}>{title}</div>
       <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
     </div>
   );
@@ -1918,7 +1918,7 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
                       borderRadius:12, padding:"11px 0", cursor:"pointer", color:textMain
                     }}>
                       <Icon size={15} color={selected ? accent : textMuted2}/>
-                      <span style={{fontSize:13, fontWeight:700}}>{label}</span>
+                      <span style={{fontSize:14, fontWeight:700}}>{label}</span>
                     </button>
                   );
                 })}
@@ -1928,9 +1928,9 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
               <div style={labelStyle}>{L.dobLabel}</div>
               <input type="date" style={inputStyle} value={dob} onChange={e=>setDob(e.target.value)} max={new Date().toISOString().slice(0,10)} />
             </div>
-            {personalError && <div style={{fontSize:12, color:"#C0553F", fontWeight:600}}>{personalError}</div>}
-            {personalInfo && <div style={{fontSize:12, color:"#6E8B5E", fontWeight:600}}>{personalInfo}</div>}
-            <button onClick={handleSavePersonal} disabled={personalBusy} style={{border:"none", borderRadius:12, padding:"12px 0", fontSize:14, fontWeight:800, background:accent, color:"#fff", cursor: personalBusy?"default":"pointer", opacity: personalBusy?0.7:1}}>
+            {personalError && <div style={{fontSize:13, color:"#C0553F", fontWeight:600}}>{personalError}</div>}
+            {personalInfo && <div style={{fontSize:13, color:"#6E8B5E", fontWeight:600}}>{personalInfo}</div>}
+            <button onClick={handleSavePersonal} disabled={personalBusy} style={{border:"none", borderRadius:12, padding:"12px 0", fontSize:15, fontWeight:800, background:accent, color:"#fff", cursor: personalBusy?"default":"pointer", opacity: personalBusy?0.7:1}}>
               {personalBusy ? "..." : L.saveChanges}
             </button>
           </div>
@@ -1956,9 +1956,9 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
                 <PasswordField style={inputStyle} value={confirmPw} onChange={e=>setConfirmPw(e.target.value)} textMuted2={textMuted2} autoComplete="current-password" />
               </div>
             )}
-            {error && <div style={{fontSize:12, color:"#C0553F", fontWeight:600}}>{error}</div>}
-            {info && <div style={{fontSize:12, color:"#6E8B5E", fontWeight:600}}>{info}</div>}
-            <button onClick={handleSaveEmail} disabled={busy || !emailChanged} style={{border:"none", borderRadius:12, padding:"12px 0", fontSize:14, fontWeight:800, background:accent, color:"#fff", cursor: (busy||!emailChanged)?"default":"pointer", opacity: (busy||!emailChanged)?0.6:1}}>
+            {error && <div style={{fontSize:13, color:"#C0553F", fontWeight:600}}>{error}</div>}
+            {info && <div style={{fontSize:13, color:"#6E8B5E", fontWeight:600}}>{info}</div>}
+            <button onClick={handleSaveEmail} disabled={busy || !emailChanged} style={{border:"none", borderRadius:12, padding:"12px 0", fontSize:15, fontWeight:800, background:accent, color:"#fff", cursor: (busy||!emailChanged)?"default":"pointer", opacity: (busy||!emailChanged)?0.6:1}}>
               {busy ? "..." : L.saveChanges}
             </button>
           </div>
@@ -1974,7 +1974,7 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
         <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:sheetRadius, padding:"20px 20px 28px", color:textMain, maxHeight:"88vh", overflowY:"auto"}}>
           <SubHeader title={L.changePassword}/>
           {!hasPassword ? (
-            <div style={{fontSize:13, color:textMuted2, lineHeight:1.6}}>{L.noPasswordAccount}</div>
+            <div style={{fontSize:14, color:textMuted2, lineHeight:1.6}}>{L.noPasswordAccount}</div>
           ) : (
             <div style={{display:"flex", flexDirection:"column", gap:14}}>
               <div>
@@ -1984,15 +1984,15 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
               <div>
                 <div style={labelStyle}>{L.newPasswordLabel}</div>
                 <PasswordField style={inputStyle} value={newPw} onChange={e=>setNewPw(e.target.value)} minLength={8} textMuted2={textMuted2} autoComplete="new-password" />
-                <div style={{fontSize:11, color:textMuted2, marginTop:4}}>{L.pwHint}</div>
+                <div style={{fontSize:12, color:textMuted2, marginTop:4}}>{L.pwHint}</div>
               </div>
               <div>
                 <div style={labelStyle}>{L.confirmPasswordLabel}</div>
                 <PasswordField style={inputStyle} value={newPw2} onChange={e=>setNewPw2(e.target.value)} minLength={8} textMuted2={textMuted2} autoComplete="new-password" />
               </div>
-              {pwError && <div style={{fontSize:12, color:"#C0553F", fontWeight:600}}>{pwError}</div>}
-              {pwInfo && <div style={{fontSize:12, color:"#6E8B5E", fontWeight:600}}>{pwInfo}</div>}
-              <button onClick={handleChangePassword} disabled={pwBusy} style={{border:"none", borderRadius:12, padding:"12px 0", fontSize:14, fontWeight:800, background:accent, color:"#fff", cursor: pwBusy?"default":"pointer", opacity: pwBusy?0.7:1}}>
+              {pwError && <div style={{fontSize:13, color:"#C0553F", fontWeight:600}}>{pwError}</div>}
+              {pwInfo && <div style={{fontSize:13, color:"#6E8B5E", fontWeight:600}}>{pwInfo}</div>}
+              <button onClick={handleChangePassword} disabled={pwBusy} style={{border:"none", borderRadius:12, padding:"12px 0", fontSize:15, fontWeight:800, background:accent, color:"#fff", cursor: pwBusy?"default":"pointer", opacity: pwBusy?0.7:1}}>
                 {pwBusy ? "..." : L.saveChanges}
               </button>
             </div>
@@ -2022,8 +2022,8 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
                   onChange={e=>setLinks(l=>({...l, [key]: e.target.value}))} />
               </div>
             ))}
-            {linksInfo && <div style={{fontSize:12, color:"#6E8B5E", fontWeight:600}}>{linksInfo}</div>}
-            <button onClick={handleSaveLinks} disabled={linksBusy} style={{border:"none", borderRadius:12, padding:"12px 0", fontSize:14, fontWeight:800, background:accent, color:"#fff", cursor: linksBusy?"default":"pointer", opacity: linksBusy?0.7:1}}>
+            {linksInfo && <div style={{fontSize:13, color:"#6E8B5E", fontWeight:600}}>{linksInfo}</div>}
+            <button onClick={handleSaveLinks} disabled={linksBusy} style={{border:"none", borderRadius:12, padding:"12px 0", fontSize:15, fontWeight:800, background:accent, color:"#fff", cursor: linksBusy?"default":"pointer", opacity: linksBusy?0.7:1}}>
               {linksBusy ? "..." : L.saveChanges}
             </button>
           </div>
@@ -2037,7 +2037,7 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
     <div style={overlayStyle} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:sheetRadius, padding:"20px 20px 28px", color:textMain, maxHeight:"88vh", overflowY:"auto"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18}}>
-          <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.profile}</div>
+          <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.2}}>{t.profile}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
 
@@ -2055,11 +2055,11 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{display:"none"}}/>
           </div>
           <div style={{minWidth:0, flex:1}}>
-            <div style={{fontSize:16, fontWeight:700, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{user.displayName || (user.email ? user.email.split("@")[0] : "Account")}</div>
-            {user.email && <div style={{fontSize:12, color:textMuted2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{user.email}</div>}
+            <div style={{fontSize:17, fontWeight:700, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{user.displayName || (user.email ? user.email.split("@")[0] : "Account")}</div>
+            {user.email && <div style={{fontSize:13, color:textMuted2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{user.email}</div>}
           </div>
         </div>
-        {photoError && <div style={{fontSize:12, color:"#C0553F", fontWeight:600, marginBottom:10}}>{photoError}</div>}
+        {photoError && <div style={{fontSize:13, color:"#C0553F", fontWeight:600, marginBottom:10}}>{photoError}</div>}
 
         {/* মেনু লিস্ট */}
         <div style={{marginTop:10, marginBottom:18}}>
@@ -2084,7 +2084,7 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
         <button
           onClick={handleSignOut}
           disabled={busy}
-          style={{ width:"100%", marginTop:4, border:`1px solid ${dark?"rgba(192,85,63,0.30)":"rgba(192,85,63,0.22)"}`, borderRadius:12, padding:"12px 0", fontSize:14, fontWeight:800, background: dark?"rgba(192,85,63,0.10)":"rgba(192,85,63,0.07)", color:"#C0553F", cursor: busy?"default":"pointer", opacity: busy?0.7:1, display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}
+          style={{ width:"100%", marginTop:4, border:`1px solid ${dark?"rgba(192,85,63,0.30)":"rgba(192,85,63,0.22)"}`, borderRadius:12, padding:"12px 0", fontSize:15, fontWeight:800, background: dark?"rgba(192,85,63,0.10)":"rgba(192,85,63,0.07)", color:"#C0553F", cursor: busy?"default":"pointer", opacity: busy?0.7:1, display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}
         >
           <LogOut size={16}/> {t.signOut}
         </button>
@@ -2941,7 +2941,7 @@ function RecentTopicChips({ topics, onPick, accent, cardBorder, textMuted2, dark
             color: textMuted2,
             borderRadius:14,
             padding: "6px 12px",
-            fontSize:12,
+            fontSize:13,
             fontWeight: 600,
             cursor: "pointer",
             maxWidth: 220,
@@ -5472,7 +5472,7 @@ export default function FocusGo() {
             }}
           />
           <div style={{
-            fontSize:13,
+            fontSize:14,
             fontWeight:700,
             letterSpacing:".08em",
             color:dark ? "#B8B1A7" : "#8E877C"
@@ -5530,7 +5530,7 @@ export default function FocusGo() {
             }}
           />
           <div style={{
-            fontSize:12,
+            fontSize:13,
             fontWeight:700,
             letterSpacing:".08em",
             color:textMuted2
@@ -5612,7 +5612,7 @@ export default function FocusGo() {
 
           <div style={{display:"flex", alignItems:"center", gap:6}}>
             {!isOnline && (
-              <div title={t.offlineNote} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#242424":"#F8F5EE", color:textMuted2, borderRadius:14, padding:"5px 9px 5px 8px", fontSize:11, fontWeight:700, flexShrink:0}}>
+              <div title={t.offlineNote} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#242424":"#F8F5EE", color:textMuted2, borderRadius:14, padding:"5px 9px 5px 8px", fontSize:12, fontWeight:700, flexShrink:0}}>
                 <WifiOff size={12}/> {t.offlineBadge}
               </div>
             )}
@@ -5694,7 +5694,7 @@ export default function FocusGo() {
                       <div style={{minWidth:0, flex:1}}>
                         <div
                           onClick={() => { vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                          style={{fontSize:12, fontWeight:800, color:accent, letterSpacing:0.2, marginBottom:2, display:"flex", alignItems:"center", gap:6, cursor:"pointer"}}
+                          style={{fontSize:13, fontWeight:800, color:accent, letterSpacing:0.2, marginBottom:2, display:"flex", alignItems:"center", gap:6, cursor:"pointer"}}
                           title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
                         >
                           {lang === "bn" ? greetingBn : greetingEn}
@@ -5702,17 +5702,17 @@ export default function FocusGo() {
                           {weatherData && weatherData.temp != null && (
                             <span
                               onClick={(e) => { e.stopPropagation(); vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                              style={{display:"inline-flex", alignItems:"center", fontSize:12, fontWeight:700, color:textMuted2, cursor:"pointer"}}
+                              style={{display:"inline-flex", alignItems:"center", fontSize:13, fontWeight:700, color:textMuted2, cursor:"pointer"}}
                               title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
                             >
                               <Num>{nf(weatherData.temp)}</Num>°C
                             </span>
                           )}
                         </div>
-                        <div style={{fontSize:23,fontWeight:800,letterSpacing:-0.6,color:textMain, display:"inline-block"}}>
+                        <div style={{fontSize:24,fontWeight:800,letterSpacing:-0.6,color:textMain, display:"inline-block"}}>
                           {firstName}
                         </div>
-                        <div style={{fontSize:12.5,color:textMuted2,marginTop:4,lineHeight:1.35}}>
+                        <div style={{fontSize:13.5,color:textMuted2,marginTop:4,lineHeight:1.35}}>
                           {line}
                         </div>
                       </div>
@@ -5742,7 +5742,7 @@ export default function FocusGo() {
                         <span style={{width:30, height:30, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
                           <CalendarDays size={20} color="#fff" strokeWidth={2}/>
                         </span>
-                        <span style={{fontSize:13, fontWeight:600, color:"#fff", letterSpacing:-0.1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                        <span style={{fontSize:14, fontWeight:600, color:"#fff", letterSpacing:-0.1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                           {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
                         </span>
                         {examDateKeys.has(todayKey) && (
@@ -5769,11 +5769,11 @@ export default function FocusGo() {
                       title={activeAlarm ? `${t.nextAlarmLabel}: ${pad2(activeAlarm.hour)}:${pad2(activeAlarm.minute)} ${activeAlarm.ampm}` : (lang === "bn" ? "অ্যালার্ম সেট করুন" : "Set alarm")}
                     >
                       {activeAlarm ? (
-                        <span style={{fontSize:13, color:"#fff", fontWeight:800, fontVariantNumeric:"tabular-nums"}}>
+                        <span style={{fontSize:14, color:"#fff", fontWeight:800, fontVariantNumeric:"tabular-nums"}}>
                           <Num>{nf(pad2(activeAlarm.hour))}</Num>:<Num>{nf(pad2(activeAlarm.minute))}</Num> {activeAlarm.ampm === "AM" ? t.amLabel : t.pmLabel}
                         </span>
                       ) : (
-                        <span style={{fontSize:13, color:"#fff", fontWeight:500, fontVariantNumeric:"tabular-nums"}}>
+                        <span style={{fontSize:14, color:"#fff", fontWeight:500, fontVariantNumeric:"tabular-nums"}}>
                           <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
                         </span>
                       )}
@@ -5788,10 +5788,10 @@ export default function FocusGo() {
 
                           <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10}}>
                             <div style={{minWidth:0}}>
-                              <div style={{fontSize:14.5, fontWeight:800, color:textMain}}>{lang === "bn" ? "সালাতের সময়" : "Salah Times"}</div>
+                              <div style={{fontSize:15.5, fontWeight:800, color:textMain}}>{lang === "bn" ? "সালাতের সময়" : "Salah Times"}</div>
                               <div style={{display:"flex", alignItems:"center", gap:5, marginTop:2, minHeight:14}}>
                                 <MapPin size={11} color={textMuted2} strokeWidth={2.4}/>
-                                <span style={{fontSize:12, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                                <span style={{fontSize:13, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                                   {salahLocLoading
                                     ? (lang === "bn" ? "লোকেশন খোঁজা হচ্ছে…" : "Getting location…")
                                     : salahCoords
@@ -5825,12 +5825,12 @@ export default function FocusGo() {
                           </div>
 
                           {!salahCoords && !salahLocLoading && (
-                            <div style={{marginTop:10, fontSize:12, color:textMuted2, lineHeight:1.5}}>
+                            <div style={{marginTop:10, fontSize:13, color:textMuted2, lineHeight:1.5}}>
                               {salahLocError || (lang === "bn" ? "উপরের লোকেশন আইকনে ট্যাপ করে আপনার এলাকা সেট করুন।" : "Tap the location icon above to set your area.")}
                             </div>
                           )}
                           {salahCoords && salahLocError && (
-                            <div style={{marginTop:10, fontSize:12.5, color:"#C0392B", lineHeight:1.5}}>{salahLocError}</div>
+                            <div style={{marginTop:10, fontSize:13.5, color:"#C0392B", lineHeight:1.5}}>{salahLocError}</div>
                           )}
                           {/* পারমিশন permanently denied থাকলে সরাসরি অ্যাপের সিস্টেম সেটিংস স্ক্রিনে নিয়ে যাওয়ার বাটন —
                               ইউজারকে নিজে থেকে অ্যাপ ইনফো > পারমিশন-এ গিয়ে খুঁজে বের করতে হবে না */}
@@ -5839,7 +5839,7 @@ export default function FocusGo() {
                               onClick={openLocationSettings}
                               style={{
                                 marginTop:10, width:"100%", border:"none", borderRadius:12, padding:"10px 0",
-                                background: accent, color:"#fff", fontWeight:700, fontSize:12.5, cursor:"pointer",
+                                background: accent, color:"#fff", fontWeight:700, fontSize:13.5, cursor:"pointer",
                               }}
                             >
                               {lang === "bn" ? "সেটিংস থেকে লোকেশন অন করুন" : "Enable location in Settings"}
@@ -5852,8 +5852,8 @@ export default function FocusGo() {
                               {nextSalahCountdown && (
                                 <div style={{marginTop:10, background: accent, borderRadius:14, padding:"9px 13px", display:"flex", alignItems:"center", justifyContent:"space-between", color:"#fff"}}>
                                   <div>
-                                    <div style={{fontSize:9.5, fontWeight:700, opacity:0.85, letterSpacing:0.4}}>{lang === "bn" ? "পরবর্তী" : "UP NEXT"}</div>
-                                    <div style={{fontSize:14, fontWeight:800, marginTop:1}}>
+                                    <div style={{fontSize:10.5, fontWeight:700, opacity:0.85, letterSpacing:0.4}}>{lang === "bn" ? "পরবর্তী" : "UP NEXT"}</div>
+                                    <div style={{fontSize:15, fontWeight:800, marginTop:1}}>
                                       {lang === "bn" ? `${nextSalahCountdown.label} — বাকি ${nextSalahCountdown.text}` : `${nextSalahCountdown.label} in ${nextSalahCountdown.text}`}
                                     </div>
                                   </div>
@@ -5863,11 +5863,11 @@ export default function FocusGo() {
 
                               {/* আসরের হিসাব: হানাফি / শাফি */}
                               <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:12, marginBottom:2}}>
-                                <span style={{fontSize:9.5, fontWeight:800, color:textMuted2, letterSpacing:0.4}}>{lang === "bn" ? "আসরের হিসাব" : "ASR CALCULATION"}</span>
+                                <span style={{fontSize:10.5, fontWeight:800, color:textMuted2, letterSpacing:0.4}}>{lang === "bn" ? "আসরের হিসাব" : "ASR CALCULATION"}</span>
                                 <div style={{display:"flex", background: dark ? "#242229" : "#F0EEF5", borderRadius:999, padding:2}}>
                                   {["hanafi","shafi"].map(mkey => (
                                     <button key={mkey} onClick={() => { vibrate(); setSalahMadhab(mkey); }} style={{
-                                      border:"none", padding:"4px 10px", borderRadius:999, fontSize:10, fontWeight:800, cursor:"pointer",
+                                      border:"none", padding:"4px 10px", borderRadius:999, fontSize:11, fontWeight:800, cursor:"pointer",
                                       background: salahMadhab === mkey ? accent : "transparent",
                                       color: salahMadhab === mkey ? "#fff" : textMuted2,
                                     }}>{mkey === "hanafi" ? (lang === "bn" ? "হানাফি" : "Hanafi") : (lang === "bn" ? "শাফি" : "Shafi")}</button>
@@ -5905,10 +5905,10 @@ export default function FocusGo() {
                                         <span style={{
                                           color: isDone ? "#4E9068" : isActive ? accent : textMain,
                                           fontWeight: isActive ? 700 : 600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                                          fontSize:13,
+                                          fontSize:14,
                                         }}>{w.label}</span>
                                       </span>
-                                      <span style={{color: isDone ? "#4E9068" : isActive ? accent : textMuted2, fontWeight: isActive ? 700 : 500, fontSize:11.5, fontVariantNumeric:"tabular-nums", flexShrink:0, opacity: isDone ? 0.85 : 1}}>
+                                      <span style={{color: isDone ? "#4E9068" : isActive ? accent : textMuted2, fontWeight: isActive ? 700 : 500, fontSize:12.5, fontVariantNumeric:"tabular-nums", flexShrink:0, opacity: isDone ? 0.85 : 1}}>
                                         {fmtSalahTime(w.start)} – {fmtSalahTime(w.end)}
                                       </span>
                                     </div>
@@ -5924,10 +5924,10 @@ export default function FocusGo() {
                                       <div key={w.key} style={{width:6, height:6, borderRadius:"50%", background: todaySalahDone.includes(w.key) ? "#4E9068" : cardBorder}}/>
                                     ))}
                                   </div>
-                                  <span style={{fontSize:11, fontWeight:700, color:textMuted2}}>{nf(todaySalahDone.length)}/5 {lang === "bn" ? "আজ" : "today"}</span>
+                                  <span style={{fontSize:12, fontWeight:700, color:textMuted2}}>{nf(todaySalahDone.length)}/5 {lang === "bn" ? "আজ" : "today"}</span>
                                 </div>
                                 {qiblaBearing != null && (
-                                  <span title={lang === "bn" ? "কিবলার দিক (উত্তর থেকে)" : "Qibla direction (from North)"} style={{display:"flex", alignItems:"center", gap:4, fontSize:11.5, fontWeight:800, color:accent}}>
+                                  <span title={lang === "bn" ? "কিবলার দিক (উত্তর থেকে)" : "Qibla direction (from North)"} style={{display:"flex", alignItems:"center", gap:4, fontSize:12.5, fontWeight:800, color:accent}}>
                                     <Compass size={13} strokeWidth={2.3}/> {lang === "bn" ? "কিবলা" : "Qibla"} {nf(qiblaBearing)}°
                                   </span>
                                 )}
@@ -5946,10 +5946,10 @@ export default function FocusGo() {
 
                           <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10}}>
                             <div style={{minWidth:0}}>
-                              <div style={{fontSize:14.5, fontWeight:800, color:textMain}}>{lang === "bn" ? "আবহাওয়া" : "Weather"}</div>
+                              <div style={{fontSize:15.5, fontWeight:800, color:textMain}}>{lang === "bn" ? "আবহাওয়া" : "Weather"}</div>
                               <div style={{display:"flex", alignItems:"center", gap:5, marginTop:2, minHeight:14}}>
                                 <MapPin size={11} color={textMuted2} strokeWidth={2.4}/>
-                                <span style={{fontSize:12, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                                <span style={{fontSize:13, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                                   {salahLocLoading
                                     ? (lang === "bn" ? "লোকেশন খোঁজা হচ্ছে…" : "Getting location…")
                                     : salahCoords
@@ -5982,19 +5982,19 @@ export default function FocusGo() {
                           </div>
 
                           {!salahCoords && !salahLocLoading && (
-                            <div style={{marginTop:10, fontSize:12, color:textMuted2, lineHeight:1.5}}>
+                            <div style={{marginTop:10, fontSize:13, color:textMuted2, lineHeight:1.5}}>
                               {salahLocError || (lang === "bn" ? "উপরের লোকেশন আইকনে ট্যাপ করে আপনার এলাকা সেট করুন।" : "Tap the location icon above to set your area.")}
                             </div>
                           )}
                           {salahCoords && salahLocError && (
-                            <div style={{marginTop:10, fontSize:12.5, color:"#C0392B", lineHeight:1.5}}>{salahLocError}</div>
+                            <div style={{marginTop:10, fontSize:13.5, color:"#C0392B", lineHeight:1.5}}>{salahLocError}</div>
                           )}
                           {salahPermDenied && Capacitor.isNativePlatform() && (
                             <button
                               onClick={openLocationSettings}
                               style={{
                                 marginTop:10, width:"100%", border:"none", borderRadius:12, padding:"10px 0",
-                                background: accent, color:"#fff", fontWeight:700, fontSize:12.5, cursor:"pointer",
+                                background: accent, color:"#fff", fontWeight:700, fontSize:13.5, cursor:"pointer",
                               }}
                             >
                               {lang === "bn" ? "সেটিংস থেকে লোকেশন অন করুন" : "Enable location in Settings"}
@@ -6002,12 +6002,12 @@ export default function FocusGo() {
                           )}
 
                           {salahCoords && weatherLoading && !weatherData && (
-                            <div style={{marginTop:14, fontSize:12.5, color:textMuted2}}>
+                            <div style={{marginTop:14, fontSize:13.5, color:textMuted2}}>
                               {lang === "bn" ? "আবহাওয়ার তথ্য আনা হচ্ছে…" : "Fetching weather…"}
                             </div>
                           )}
                           {weatherError && (
-                            <div style={{marginTop:10, fontSize:12.5, color:"#C0392B", lineHeight:1.5}}>{weatherError}</div>
+                            <div style={{marginTop:10, fontSize:13.5, color:"#C0392B", lineHeight:1.5}}>{weatherError}</div>
                           )}
 
                           {salahCoords && weatherData && weatherData.temp != null && (() => {
@@ -6019,10 +6019,10 @@ export default function FocusGo() {
                               <>
                                 <div style={{marginTop:14, background:`${accent}${dark ? "1E" : "0F"}`, borderRadius:14, padding:"16px 14px", display:"flex", alignItems:"center", justifyContent:"space-between"}}>
                                   <div>
-                                    <div style={{fontSize:32, fontWeight:800, color:textMain, letterSpacing:-1, lineHeight:1}}>
+                                    <div style={{fontSize:33, fontWeight:800, color:textMain, letterSpacing:-1, lineHeight:1}}>
                                       <Num>{nf(weatherData.temp)}</Num>°C
                                     </div>
-                                    <div style={{fontSize:12.5, fontWeight:600, color:textMuted2, marginTop:4}}>
+                                    <div style={{fontSize:13.5, fontWeight:600, color:textMuted2, marginTop:4}}>
                                       {lang === "bn" ? info.bn : info.en}
                                     </div>
                                   </div>
@@ -6035,8 +6035,8 @@ export default function FocusGo() {
                                       <div style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 10px", display:"flex", alignItems:"center", gap:8}}>
                                         <Sun size={16} color="#E0A83A" strokeWidth={2}/>
                                         <div>
-                                          <div style={{fontSize:9.5, fontWeight:700, color:textMuted2, letterSpacing:0.3}}>{lang === "bn" ? "সূর্যোদয়" : "SUNRISE"}</div>
-                                          <div style={{fontSize:12.5, fontWeight:700, color:textMain}}>{fmtSalahTime(sunriseD)}</div>
+                                          <div style={{fontSize:10.5, fontWeight:700, color:textMuted2, letterSpacing:0.3}}>{lang === "bn" ? "সূর্যোদয়" : "SUNRISE"}</div>
+                                          <div style={{fontSize:13.5, fontWeight:700, color:textMain}}>{fmtSalahTime(sunriseD)}</div>
                                         </div>
                                       </div>
                                     )}
@@ -6044,8 +6044,8 @@ export default function FocusGo() {
                                       <div style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 10px", display:"flex", alignItems:"center", gap:8}}>
                                         <Moon size={16} color={dark ? "#8FA0E0" : "#4B5A96"} strokeWidth={2}/>
                                         <div>
-                                          <div style={{fontSize:9.5, fontWeight:700, color:textMuted2, letterSpacing:0.3}}>{lang === "bn" ? "সূর্যাস্ত" : "SUNSET"}</div>
-                                          <div style={{fontSize:12.5, fontWeight:700, color:textMain}}>{fmtSalahTime(sunsetD)}</div>
+                                          <div style={{fontSize:10.5, fontWeight:700, color:textMuted2, letterSpacing:0.3}}>{lang === "bn" ? "সূর্যাস্ত" : "SUNSET"}</div>
+                                          <div style={{fontSize:13.5, fontWeight:700, color:textMain}}>{fmtSalahTime(sunsetD)}</div>
                                         </div>
                                       </div>
                                     )}
@@ -6063,24 +6063,24 @@ export default function FocusGo() {
                       <div onClick={() => setShowAlarmPicker(false)} style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:70}}>
                         <div onClick={(e) => e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, borderRadius:"14px 14px 0 0", padding:"8px 16px 18px", color:textMain}}>
                           <div style={{width:32, height:3.5, borderRadius:4, background:cardBorder, margin:"2px auto 12px"}}/>
-                          <div style={{fontSize:14.5, fontWeight:800, color:textMain, marginBottom:12}}>
+                          <div style={{fontSize:15.5, fontWeight:800, color:textMain, marginBottom:12}}>
                             {lang === "bn" ? "অ্যালার্ম সেট করুন" : "Set alarm"}
                           </div>
                           <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:6, marginBottom:16}}>
                             <input
                               type="number" min={1} max={12} value={alarmHour}
                               onChange={(e)=>{ const v = parseInt(e.target.value,10); setAlarmHour(Number.isFinite(v) ? Math.min(12, Math.max(1, v)) : 1); }}
-                              style={{width:52, textAlign:"center", fontSize:26, fontWeight:700, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${cardBorder}`, outline:"none", fontVariantNumeric:"tabular-nums"}}
+                              style={{width:52, textAlign:"center", fontSize:27, fontWeight:700, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${cardBorder}`, outline:"none", fontVariantNumeric:"tabular-nums"}}
                             />
-                            <span style={{fontSize:26, fontWeight:700, color:textMuted2}}>:</span>
+                            <span style={{fontSize:27, fontWeight:700, color:textMuted2}}>:</span>
                             <input
                               type="number" min={0} max={59} value={pad2(alarmMinute)}
                               onChange={(e)=>{ const v = parseInt(e.target.value,10); setAlarmMinute(Number.isFinite(v) ? Math.min(59, Math.max(0, v)) : 0); }}
-                              style={{width:52, textAlign:"center", fontSize:26, fontWeight:700, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${cardBorder}`, outline:"none", fontVariantNumeric:"tabular-nums"}}
+                              style={{width:52, textAlign:"center", fontSize:27, fontWeight:700, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${cardBorder}`, outline:"none", fontVariantNumeric:"tabular-nums"}}
                             />
                             <div style={{display:"flex", border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderRadius:8, overflow:"hidden", marginLeft:8}}>
                               {["AM","PM"].map(ap => (
-                                <button key={ap} onClick={()=>setAlarmAmPm(ap)} style={{border:"none", padding:"6px 10px", fontSize:11.5, fontWeight:700, cursor:"pointer",
+                                <button key={ap} onClick={()=>setAlarmAmPm(ap)} style={{border:"none", padding:"6px 10px", fontSize:12.5, fontWeight:700, cursor:"pointer",
                                   background: alarmAmPm===ap ? (dark ? `${accent}30` : `${accent}18`) : "transparent",
                                   color: alarmAmPm===ap ? accent : textMuted2}}>{ap}</button>
                               ))}
@@ -6089,14 +6089,14 @@ export default function FocusGo() {
                           {/* মাস্টার নোটিফিকেশন অথবা Alarm ক্যাটাগরি বন্ধ থাকলে এখানেই জানিয়ে দেওয়া হয় —
                               আগে চুপচাপ কিছু না ঘটায় ইউজার বুঝতে পারত না কেন অ্যালার্ম আসছে না */}
                           {!(notificationsEnabled && alarmNotifEnabled) && (
-                            <div style={{fontSize:11.5, color:"#C0392B", fontWeight:600, marginBottom:12, lineHeight:1.5}}>
+                            <div style={{fontSize:12.5, color:"#C0392B", fontWeight:600, marginBottom:12, lineHeight:1.5}}>
                               {lang === "bn"
                                 ? "অ্যালার্ম নোটিফিকেশন সেটিংসে বন্ধ আছে। Settings ▸ Notifications থেকে \"Alarm\" চালু করুন।"
                                 : "Alarm notifications are turned off. Turn on \"Alarm alerts\" under Settings ▸ Notifications."}
                             </div>
                           )}
                           {!Capacitor.isNativePlatform() && (
-                            <div style={{fontSize:11, color:textMuted2, fontWeight:500, marginBottom:12, lineHeight:1.5}}>
+                            <div style={{fontSize:12, color:textMuted2, fontWeight:500, marginBottom:12, lineHeight:1.5}}>
                               {t.alarmWebWarning}
                             </div>
                           )}
@@ -6136,7 +6136,7 @@ export default function FocusGo() {
                                   : `Time saved (${timeLabel}), but no alert will fire since notifications are off.`);
                               }
                             }}
-                            style={{width:"100%", border:"none", borderRadius:8, padding:"11px 0", background:accent, color:"#fff", fontWeight:700, fontSize:13.5, cursor:"pointer"}}
+                            style={{width:"100%", border:"none", borderRadius:8, padding:"11px 0", background:accent, color:"#fff", fontWeight:700, fontSize:14.5, cursor:"pointer"}}
                           >
                             {lang === "bn" ? "অ্যালার্ম সেট করুন" : "Set alarm"}
                           </button>
@@ -6151,7 +6151,7 @@ export default function FocusGo() {
                                 setShowAlarmPicker(false);
                                 window.alert(t.alarmCancelledMsg);
                               }}
-                              style={{width:"100%", border:"none", borderRadius:8, padding:"10px 0", background:"transparent", color:"#C0392B", fontWeight:700, fontSize:13, cursor:"pointer", marginTop:8}}
+                              style={{width:"100%", border:"none", borderRadius:8, padding:"10px 0", background:"transparent", color:"#C0392B", fontWeight:700, fontSize:14, cursor:"pointer", marginTop:8}}
                             >
                               {t.alarmCancelBtn}
                             </button>
@@ -6175,8 +6175,8 @@ export default function FocusGo() {
                   <GraduationCap size={22} color={accent} strokeWidth={2.2}/>
                 </div>
                 <div style={{minWidth:0}}>
-                  <div style={{fontSize:20, fontWeight:600, letterSpacing:-0.4, color:textMain}}>{lang==="bn" ? "স্টাডি" : "Study"}</div>
-                  <div style={{fontSize:12, color:textMuted2, marginTop:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
+                  <div style={{fontSize:21, fontWeight:600, letterSpacing:-0.4, color:textMain}}>{lang==="bn" ? "স্টাডি" : "Study"}</div>
+                  <div style={{fontSize:13, color:textMuted2, marginTop:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
                     {lang==="bn" ? "তোমার পড়াশোনার যাত্রা ট্র্যাক করো" : "Track your learning journey"}
                   </div>
                 </div>
@@ -6184,7 +6184,7 @@ export default function FocusGo() {
               <button onClick={()=>{vibrate(); setShowExamSchedule(true);}} style={{
                 display:"flex", alignItems:"center", gap:6, whiteSpace:"nowrap",
                 border:`1px solid ${accent}55`, background: dark ? `${accent}22` : `${accent}14`,
-                color:accent, borderRadius:14, padding:"9px 14px", fontSize:12.5, fontWeight:600,
+                color:accent, borderRadius:14, padding:"9px 14px", fontSize:13.5, fontWeight:600,
                 cursor:"pointer", flexShrink:0, position:"relative"
               }}>
                 <Calendar size={15} strokeWidth={2.3}/> {lang==="bn" ? "এক্সাম" : "Exam"}
@@ -6203,8 +6203,8 @@ export default function FocusGo() {
 
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", position:"relative", gap:8}}>
             <div style={{minWidth:0}}>
-              <div style={{fontSize:19, fontWeight:700, color:accent, letterSpacing:-0.4}}>{lang==="bn" ? "ফোকাস টাইমার" : "Focus Timer"}</div>
-              <div style={{fontSize:11.5, color:textMuted2, marginTop:3, fontWeight:500}}>{lang==="bn" ? "মনোযোগী থাকো। বেশি কাজ শেষ করো।" : "Stay focused. Get more done."}</div>
+              <div style={{fontSize:20, fontWeight:700, color:accent, letterSpacing:-0.4}}>{lang==="bn" ? "ফোকাস টাইমার" : "Focus Timer"}</div>
+              <div style={{fontSize:12.5, color:textMuted2, marginTop:3, fontWeight:500}}>{lang==="bn" ? "মনোযোগী থাকো। বেশি কাজ শেষ করো।" : "Stay focused. Get more done."}</div>
             </div>
             <div style={{display:"flex", alignItems:"center", gap:4, flexShrink:0}}>
               <button
@@ -6229,7 +6229,7 @@ export default function FocusGo() {
                         return (
                           <button key={opt.id} onClick={()=>{ vibrate(); setWhiteNoiseSound(opt.id); }} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, border:`1px solid ${active ? accent : cardBorder}`, background: active ? `${accent}14` : "transparent", borderRadius:12, padding:"8px 4px", cursor:"pointer", color: active ? accent : textMain}}>
                             <OptIcon size={16}/>
-                            <span style={{fontSize:10, fontWeight:500, textAlign:"center"}}>{lang==="bn" ? opt.labelBn : opt.labelEn}</span>
+                            <span style={{fontSize:11, fontWeight:500, textAlign:"center"}}>{lang==="bn" ? opt.labelBn : opt.labelEn}</span>
                           </button>
                         );
                       })}
@@ -6261,7 +6261,7 @@ export default function FocusGo() {
                 <button
                   onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setFocusMode(focusMode==="timer" ? "stopwatch" : "timer"); }}
                   disabled={timerRunning || stopwatchRunning}
-                  style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:accent, fontSize:13, fontWeight:700, cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", padding:0, opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1}}>
+                  style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:accent, fontSize:14, fontWeight:700, cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", padding:0, opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1}}>
                   {focusMode==="timer" ? t.timerMode : t.stopwatchMode} <ChevronDown size={15}/>
                 </button>
 
@@ -6278,25 +6278,25 @@ export default function FocusGo() {
                           onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
                           min={1}
                           max={180}
-                          style={{width:80, fontSize:32, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:1, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${accent}`, outline:"none"}}
+                          style={{width:80, fontSize:33, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:1, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${accent}`, outline:"none"}}
                         />
-                        <span style={{fontSize:14, fontWeight:500, color:textMuted2}}>{t.minutes}</span>
+                        <span style={{fontSize:15, fontWeight:500, color:textMuted2}}>{t.minutes}</span>
                       </div>
                     ) : (
                       <>
                         <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined}
-                          style={{fontSize:42, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color:textMain, cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
+                          style={{fontSize:43, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color:textMain, cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
                           <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
                         </div>
                         {!timerRunning && (
-                          <div style={{fontSize:10.5, color:textMuted2, marginTop:3, fontWeight:500}}>
+                          <div style={{fontSize:11.5, color:textMuted2, marginTop:3, fontWeight:500}}>
                             {lang==="bn" ? "কাস্টম সময়ের জন্য ট্যাপ করো" : "Tap to customize"}
                           </div>
                         )}
                       </>
                     )
                   ) : (
-                    <div className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:42, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, lineHeight:1}}>
+                    <div className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:43, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, lineHeight:1}}>
                       <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
                     </div>
                   )}
@@ -6312,7 +6312,7 @@ export default function FocusGo() {
                   <button
                     onClick={()=>{ if (timerRunning) return; vibrate(); changeSessionType(sessionType==="focus" ? "break" : "focus"); }}
                     disabled={timerRunning}
-                    style={{alignSelf:"flex-start", display:"flex", alignItems:"center", gap:3, border:"none", background: dark ? `${accent}30` : `${accent}18`, color:accent, borderRadius:20, padding:"7px 14px", fontSize:12.5, fontWeight:700, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
+                    style={{alignSelf:"flex-start", display:"flex", alignItems:"center", gap:3, border:"none", background: dark ? `${accent}30` : `${accent}18`, color:accent, borderRadius:20, padding:"7px 14px", fontSize:13.5, fontWeight:700, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
                     {sessionType==="focus" ? t.focusOption : t.breakOption} <ChevronDown size={14}/>
                   </button>
                 )}
@@ -6320,7 +6320,7 @@ export default function FocusGo() {
                 <div style={{display:"flex", gap:7}}>
                   <button
                     onClick={focusMode==="timer" ? toggleTimerRunning : toggleStopwatchRunning}
-                    style={{display:"flex", alignItems:"center", justifyContent:"center", gap:7, flex:"1 1 auto", minWidth:0, background: accent, border:"none", borderRadius:14, padding:"12px 16px", color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", boxShadow:`0 10px 22px ${accent}45`, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                    style={{display:"flex", alignItems:"center", justifyContent:"center", gap:7, flex:"1 1 auto", minWidth:0, background: accent, border:"none", borderRadius:14, padding:"12px 16px", color:"#fff", fontWeight:700, fontSize:15, cursor:"pointer", boxShadow:`0 10px 22px ${accent}45`, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                     {(focusMode==="timer" ? timerRunning : stopwatchRunning) ? <Pause size={15} fill="#fff" style={{flexShrink:0}}/> : <Play size={15} fill="#fff" style={{flexShrink:0}}/>} <span style={{overflow:"hidden", textOverflow:"ellipsis"}}>{(focusMode==="timer" ? timerRunning : stopwatchRunning) ? t.pause : t.start}</span>
                   </button>
                   <button onClick={()=>{ if (focusMode==="timer") { setTimerRunning(false); setTimerSeconds(timerTotal); } else { setStopwatchRunning(false); setStopwatchSeconds(0); } }} title={t.reset}
@@ -6334,16 +6334,16 @@ export default function FocusGo() {
               {/* Topic — always-visible horizontal chip row instead of a hidden picker menu; no preset-minute chips */}
               <div style={{marginTop:10}}>
                 {(focusMode==="timer" ? timerRunning : stopwatchRunning) ? (
-                  <div style={{fontSize:12, color:textMuted2}}>
+                  <div style={{fontSize:13, color:textMuted2}}>
                     {timerTopic ? `${timerTopic.subject} — ${timerTopic.topic}` : t.freeSessionOption}
                   </div>
                 ) : (
                   <div style={{display:"flex", gap:6, overflowX:"auto", WebkitOverflowScrolling:"touch", justifyContent: (todayTopics.filter(x=>!x.done).length < 3) ? "center" : "flex-start", paddingBottom:2}}>
-                    <button onClick={()=>{ selectTimerTopic(null); setTimerRunning(true); setFocusFullscreen(true); playStartSound(); }} style={{flexShrink:0, border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:14, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer", whiteSpace:"nowrap"}}>
+                    <button onClick={()=>{ selectTimerTopic(null); setTimerRunning(true); setFocusFullscreen(true); playStartSound(); }} style={{flexShrink:0, border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:14, padding:"5px 11px", fontSize:12, fontWeight:500, cursor:"pointer", whiteSpace:"nowrap"}}>
                       {t.freeSessionOption}
                     </button>
                     {todayTopics.filter(x=>!x.done).map(x => (
-                      <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{flexShrink:0, border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:14, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                      <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{flexShrink:0, border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:14, padding:"5px 11px", fontSize:12, fontWeight:500, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                         {x.topic}
                       </button>
                     ))}
@@ -6354,7 +6354,7 @@ export default function FocusGo() {
               {/* Session progress — merged into a single line */}
               {focusMode === "timer" && (
                 <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:10, flexWrap:"wrap"}}>
-                  <span style={{fontSize:11, fontWeight:500, color:textMuted2}}>
+                  <span style={{fontSize:12, fontWeight:500, color:textMuted2}}>
                     {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num>
                   </span>
                   <span style={{display:"flex", alignItems:"center", gap:5}}>
@@ -6372,7 +6372,7 @@ export default function FocusGo() {
                     })}
                   </span>
                   {timerTargetMinutes && (
-                    <span style={{fontSize:11, color:textMuted2, fontWeight:500, opacity:0.75}}>
+                    <span style={{fontSize:12, color:textMuted2, fontWeight:500, opacity:0.75}}>
                       <Num>{nf(timerElapsedMinutes)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
                     </span>
                   )}
@@ -6386,10 +6386,10 @@ export default function FocusGo() {
         {tab === "study" && (
           <div className="fg-tab-panel" style={{marginTop:12, marginBottom:-2}}>
             <div style={{display:"flex", gap:20, marginTop:0, borderBottom:`1px solid ${cardBorder}`}}>
-              <button onClick={()=>{vibrate(); setStudySection("plan");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 8px", fontSize:13.5, fontWeight:600, color: studySection==="plan" ? textMain : textMuted2, borderBottom: studySection==="plan" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
+              <button onClick={()=>{vibrate(); setStudySection("plan");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 8px", fontSize:14.5, fontWeight:600, color: studySection==="plan" ? textMain : textMuted2, borderBottom: studySection==="plan" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
                 {t.planViewStudy}
               </button>
-              <button onClick={()=>{vibrate(); setStudySection("stats");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 8px", fontSize:13.5, fontWeight:600, color: studySection==="stats" ? textMain : textMuted2, borderBottom: studySection==="stats" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
+              <button onClick={()=>{vibrate(); setStudySection("stats");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 8px", fontSize:14.5, fontWeight:600, color: studySection==="stats" ? textMain : textMuted2, borderBottom: studySection==="stats" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
                 {lang==="bn" ? "স্ট্যাটস" : "Stats"}
               </button>
             </div>
@@ -6415,24 +6415,24 @@ export default function FocusGo() {
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
                 size={38} stroke={4} accent={accent} trackColor={`${accent}40`} textMain={inkColor} nf={nf}/>
               <div style={{minWidth:0}}>
-                <div style={{fontSize:12, fontWeight:600, color:inkColor, marginBottom:2}}>{t.todaysProgress}</div>
-                <div style={{display:"flex", alignItems:"center", gap:6, fontSize:11, fontWeight:500, whiteSpace:"nowrap"}}>
+                <div style={{fontSize:14, fontWeight:600, color:inkColor, marginBottom:2}}>{t.todaysProgress}</div>
+                <div style={{display:"flex", alignItems:"center", gap:6, fontSize:13, fontWeight:500, whiteSpace:"nowrap"}}>
                   <span style={{display:"inline-flex", alignItems:"center", gap:3, color:inkA(0.82)}}>
-                    <Check size={11} strokeWidth={3}/> <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.progressCompletedLabel}
+                    <Check size={12} strokeWidth={3}/> <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.progressCompletedLabel}
                   </span>
                   <span style={{color:inkA(0.3), fontWeight:400}}>|</span>
                   <span style={{display:"inline-flex", alignItems:"center", gap:3, color:inkA(0.82)}}>
-                    <Clock size={11}/> <Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}
+                    <Clock size={12}/> <Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}
                   </span>
                 </div>
               </div>
             </div>
             <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:1, paddingLeft:10, borderLeft: `1px solid ${accent}25`}}>
               <div style={{width:22, height:22, borderRadius:"50%", background: `${accent}22`, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                <Flame size={12} color={accent} fill={`${accent}55`}/>
+                <Flame size={13} color={accent} fill={`${accent}55`}/>
               </div>
-              <div style={{fontSize:12.5, fontWeight:600, color:inkColor, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
-              <div style={{fontSize:8.5, color:inkA(0.75), fontWeight:500, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
+              <div style={{fontSize:15, fontWeight:600, color:inkColor, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
+              <div style={{fontSize:10.5, color:inkA(0.75), fontWeight:500, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
             </div>
           </div>
           {/* Today's Tasks mini-summary — merged into the progress card so the card previews task progress at a glance, matching the home page mockup */}
@@ -6445,8 +6445,8 @@ export default function FocusGo() {
             return (
               <div style={{marginTop:6, paddingTop:6, borderTop:`1px solid ${accent}25`}}>
                 <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4}}>
-                  <div style={{fontSize:11.5, fontWeight:600, color:inkColor}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
-                  <div style={{fontSize:10, fontWeight:500, color:inkA(0.75), whiteSpace:"nowrap"}}>
+                  <div style={{fontSize:13.5, fontWeight:600, color:inkColor}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
+                  <div style={{fontSize:11.5, fontWeight:500, color:inkA(0.75), whiteSpace:"nowrap"}}>
                     {!hasTasks ? (lang==="bn" ? "কোনো টাস্ক নেই" : "No tasks today") : cardLeft > 0 ? (lang==="bn" ? `${nf(cardDone)}/${nf(cardTodayTasks.length)} সম্পন্ন` : `${cardDone}/${cardTodayTasks.length} completed`) : t.taskAllDoneLabel}
                   </div>
                 </div>
@@ -6468,7 +6468,7 @@ export default function FocusGo() {
               style={{display:"flex", alignItems:"center", gap:7, maxWidth:"100%", border:`1px solid ${cardBorder}`, background:cardBg, color:textMain, borderRadius:999, padding:"9px 14px", cursor:"pointer", boxShadow: dark ? "0 4px 10px rgba(0,0,0,0.18)" : "0 4px 10px rgba(0,0,0,0.05)"}}
             >
               <Moon size={14} color={accent} fill={`${accent}33`} strokeWidth={2.2}/>
-              <span style={{fontSize:12.5, fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+              <span style={{fontSize:13.5, fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                 {lang === "bn" ? `${nextSalahCountdown.label} বাকি ${nextSalahCountdown.text}` : `${nextSalahCountdown.label} in ${nextSalahCountdown.text}`}
               </span>
             </button>
@@ -6492,14 +6492,14 @@ export default function FocusGo() {
               }}
             >
               <CalendarDays size={16} color="#fff" strokeWidth={2.2} style={{flexShrink:0}}/>
-              <span style={{fontSize:13.5, fontWeight:600, color:"#fff", flexShrink:0, marginLeft:9}}>
+              <span style={{fontSize:14.5, fontWeight:600, color:"#fff", flexShrink:0, marginLeft:9}}>
                 {lang==="bn" ? "পরীক্ষা" : "Exam"}
               </span>
               <span style={{width:1, alignSelf:"stretch", background:"rgba(255,255,255,0.28)", flexShrink:0, margin:"0 11px"}}/>
-              <span style={{flex:"1 1 auto", minWidth:0, fontSize:13, fontWeight:500, color:"rgba(255,255,255,0.88)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+              <span style={{flex:"1 1 auto", minWidth:0, fontSize:14, fontWeight:500, color:"rgba(255,255,255,0.88)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                 {nearestUpcomingExam.subject}
               </span>
-              <span style={{fontSize:11, fontWeight:600, color:"#fff", background:accent, borderRadius:999, padding:"6px 11px", whiteSpace:"nowrap", flexShrink:0, marginLeft:10}}>
+              <span style={{fontSize:12, fontWeight:600, color:"#fff", background:accent, borderRadius:999, padding:"6px 11px", whiteSpace:"nowrap", flexShrink:0, marginLeft:10}}>
                 {daysLabel}
               </span>
               <ChevronRight size={17} color="#fff" strokeWidth={2.2} style={{flexShrink:0, marginLeft:8, opacity:0.85}}/>
@@ -6516,7 +6516,7 @@ export default function FocusGo() {
               <span style={{width:26, height:26, borderRadius:9, background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                 <GraduationCap size={14} color={accent} strokeWidth={2.2}/>
               </span>
-              <div style={{fontSize:16, fontWeight:600, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
+              <div style={{fontSize:17, fontWeight:600, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
             </div>
             <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} title={t.addTopic} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
               <Plus size={17}/>
@@ -6548,11 +6548,11 @@ export default function FocusGo() {
                 <span style={{width:26, height:26, borderRadius:9, background: inkA(dark ? 0.2 : 0.12), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                   <ListChecks size={14} color={inkColor} strokeWidth={2.2}/>
                 </span>
-                <div style={{fontSize:16,fontWeight:600,letterSpacing:-0.3,color:textMain}}>
+                <div style={{fontSize:17,fontWeight:600,letterSpacing:-0.3,color:textMain}}>
                   {lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}
                 </div>
                 {homeTodayTasks.length > 0 && (
-                  <span style={{fontSize:12, fontWeight:600, color: homeTodayTasks.every(x=>x.done) ? "#6E8B5E" : textMuted2, background: inkA(dark?0.16:0.08), borderRadius:999, padding:"2px 8px"}}>
+                  <span style={{fontSize:13, fontWeight:600, color: homeTodayTasks.every(x=>x.done) ? "#6E8B5E" : textMuted2, background: inkA(dark?0.16:0.08), borderRadius:999, padding:"2px 8px"}}>
                     <Num>{nf(homeTodayTasks.filter(x=>x.done).length)}</Num>/<Num>{nf(homeTodayTasks.length)}</Num>
                   </span>
                 )}
@@ -6567,8 +6567,8 @@ export default function FocusGo() {
                   <ListChecks size={15} color={inkColor} strokeWidth={2}/>
                 </span>
                 <div style={{minWidth:0}}>
-                  <div style={{fontWeight:600, color:textMain, fontSize:13}}>{t.taskEmptyTodayHome}</div>
-                  <div style={{color:textMuted2, fontSize:11.5, marginTop:2}}>{lang==="bn" ? "আজকের একটা টাস্ক যোগ করুন।" : "Add a task to plan your day."}</div>
+                  <div style={{fontWeight:600, color:textMain, fontSize:14}}>{t.taskEmptyTodayHome}</div>
+                  <div style={{color:textMuted2, fontSize:12.5, marginTop:2}}>{lang==="bn" ? "আজকের একটা টাস্ক যোগ করুন।" : "Add a task to plan your day."}</div>
                 </div>
               </div>
             ) : (
@@ -6579,11 +6579,11 @@ export default function FocusGo() {
                       {x.done && <Check size={13} color="#fff" strokeWidth={3}/>}
                     </button>
                     <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:13.5,fontWeight:500,color:x.done?textMuted2:textMain,textDecoration:"none",overflow:"visible",whiteSpace:"normal",wordBreak:"break-word",lineHeight:1.35}}>
+                      <div style={{fontSize:14.5,fontWeight:500,color:x.done?textMuted2:textMain,textDecoration:"none",overflow:"visible",whiteSpace:"normal",wordBreak:"break-word",lineHeight:1.35}}>
                         {x.title}
                       </div>
                       {x.done && (
-                        <div style={{fontSize:11, fontWeight:500, color:"#6E8B5E", marginTop:2}}>
+                        <div style={{fontSize:12, fontWeight:500, color:"#6E8B5E", marginTop:2}}>
                           {lang==="bn" ? "সম্পন্ন হয়েছে" : "Completed"}
                         </div>
                       )}
@@ -6598,20 +6598,20 @@ export default function FocusGo() {
                           <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 4px 12px rgba(0,0,0,0.08)", zIndex:60, minWidth:150, overflow:"hidden"}}>
                             {taskDeleteConfirmId === x.id ? (
                               <>
-                                <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:500}}>{lang==="bn"?"টাস্কটি ডিলিট করবেন?":"Delete this task?"}</div>
-                                <button onClick={()=>{ closeTaskMenu(); vibrate(); deleteTask(x.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
+                                <div style={{padding:"9px 12px", fontSize:13, color:textMuted2, fontWeight:500}}>{lang==="bn"?"টাস্কটি ডিলিট করবেন?":"Delete this task?"}</div>
+                                <button onClick={()=>{ closeTaskMenu(); vibrate(); deleteTask(x.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:14, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                   <Trash2 size={13}/> {lang==="bn"?"ডিলিট নিশ্চিত করুন":"Confirm delete"}
                                 </button>
-                                <button onClick={()=>setTaskDeleteConfirmId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
+                                <button onClick={()=>setTaskDeleteConfirmId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:14, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                   {t.cancel}
                                 </button>
                               </>
                             ) : (
                               <>
-                                <button onClick={()=>{closeTaskMenu(); setEditingTask(x);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
+                                <button onClick={()=>{closeTaskMenu(); setEditingTask(x);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:14, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                   <Pencil size={13}/> {lang==="bn"?"এডিট":"Edit"}
                                 </button>
-                                <button onClick={()=>setTaskDeleteConfirmId(x.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
+                                <button onClick={()=>setTaskDeleteConfirmId(x.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:14, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                   <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
                                 </button>
                               </>
@@ -6632,7 +6632,7 @@ export default function FocusGo() {
         {tab === "study" && studySection === "plan" && (
           <div key="plan" className="fg-tab-panel" style={{marginTop:12}}>
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8, marginBottom:10}}>
-              <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:500, opacity:0.85}}>
+              <div style={{fontSize:11, letterSpacing:ls(1.5), color:textMuted2, fontWeight:500, opacity:0.85}}>
                 {lang === "bn" ? `পরের ${nf(planRange)} দিন` : `Next ${nf(planRange)} Days`}
               </div>
               {/* range selector: 7/15/30/60/90 দিনের মধ্যে বেছে নেওয়া যায়, পছন্দ মনে থাকে —
@@ -6640,7 +6640,7 @@ export default function FocusGo() {
               <div style={{display:"flex", gap:2, background: dark?"#211E19":"#F0EBDF", borderRadius:10, padding:2, flexShrink:0}}>
                 {[7,15,30,60,90].map(r => (
                   <button key={r} onClick={()=>{vibrate(); setPlanRange(r);}} style={{
-                    border:"none", cursor:"pointer", fontFamily:"inherit", fontWeight:500, fontSize:11,
+                    border:"none", cursor:"pointer", fontFamily:"inherit", fontWeight:500, fontSize:12,
                     padding:"4px 9px", borderRadius:8,
                     background: planRange===r ? accent : "transparent",
                     color: planRange===r ? "#FFFFFF" : textMuted2,
@@ -6662,8 +6662,8 @@ export default function FocusGo() {
                 const statusColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : inkColor);
                 return (
                   <div key={i} className="fg-card" onClick={()=>setPlanDate(d)} style={{textAlign:"center", cursor:"pointer", flex: planRange > 7 ? "0 0 40px" : 1, padding:"0 2px"}}>
-                    <div style={{fontSize:10, fontWeight:500, color: isSel ? accent : textMuted2, opacity: isSel ? 1 : 0.85, marginBottom:6, letterSpacing:0.3}}>{weekdayShort(d)}</div>
-                    <div style={{width:34,height:34, borderRadius:"50%", display:"flex",alignItems:"center",justifyContent:"center", margin:"0 auto", fontSize:13, fontWeight:600,
+                    <div style={{fontSize:11, fontWeight:500, color: isSel ? accent : textMuted2, opacity: isSel ? 1 : 0.85, marginBottom:6, letterSpacing:0.3}}>{weekdayShort(d)}</div>
+                    <div style={{width:34,height:34, borderRadius:"50%", display:"flex",alignItems:"center",justifyContent:"center", margin:"0 auto", fontSize:14, fontWeight:600,
                       transition:"background .18s ease, color .18s ease, box-shadow .18s ease", boxShadow: isSel ? `0 0 0 1.5px ${accent}` : "none",
                       background:"transparent", color: isSel ? accent : textMain}}>
                       <Num>{nf(d.getDate())}</Num>
@@ -6677,14 +6677,14 @@ export default function FocusGo() {
               })}
             </div>
             {planRange > 7 && (
-              <div style={{marginTop:6, fontSize:11, color:textMuted2, textAlign:"center", opacity:0.8}}>
+              <div style={{marginTop:6, fontSize:12, color:textMuted2, textAlign:"center", opacity:0.8}}>
                 {lang === "bn" ? "← স্ক্রল করে বাকি দিনগুলো দেখো →" : "← scroll to see more days →"}
               </div>
             )}
 
             <div style={{marginTop:14, marginBottom:9, paddingBottom:9, borderBottom:`0.5px solid ${cardBorder}`}}>
               <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8}}>
-                <div style={{fontSize:20, fontWeight:600, letterSpacing:-0.3}}>
+                <div style={{fontSize:21, fontWeight:600, letterSpacing:-0.3}}>
                   {isPlanToday ? t.todaysStudy : <>{weekdayName(planDate)}, <Num>{nf(planDate.getDate())}</Num> {monthName(planDate.getMonth())}</>}
                 </div>
                 <button onClick={()=>{setAddTargetKey(planKey); setShowAdd(true);}} title={t.addTopic} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
@@ -6695,7 +6695,7 @@ export default function FocusGo() {
                 const totalMin = planTopics.reduce((sum,x)=>sum+(x.duration||0), 0);
                 const h = Math.floor(totalMin/60), m = totalMin%60;
                 return (
-                  <div style={{fontSize:11.5, color:textMuted2, fontWeight:500, marginTop:4}}>
+                  <div style={{fontSize:12.5, color:textMuted2, fontWeight:500, marginTop:4}}>
                     {t.totalPlannedLabel}: <span style={{color:textMain, fontWeight:600}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</span>
                   </div>
                 );
@@ -6764,22 +6764,22 @@ export default function FocusGo() {
                 transition:"background .15s ease", maxHeight:76,
               }}>
                 <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{width:19, height:19, marginTop:2, borderRadius:"50%", flexShrink:0, cursor:"pointer", border:`2px solid ${x.done ? "#6E8B5E" : due ? accent : cardBorder}`, background: x.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", padding:0}}>
-                  {x.done ? <Check size={11} color="#fff" strokeWidth={3}/> : due ? <span style={{fontSize:7.5, fontWeight:600, color:accent, lineHeight:1}}>{due.text}</span> : null}
+                  {x.done ? <Check size={11} color="#fff" strokeWidth={3}/> : due ? <span style={{fontSize:8.5, fontWeight:600, color:accent, lineHeight:1}}>{due.text}</span> : null}
                 </button>
                 <div style={{flex:1, minWidth:0, maxHeight:58, overflow:"hidden"}}>
-                  <div style={{fontSize:13, fontWeight:600, color: x.done ? textMuted2 : textMain, textDecoration:"none", wordBreak:"break-word", overflowWrap:"break-word", lineHeight:1.3, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden"}}>
+                  <div style={{fontSize:14, fontWeight:600, color: x.done ? textMuted2 : textMain, textDecoration:"none", wordBreak:"break-word", overflowWrap:"break-word", lineHeight:1.3, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden"}}>
                     {x.title}
                     {x.note && (
                       <FileText size={12} color={textMuted2} style={{display:"inline", verticalAlign:"middle", marginLeft:5, opacity:0.75}}/>
                     )}
                   </div>
                   {x.reminderTime && (
-                    <div style={{display:"flex", alignItems:"center", gap:5, marginTop:3, fontSize:9.5, color:textMuted2, fontWeight:500, flexWrap:"wrap"}}>
+                    <div style={{display:"flex", alignItems:"center", gap:5, marginTop:3, fontSize:10.5, color:textMuted2, fontWeight:500, flexWrap:"wrap"}}>
                       <span>{x.reminderTime}</span>
                     </div>
                   )}
                   {x.repeat && !x.done && (
-                    <span title={t.taskRepeatBadge} style={{display:"inline-block", fontSize:9.5, fontWeight:600, color:accent, background:`${accent}14`, borderRadius:8, padding:"2px 6px", marginTop:4, whiteSpace:"nowrap"}}>
+                    <span title={t.taskRepeatBadge} style={{display:"inline-block", fontSize:10.5, fontWeight:600, color:accent, background:`${accent}14`, borderRadius:8, padding:"2px 6px", marginTop:4, whiteSpace:"nowrap"}}>
                       {x.dueDate && (() => {
                         const diffDays = Math.round((new Date(x.dueDate+"T00:00:00") - new Date(todayKey+"T00:00:00")) / 86400000);
                         const label = diffDays === 0 ? (lang==="bn" ? "আজ" : "Today") : diffDays > 0 ? `D-${diffDays}` : `D+${Math.abs(diffDays)}`;
@@ -6799,20 +6799,20 @@ export default function FocusGo() {
                         <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 4px 12px rgba(0,0,0,0.08)", zIndex:60, minWidth:150, overflow:"hidden"}}>
                           {taskDeleteConfirmId === x.id ? (
                             <>
-                              <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:500}}>{lang==="bn"?"টাস্কটি ডিলিট করবেন?":"Delete this task?"}</div>
-                              <button onClick={()=>{ closeTaskMenu(); vibrate(); deleteTask(x.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
+                              <div style={{padding:"9px 12px", fontSize:13, color:textMuted2, fontWeight:500}}>{lang==="bn"?"টাস্কটি ডিলিট করবেন?":"Delete this task?"}</div>
+                              <button onClick={()=>{ closeTaskMenu(); vibrate(); deleteTask(x.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:14, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                 <Trash2 size={13}/> {lang==="bn"?"ডিলিট নিশ্চিত করুন":"Confirm delete"}
                               </button>
-                              <button onClick={()=>setTaskDeleteConfirmId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
+                              <button onClick={()=>setTaskDeleteConfirmId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:14, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                 {t.cancel}
                               </button>
                             </>
                           ) : (
                             <>
-                              <button onClick={()=>{closeTaskMenu(); setEditingTask(x);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
+                              <button onClick={()=>{closeTaskMenu(); setEditingTask(x);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:14, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                 <Pencil size={13}/> {lang==="bn"?"এডিট":"Edit"}
                               </button>
-                              <button onClick={()=>setTaskDeleteConfirmId(x.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
+                              <button onClick={()=>setTaskDeleteConfirmId(x.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:14, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                 <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
                               </button>
                             </>
@@ -6854,13 +6854,13 @@ export default function FocusGo() {
               <div>
                 <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12}}>
                   <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m-1,1));}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", display:"flex", padding:4}}><ChevronLeft size={18}/></button>
-                  <span style={{fontSize:14, fontWeight:600, color:textMain}}>{monthName(m)} <Num>{nf(y)}</Num></span>
+                  <span style={{fontSize:15, fontWeight:600, color:textMain}}>{monthName(m)} <Num>{nf(y)}</Num></span>
                   <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m+1,1));}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", display:"flex", padding:4}}><ChevronRight size={18}/></button>
                 </div>
 
                 <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"14px 12px", marginBottom:10}}>
                   <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:8}}>
-                    {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:11, fontWeight:500, color:textMuted2}}>{d}</div>))}
+                    {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:12, fontWeight:500, color:textMuted2}}>{d}</div>))}
                   </div>
                   <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", rowGap:6}}>
                     {cells.map((d,i) => {
@@ -6889,7 +6889,7 @@ export default function FocusGo() {
                                   strokeDasharray={ringC} strokeDashoffset={ringC * (1 - dayPct)}/>
                               </svg>
                             )}
-                            <div style={{position:"relative", width:22, height:22, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:500,
+                            <div style={{position:"relative", width:22, height:22, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:500,
                               background: isSelected ? accent : "transparent",
                               border: isToday && !isSelected ? `1px solid ${accent}` : "none",
                               color: isSelected ? "#fff" : (hasOverdue ? "#C0392B" : textMain)}}>
@@ -6904,22 +6904,22 @@ export default function FocusGo() {
 
                 {/* Calendar legend — Stats-এর ক্যালেন্ডার legend-এর মতোই একই স্টাইল */}
                 <div style={{display:"flex", justifyContent:"center", alignItems:"center", gap:16, marginBottom:12, flexWrap:"wrap"}}>
-                  <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:500}}>
+                  <span style={{display:"flex", alignItems:"center", gap:4, fontSize:12, color:textMuted2, fontWeight:500}}>
                     <span style={{width:7,height:7,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
                   </span>
-                  <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:500}}>
+                  <span style={{display:"flex", alignItems:"center", gap:4, fontSize:12, color:textMuted2, fontWeight:500}}>
                     <span style={{width:7,height:7,borderRadius:"50%", background:inkColor}}/>{t.calendarLegendPlanned}
                   </span>
-                  <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:500}}>
+                  <span style={{display:"flex", alignItems:"center", gap:4, fontSize:12, color:textMuted2, fontWeight:500}}>
                     <span style={{width:7,height:7,borderRadius:"50%", background:"#C0392B"}}/>{t.taskOverdue}
                   </span>
                 </div>
 
-                <div style={{fontSize:20, fontWeight:600, letterSpacing:-0.3, color:textMain, marginBottom:9}}>
+                <div style={{fontSize:21, fontWeight:600, letterSpacing:-0.3, color:textMain, marginBottom:9}}>
                   {selectedKey === todayKey ? (lang==="bn" ? "আজ" : "Today") : <>{weekdayName(selectedDateObj)}, <Num>{nf(selectedDateObj.getDate())}</Num> {monthName(selectedDateObj.getMonth())}</>}
                 </div>
                 {dayTasks.length === 0 ? (
-                  <div style={{display:"flex", alignItems:"center", gap:8, padding:"8px 0 14px", color:textMuted2, fontSize:12.5, marginBottom: noDateTasks.length ? 8 : 0}}>
+                  <div style={{display:"flex", alignItems:"center", gap:8, padding:"8px 0 14px", color:textMuted2, fontSize:13.5, marginBottom: noDateTasks.length ? 8 : 0}}>
                     <Check size={16} color={textMuted2} strokeWidth={2}/>
                     <span style={{fontWeight:500}}>{t.taskCalEmptyDay}</span>
                   </div>
@@ -6929,7 +6929,7 @@ export default function FocusGo() {
 
                 {noDateTasks.length > 0 && (
                   <div>
-                    <div style={{fontSize:11, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskCalNoDateTasks}</div>
+                    <div style={{fontSize:12, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskCalNoDateTasks}</div>
                     <div style={{display:"flex", flexDirection:"column", gap:8}}>{noDateTasks.map(renderTask)}</div>
                   </div>
                 )}
@@ -6945,8 +6945,8 @@ export default function FocusGo() {
                   <ListChecks size={21} color={accent} strokeWidth={2.2}/>
                 </div>
                 <div style={{minWidth:0}}>
-                  <div style={{fontSize:20, fontWeight:600, letterSpacing:-0.3, color:textMain}}>{t.taskTitle}</div>
-                  <div style={{fontSize:12, color:textMuted2, marginTop:2, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden", lineHeight:1.3}}>{t.taskSubtitle}</div>
+                  <div style={{fontSize:21, fontWeight:600, letterSpacing:-0.3, color:textMain}}>{t.taskTitle}</div>
+                  <div style={{fontSize:13, color:textMuted2, marginTop:2, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden", lineHeight:1.3}}>{t.taskSubtitle}</div>
                 </div>
               </div>
 
@@ -6957,7 +6957,7 @@ export default function FocusGo() {
                   return (
                     <button key={key} onClick={()=>{vibrate(); setTaskViewMode(key);}} style={{
                       display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", cursor:"pointer",
-                      padding:"0 0 8px", fontSize:14, fontWeight:600,
+                      padding:"0 0 8px", fontSize:15, fontWeight:600,
                       color: active ? textMain : textMuted2,
                       borderBottom: active ? `2px solid ${accent}` : "2px solid transparent",
                       marginBottom:-1, transition:"color .18s ease, border-color .18s ease",
@@ -6978,7 +6978,7 @@ export default function FocusGo() {
                           display:"flex", alignItems:"center", gap:5, padding:"7px 13px", borderRadius:14, cursor:"pointer", flexShrink:0,
                           border:"none",
                           background: taskFilter===key ? accent : (dark ? "#232127" : "#EFEBE3"),
-                          color: taskFilter===key ? "#fff" : textMain, fontWeight:600, fontSize:12.5, whiteSpace:"nowrap",
+                          color: taskFilter===key ? "#fff" : textMain, fontWeight:600, fontSize:13.5, whiteSpace:"nowrap",
                         }}>
                           {label} (<Num>{nf(count)}</Num>)
                         </button>
@@ -6996,8 +6996,8 @@ export default function FocusGo() {
                         </div>
                       </div>
                       <div>
-                        <div style={{fontWeight:600, color:textMain, fontSize:15}}>{emptyMsg}</div>
-                        <div style={{color:textMuted2, fontSize:12.5, lineHeight:1.5, marginTop:5, maxWidth:230}}>{emptySub}</div>
+                        <div style={{fontWeight:600, color:textMain, fontSize:16}}>{emptyMsg}</div>
+                        <div style={{color:textMuted2, fontSize:13.5, lineHeight:1.5, marginTop:5, maxWidth:230}}>{emptySub}</div>
                       </div>
                     </div>
                   )}
@@ -7014,9 +7014,9 @@ export default function FocusGo() {
                             <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
                               <div style={{display:"flex", alignItems:"center", gap:7}}>
                                 <Sun size={15} color="#C08A2E" strokeWidth={2.3}/>
-                                <span style={{fontSize:15, fontWeight:600, color:textMain}}>{t.taskSectionToday}</span>
+                                <span style={{fontSize:16, fontWeight:600, color:textMain}}>{t.taskSectionToday}</span>
                               </div>
-                              <div style={{display:"flex", alignItems:"center", gap:5, fontSize:11.5, color:textMuted2, fontWeight:500}}>
+                              <div style={{display:"flex", alignItems:"center", gap:5, fontSize:12.5, color:textMuted2, fontWeight:500}}>
                                 <Calendar size={12}/> <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}, {weekdayShort(today)}
                               </div>
                             </div>
@@ -7025,13 +7025,13 @@ export default function FocusGo() {
                         )}
                         {upcomingBucket.length > 0 && (
                           <div style={{marginBottom: (nodateBucket.length || doneTodayBucket.length) ? 16 : 0}}>
-                            <div style={{fontSize:11, fontWeight:500, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskSectionUpcoming}</div>
+                            <div style={{fontSize:12, fontWeight:500, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskSectionUpcoming}</div>
                             <div style={{display:"flex", flexDirection:"column", gap:8}}>{upcomingBucket.map(renderTask)}</div>
                           </div>
                         )}
                         {nodateBucket.length > 0 && (
                           <div style={{marginBottom: doneTodayBucket.length ? 16 : 0}}>
-                            <div style={{fontSize:11, fontWeight:500, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskSectionNoDate}</div>
+                            <div style={{fontSize:12, fontWeight:500, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskSectionNoDate}</div>
                             <div style={{display:"flex", flexDirection:"column", gap:8}}>{nodateBucket.map(renderTask)}</div>
                           </div>
                         )}
@@ -7042,9 +7042,9 @@ export default function FocusGo() {
                                 <span style={{width:20, height:20, borderRadius:"50%", background:"#6E8B5E", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                                   <Check size={12} color="#fff" strokeWidth={3}/>
                                 </span>
-                                <span style={{fontSize:15, fontWeight:600, color:textMain}}>{t.taskSectionCompletedToday}</span>
+                                <span style={{fontSize:16, fontWeight:600, color:textMain}}>{t.taskSectionCompletedToday}</span>
                               </div>
-                              <button onClick={()=>{vibrate(); setTaskFilter("done");}} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:"#6E8B5E", fontSize:12, fontWeight:600, cursor:"pointer", padding:0}}>
+                              <button onClick={()=>{vibrate(); setTaskFilter("done");}} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:"#6E8B5E", fontSize:13, fontWeight:600, cursor:"pointer", padding:0}}>
                                 {lang==="bn" ? "সব দেখো" : "See all"} <ChevronRight size={13}/>
                               </button>
                             </div>
@@ -7132,8 +7132,8 @@ export default function FocusGo() {
                       <Clock size={18} color={inkColor}/>
                     </div>
                     <div>
-                      <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.4, color:textMain, lineHeight:1.15}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
-                      <div style={{fontSize:11, color:textMuted2, fontWeight:600, opacity:0.8}}>{t.focusedLabel}</div>
+                      <div style={{fontSize:21, fontWeight:800, letterSpacing:-0.4, color:textMain, lineHeight:1.15}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
+                      <div style={{fontSize:12, color:textMuted2, fontWeight:600, opacity:0.8}}>{t.focusedLabel}</div>
                     </div>
                   </div>
                   <div style={{height:1, background:cardBorder, margin:"14px 0"}}/>
@@ -7144,8 +7144,8 @@ export default function FocusGo() {
                         <div style={{width:30, height:30, borderRadius:"50%", background:`${it.color}22`, display:"flex", alignItems:"center", justifyContent:"center"}}>
                           <it.Icon size={14} color={it.color} strokeWidth={2.2}/>
                         </div>
-                        <div style={{fontSize:13, fontWeight:800, color:textMain, letterSpacing:-0.2, lineHeight:1.1}}>{it.value}</div>
-                        <div style={{fontSize:8.5, color:textMuted2, fontWeight:700, lineHeight:1.2}}>{it.label}</div>
+                        <div style={{fontSize:14, fontWeight:800, color:textMain, letterSpacing:-0.2, lineHeight:1.1}}>{it.value}</div>
+                        <div style={{fontSize:9.5, color:textMuted2, fontWeight:700, lineHeight:1.2}}>{it.label}</div>
                       </div>
                     ))}
                   </div>
@@ -7160,8 +7160,8 @@ export default function FocusGo() {
                   <GraduationCap size={18} color={dark ? "#B0ABC2" : "#6E6B7A"}/>
                 </div>
                 <div style={{minWidth:0}}>
-                  <div style={{fontSize:16, fontWeight:800, letterSpacing:-0.2, color:textMain}}>{t.syllabusProgress}</div>
-                  <div style={{fontSize:11, color:textMuted2, fontWeight:500, opacity:0.75}}>{t.subjectProgressSubtitle}</div>
+                  <div style={{fontSize:17, fontWeight:800, letterSpacing:-0.2, color:textMain}}>{t.syllabusProgress}</div>
+                  <div style={{fontSize:12, color:textMuted2, fontWeight:500, opacity:0.75}}>{t.subjectProgressSubtitle}</div>
                 </div>
               </div>
               {/* সাবজেক্ট ম্যানেজ করার শর্টকাট — আগে টেক্সট বাটন হিসেবে নিচে আলাদা লাইনে ছিল, এখন হেডিং-এর পাশেই ছোট + আইকন হিসেবে হাইলাইট করা */}
@@ -7180,7 +7180,7 @@ export default function FocusGo() {
                   <>
                     <div style={{display:"flex", flexDirection:"column", gap:10}}>
                       {sorted.length === 0 && (
-                        <div style={{fontSize:13, color:textMuted2, padding:"14px 0"}}>—</div>
+                        <div style={{fontSize:14, color:textMuted2, padding:"14px 0"}}>—</div>
                       )}
                       {visible.map(subj => {
                         const v = subjectProgress[subj] || { done:0, total:0 };
@@ -7190,14 +7190,14 @@ export default function FocusGo() {
                           <button key={subj} onClick={()=>{vibrate(); setShowManageTopicsFor(subj); setShowSubjects(true);}} style={{display:"flex", alignItems:"center", gap:12, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px", cursor:"pointer", textAlign:"left", boxShadow: dark ? "none" : "0 2px 8px rgba(0,0,0,0.04)", width:"100%"}}>
                             <span style={{width:10, height:10, borderRadius:"50%", background:c.bg, flexShrink:0}}/>
                             <div style={{flex:1, minWidth:0}}>
-                              <div style={{fontSize:10.5, fontWeight:800, letterSpacing:0.4, color:c.bg, textTransform:"uppercase", marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{v.total ? `${nf(pct)}%` : t.noTopicsSubjectShort}</div>
-                              <div style={{fontSize:14, fontWeight:800, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subj}</div>
+                              <div style={{fontSize:11.5, fontWeight:800, letterSpacing:0.4, color:c.bg, textTransform:"uppercase", marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{v.total ? `${nf(pct)}%` : t.noTopicsSubjectShort}</div>
+                              <div style={{fontSize:15, fontWeight:800, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subj}</div>
                               {v.total > 0 ? (
                                 <>
                                   <div style={{height:5, borderRadius:8, background: dark?"#242424":"#EFEBDF", overflow:"hidden", marginTop:6}}>
                                     <div style={{width:`${pct}%`, height:"100%", borderRadius:8, background:c.bg, transition:"width .25s ease"}}/>
                                   </div>
-                                  <div style={{fontSize:11, color:textMuted2, fontWeight:500, opacity:0.75, marginTop:4}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num> {t.complete}</div>
+                                  <div style={{fontSize:12, color:textMuted2, fontWeight:500, opacity:0.75, marginTop:4}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num> {t.complete}</div>
                                 </>
                               ) : null}
                             </div>
@@ -7215,7 +7215,7 @@ export default function FocusGo() {
                       })}
                     </div>
                     {isLong && (
-                      <button onClick={()=>{vibrate(); setShowAllSubjectsProgress(v=>!v);}} style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:10, padding:"10px 0 2px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+                      <button onClick={()=>{vibrate(); setShowAllSubjectsProgress(v=>!v);}} style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:10, padding:"10px 0 2px", fontSize:13, fontWeight:700, cursor:"pointer"}}>
                         {showAllSubjectsProgress ? t.showLess : t.seeAll} <ChevronDown size={14} style={{transform: showAllSubjectsProgress ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
                       </button>
                     )}
@@ -7226,8 +7226,8 @@ export default function FocusGo() {
 
             {/* Weekly Activity — bar chart with value labels and accent-weighted bars */}
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:10}}>
-              <span style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.weeklyActivity}</span>
-              <span style={{fontSize:11, fontWeight:700, color:textMuted2}}>
+              <span style={{fontSize:11, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.weeklyActivity}</span>
+              <span style={{fontSize:12, fontWeight:700, color:textMuted2}}>
                 {(() => {
                   const total = weeklyActivity.reduce((s,w)=>s+w.min,0);
                   const h = Math.floor(total/60), m = total%60;
@@ -7245,12 +7245,12 @@ export default function FocusGo() {
                   return (
                     <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6, height:"100%", justifyContent:"flex-end"}}>
                       {w.min > 0 ? (
-                        <span style={{fontSize:10, fontWeight:700, color: isToday ? accent : textMuted2, opacity: isToday?1:0.75, whiteSpace:"nowrap"}}>
+                        <span style={{fontSize:11, fontWeight:700, color: isToday ? accent : textMuted2, opacity: isToday?1:0.75, whiteSpace:"nowrap"}}>
                           {hh > 0 ? <><Num>{nf(hh)}</Num>h<Num>{nf(mm)}</Num></> : <Num>{nf(mm)}</Num>}
                         </span>
-                      ) : <span style={{fontSize:10, height:11}}/>}
+                      ) : <span style={{fontSize:11, height:11}}/>}
                       <div style={{width:"100%", maxWidth:22, height:h, borderRadius:8, background: w.min>0 ? (isToday ? accent : inkA(0.33)) : (dark?"#3A342A":"#F2ECDF"), border: w.min>0 ? "none" : `1px dashed ${textMuted2}55`, boxSizing:"border-box", transition:"height .3s"}}/>
-                      <span style={{fontSize:10, fontWeight:700, color: isToday?accent:textMuted2}}>{weekdayShort(w.day)}</span>
+                      <span style={{fontSize:11, fontWeight:700, color: isToday?accent:textMuted2}}>{weekdayShort(w.day)}</span>
                     </div>
                   );
                 });
@@ -7259,8 +7259,8 @@ export default function FocusGo() {
 
             {/* Monthly Activity — same bar-chart style as Weekly Activity, grouped by week-of-month */}
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:10}}>
-              <span style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.monthlyActivity}</span>
-              <span style={{fontSize:11, fontWeight:700, color:textMuted2}}>
+              <span style={{fontSize:11, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.monthlyActivity}</span>
+              <span style={{fontSize:12, fontWeight:700, color:textMuted2}}>
                 {(() => {
                   const total = monthlyActivity.reduce((s,w)=>s+w.min,0);
                   const h = Math.floor(total/60), m = total%60;
@@ -7284,12 +7284,12 @@ export default function FocusGo() {
                   return (
                     <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6, height:"100%", justifyContent:"flex-end"}}>
                       {w.min > 0 ? (
-                        <span style={{fontSize:10, fontWeight:700, color: isCurrent ? accent : textMuted2, opacity: isCurrent?1:0.75, whiteSpace:"nowrap"}}>
+                        <span style={{fontSize:11, fontWeight:700, color: isCurrent ? accent : textMuted2, opacity: isCurrent?1:0.75, whiteSpace:"nowrap"}}>
                           {hh > 0 ? <><Num>{nf(hh)}</Num>h<Num>{nf(mm)}</Num></> : <Num>{nf(mm)}</Num>}
                         </span>
-                      ) : <span style={{fontSize:10, height:11}}/>}
+                      ) : <span style={{fontSize:11, height:11}}/>}
                       <div style={{width:"100%", maxWidth:22, height:h, borderRadius:8, background: w.min>0 ? (isCurrent ? accent : inkA(0.33)) : (dark?"#3A342A":"#F2ECDF"), border: w.min>0 ? "none" : `1px dashed ${textMuted2}55`, boxSizing:"border-box", transition:"height .3s"}}/>
-                      <span style={{fontSize:10, fontWeight:700, color: isCurrent?accent:textMuted2}}>{t.weekLabelShort}<Num>{nf(w.weekNum)}</Num></span>
+                      <span style={{fontSize:11, fontWeight:700, color: isCurrent?accent:textMuted2}}>{t.weekLabelShort}<Num>{nf(w.weekNum)}</Num></span>
                     </div>
                   );
                 });
@@ -7298,7 +7298,7 @@ export default function FocusGo() {
 
             <div style={{display:"flex", alignItems:"center", gap:10, margin:"4px 0 16px"}}>
               <div style={{flex:1, height:1, background:cardBorder}}/>
-              <span style={{fontSize:11, fontWeight:700, letterSpacing:0.8, color:textMuted2, textTransform:"uppercase", opacity:0.85}}>{lang==="bn" ? "মাস" : "Month"}</span>
+              <span style={{fontSize:12, fontWeight:700, letterSpacing:0.8, color:textMuted2, textTransform:"uppercase", opacity:0.85}}>{lang==="bn" ? "মাস" : "Month"}</span>
               <div style={{flex:1, height:1, background:cardBorder}}/>
             </div>
 
@@ -7309,16 +7309,16 @@ export default function FocusGo() {
 
             {/* Calendar legend */}
             <div style={{display:"flex", justifyContent:"center", alignItems:"center", gap:16, marginTop:10, flexWrap:"wrap", marginBottom:20}}>
-              <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
+              <span style={{display:"flex", alignItems:"center", gap:4, fontSize:12, color:textMuted2, fontWeight:600}}>
                 <span style={{width:7,height:7,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
               </span>
-              <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
+              <span style={{display:"flex", alignItems:"center", gap:4, fontSize:12, color:textMuted2, fontWeight:600}}>
                 <span style={{width:7,height:7,borderRadius:"50%", background: dark ? "#F3F1F8" : "#1A1814"}}/>{t.calendarLegendExam}
               </span>
-              <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
+              <span style={{display:"flex", alignItems:"center", gap:4, fontSize:12, color:textMuted2, fontWeight:600}}>
                 <span style={{width:7,height:7,borderRadius:"50%", background:inkColor}}/>{t.calendarLegendPlanned}
               </span>
-              <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
+              <span style={{display:"flex", alignItems:"center", gap:4, fontSize:12, color:textMuted2, fontWeight:600}}>
                 <span style={{width:7,height:7,borderRadius:"50%", background:"#C0392B"}}/>{t.calendarLegendHoliday}
               </span>
             </div>
@@ -7373,7 +7373,7 @@ export default function FocusGo() {
             {k:"settings", Icon: Settings},
           ].map(({k, Icon}) => (
             <button key={k} onClick={()=>{vibrate(); setTab(k);}} style={{
-              flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:2, border:"none", borderRadius:12, padding:"7px 4px", fontSize:10, fontWeight:700, cursor:"pointer",
+              flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:2, border:"none", borderRadius:12, padding:"7px 4px", fontSize:11, fontWeight:700, cursor:"pointer",
               background: "transparent",
               color: tab===k ? accent : textMuted2,
               transition:"color .2s ease"
@@ -7534,9 +7534,9 @@ export default function FocusGo() {
           background: dark?"#242424":"#262433", color:"#F3F1F8", borderRadius:12, padding:"11px 12px 11px 16px",
           display:"flex", alignItems:"center", gap:16, boxShadow:"0 5px 16px rgba(0,0,0,0.16)",
           maxWidth:"calc(100vw - 32px)", animation:"fg-fade-up .2s cubic-bezier(0.16,1,0.3,1)"}}>
-          <span style={{fontSize:13, fontWeight:600, whiteSpace:"nowrap"}}>{undoToast.message}</span>
+          <span style={{fontSize:14, fontWeight:600, whiteSpace:"nowrap"}}>{undoToast.message}</span>
           <button onClick={()=>{ const fn = undoToast.onUndo; dismissUndoToast(); vibrate(); fn && fn(); }}
-            style={{border:"none", background:"transparent", color:accent, fontSize:13, fontWeight:800, cursor:"pointer", padding:"4px 4px", flexShrink:0, textTransform:"uppercase", letterSpacing:0.3}}>
+            style={{border:"none", background:"transparent", color:accent, fontSize:14, fontWeight:800, cursor:"pointer", padding:"4px 4px", flexShrink:0, textTransform:"uppercase", letterSpacing:0.3}}>
             {lang==="bn" ? "আনডু" : "Undo"}
           </button>
           <button onClick={dismissUndoToast} aria-label={lang==="bn"?"বন্ধ করুন":"Dismiss"}
@@ -7553,7 +7553,7 @@ export default function FocusGo() {
           display:"flex", alignItems:"center", gap:8, boxShadow:"0 6px 18px rgba(192,57,43,0.4)",
           maxWidth:"calc(100vw - 32px)", animation:"fg-fade-up .2s cubic-bezier(0.16,1,0.3,1)"}}>
           <ShieldAlert size={16}/>
-          <span style={{fontSize:13, fontWeight:700, whiteSpace:"nowrap"}}>
+          <span style={{fontSize:14, fontWeight:700, whiteSpace:"nowrap"}}>
             {lang==="bn" ? `ফিরে আসুন! সেশন ফেইল হতে বাকি ${strictGraceLeft} সেকেন্ড` : `Come back! Session fails in ${strictGraceLeft}s`}
           </span>
         </div>
@@ -7565,7 +7565,7 @@ export default function FocusGo() {
           background: dark?"#242424":"#262433", color:"#F3F1F8", borderRadius:12, padding:"11px 16px",
           display:"flex", alignItems:"center", boxShadow:"0 5px 16px rgba(0,0,0,0.16)",
           maxWidth:"calc(100vw - 32px)", animation:"fg-fade-up .2s cubic-bezier(0.16,1,0.3,1)"}}>
-          <span style={{fontSize:13, fontWeight:600, whiteSpace:"nowrap"}}>
+          <span style={{fontSize:14, fontWeight:600, whiteSpace:"nowrap"}}>
             {lang==="bn" ? "বের হতে আবার ব্যাক বাটন চাপুন" : "Press back again to exit"}
           </span>
         </div>
@@ -7621,15 +7621,15 @@ function BreakPromptModal({ t, nf, breakMinutes, accent, onAccept, onSkip }) {
   return (
     <div style={{position:"fixed", inset:0, zIndex:200, background:"rgba(0,0,0,0.55)", display:"flex", alignItems:"center", justifyContent:"center", padding:20}}>
       <div style={{background:"#1A1A1A", color:"#F5F1E8", borderRadius:14, padding:"26px 22px", maxWidth:320, width:"100%", textAlign:"center"}}>
-        <div style={{fontSize:18, fontWeight:800, marginBottom:8}}>{t.focusCompleteTitle}</div>
-        <div style={{fontSize:14, color:"#B8B2A2", marginBottom:20}}>
+        <div style={{fontSize:19, fontWeight:800, marginBottom:8}}>{t.focusCompleteTitle}</div>
+        <div style={{fontSize:15, color:"#B8B2A2", marginBottom:20}}>
           {t.takeBreakQuestion} <Num>{nf(breakMinutes)}</Num> {t.breakQSuffix}
         </div>
         <div style={{display:"flex", gap:10}}>
-          <button onClick={onSkip} style={{flex:1, background:"#333029", border:"none", borderRadius:12, padding:"10px 0", color:"#F5F1E8", fontWeight:700, fontSize:13, cursor:"pointer"}}>
+          <button onClick={onSkip} style={{flex:1, background:"#333029", border:"none", borderRadius:12, padding:"10px 0", color:"#F5F1E8", fontWeight:700, fontSize:14, cursor:"pointer"}}>
             {t.skipBreakBtn}
           </button>
-          <button onClick={onAccept} style={{flex:1, background:accent, border:"none", borderRadius:12, padding:"10px 0", color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer"}}>
+          <button onClick={onAccept} style={{flex:1, background:accent, border:"none", borderRadius:12, padding:"10px 0", color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer"}}>
             {t.startBreakBtn}
           </button>
         </div>
@@ -7701,26 +7701,26 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
   );
 
   const liveClock = now && (
-    <div style={{textAlign:"center", fontSize:12, fontWeight:700, color:fgMuted, fontVariantNumeric:"tabular-nums", letterSpacing:0.8, opacity:0.75, marginBottom: stacked ? 14 : 12}}>
-      <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> <span style={{fontSize:10}}>{now.getHours()>=12 ? t.pmLabel : t.amLabel}</span>
+    <div style={{textAlign:"center", fontSize:13, fontWeight:700, color:fgMuted, fontVariantNumeric:"tabular-nums", letterSpacing:0.8, opacity:0.75, marginBottom: stacked ? 14 : 12}}>
+      <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> <span style={{fontSize:11}}>{now.getHours()>=12 ? t.pmLabel : t.amLabel}</span>
     </div>
   );
 
   // Pomodoro cycle progress — Timer mode-এই শুধু দেখা যাবে (Stopwatch-এ প্রযোজ্য না)
   const pomodoroIndicator = mode === "timer" && pomodoroSession ? (
     <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, marginTop:16}}>
-      <div style={{fontSize:11, fontWeight:700, color:fgMuted, letterSpacing:0.6}}>
+      <div style={{fontSize:12, fontWeight:700, color:fgMuted, letterSpacing:0.6}}>
         {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions || 4)}</Num>
       </div>
       <div style={{display:"flex", gap:6, flexWrap:"wrap", justifyContent:"center", maxWidth:220}}>
         {Array.from({length:pomodoroTotalSessions || 4}, (_,i)=>i+1).map(i => (
-          <span key={i} style={{fontSize:13, lineHeight:1, color: i===pomodoroSession ? accent : fgMuted, opacity: i===pomodoroSession ? 1 : 0.5}}>
+          <span key={i} style={{fontSize:14, lineHeight:1, color: i===pomodoroSession ? accent : fgMuted, opacity: i===pomodoroSession ? 1 : 0.5}}>
             {i===pomodoroSession ? "●" : "○"}
           </span>
         ))}
       </div>
       {timerTargetMinutes && (
-        <div style={{fontSize:11, color:fgMuted, fontWeight:600, opacity:0.8}}>
+        <div style={{fontSize:12, color:fgMuted, fontWeight:600, opacity:0.8}}>
           <Num>{nf(timerElapsedMinutes || 0)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
         </div>
       )}
@@ -7856,22 +7856,22 @@ function DeleteMenuButton({ onEdit, onDelete, editLabel, deleteLabel, confirmTex
           }}>
             {confirming ? (
               <>
-                <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:600}}>{confirmText}</div>
-                <button onClick={()=>{ close(); onDelete(); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:700, cursor:"pointer", textAlign:"left"}}>
+                <div style={{padding:"9px 12px", fontSize:13, color:textMuted2, fontWeight:600}}>{confirmText}</div>
+                <button onClick={()=>{ close(); onDelete(); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:14, fontWeight:700, cursor:"pointer", textAlign:"left"}}>
                   <Trash2 size={13}/> {confirmLabel}
                 </button>
-                <button onClick={()=>setConfirming(false)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                <button onClick={()=>setConfirming(false)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:14, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
                   {cancelLabel}
                 </button>
               </>
             ) : (
               <>
                 {onEdit && (
-                  <button onClick={()=>{close(); onEdit();}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                  <button onClick={()=>{close(); onEdit();}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:14, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
                     <Pencil size={13}/> {editLabel}
                   </button>
                 )}
-                <button onClick={()=>setConfirming(true)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                <button onClick={()=>setConfirming(true)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:14, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
                   <Trash2 size={13}/> {deleteLabel}
                 </button>
               </>
@@ -7934,8 +7934,8 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
     setEditingAttemptId(null);
   };
 
-  const smallInput = { width:56, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none" };
-  const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", flex:1 };
+  const smallInput = { width:56, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:13, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none" };
+  const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:13, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", flex:1 };
 
   return (
     <div className="fg-card" style={{background: completed ? (dark?"rgba(110,139,94,0.10)":"rgba(110,139,94,0.07)") : cardBg, border: completed ? `1px solid rgba(110,139,94,0.4)` : `1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px", transition:"background .2s ease, border-color .2s ease, transform .16s cubic-bezier(0.16,1,0.3,1), box-shadow .2s ease"}}>
@@ -7945,25 +7945,25 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
             <Folder size={14} style={{color:textMuted2, flexShrink:0}}/>
             <input autoFocus value={renameValue} onChange={e=>setRenameValue(e.target.value)}
               onKeyDown={e=>{ if (e.key==="Enter") submitRename(); if (e.key==="Escape") cancelRename(); }}
-              style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:13, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none"}}/>
+              style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:14, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none"}}/>
             <button onClick={submitRename} style={{border:"none", background:"transparent", cursor:"pointer", color:accent, flexShrink:0}}><Check size={16}/></button>
             <button onClick={cancelRename} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, flexShrink:0}}><X size={16}/></button>
           </div>
-          {renameError && <div style={{fontSize:11, color:"#C0553F", fontWeight:600, paddingLeft:22}}>{renameError}</div>}
+          {renameError && <div style={{fontSize:12, color:"#C0553F", fontWeight:600, paddingLeft:22}}>{renameError}</div>}
         </div>
       ) : (
         <button onClick={()=>setExpanded(x=>!x)} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between", padding:0, color:"inherit", textAlign:"left"}}>
           <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
             <Folder size={14} style={{color:textMuted2, flexShrink:0}}/>
-            <span style={{fontWeight:700, fontSize:14, wordBreak:"break-word"}}>{topicName}</span>
+            <span style={{fontWeight:700, fontSize:15, wordBreak:"break-word"}}>{topicName}</span>
           </div>
           <div style={{display:"flex", alignItems:"center", gap:6, flexShrink:0}}>
             {completed ? (
-              <span style={{fontSize:11, fontWeight:700, color:green, background: dark?"rgba(110,139,94,0.18)":"rgba(110,139,94,0.15)", padding:"3px 8px", borderRadius:14, display:"flex", alignItems:"center", gap:4}}>
+              <span style={{fontSize:12, fontWeight:700, color:green, background: dark?"rgba(110,139,94,0.18)":"rgba(110,139,94,0.15)", padding:"3px 8px", borderRadius:14, display:"flex", alignItems:"center", gap:4}}>
                 <Check size={10}/> {t.completedBadge}
               </span>
             ) : (
-              <span style={{fontSize:11, color:textMuted2, fontWeight:600}}>{t.noAttemptsYet}</span>
+              <span style={{fontSize:12, color:textMuted2, fontWeight:600}}>{t.noAttemptsYet}</span>
             )}
             <ChevronDown size={15} style={{color:textMuted2, transform: expanded ? "rotate(180deg)" : "none", transition:"transform .15s"}}/>
           </div>
@@ -7971,7 +7971,7 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
       )}
 
       {attempts.length > 0 && (
-        <div style={{display:"flex", gap:10, marginTop:8, paddingLeft:22, fontSize:12, color:textMuted2, fontWeight:600, flexWrap:"wrap"}}>
+        <div style={{display:"flex", gap:10, marginTop:8, paddingLeft:22, fontSize:13, color:textMuted2, fontWeight:600, flexWrap:"wrap"}}>
           <span><Num>{nf(attempts.length)}</Num> {t.attemptsLabel}</span>
           {avgPct !== null && <span style={{color:(dark ? "#F3F1F8" : "#1A1814"), fontWeight:700}}>{t.average} <Num>{nf(avgPct)}</Num>%</span>}
         </div>
@@ -7980,7 +7980,7 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
       {expanded && (
         <div style={{marginTop:12, paddingTop:12, borderTop:`1px dashed ${cardBorder}`, animation:"fg-fade-up .22s cubic-bezier(0.16,1,0.3,1)"}}>
           {attempts.length === 0 ? (
-            <div style={{fontSize:12, color:textMuted2, marginBottom:10, textAlign:"center", padding:"10px 0"}}>{t.noAttemptsYet}</div>
+            <div style={{fontSize:13, color:textMuted2, marginBottom:10, textAlign:"center", padding:"10px 0"}}>{t.noAttemptsYet}</div>
           ) : (
             <div style={{display:"flex", flexDirection:"column", gap:6, marginBottom:12, background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 10px"}}>
               {[...attempts].sort((a,b)=>(a.date||"").localeCompare(b.date||"")).map(a => (
@@ -7988,14 +7988,14 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
                   <div key={a.id} style={{display:"flex", alignItems:"center", gap:6}}>
                     <input type="date" value={editDate} onChange={e=>setEditDate(e.target.value)} style={dateInput}/>
                     <input type="number" inputMode="decimal" value={editObtained} onChange={e=>setEditObtained(e.target.value)} style={smallInput}/>
-                    <span style={{color:textMuted2, fontSize:12, fontWeight:700}}>/</span>
+                    <span style={{color:textMuted2, fontSize:13, fontWeight:700}}>/</span>
                     <input type="number" inputMode="decimal" value={editTotal} onChange={e=>setEditTotal(e.target.value)} style={smallInput}/>
                     <button onClick={saveEditAttempt} style={{border:"none", borderRadius:8, width:26, height:26, background:accent, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}><Check size={13}/></button>
                     <button onClick={cancelEditAttempt} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, flexShrink:0}}><X size={16}/></button>
                   </div>
                 ) : (
                   <div key={a.id} style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"3px 0"}}>
-                    <span style={{fontSize:13, fontWeight:600}}>
+                    <span style={{fontSize:14, fontWeight:600}}>
                       {a.date && <span style={{color:textMuted2, fontWeight:500, marginRight:6}}>{a.date}</span>}
                       <Num>{nf(a.obtained)}</Num> / <Num>{nf(a.total)}</Num>
                       <span style={{color:textMuted2, fontWeight:500}}> (<Num>{nf(a.total ? Math.round((a.obtained/a.total)*100) : 0)}</Num>%)</span>
@@ -8014,11 +8014,11 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
           )}
 
           <div style={{background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px", marginBottom:10}}>
-            <div style={{fontSize:10, fontWeight:700, letterSpacing:ls(0.8), color:textMuted2, opacity:0.85, marginBottom:8, textTransform:"uppercase"}}>{t.addAttempt}</div>
+            <div style={{fontSize:11, fontWeight:700, letterSpacing:ls(0.8), color:textMuted2, opacity:0.85, marginBottom:8, textTransform:"uppercase"}}>{t.addAttempt}</div>
             <div style={{display:"flex", alignItems:"center", gap:6}}>
               <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={dateInput}/>
               <input type="number" inputMode="decimal" placeholder={t.obtainedPlaceholder} value={obtained} onChange={e=>setObtained(e.target.value)} style={smallInput}/>
-              <span style={{color:textMuted2, fontSize:12, fontWeight:700}}>/</span>
+              <span style={{color:textMuted2, fontSize:13, fontWeight:700}}>/</span>
               <input type="number" inputMode="decimal" placeholder={t.outOfPlaceholder} value={total} onChange={e=>setTotal(e.target.value)} style={smallInput}/>
               <button onClick={submitAttempt} style={{border:"none", borderRadius:8, width:30, height:30, background:accent, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, boxShadow:`0 3px 8px ${accent}40`}}>
                 <Plus size={15}/>
@@ -8028,16 +8028,16 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
 
           {confirmingDeleteTopic ? (
             <div style={{display:"flex", alignItems:"center", gap:10, flexWrap:"wrap"}}>
-              <span style={{fontSize:11, fontWeight:600, color:textMuted2}}>{t.confirmDeleteTopic}</span>
-              <button onClick={onRemoveTopic} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0392B", fontSize:11, fontWeight:700, padding:0}}>{t.confirmDelete}</button>
-              <button onClick={()=>setConfirmingDeleteTopic(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:11, fontWeight:700, padding:0}}>{t.cancel}</button>
+              <span style={{fontSize:12, fontWeight:600, color:textMuted2}}>{t.confirmDeleteTopic}</span>
+              <button onClick={onRemoveTopic} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0392B", fontSize:12, fontWeight:700, padding:0}}>{t.confirmDelete}</button>
+              <button onClick={()=>setConfirmingDeleteTopic(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, fontWeight:700, padding:0}}>{t.cancel}</button>
             </div>
           ) : (
             <div style={{display:"flex", gap:16}}>
-              <button onClick={startRename} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:11, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
+              <button onClick={startRename} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
                 <Pencil size={12}/> {t.edit}
               </button>
-              <button onClick={()=>setConfirmingDeleteTopic(true)} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0553F", fontSize:11, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
+              <button onClick={()=>setConfirmingDeleteTopic(true)} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0553F", fontSize:12, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
                 <Trash2 size={12}/> {t.deleteTopic}
               </button>
             </div>
@@ -8059,7 +8059,7 @@ function AddTopicInline({ t, accent, cardBorder, textMuted2, dark, onAdd }) {
   };
   if (!adding) {
     return (
-      <button onClick={()=>setAdding(true)} style={{display:"flex", alignItems:"center", gap:4, border:`1px dashed ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:12, padding:"9px 12px", fontSize:12, fontWeight:700, cursor:"pointer", alignSelf:"flex-start", transition:"border-color .2s ease, color .2s ease"}}>
+      <button onClick={()=>setAdding(true)} style={{display:"flex", alignItems:"center", gap:4, border:`1px dashed ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:12, padding:"9px 12px", fontSize:13, fontWeight:700, cursor:"pointer", alignSelf:"flex-start", transition:"border-color .2s ease, color .2s ease"}}>
         <Plus size={12}/> {t.addTopicBtn}
       </button>
     );
@@ -8068,7 +8068,7 @@ function AddTopicInline({ t, accent, cardBorder, textMuted2, dark, onAdd }) {
     <div style={{display:"flex", alignItems:"center", gap:6, background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:12, padding:8, animation:"fg-fade-up .18s cubic-bezier(0.16,1,0.3,1)"}}>
       <input autoFocus value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>{if(e.key==="Enter") submit(); if(e.key==="Escape"){setAdding(false); setName("");}}}
         placeholder={t.topicNamePlaceholder}
-        style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"7px 10px", fontSize:13, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none"}}/>
+        style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"7px 10px", fontSize:14, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none"}}/>
       <button onClick={submit} style={{border:"none", borderRadius:8, width:30, height:30, background:accent, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, boxShadow:`0 3px 8px ${accent}40`}}>
         <Check size={15}/>
       </button>
@@ -8116,16 +8116,16 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
     setEditingAttemptId(null);
   };
 
-  const smallInput = { width:56, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none" };
-  const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", flex:1 };
+  const smallInput = { width:56, border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:13, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none" };
+  const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:13, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", flex:1 };
 
   return (
     <div className="fg-card" style={{background: hasAttempts ? (dark?"rgba(110,139,94,0.10)":"rgba(110,139,94,0.07)") : cardBg, border: hasAttempts ? `1px solid rgba(110,139,94,0.4)` : `1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px", transition:"background .2s ease, border-color .2s ease"}}>
       <button onClick={()=>setExpanded(x=>!x)} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between", padding:0, color:"inherit", textAlign:"left"}}>
         <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
           <GraduationCap size={14} style={{color:textMuted2, flexShrink:0}}/>
-          <span style={{fontWeight:700, fontSize:14, wordBreak:"break-word"}}>{name}</span>
-          <span style={{fontSize:10, fontWeight:700, letterSpacing:ls(0.5), color:textMuted2, background: dark?"#242229":"#F0EEF5", padding:"2px 7px", borderRadius:14, flexShrink:0, textTransform:"uppercase"}}>{typeLabel}</span>
+          <span style={{fontWeight:700, fontSize:15, wordBreak:"break-word"}}>{name}</span>
+          <span style={{fontSize:11, fontWeight:700, letterSpacing:ls(0.5), color:textMuted2, background: dark?"#242229":"#F0EEF5", padding:"2px 7px", borderRadius:14, flexShrink:0, textTransform:"uppercase"}}>{typeLabel}</span>
         </div>
         <ChevronDown size={15} style={{color:textMuted2, transform: expanded ? "rotate(180deg)" : "none", transition:"transform .15s", flexShrink:0}}/>
       </button>
@@ -8133,12 +8133,12 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
       <div style={{display:"flex", flexWrap:"wrap", gap:4, marginTop:8, paddingLeft:22}}>
         {(subjects || []).map(s => {
           const c = colorForSubject(s, allSubjects);
-          return <span key={s} style={{fontSize:11, fontWeight:700, color:c.bg, background:c.bgSoft, padding:"2px 8px", borderRadius:14}}>{s}</span>;
+          return <span key={s} style={{fontSize:12, fontWeight:700, color:c.bg, background:c.bgSoft, padding:"2px 8px", borderRadius:14}}>{s}</span>;
         })}
       </div>
 
       {hasAttempts && (
-        <div style={{display:"flex", gap:10, marginTop:8, paddingLeft:22, fontSize:12, color:textMuted2, fontWeight:600}}>
+        <div style={{display:"flex", gap:10, marginTop:8, paddingLeft:22, fontSize:13, color:textMuted2, fontWeight:600}}>
           <span><Num>{nf(attempts.length)}</Num> {t.attemptsLabel}</span>
           {avgPct !== null && <span style={{color:(dark ? "#F3F1F8" : "#1A1814"), fontWeight:700}}>{t.average} <Num>{nf(avgPct)}</Num>%</span>}
         </div>
@@ -8147,7 +8147,7 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
       {expanded && (
         <div style={{marginTop:12, paddingTop:12, borderTop:`1px dashed ${cardBorder}`, animation:"fg-fade-up .22s cubic-bezier(0.16,1,0.3,1)"}}>
           {attempts.length === 0 ? (
-            <div style={{fontSize:12, color:textMuted2, marginBottom:10, textAlign:"center", padding:"10px 0"}}>{t.noAttemptsYet}</div>
+            <div style={{fontSize:13, color:textMuted2, marginBottom:10, textAlign:"center", padding:"10px 0"}}>{t.noAttemptsYet}</div>
           ) : (
             <div style={{display:"flex", flexDirection:"column", gap:6, marginBottom:12, background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 10px"}}>
               {[...attempts].sort((a,b)=>(a.date||"").localeCompare(b.date||"")).map(a => (
@@ -8155,14 +8155,14 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
                   <div key={a.id} style={{display:"flex", alignItems:"center", gap:6}}>
                     <input type="date" value={editDate} onChange={e=>setEditDate(e.target.value)} style={dateInput}/>
                     <input type="number" inputMode="decimal" value={editObtained} onChange={e=>setEditObtained(e.target.value)} style={smallInput}/>
-                    <span style={{color:textMuted2, fontSize:12, fontWeight:700}}>/</span>
+                    <span style={{color:textMuted2, fontSize:13, fontWeight:700}}>/</span>
                     <input type="number" inputMode="decimal" value={editTotal} onChange={e=>setEditTotal(e.target.value)} style={smallInput}/>
                     <button onClick={saveEditAttempt} style={{border:"none", borderRadius:8, width:26, height:26, background:accent, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}><Check size={13}/></button>
                     <button onClick={cancelEditAttempt} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, flexShrink:0}}><X size={16}/></button>
                   </div>
                 ) : (
                   <div key={a.id} style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"3px 0"}}>
-                    <span style={{fontSize:13, fontWeight:600}}>
+                    <span style={{fontSize:14, fontWeight:600}}>
                       {a.date && <span style={{color:textMuted2, fontWeight:500, marginRight:6}}>{a.date}</span>}
                       <Num>{nf(a.obtained)}</Num> / <Num>{nf(a.total)}</Num>
                       <span style={{color:textMuted2, fontWeight:500}}> (<Num>{nf(a.total ? Math.round((a.obtained/a.total)*100) : 0)}</Num>%)</span>
@@ -8181,11 +8181,11 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
           )}
 
           <div style={{background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px", marginBottom:10}}>
-            <div style={{fontSize:10, fontWeight:700, letterSpacing:ls(0.8), color:textMuted2, opacity:0.85, marginBottom:8, textTransform:"uppercase"}}>{t.addAttempt}</div>
+            <div style={{fontSize:11, fontWeight:700, letterSpacing:ls(0.8), color:textMuted2, opacity:0.85, marginBottom:8, textTransform:"uppercase"}}>{t.addAttempt}</div>
             <div style={{display:"flex", alignItems:"center", gap:6}}>
               <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={dateInput}/>
               <input type="number" inputMode="decimal" placeholder={t.obtainedPlaceholder} value={obtained} onChange={e=>setObtained(e.target.value)} style={smallInput}/>
-              <span style={{color:textMuted2, fontSize:12, fontWeight:700}}>/</span>
+              <span style={{color:textMuted2, fontSize:13, fontWeight:700}}>/</span>
               <input type="number" inputMode="decimal" placeholder={t.outOfPlaceholder} value={total} onChange={e=>setTotal(e.target.value)} style={smallInput}/>
               <button onClick={submitAttempt} style={{border:"none", borderRadius:8, width:30, height:30, background:accent, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, boxShadow:`0 3px 8px ${accent}40`}}>
                 <Plus size={15}/>
@@ -8195,16 +8195,16 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
 
           {confirmingRemove ? (
             <div style={{display:"flex", alignItems:"center", gap:10, flexWrap:"wrap"}}>
-              <span style={{fontSize:11, fontWeight:600, color:textMuted2}}>{t.confirmDeleteCombinedExam}</span>
-              <button onClick={onRemove} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0392B", fontSize:11, fontWeight:700, padding:0}}>{t.confirmDelete}</button>
-              <button onClick={()=>setConfirmingRemove(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:11, fontWeight:700, padding:0}}>{t.cancel}</button>
+              <span style={{fontSize:12, fontWeight:600, color:textMuted2}}>{t.confirmDeleteCombinedExam}</span>
+              <button onClick={onRemove} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0392B", fontSize:12, fontWeight:700, padding:0}}>{t.confirmDelete}</button>
+              <button onClick={()=>setConfirmingRemove(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, fontWeight:700, padding:0}}>{t.cancel}</button>
             </div>
           ) : (
             <div style={{display:"flex", gap:16}}>
-              <button onClick={onEdit} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:11, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
+              <button onClick={onEdit} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, fontSize:12, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
                 <Pencil size={12}/> {t.edit}
               </button>
-              <button onClick={()=>setConfirmingRemove(true)} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0553F", fontSize:11, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
+              <button onClick={()=>setConfirmingRemove(true)} style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0553F", fontSize:12, fontWeight:700, display:"flex", alignItems:"center", gap:4, padding:0}}>
                 <Trash2 size={12}/> {t.deleteCombinedExam}
               </button>
             </div>
@@ -8245,7 +8245,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
   const weekdayName = (d) => lang === "bn" ? WEEKDAYS_BN[d.getDay()] : WEEKDAYS_EN[d.getDay()];
   const typeLabel = (key) => { const o = EXAM_TYPE_OPTIONS.find(x => x.key === key); return o ? (lang === "bn" ? o.bn : o.en) : ""; };
 
-  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", width:"100%", boxSizing:"border-box" };
+  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:15, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", width:"100%", boxSizing:"border-box" };
 
   const resetForm = () => { setSubject(""); setExamType(""); setDate(""); setStartTime(""); setEndTime(""); setEditingId(null); };
 
@@ -8289,19 +8289,19 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
     return (
       <div style={{display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:12, opacity: kind === "missed" ? 0.75 : 1}}>
         <div style={{flexShrink:0, width:42, height:42, borderRadius:10, background: dark ? `${badgeColor}22` : `${badgeColor}14`, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", lineHeight:1}}>
-          <div style={{fontSize:14, fontWeight:800, color:badgeColor}}><Num>{nf(d.getDate())}</Num></div>
-          <div style={{fontSize:8, fontWeight:700, color:badgeColor, letterSpacing:0.3}}>{MONTHS_ABBR_EN[d.getMonth()]}</div>
+          <div style={{fontSize:15, fontWeight:800, color:badgeColor}}><Num>{nf(d.getDate())}</Num></div>
+          <div style={{fontSize:9, fontWeight:700, color:badgeColor, letterSpacing:0.3}}>{MONTHS_ABBR_EN[d.getMonth()]}</div>
         </div>
         <div style={{flex:1, minWidth:0}}>
-          <div style={{fontSize:13, fontWeight:800, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+          <div style={{fontSize:14, fontWeight:800, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
             {ex.examType ? `(${typeLabel(ex.examType)}) ` : ""}{ex.subject}
           </div>
-          <div style={{fontSize:11, color:textMuted2, marginTop:2}}>
+          <div style={{fontSize:12, color:textMuted2, marginTop:2}}>
             {dateLabel(ex.date)}{ex.startTime ? ` · ${ex.startTime}${ex.endTime ? "–"+ex.endTime : ""}` : ""}
           </div>
         </div>
         {kind === "upcoming" && ex.date === nowParts.dateKey && (
-          <div style={{flexShrink:0, fontSize:11, fontWeight:800, color:accent, background: dark?"rgba(217,119,87,0.16)":"#EFEBF7", padding:"4px 9px", borderRadius:999}}>
+          <div style={{flexShrink:0, fontSize:12, fontWeight:800, color:accent, background: dark?"rgba(217,119,87,0.16)":"#EFEBF7", padding:"4px 9px", borderRadius:999}}>
             {lang==="bn"?"আজ":"Today"}
           </div>
         )}
@@ -8324,8 +8324,8 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
   const StatCard = ({ icon: Icon, value, label, color }) => (
     <div style={{flex:1, background: dark ? `${color}1E` : `${color}12`, borderRadius:14, padding:"10px 6px", display:"flex", flexDirection:"column", alignItems:"center", gap:4}}>
       <Icon size={15} color={color}/>
-      <div style={{fontSize:16, fontWeight:800, color:textMain}}><Num>{nf(value)}</Num></div>
-      <div style={{fontSize:10, fontWeight:600, color:textMuted2, whiteSpace:"nowrap"}}>{label}</div>
+      <div style={{fontSize:17, fontWeight:800, color:textMain}}><Num>{nf(value)}</Num></div>
+      <div style={{fontSize:11, fontWeight:600, color:textMuted2, whiteSpace:"nowrap"}}>{label}</div>
     </div>
   );
 
@@ -8341,7 +8341,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, maxHeight:"min(80dvh, calc(100dvh - 24px))", borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain, display:"flex", flexDirection:"column", gap:16, overflow:"hidden"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", flexShrink:0}}>
-          <div style={{fontSize:16, fontWeight:800}}>{lang==="bn" ? "পরীক্ষার সময়সূচি" : "Exam Schedule"}</div>
+          <div style={{fontSize:17, fontWeight:800}}>{lang==="bn" ? "পরীক্ষার সময়সূচি" : "Exam Schedule"}</div>
           <div style={{display:"flex", alignItems:"center", gap:6}}>
             <button onClick={()=>{ resetForm(); setFormOpen(true); }} title={lang==="bn"?"নতুন পরীক্ষা যোগ করুন":"Add an exam"} style={{position:"relative", border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:accent}}>
               <Calendar size={15}/>
@@ -8355,7 +8355,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
           {/* Add / edit form — collapsible */}
           <div style={{background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:14, padding:12, display:"flex", flexDirection:"column", gap: formOpen ? 8 : 0, flexShrink:0}}>
             <button onClick={()=>setFormOpen(v=>!v)} style={{display:"flex", alignItems:"center", justifyContent:"space-between", border:"none", background:"transparent", padding:0, cursor:"pointer", width:"100%"}}>
-              <span style={{display:"flex", alignItems:"center", gap:8, fontSize:12, fontWeight:800, color:textMain}}>
+              <span style={{display:"flex", alignItems:"center", gap:8, fontSize:13, fontWeight:800, color:textMain}}>
                 <CalendarDays size={14} color={accent}/>
                 {editingId ? (lang==="bn"?"এডিট করুন":"Edit Exam") : (lang==="bn"?"নতুন পরীক্ষা যোগ করুন":"Add an Exam")}
               </span>
@@ -8377,11 +8377,11 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
                   <input type="time" value={endTime} onChange={e=>setEndTime(e.target.value)} style={inputStyle}/>
                 </div>
                 <div style={{display:"flex", gap:8}}>
-                  <button onClick={submit} disabled={!subject.trim() || !date} style={{flex:1, border:"none", borderRadius:10, padding:"10px 0", background: (!subject.trim() || !date) ? (dark?"#2A261F":"#E9E2D3") : accent, color: (!subject.trim() || !date) ? textMuted2 : "#fff", fontWeight:800, fontSize:13, cursor: (!subject.trim() || !date) ? "default" : "pointer"}}>
+                  <button onClick={submit} disabled={!subject.trim() || !date} style={{flex:1, border:"none", borderRadius:10, padding:"10px 0", background: (!subject.trim() || !date) ? (dark?"#2A261F":"#E9E2D3") : accent, color: (!subject.trim() || !date) ? textMuted2 : "#fff", fontWeight:800, fontSize:14, cursor: (!subject.trim() || !date) ? "default" : "pointer"}}>
                     {editingId ? (lang==="bn"?"সেভ করুন":"Save") : (lang==="bn"?"যোগ করুন":"Add Exam")}
                   </button>
                   {editingId && (
-                    <button onClick={resetForm} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, padding:"10px 16px", color:textMuted2, fontWeight:700, fontSize:13, cursor:"pointer"}}>
+                    <button onClick={resetForm} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, padding:"10px 16px", color:textMuted2, fontWeight:700, fontSize:14, cursor:"pointer"}}>
                       {lang==="bn"?"বাতিল":"Cancel"}
                     </button>
                   )}
@@ -8392,7 +8392,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
 
           {/* Overview */}
           <div style={{display:"flex", flexDirection:"column", gap:8}}>
-            <div style={{fontSize:10, fontWeight:700, letterSpacing:0.8, color:textMuted2, opacity:0.85, textTransform:"uppercase"}}>
+            <div style={{fontSize:11, fontWeight:700, letterSpacing:0.8, color:textMuted2, opacity:0.85, textTransform:"uppercase"}}>
               {lang==="bn"?"সারসংক্ষেপ":"Overview"}
             </div>
             <div style={{display:"flex", gap:8}}>
@@ -8410,7 +8410,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
               { key:"completed", label: lang==="bn"?"সম্পন্ন":"Completed", count: completed.length },
               { key:"missed", label: lang==="bn"?"মিস":"Missed", count: missed.length },
             ].map(tabDef => (
-              <button key={tabDef.key} onClick={()=>setStatusTab(tabDef.key)} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 9px", fontSize:13, fontWeight:800, color: statusTab===tabDef.key ? textMain : textMuted2, borderBottom: statusTab===tabDef.key ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1}}>
+              <button key={tabDef.key} onClick={()=>setStatusTab(tabDef.key)} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 9px", fontSize:14, fontWeight:800, color: statusTab===tabDef.key ? textMain : textMuted2, borderBottom: statusTab===tabDef.key ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1}}>
                 {tabDef.label} ({nf(tabDef.count)})
               </button>
             ))}
@@ -8423,28 +8423,28 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
                 <div style={{width:60, height:60, borderRadius:"50%", background: dark?"rgba(110,139,94,0.18)":"rgba(110,139,94,0.14)", display:"flex", alignItems:"center", justifyContent:"center"}}>
                   <Check size={28} color="#6E8B5E" strokeWidth={2.5}/>
                 </div>
-                <div style={{fontSize:15, fontWeight:800, color:textMain}}>{lang==="bn"?"সব পরীক্ষা সম্পন্ন!":"All exams completed!"}</div>
-                <div style={{fontSize:12.5, color:textMuted2, lineHeight:1.5, maxWidth:280}}>
+                <div style={{fontSize:16, fontWeight:800, color:textMain}}>{lang==="bn"?"সব পরীক্ষা সম্পন্ন!":"All exams completed!"}</div>
+                <div style={{fontSize:13.5, color:textMuted2, lineHeight:1.5, maxWidth:280}}>
                   {lang==="bn"?"দারুণ! আপনার নির্ধারিত সব পরীক্ষা শেষ হয়ে গেছে।":"Great job! You've completed all your scheduled exams."}
                 </div>
-                <button onClick={()=>{ resetForm(); setFormOpen(true); }} style={{marginTop:4, border:"none", background:accent, color:"#fff", borderRadius:12, padding:"9px 16px", fontSize:12.5, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", gap:6}}>
+                <button onClick={()=>{ resetForm(); setFormOpen(true); }} style={{marginTop:4, border:"none", background:accent, color:"#fff", borderRadius:12, padding:"9px 16px", fontSize:13.5, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", gap:6}}>
                   <Plus size={13}/> {lang==="bn"?"নতুন পরীক্ষা যোগ করুন":"Add New Exam"}
                 </button>
                 <div style={{marginTop:6, width:"100%", display:"flex", alignItems:"center", gap:8, background: dark?"rgba(110,139,94,0.14)":"rgba(110,139,94,0.10)", border:`1px solid ${dark?"rgba(110,139,94,0.3)":"rgba(110,139,94,0.25)"}`, borderRadius:12, padding:"10px 12px", textAlign:"left"}}>
                   <Sparkles size={15} color="#6E8B5E" style={{flexShrink:0}}/>
-                  <span style={{fontSize:12, color:textMain, lineHeight:1.5}}>
+                  <span style={{fontSize:13, color:textMain, lineHeight:1.5}}>
                     {lang==="bn"?"একটু বিশ্রাম নিন আর নিজের পরিশ্রমকে উদযাপন করুন! 🎉":"Take some time to relax and celebrate your hard work! 🎉"}
                   </span>
                 </div>
               </div>
             ) : (
-              <div style={{fontSize:13, color:textMuted2, textAlign:"center", padding:"14px 0"}}>{emptyLabel}</div>
+              <div style={{fontSize:14, color:textMuted2, textAlign:"center", padding:"14px 0"}}>{emptyLabel}</div>
             )
           ) : (
             <div style={{display:"flex", flexDirection:"column", gap:8}}>
               {visibleList.map(ex => <ExamRow key={ex.id} ex={ex} kind={statusTab}/>)}
               {activeList.length > 4 && (
-                <button onClick={()=>setShowAll(v=>!v)} style={{border:"none", background:"transparent", cursor:"pointer", color:accent, fontSize:12, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", gap:4, padding:"4px 0"}}>
+                <button onClick={()=>setShowAll(v=>!v)} style={{border:"none", background:"transparent", cursor:"pointer", color:accent, fontSize:13, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", gap:4, padding:"4px 0"}}>
                   {showAll ? (lang==="bn"?"কম দেখান":"Show less") : (lang==="bn"?"সব দেখুন":"View All")}
                   <ChevronDown size={13} style={{transform: showAll ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
                 </button>
@@ -8452,7 +8452,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
               {statusTab === "upcoming" && (
                 <div style={{display:"flex", alignItems:"center", gap:8, background: dark?"rgba(217,119,87,0.10)":"#EFEBF7", border:`1px solid ${dark?"rgba(217,119,87,0.3)":"#F0CBB8"}`, borderRadius:12, padding:"10px 12px", marginTop:4}}>
                   <Info size={15} color={accent} style={{flexShrink:0}}/>
-                  <span style={{fontSize:11.5, color:textMain, lineHeight:1.5}}>
+                  <span style={{fontSize:12.5, color:textMain, lineHeight:1.5}}>
                     <b>{lang==="bn"?"টিপ:":"Tip:"}</b> {lang==="bn"?" আগেভাগে পরীক্ষা যোগ করে প্রস্তুত থাকুন। আপনি পারবেন! 💪":" Add your exams early and stay prepared. You've got this! 💪"}
                   </span>
                 </div>
@@ -8472,7 +8472,7 @@ function NextExamModal({ t, examSubjects, nextExam, onSave, onClose, cardBg, car
   const [date, setDate] = useState(nextExam?.date || "");
   const topicOptions = Object.keys(examSubjects[subject]?.topics || {});
 
-  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", width:"100%" };
+  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:15, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", width:"100%" };
 
   const submit = () => {
     if (!subject || !date) return;
@@ -8483,29 +8483,29 @@ function NextExamModal({ t, examSubjects, nextExam, onSave, onClose, cardBg, car
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain, display:"flex", flexDirection:"column", gap:16}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-          <div style={{fontSize:16, fontWeight:800}}>{t.setNextExam}</div>
+          <div style={{fontSize:17, fontWeight:800}}>{t.setNextExam}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
 
         {subjectNames.length === 0 ? (
-          <div style={{fontSize:13, color:textMuted2, textAlign:"center", padding:"10px 0"}}>{t.noSubjectsForExam}</div>
+          <div style={{fontSize:14, color:textMuted2, textAlign:"center", padding:"10px 0"}}>{t.noSubjectsForExam}</div>
         ) : (
           <>
             <div>
-              <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.chooseSubject}</div>
+              <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.chooseSubject}</div>
               <select style={inputStyle} value={subject} onChange={e=>{setSubject(e.target.value); setTopic("");}}>
                 {subjectNames.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
-              <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.chooseTopic}</div>
+              <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.chooseTopic}</div>
               <input style={inputStyle} list="next-exam-topics" value={topic} onChange={e=>setTopic(e.target.value)} placeholder={t.topicNamePlaceholder}/>
               <datalist id="next-exam-topics">
                 {topicOptions.map(tp => <option key={tp} value={tp}/>)}
               </datalist>
             </div>
             <div>
-              <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.examDateLabel}</div>
+              <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.examDateLabel}</div>
               <input type="date" style={inputStyle} value={date} onChange={e=>setDate(e.target.value)}/>
             </div>
             <button onClick={submit} style={{border:"none", borderRadius:12, padding:"12px 0", background:accent, color:"#fff", fontWeight:700, cursor:"pointer"}}>
@@ -8523,7 +8523,7 @@ function CombinedExamEditorModal({ t, allSubjects, editingCombinedExam, onSave, 
   const [type, setType] = useState(editingCombinedExam?.type || "weekly");
   const [picked, setPicked] = useState(editingCombinedExam?.subjects || []);
 
-  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:14, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", width:"100%" };
+  const inputStyle = { border:`1px solid ${cardBorder}`, borderRadius:10, padding:"10px 12px", fontSize:15, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", width:"100%" };
   const typeOptions = [
     { k:"daily", label:t.typeDaily }, { k:"weekly", label:t.typeWeekly }, { k:"monthly", label:t.typeMonthly },
   ];
@@ -8540,37 +8540,37 @@ function CombinedExamEditorModal({ t, allSubjects, editingCombinedExam, onSave, 
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain, display:"flex", flexDirection:"column", gap:16, maxHeight:"85vh", overflowY:"auto"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-          <div style={{fontSize:16, fontWeight:800}}>{editingCombinedExam ? t.editCombinedExam : t.addCombinedExam}</div>
+          <div style={{fontSize:17, fontWeight:800}}>{editingCombinedExam ? t.editCombinedExam : t.addCombinedExam}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
 
         {allSubjects.length === 0 ? (
-          <div style={{fontSize:13, color:textMuted2, textAlign:"center", padding:"10px 0"}}>{t.noSubjectsForCombined}</div>
+          <div style={{fontSize:14, color:textMuted2, textAlign:"center", padding:"10px 0"}}>{t.noSubjectsForCombined}</div>
         ) : (
           <>
             <div>
-              <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.combinedExamName}</div>
+              <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.combinedExamName}</div>
               <input autoFocus style={inputStyle} value={name} onChange={e=>setName(e.target.value)} placeholder={t.combinedExamNamePlaceholder}/>
             </div>
             <div>
-              <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.typeLabel}</div>
+              <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.typeLabel}</div>
               <div style={{display:"flex", gap:8}}>
                 {typeOptions.map(o => (
-                  <button key={o.k} onClick={()=>setType(o.k)} style={{flex:1, border:`1px solid ${type===o.k ? accent : cardBorder}`, background: type===o.k ? (dark?"rgba(217,119,87,0.15)":"rgba(217,119,87,0.1)") : "transparent", color: type===o.k ? accent : textMuted2, borderRadius:10, padding:"9px 0", fontSize:13, fontWeight:700, cursor:"pointer"}}>
+                  <button key={o.k} onClick={()=>setType(o.k)} style={{flex:1, border:`1px solid ${type===o.k ? accent : cardBorder}`, background: type===o.k ? (dark?"rgba(217,119,87,0.15)":"rgba(217,119,87,0.1)") : "transparent", color: type===o.k ? accent : textMuted2, borderRadius:10, padding:"9px 0", fontSize:14, fontWeight:700, cursor:"pointer"}}>
                     {o.label}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:2}}>{t.subjectsLabel}</div>
-              <div style={{fontSize:11, color:textMuted2, opacity:0.85, marginBottom:8}}>{t.selectSubjectsNote}</div>
+              <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:2}}>{t.subjectsLabel}</div>
+              <div style={{fontSize:12, color:textMuted2, opacity:0.85, marginBottom:8}}>{t.selectSubjectsNote}</div>
               <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
                 {allSubjects.map(s => {
                   const on = picked.includes(s);
                   const c = colorForSubject(s, allSubjects);
                   return (
-                    <button key={s} onClick={()=>toggleSubject(s)} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${on ? c.bg : cardBorder}`, background: on ? c.bgSoft : "transparent", color: on ? c.bg : textMuted2, borderRadius:14, padding:"6px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+                    <button key={s} onClick={()=>toggleSubject(s)} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${on ? c.bg : cardBorder}`, background: on ? c.bgSoft : "transparent", color: on ? c.bg : textMuted2, borderRadius:14, padding:"6px 12px", fontSize:13, fontWeight:700, cursor:"pointer"}}>
                       {on && <Check size={11}/>} {s}
                     </button>
                   );
@@ -8622,54 +8622,54 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
     <div style={{marginTop:26}}>
       <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
         <div style={{display:"flex", alignItems:"center", gap:8}}>
-          <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.monthlySummaryExam}</div>
-          <span style={{fontSize:10, fontWeight:800, letterSpacing:0.3, padding:"2px 7px", borderRadius:10, background: dark?"#242229":"#F0EEF5", color: dark?"#B0ABC2":"#6E6B7A", flexShrink:0}}>
+          <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.2}}>{t.monthlySummaryExam}</div>
+          <span style={{fontSize:11, fontWeight:800, letterSpacing:0.3, padding:"2px 7px", borderRadius:10, background: dark?"#242229":"#F0EEF5", color: dark?"#B0ABC2":"#6E6B7A", flexShrink:0}}>
             {t.planViewExam}
           </span>
         </div>
         <div style={{display:"flex", alignItems:"center", gap:6}}>
           <button onClick={()=>setExamMonth(new Date(y,m-1,1))} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:8, width:28,height:28, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", color:textMain}}><ChevronLeft size={14}/></button>
-          <div style={{fontSize:13, fontWeight:700, minWidth:76, textAlign:"center"}}>{monthName(m)} <Num>{nf(y)}</Num></div>
+          <div style={{fontSize:14, fontWeight:700, minWidth:76, textAlign:"center"}}>{monthName(m)} <Num>{nf(y)}</Num></div>
           <button onClick={()=>setExamMonth(new Date(y,m+1,1))} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:8, width:28,height:28, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", color:textMain}}><ChevronRight size={14}/></button>
         </div>
       </div>
 
       {totalAttempts === 0 ? (
-        <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, marginTop:14}}>
+        <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:14, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, marginTop:14}}>
           {t.noExamDataMonth}
         </div>
       ) : (
         <>
           <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginTop:14}}>
             <div style={statBox}>
-              <div style={{fontSize:11, color:textMuted2, fontWeight:700, letterSpacing:ls(0.5)}}>{t.totalExams}</div>
-              <div style={{fontSize:24, fontWeight:800, marginTop:4}}><Num>{nf(totalExams)}</Num></div>
+              <div style={{fontSize:12, color:textMuted2, fontWeight:700, letterSpacing:ls(0.5)}}>{t.totalExams}</div>
+              <div style={{fontSize:25, fontWeight:800, marginTop:4}}><Num>{nf(totalExams)}</Num></div>
             </div>
             <div style={statBox}>
-              <div style={{fontSize:11, color:textMuted2, fontWeight:700, letterSpacing:ls(0.5)}}>{t.totalAttempts}</div>
-              <div style={{fontSize:24, fontWeight:800, marginTop:4}}><Num>{nf(totalAttempts)}</Num></div>
+              <div style={{fontSize:12, color:textMuted2, fontWeight:700, letterSpacing:ls(0.5)}}>{t.totalAttempts}</div>
+              <div style={{fontSize:25, fontWeight:800, marginTop:4}}><Num>{nf(totalAttempts)}</Num></div>
             </div>
             <div style={statBox}>
-              <div style={{fontSize:11, color:textMuted2, fontWeight:700, letterSpacing:ls(0.5)}}>{t.avgScoreLabel}</div>
-              <div style={{fontSize:24, fontWeight:800, marginTop:4, color:(dark ? "#F3F1F8" : "#1A1814")}}><Num>{nf(avgScorePct)}</Num>%</div>
+              <div style={{fontSize:12, color:textMuted2, fontWeight:700, letterSpacing:ls(0.5)}}>{t.avgScoreLabel}</div>
+              <div style={{fontSize:25, fontWeight:800, marginTop:4, color:(dark ? "#F3F1F8" : "#1A1814")}}><Num>{nf(avgScorePct)}</Num>%</div>
             </div>
             <div style={statBox}>
-              <div style={{fontSize:11, color:textMuted2, fontWeight:700, letterSpacing:ls(0.5)}}>{t.maxScoreLabel}</div>
-              <div style={{fontSize:24, fontWeight:800, marginTop:4, color:"#6E8B5E"}}><Num>{nf(Math.round(maxScorePct))}</Num>%</div>
+              <div style={{fontSize:12, color:textMuted2, fontWeight:700, letterSpacing:ls(0.5)}}>{t.maxScoreLabel}</div>
+              <div style={{fontSize:25, fontWeight:800, marginTop:4, color:"#6E8B5E"}}><Num>{nf(Math.round(maxScorePct))}</Num>%</div>
             </div>
           </div>
 
           <div style={{marginTop:16}}>
-            <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.subjectBreakdown}</div>
+            <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.subjectBreakdown}</div>
             <div style={{border:`1px solid ${cardBorder}`, borderRadius:14, overflow:"hidden"}}>
-              <div style={{display:"grid", gridTemplateColumns:"1.6fr 0.8fr 0.8fr 0.8fr", padding:"8px 12px", background: dark?"#0A0A0A":"#F8F5EE", fontSize:11, fontWeight:700, color:textMuted2}}>
+              <div style={{display:"grid", gridTemplateColumns:"1.6fr 0.8fr 0.8fr 0.8fr", padding:"8px 12px", background: dark?"#0A0A0A":"#F8F5EE", fontSize:12, fontWeight:700, color:textMuted2}}>
                 <span>{t.subjectLabel}</span><span style={{textAlign:"right"}}>{t.examsCol}</span><span style={{textAlign:"right"}}>{t.attemptsCol}</span><span style={{textAlign:"right"}}>{t.avgCol}</span>
               </div>
               {rows.map(([subj, d]) => {
                 const c = colorForSubject(subj, allSubjects);
                 const avg = Math.round(d.scoreSum/d.attempts);
                 return (
-                  <div key={subj} style={{display:"grid", gridTemplateColumns:"1.6fr 0.8fr 0.8fr 0.8fr", padding:"9px 12px", fontSize:13, fontWeight:600, borderTop:`1px solid ${cardBorder}`, alignItems:"center"}}>
+                  <div key={subj} style={{display:"grid", gridTemplateColumns:"1.6fr 0.8fr 0.8fr 0.8fr", padding:"9px 12px", fontSize:14, fontWeight:600, borderTop:`1px solid ${cardBorder}`, alignItems:"center"}}>
                     <span style={{display:"flex", alignItems:"center", gap:6, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                       <span style={{width:7,height:7,borderRadius:"50%", background:c.bg, flexShrink:0}}/>{subj}
                     </span>
@@ -8721,21 +8721,21 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
 
   return (
     <div style={{marginTop:20}}>
-      <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3}}>{title}</div>
-      <div style={{fontSize:12, color:textMuted2, marginBottom:16, fontWeight:600}}>{rangeLabel}</div>
+      <div style={{fontSize:21, fontWeight:800, letterSpacing:-0.3}}>{title}</div>
+      <div style={{fontSize:13, color:textMuted2, marginBottom:16, fontWeight:600}}>{rangeLabel}</div>
 
       {/* Overview card */}
       <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"14px 16px", marginBottom:20}}>
         <div>
-          <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:8}}>{t.overview}</div>
+          <div style={{fontSize:11, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:8}}>{t.overview}</div>
           <div style={{display:"flex", gap:16}}>
             <div>
-              <div style={{fontSize:20, fontWeight:800, color:"#6E8B5E"}}><Num>{nf(doneCount)}</Num></div>
-              <div style={{fontSize:11, color:textMuted2, fontWeight:600}}>{t.doneCount}</div>
+              <div style={{fontSize:21, fontWeight:800, color:"#6E8B5E"}}><Num>{nf(doneCount)}</Num></div>
+              <div style={{fontSize:12, color:textMuted2, fontWeight:600}}>{t.doneCount}</div>
             </div>
             <div>
-              <div style={{fontSize:20, fontWeight:800}}><Num>{nf(totalCount - doneCount)}</Num></div>
-              <div style={{fontSize:11, color:textMuted2, fontWeight:600}}>{t.remaining}</div>
+              <div style={{fontSize:21, fontWeight:800}}><Num>{nf(totalCount - doneCount)}</Num></div>
+              <div style={{fontSize:12, color:textMuted2, fontWeight:600}}>{t.remaining}</div>
             </div>
           </div>
           <div style={{marginTop:10, height:6, width:120, borderRadius:4, background:trackColor, border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
@@ -8747,10 +8747,10 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
 
       {mode === "duration" ? (
         <div style={{marginBottom:20}}>
-          <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:10}}>{t.subjectTimeBreakdown}</div>
+          <div style={{fontSize:11, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:10}}>{t.subjectTimeBreakdown}</div>
           <div style={{display:"flex", flexDirection:"column", gap:10}}>
             {Object.keys(subjMinutes).length === 0 && (
-              <div style={{textAlign:"center", padding:"26px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
+              <div style={{textAlign:"center", padding:"26px 10px", color:textMuted2, fontSize:14, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
                 <BarChart3 size={20} style={{opacity:0.6}}/>
                 {t.noTimeData}
               </div>
@@ -8761,8 +8761,8 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
               return (
                 <div key={subj} className="fg-card" style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 16px"}}>
                   <div style={{display:"flex", justifyContent:"space-between", marginBottom:6}}>
-                    <span style={{fontWeight:700, fontSize:13}}>{subj}</span>
-                    <span style={{fontSize:12, fontWeight:700, color:c.bg}}>{formatDuration(mins, lang, nf)}</span>
+                    <span style={{fontWeight:700, fontSize:14}}>{subj}</span>
+                    <span style={{fontSize:13, fontWeight:700, color:c.bg}}>{formatDuration(mins, lang, nf)}</span>
                   </div>
                   <div style={{height:6, borderRadius:4, background: dark? "#242424":"#E7E5ED", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
                     <div style={{height:"100%", width:`${pct}%`, background:c.bg, borderRadius:4, transition:"width .3s"}}/>
@@ -8775,7 +8775,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
       ) : (
         <div style={{display:"flex", flexDirection:"column", gap:10, marginBottom:20}}>
           {Object.entries(subjTotals).length === 0 && (
-            <div style={{textAlign:"center", padding:"26px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
+            <div style={{textAlign:"center", padding:"26px 10px", color:textMuted2, fontSize:14, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
               <Calendar size={20} style={{opacity:0.6}}/>
               {t.noSubjectData}
             </div>
@@ -8786,8 +8786,8 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
             return (
               <div key={subj} className="fg-card" style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 16px"}}>
                 <div style={{display:"flex", justifyContent:"space-between", marginBottom:6}}>
-                  <span style={{fontWeight:700, fontSize:13}}>{subj}</span>
-                  <span style={{fontSize:12, fontWeight:700, color:c.bg}}><Num>{nf(pct)}</Num>%</span>
+                  <span style={{fontWeight:700, fontSize:14}}>{subj}</span>
+                  <span style={{fontSize:13, fontWeight:700, color:c.bg}}><Num>{nf(pct)}</Num>%</span>
                 </div>
                 <div style={{height:6, borderRadius:4, background: dark? "#242424":"#E7E5ED", border:`1px solid ${cardBorder}`, overflow:"hidden"}}>
                   <div style={{height:"100%", width:`${pct}%`, background:c.bg, borderRadius:4, transition:"width .3s"}}/>
@@ -8821,19 +8821,19 @@ function SubjectGroupedList({ entries, nf, t, remainingLabel, doneLabel, remaini
   return (
     <div style={{display:"flex", flexDirection:"column", gap:16}}>
       <div>
-        <div style={{fontSize:12, fontWeight:700, color:textMain, marginBottom:8}}>✕ {remainingLabel} (<Num>{nf(remainingCount)}</Num>)</div>
+        <div style={{fontSize:13, fontWeight:700, color:textMain, marginBottom:8}}>✕ {remainingLabel} (<Num>{nf(remainingCount)}</Num>)</div>
         {remainingSubjects.length === 0 ?
-          <div style={{textAlign:"center", padding:"18px 10px", color:textMuted2, fontSize:12, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", gap:6}}>
+          <div style={{textAlign:"center", padding:"18px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", gap:6}}>
             <Check size={16} style={{opacity:0.7, color:"#6E8B5E"}}/>
             {remainingEmptyText}
           </div> :
           <div style={{display:"flex", flexDirection:"column", gap:10}}>
             {remainingSubjects.map(subj => (
               <div key={subj}>
-                <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:4}}>{subj}</div>
+                <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:4}}>{subj}</div>
                 <div style={{display:"flex", flexDirection:"column", gap:6}}>
                   {remaining[subj].map(e => (
-                    <div key={e.id+(e._dk||"")} className="fg-card" style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 12px", fontSize:13}}>{e.topic}</div>
+                    <div key={e.id+(e._dk||"")} className="fg-card" style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 12px", fontSize:14}}>{e.topic}</div>
                   ))}
                 </div>
               </div>
@@ -8841,21 +8841,21 @@ function SubjectGroupedList({ entries, nf, t, remainingLabel, doneLabel, remaini
           </div>}
       </div>
       <div>
-        <div style={{fontSize:12, fontWeight:700, color:"#6E8B5E", marginBottom:8}}>✓ {doneLabel} (<Num>{nf(doneCount)}</Num>)</div>
+        <div style={{fontSize:13, fontWeight:700, color:"#6E8B5E", marginBottom:8}}>✓ {doneLabel} (<Num>{nf(doneCount)}</Num>)</div>
         {doneSubjects.length === 0 ?
-          <div style={{textAlign:"center", padding:"18px 10px", color:textMuted2, fontSize:12, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", gap:6}}>
+          <div style={{textAlign:"center", padding:"18px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", gap:6}}>
             <Folder size={16} style={{opacity:0.6}}/>
             {doneEmptyText}
           </div> :
           <div style={{display:"flex", flexDirection:"column", gap:10}}>
             {doneSubjects.map(subj => (
               <div key={subj}>
-                <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:4}}>{subj}</div>
+                <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:4}}>{subj}</div>
                 <div style={{display:"flex", flexDirection:"column", gap:6}}>
                   {done[subj].map(e => (
-                    <div key={e.id+(e._dk||"")} className="fg-card" style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 12px", fontSize:13, display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
+                    <div key={e.id+(e._dk||"")} className="fg-card" style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 12px", fontSize:14, display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
                       <span>{e.topic}</span>
-                      {e._caughtUp && <span style={{fontSize:10, fontWeight:700, color:textMuted2, flexShrink:0}}>{t?.caughtUpNote}</span>}
+                      {e._caughtUp && <span style={{fontSize:11, fontWeight:700, color:textMuted2, flexShrink:0}}>{t?.caughtUpNote}</span>}
                     </div>
                   ))}
                 </div>
@@ -8879,9 +8879,9 @@ function TopicSummaryPeriodCard({ label, rangeLabel, isComplete, pendingText, co
     <div style={{marginTop:20}}>
       <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10}}>
         <div style={{display:"flex", alignItems:"center", gap:8}}>
-          <div style={{fontSize:10, letterSpacing:0.5, color:textMuted2, fontWeight:700, opacity:0.85}}>{label}</div>
+          <div style={{fontSize:11, letterSpacing:0.5, color:textMuted2, fontWeight:700, opacity:0.85}}>{label}</div>
           {sourceLabel && (
-            <span style={{fontSize:10, fontWeight:800, letterSpacing:0.3, padding:"2px 7px", borderRadius:10, background:`${sourceColor}1F`, color:sourceColor, flexShrink:0}}>
+            <span style={{fontSize:11, fontWeight:800, letterSpacing:0.3, padding:"2px 7px", borderRadius:10, background:`${sourceColor}1F`, color:sourceColor, flexShrink:0}}>
               {sourceLabel}
             </span>
           )}
@@ -8890,14 +8890,14 @@ function TopicSummaryPeriodCard({ label, rangeLabel, isComplete, pendingText, co
           <button onClick={onPrev} disabled={!canGoPrev} style={{border:`1px solid ${cardBorder}`, background:cardBg, color: canGoPrev?textMain:textMuted2, borderRadius:8, width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", cursor: canGoPrev?"pointer":"default", opacity: canGoPrev?1:0.4}}>
             <ChevronLeft size={14}/>
           </button>
-          <span style={{fontSize:12, fontWeight:700, color:textMain, minWidth:0, whiteSpace:"nowrap"}}>{rangeLabel}</span>
+          <span style={{fontSize:13, fontWeight:700, color:textMain, minWidth:0, whiteSpace:"nowrap"}}>{rangeLabel}</span>
           <button onClick={onNext} disabled={!canGoNext} style={{border:`1px solid ${cardBorder}`, background:cardBg, color: canGoNext?textMain:textMuted2, borderRadius:8, width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", cursor: canGoNext?"pointer":"default", opacity: canGoNext?1:0.4}}>
             <ChevronRight size={14}/>
           </button>
         </div>
       </div>
       {!isComplete ? (
-        <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14}}>
+        <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:14, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14}}>
           {pendingText}
         </div>
       ) : (
@@ -8925,8 +8925,8 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
           </span>
         )}
         <div style={{minWidth:0}}>
-          <div style={{fontWeight:600, color:textMain, fontSize:13}}>{emptyText}</div>
-          {emptySubtext && <div style={{fontSize:11.5, color:textMuted2, marginTop:2, lineHeight:1.4}}>{emptySubtext}</div>}
+          <div style={{fontWeight:600, color:textMain, fontSize:14}}>{emptyText}</div>
+          {emptySubtext && <div style={{fontSize:12.5, color:textMuted2, marginTop:2, lineHeight:1.4}}>{emptySubtext}</div>}
         </div>
       </div>
     );
@@ -8949,7 +8949,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
                   style={{width:17, height:17, borderRadius:"50%", flexShrink:0, border:`2px solid ${item.done ? "#6E8B5E" : c.bg}`, background: item.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", cursor: onToggle?"pointer":"default", padding:0, transition:"background-color .2s ease, border-color .2s ease"}}>
                   {item.done && <Check size={10} color="#fff" strokeWidth={3.4}/>}
                 </button>
-                <span style={{fontSize:14.5, fontWeight:600, wordBreak:"break-word", opacity: item.done ? 0.6 : 1, lineHeight:1.3, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{item.topic}</span>
+                <span style={{fontSize:15.5, fontWeight:600, wordBreak:"break-word", opacity: item.done ? 0.6 : 1, lineHeight:1.3, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{item.topic}</span>
               </div>
               <div style={{display:"flex", alignItems:"center", gap:4, flexShrink:0}}>
                 {onStartTimer && !item.done && (
@@ -8974,23 +8974,23 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
                         <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 4px 12px rgba(0,0,0,0.08)", zIndex:60, minWidth:150, overflow:"hidden"}}>
                           {confirmDeleteId === item.id ? (
                             <>
-                              <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:500}}>{t.confirmDeleteTopic || t.deleteTopic}</div>
-                              <button onClick={()=>{ closeMenu(); onDelete(item.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
+                              <div style={{padding:"9px 12px", fontSize:13, color:textMuted2, fontWeight:500}}>{t.confirmDeleteTopic || t.deleteTopic}</div>
+                              <button onClick={()=>{ closeMenu(); onDelete(item.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:14, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                 <Trash2 size={13}/> {t.confirmDelete || t.deleteTopic}
                               </button>
-                              <button onClick={()=>setConfirmDeleteId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
+                              <button onClick={()=>setConfirmDeleteId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:14, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                 {t.cancel}
                               </button>
                             </>
                           ) : (
                             <>
                               {onEdit && (
-                                <button onClick={()=>{closeMenu(); onEdit(item);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
+                                <button onClick={()=>{closeMenu(); onEdit(item);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:14, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                   <Pencil size={13}/> {t.edit}
                                 </button>
                               )}
                               {onDelete && (
-                                <button onClick={()=>setConfirmDeleteId(item.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
+                                <button onClick={()=>setConfirmDeleteId(item.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:14, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                   <Trash2 size={13}/> {t.deleteTopic}
                                 </button>
                               )}
@@ -9006,8 +9006,8 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
 
             {isActiveTimer && (
               <div style={{marginTop:6, marginLeft:26}}>
-                <div className={timerRunning ? "fg-timer-running" : undefined} style={{fontSize:12, fontWeight:600, fontVariantNumeric:"tabular-nums", color:c.bg, whiteSpace:"nowrap"}}>
-                  <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num> <span style={{fontSize:10, fontWeight:500, opacity:0.85}}>{t.timeRemainingLabel}</span>
+                <div className={timerRunning ? "fg-timer-running" : undefined} style={{fontSize:13, fontWeight:600, fontVariantNumeric:"tabular-nums", color:c.bg, whiteSpace:"nowrap"}}>
+                  <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num> <span style={{fontSize:11, fontWeight:500, opacity:0.85}}>{t.timeRemainingLabel}</span>
                 </div>
               </div>
             )}
@@ -9028,7 +9028,7 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
   const [durationInput, setDurationInput] = useState(30);
   const [showSubjectPicker, setShowSubjectPicker] = useState(false); // সাবজেক্ট চিপ লিস্ট ডিফল্টে লুকানো থাকে (অনেকগুলো সাবজেক্ট থাকলে huge space নিত) — "Choose from list" চাপলেই খুলবে
   const [showTopicPicker, setShowTopicPicker] = useState(false); // টপিক চিপ লিস্টও এখন সাবজেক্টের মতোই ডিফল্টে লুকানো থাকে — "Choose from list" চাপলেই খুলবে
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:15, color:textMain, outline:"none", fontFamily:"inherit" };
   const duration = useTime ? diffMinutes(startTime, endTime) : (useDuration ? (Number(durationInput) || 0) : 0);
   const canSubmit = subject.trim() && topic.trim();
   // Topic Bank quick-pick: not-yet-used topics first (still pending), then previously-used ones by recency —
@@ -9047,15 +9047,15 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
-          <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.addTopicTitle}</div>
+          <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.2}}>{t.addTopicTitle}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
         <div style={{display:"flex", flexDirection:"column", gap:12}}>
           <div>
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
-              <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>{t.subjectLabel}</div>
+              <div style={{fontSize:12, fontWeight:700, color:textMuted2}}>{t.subjectLabel}</div>
               {subjectChips.length > 0 && (
-                <button type="button" onClick={()=>setShowSubjectPicker(v=>!v)} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:accent, cursor:"pointer", fontSize:11, fontWeight:700, padding:0}}>
+                <button type="button" onClick={()=>setShowSubjectPicker(v=>!v)} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:accent, cursor:"pointer", fontSize:12, fontWeight:700, padding:0}}>
                   {showSubjectPicker ? t.hideSubjectList : t.chooseFromList}
                   <ChevronDown size={12} style={{transform: showSubjectPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
                 </button>
@@ -9063,18 +9063,18 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
             </div>
             {showSubjectPicker && subjectChips.length > 0 && (
               <>
-                <div style={{fontSize:10, fontWeight:700, color:textMuted2, opacity:0.8, marginBottom:0}}>{t.pickSubject}</div>
+                <div style={{fontSize:11, fontWeight:700, color:textMuted2, opacity:0.8, marginBottom:0}}>{t.pickSubject}</div>
                 <RecentTopicChips topics={subjectChips} onPick={(s)=>{setSubject(s); setShowSubjectPicker(false);}} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}/>
               </>
             )}
             <input style={{...inputStyle, marginTop: (showSubjectPicker && subjectChips.length) ? 8 : 0}} value={subject} onChange={e=>setSubject(e.target.value)} placeholder={t.subjectPlaceholder}/>
-            <div style={{fontSize:11, color:textMuted2, opacity:0.75, marginTop:5}}>{t.newSubjectAutoSaved}</div>
+            <div style={{fontSize:12, color:textMuted2, opacity:0.75, marginTop:5}}>{t.newSubjectAutoSaved}</div>
           </div>
           <div>
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
-              <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>{t.topicLabel}</div>
+              <div style={{fontSize:12, fontWeight:700, color:textMuted2}}>{t.topicLabel}</div>
               {pickTopics.length > 0 && (
-                <button type="button" onClick={()=>setShowTopicPicker(v=>!v)} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:accent, cursor:"pointer", fontSize:11, fontWeight:700, padding:0}}>
+                <button type="button" onClick={()=>setShowTopicPicker(v=>!v)} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:accent, cursor:"pointer", fontSize:12, fontWeight:700, padding:0}}>
                   {showTopicPicker ? t.hideSubjectList : t.chooseFromList}
                   <ChevronDown size={12} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
                 </button>
@@ -9082,28 +9082,28 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
             </div>
             {showTopicPicker && pickTopics.length > 0 && (
               <>
-                <div style={{fontSize:10, fontWeight:700, color:textMuted2, opacity:0.8, marginBottom:0}}>{t.pickFromBank}</div>
+                <div style={{fontSize:11, fontWeight:700, color:textMuted2, opacity:0.8, marginBottom:0}}>{t.pickFromBank}</div>
                 <RecentTopicChips topics={pickTopics} onPick={(tp)=>{setTopic(tp); setShowTopicPicker(false);}} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}/>
               </>
             )}
             <input style={{...inputStyle, marginTop: (showTopicPicker && pickTopics.length) ? 8 : 0}} value={topic} onChange={e=>setTopic(e.target.value)} placeholder={t.topicPlaceholder}/>
-            <div style={{fontSize:11, color:textMuted2, opacity:0.75, marginTop:5}}>{t.newTopicAutoSaved}</div>
+            <div style={{fontSize:12, color:textMuted2, opacity:0.75, marginTop:5}}>{t.newTopicAutoSaved}</div>
           </div>
 
           <label style={{display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none"}}>
             <input type="checkbox" checked={useTime} onChange={e=>setUseTime(e.target.checked)}
               style={{width:16, height:16, accentColor:accent, cursor:"pointer"}}/>
-            <span style={{fontSize:13, fontWeight:600, color:textMain}}>{t.addTimeToggle}</span>
+            <span style={{fontSize:14, fontWeight:600, color:textMain}}>{t.addTimeToggle}</span>
           </label>
 
           {useTime ? (
             <div style={{display:"flex", gap:10}}>
               <div style={{flex:1}}>
-                <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.startTimeLabel}</div>
+                <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.startTimeLabel}</div>
                 <input type="time" style={inputStyle} value={startTime} onChange={e=>setStartTime(e.target.value)}/>
               </div>
               <div style={{flex:1}}>
-                <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.endTimeLabel}</div>
+                <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.endTimeLabel}</div>
                 <input type="time" style={inputStyle} value={endTime} onChange={e=>setEndTime(e.target.value)}/>
               </div>
             </div>
@@ -9112,18 +9112,18 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
               <label style={{display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none"}}>
                 <input type="checkbox" checked={useDuration} onChange={e=>setUseDuration(e.target.checked)}
                   style={{width:16, height:16, accentColor:accent, cursor:"pointer"}}/>
-                <span style={{fontSize:13, fontWeight:600, color:textMain}}>{t.addDurationToggle}</span>
+                <span style={{fontSize:14, fontWeight:600, color:textMain}}>{t.addDurationToggle}</span>
               </label>
               {useDuration && (
                 <div>
-                  <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.durationLabel}</div>
+                  <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.durationLabel}</div>
                   <input type="number" min="1" style={inputStyle} value={durationInput} onChange={e=>setDurationInput(e.target.value)}/>
                 </div>
               )}
             </>
           )}
 
-          {duration > 0 && <div style={{fontSize:12, color:textMuted2, fontWeight:600}}><Num>{nf(duration)}</Num> {t.minutes}</div>}
+          {duration > 0 && <div style={{fontSize:13, color:textMuted2, fontWeight:600}}><Num>{nf(duration)}</Num> {t.minutes}</div>}
         </div>
         <div style={{display:"flex", gap:10, marginTop:20}}>
           <button onClick={onClose} style={{flex:1, padding:"12px 0", borderRadius:12, border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, fontWeight:700, cursor:"pointer"}}>{t.cancel}</button>
@@ -9144,7 +9144,7 @@ function EditModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, item
   const [endTime, setEndTime] = useState(item.endTime || minutesToTime(timeToMinutes(item.time || "09:00") + (item.duration || 30)));
   const [useDuration, setUseDuration] = useState(!!item.duration);
   const [durationInput, setDurationInput] = useState(item.duration || 30);
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:15, color:textMain, outline:"none", fontFamily:"inherit" };
   const duration = useTime ? diffMinutes(startTime, endTime) : (useDuration ? (Number(durationInput) || 0) : 0);
   const pickTopics = topicPickList(topicBank, entries, subject).filter(tp => tp !== item.topic);
   const submit = () => {
@@ -9156,20 +9156,20 @@ function EditModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, item
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
-          <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.editTopicTitle}</div>
+          <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.2}}>{t.editTopicTitle}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
         <div style={{display:"flex", flexDirection:"column", gap:12}}>
           <div>
-            <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.subjectLabel}</div>
+            <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.subjectLabel}</div>
             <select style={inputStyle} value={subject} onChange={e=>setSubject(e.target.value)}>
               {[...subjectOptions].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"})).map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
           <div>
-            <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.topicLabel}</div>
+            <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.topicLabel}</div>
             {pickTopics.length > 0 && (
-              <div style={{fontSize:10, fontWeight:700, color:textMuted2, opacity:0.8, marginBottom:6}}>{t.pickFromBank}</div>
+              <div style={{fontSize:11, fontWeight:700, color:textMuted2, opacity:0.8, marginBottom:6}}>{t.pickFromBank}</div>
             )}
             <RecentTopicChips topics={pickTopics} onPick={setTopic} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}/>
             <input style={{...inputStyle, marginTop: pickTopics.length ? 8 : 0}} value={topic} onChange={e=>setTopic(e.target.value)} placeholder={t.topicPlaceholder}/>
@@ -9178,17 +9178,17 @@ function EditModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, item
           <label style={{display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none"}}>
             <input type="checkbox" checked={useTime} onChange={e=>setUseTime(e.target.checked)}
               style={{width:16, height:16, accentColor:accent, cursor:"pointer"}}/>
-            <span style={{fontSize:13, fontWeight:600, color:textMain}}>{t.addTimeToggle}</span>
+            <span style={{fontSize:14, fontWeight:600, color:textMain}}>{t.addTimeToggle}</span>
           </label>
 
           {useTime ? (
             <div style={{display:"flex", gap:10}}>
               <div style={{flex:1}}>
-                <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.startTimeLabel}</div>
+                <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.startTimeLabel}</div>
                 <input type="time" style={inputStyle} value={startTime} onChange={e=>setStartTime(e.target.value)}/>
               </div>
               <div style={{flex:1}}>
-                <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.endTimeLabel}</div>
+                <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.endTimeLabel}</div>
                 <input type="time" style={inputStyle} value={endTime} onChange={e=>setEndTime(e.target.value)}/>
               </div>
             </div>
@@ -9197,18 +9197,18 @@ function EditModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, item
               <label style={{display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none"}}>
                 <input type="checkbox" checked={useDuration} onChange={e=>setUseDuration(e.target.checked)}
                   style={{width:16, height:16, accentColor:accent, cursor:"pointer"}}/>
-                <span style={{fontSize:13, fontWeight:600, color:textMain}}>{t.addDurationToggle}</span>
+                <span style={{fontSize:14, fontWeight:600, color:textMain}}>{t.addDurationToggle}</span>
               </label>
               {useDuration && (
                 <div>
-                  <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.durationLabel}</div>
+                  <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.durationLabel}</div>
                   <input type="number" min="1" style={inputStyle} value={durationInput} onChange={e=>setDurationInput(e.target.value)}/>
                 </div>
               )}
             </>
           )}
 
-          {duration > 0 && <div style={{fontSize:12, color:textMuted2, fontWeight:600}}><Num>{nf(duration)}</Num> {t.minutes}</div>}
+          {duration > 0 && <div style={{fontSize:13, color:textMuted2, fontWeight:600}}><Num>{nf(duration)}</Num> {t.minutes}</div>}
         </div>
         <div style={{display:"flex", gap:10, marginTop:20}}>
           <button onClick={onClose} style={{flex:1, padding:"12px 0", borderRadius:12, border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, fontWeight:700, cursor:"pointer"}}>{t.cancel}</button>
@@ -9225,7 +9225,7 @@ function SubjectsModal({ t, subjects, onAdd, onRemove, onRename, onClose, topicB
   const [editingSubject, setEditingSubject] = useState(null);
   const [editValue, setEditValue] = useState("");
   const [editError, setEditError] = useState("");
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:15, color:textMain, outline:"none", fontFamily:"inherit" };
   const submit = () => {
     const v = name.trim();
     if (!v || subjects.includes(v)) return;
@@ -9245,7 +9245,7 @@ function SubjectsModal({ t, subjects, onAdd, onRemove, onRename, onClose, topicB
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"82vh", display:"flex", flexDirection:"column"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
-          <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.manageSubjects}</div>
+          <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.2}}>{t.manageSubjects}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
         <div style={{display:"flex", gap:8, marginBottom:16}}>
@@ -9254,26 +9254,26 @@ function SubjectsModal({ t, subjects, onAdd, onRemove, onRename, onClose, topicB
           <button onClick={submit} style={{border:"none", borderRadius:12, padding:"0 16px", background:accent, color:"#fff", fontWeight:700, cursor:"pointer"}}>{t.add}</button>
         </div>
         <div style={{overflowY:"auto", display:"flex", flexDirection:"column", gap:8}}>
-          {subjects.length === 0 && <div style={{fontSize:13, color:textMuted2, textAlign:"center", padding:"20px 0"}}>{t.noSubjectsYet}</div>}
+          {subjects.length === 0 && <div style={{fontSize:14, color:textMuted2, textAlign:"center", padding:"20px 0"}}>{t.noSubjectsYet}</div>}
           {[...subjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"})).map(s => (
             <div key={s} style={{border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 14px"}}>
               {editingSubject === s ? (
                 <div style={{display:"flex", flexDirection:"column", gap:6}}>
                   <div style={{display:"flex", gap:6, alignItems:"center"}}>
-                    <input autoFocus style={{...inputStyle, padding:"8px 10px", fontSize:13}} value={editValue} onChange={e=>setEditValue(e.target.value)}
+                    <input autoFocus style={{...inputStyle, padding:"8px 10px", fontSize:14}} value={editValue} onChange={e=>setEditValue(e.target.value)}
                       onKeyDown={e=>{ if (e.key==="Enter") saveEdit(); if (e.key==="Escape") cancelEdit(); }}/>
                     <button onClick={saveEdit} style={{border:"none", background:"transparent", cursor:"pointer", color:accent, flexShrink:0}}><Check size={17}/></button>
                     <button onClick={cancelEdit} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, flexShrink:0}}><X size={17}/></button>
                   </div>
-                  {editError && <div style={{fontSize:11, color:"#C0553F", fontWeight:600}}>{editError}</div>}
+                  {editError && <div style={{fontSize:12, color:"#C0553F", fontWeight:600}}>{editError}</div>}
                 </div>
               ) : (
                 <>
                   <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
                     <button onClick={()=>onToggleExpand(s)} style={{display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", cursor:"pointer", padding:0, color:textMain}}>
                       <ChevronDown size={14} style={{transform: expandedSubject===s ? "rotate(0deg)" : "rotate(-90deg)", transition:"transform .15s ease", color:textMuted2, flexShrink:0}}/>
-                      <span style={{fontSize:14, fontWeight:600, textAlign:"left"}}>{s}</span>
-                      <span style={{fontSize:11, fontWeight:700, color:textMuted2, opacity:0.8}}>· <Num>{((topicBank && topicBank[s]) || []).length}</Num> {t.topicsLabel.toLowerCase()}</span>
+                      <span style={{fontSize:15, fontWeight:600, textAlign:"left"}}>{s}</span>
+                      <span style={{fontSize:12, fontWeight:700, color:textMuted2, opacity:0.8}}>· <Num>{((topicBank && topicBank[s]) || []).length}</Num> {t.topicsLabel.toLowerCase()}</span>
                     </button>
                     <div style={{display:"flex", gap:16, alignItems:"center"}}>
                       <button onClick={()=>startEdit(s)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><Pencil size={14}/></button>
@@ -9304,7 +9304,7 @@ function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onR
   const [editingTopic, setEditingTopic] = useState(null);
   const [editValue, setEditValue] = useState("");
   const [editError, setEditError] = useState("");
-  const smallInput = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:10, padding:"8px 10px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit" };
+  const smallInput = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:10, padding:"8px 10px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
   const addSingle = () => { const v = single.trim(); if (!v) return; onAddTopic(subject, v); setSingle(""); };
   const addBulk = () => { if (!bulkText.trim()) return; onAddTopicsBulk(subject, bulkText); setBulkText(""); setBulkOpen(false); };
   const startEdit = (tp) => { setEditingTopic(tp); setEditValue(tp); setEditError(""); };
@@ -9320,10 +9320,10 @@ function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onR
       <div style={{display:"flex", gap:6, marginBottom:8}}>
         <input style={smallInput} value={single} onChange={e=>setSingle(e.target.value)} placeholder={t.topicNamePlaceholder}
           onKeyDown={e=>{ if (e.key==="Enter") addSingle(); }}/>
-        <button onClick={addSingle} style={{border:"none", borderRadius:10, padding:"0 12px", background:accent, color:"#fff", fontWeight:700, cursor:"pointer", fontSize:12, flexShrink:0}}>{t.add}</button>
+        <button onClick={addSingle} style={{border:"none", borderRadius:10, padding:"0 12px", background:accent, color:"#fff", fontWeight:700, cursor:"pointer", fontSize:13, flexShrink:0}}>{t.add}</button>
       </div>
       {!bulkOpen ? (
-        <button onClick={()=>setBulkOpen(true)} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", fontSize:11, fontWeight:700, padding:0, marginBottom:10}}>
+        <button onClick={()=>setBulkOpen(true)} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", fontSize:12, fontWeight:700, padding:0, marginBottom:10}}>
           + {t.bulkAddTopics}
         </button>
       ) : (
@@ -9331,28 +9331,28 @@ function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onR
           <textarea value={bulkText} onChange={e=>setBulkText(e.target.value)} placeholder={t.bulkAddPlaceholder} rows={3}
             style={{...smallInput, resize:"vertical", marginBottom:6}}/>
           <div style={{display:"flex", gap:6}}>
-            <button onClick={addBulk} style={{border:"none", borderRadius:10, padding:"6px 12px", background:accent, color:"#fff", fontWeight:700, cursor:"pointer", fontSize:12}}>{t.add}</button>
-            <button onClick={()=>{setBulkOpen(false); setBulkText("");}} style={{border:`1px solid ${cardBorder}`, borderRadius:10, padding:"6px 12px", background:"transparent", color:textMain, fontWeight:700, cursor:"pointer", fontSize:12}}>{t.cancel}</button>
+            <button onClick={addBulk} style={{border:"none", borderRadius:10, padding:"6px 12px", background:accent, color:"#fff", fontWeight:700, cursor:"pointer", fontSize:13}}>{t.add}</button>
+            <button onClick={()=>{setBulkOpen(false); setBulkText("");}} style={{border:`1px solid ${cardBorder}`, borderRadius:10, padding:"6px 12px", background:"transparent", color:textMain, fontWeight:700, cursor:"pointer", fontSize:13}}>{t.cancel}</button>
           </div>
         </div>
       )}
       <div style={{display:"flex", flexDirection:"column", gap:6}}>
-        {topics.length === 0 && <div style={{fontSize:12, color:textMuted2, opacity:0.85}}>{t.noTopicsInSubject}</div>}
+        {topics.length === 0 && <div style={{fontSize:13, color:textMuted2, opacity:0.85}}>{t.noTopicsInSubject}</div>}
         {topics.map(tp => (
           <div key={tp} style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:10, padding:"7px 10px"}}>
             {editingTopic === tp ? (
               <div style={{display:"flex", flexDirection:"column", gap:4, flex:1}}>
                 <div style={{display:"flex", gap:6, alignItems:"center"}}>
-                  <input autoFocus style={{...smallInput, padding:"5px 8px", fontSize:12}} value={editValue} onChange={e=>setEditValue(e.target.value)}
+                  <input autoFocus style={{...smallInput, padding:"5px 8px", fontSize:13}} value={editValue} onChange={e=>setEditValue(e.target.value)}
                     onKeyDown={e=>{ if (e.key==="Enter") saveEdit(); if (e.key==="Escape") setEditingTopic(null); }}/>
                   <button onClick={saveEdit} style={{border:"none", background:"transparent", cursor:"pointer", color:accent, flexShrink:0}}><Check size={15}/></button>
                   <button onClick={()=>setEditingTopic(null)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, flexShrink:0}}><X size={15}/></button>
                 </div>
-                {editError && <div style={{fontSize:11, color:"#C0553F", fontWeight:600}}>{editError}</div>}
+                {editError && <div style={{fontSize:12, color:"#C0553F", fontWeight:600}}>{editError}</div>}
               </div>
             ) : (
               <>
-                <span style={{fontSize:12, fontWeight:600, wordBreak:"break-word"}}>{tp}</span>
+                <span style={{fontSize:13, fontWeight:600, wordBreak:"break-word"}}>{tp}</span>
                 <DeleteMenuButton
                   onEdit={()=>startEdit(tp)}
                   onDelete={()=>onRemoveTopic(subject, tp)}
@@ -9372,7 +9372,7 @@ function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onR
 function ExamsModal({ t, nf, subjects, examSubjects, onAdd, onRemove, onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark }) {
   const availableSubjects = subjects.filter(s => !examSubjects[s]);
   const [subject, setSubject] = useState(availableSubjects[0] || "");
-  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit" };
+  const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:15, color:textMain, outline:"none", fontFamily:"inherit" };
   const submit = () => {
     if (!subject) return;
     onAdd(subject);
@@ -9384,17 +9384,17 @@ function ExamsModal({ t, nf, subjects, examSubjects, onAdd, onRemove, onClose, c
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"80vh", display:"flex", flexDirection:"column"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
-          <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.manageExams}</div>
+          <div style={{fontSize:19, fontWeight:800, letterSpacing:-0.2}}>{t.manageExams}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
 
         <div style={{display:"flex", flexDirection:"column", gap:10, marginBottom:16}}>
           {availableSubjects.length === 0 ? (
-            <div style={{fontSize:13, color:textMuted2}}>{subjects.length === 0 ? t.addSubjectsFirst : "—"}</div>
+            <div style={{fontSize:14, color:textMuted2}}>{subjects.length === 0 ? t.addSubjectsFirst : "—"}</div>
           ) : (
             <>
               <div>
-                <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.subjectLabel}</div>
+                <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.subjectLabel}</div>
                 <select style={inputStyle} value={subject} onChange={e=>setSubject(e.target.value)}>
                   {[...availableSubjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"})).map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -9407,14 +9407,14 @@ function ExamsModal({ t, nf, subjects, examSubjects, onAdd, onRemove, onClose, c
         </div>
 
         <div style={{overflowY:"auto", display:"flex", flexDirection:"column", gap:8}}>
-          {examList.length === 0 && <div style={{fontSize:13, color:textMuted2, textAlign:"center", padding:"20px 0"}}>{t.noExamSubjects}</div>}
+          {examList.length === 0 && <div style={{fontSize:14, color:textMuted2, textAlign:"center", padding:"20px 0"}}>{t.noExamSubjects}</div>}
           {examList.map(([s, info]) => {
             const topicCount = Object.keys(info?.topics || {}).length;
             return (
               <div key={s} style={{display:"flex", alignItems:"center", justifyContent:"space-between", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"10px 14px"}}>
                 <div>
-                  <div style={{fontSize:14, fontWeight:600}}>{s}</div>
-                  <div style={{fontSize:11, color:textMuted2, fontWeight:600, marginTop:2}}><Num>{nf(topicCount)}</Num> {t.topicsLabel}</div>
+                  <div style={{fontSize:15, fontWeight:600}}>{s}</div>
+                  <div style={{fontSize:12, color:textMuted2, fontWeight:600, marginTop:2}}><Num>{nf(topicCount)}</Num> {t.topicsLabel}</div>
                 </div>
                 <button onClick={()=>onRemove(s)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><Trash2 size={15}/></button>
               </div>
@@ -9445,12 +9445,12 @@ function WeekDayStrip({ days, entries, selectedKey, onSelectDay, todayKey, weekd
             background: cardBg,
             cursor:"pointer", transition:"background .15s ease, border-color .15s ease",
           }}>
-            <span style={{fontSize:11, fontWeight:700, color: isSelected ? accent : (isToday ? accent : textMuted2)}}>{weekdayShort(d)}</span>
+            <span style={{fontSize:12, fontWeight:700, color: isSelected ? accent : (isToday ? accent : textMuted2)}}>{weekdayShort(d)}</span>
             <span style={{
               width:34, height:34, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
               background: isSelected ? (dark ? "rgba(217,119,87,0.22)" : "rgba(217,119,87,0.14)") : "transparent",
               boxShadow: isSelected ? `0 0 0 1.5px ${accent}` : "none",
-              fontSize:16, fontWeight:800, color: isSelected ? accent : textMain, transition:"background .15s ease",
+              fontSize:17, fontWeight:800, color: isSelected ? accent : textMain, transition:"background .15s ease",
             }}><Num>{nf(d.getDate())}</Num></span>
             <span style={{width:6, height:6, borderRadius:"50%", background: dotColor, opacity: hasAny ? 1 : 0.35, flexShrink:0}}/>
           </button>
@@ -9466,8 +9466,8 @@ function DaySelectedCard({ day, entries, allSubjects, t, nf, lang, weekdayName, 
   return (
     <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"14px 16px", marginTop:14}}>
       <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
-        <span style={{fontSize:14, fontWeight:700}}>{weekdayName(day)}, <Num>{nf(day.getDate())}</Num> {monthName(day.getMonth())}</span>
-        {list.length > 0 && <span style={{fontSize:12, color:textMuted2, fontWeight:600}}><Num>{nf(doneCount)}</Num>/<Num>{nf(list.length)}</Num></span>}
+        <span style={{fontSize:15, fontWeight:700}}>{weekdayName(day)}, <Num>{nf(day.getDate())}</Num> {monthName(day.getMonth())}</span>
+        {list.length > 0 && <span style={{fontSize:13, color:textMuted2, fontWeight:600}}><Num>{nf(doneCount)}</Num>/<Num>{nf(list.length)}</Num></span>}
       </div>
       <TopicsList items={list} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
         cardBg={innerBg} cardBorder={cardBorder} textMuted2={textMuted2}
@@ -9490,12 +9490,12 @@ function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSe
     <div>
       <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12}}>
         <button onClick={()=>setCalMonth(new Date(y,m-1,1))} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", display:"flex", padding:4}}><ChevronLeft size={18}/></button>
-        <span style={{fontSize:14, fontWeight:800}}>{monthName(m)} <Num>{nf(y)}</Num></span>
+        <span style={{fontSize:15, fontWeight:800}}>{monthName(m)} <Num>{nf(y)}</Num></span>
         <button onClick={()=>setCalMonth(new Date(y,m+1,1))} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", display:"flex", padding:4}}><ChevronRight size={18}/></button>
       </div>
       <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"14px 12px"}}>
         <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:8}}>
-          {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:11, fontWeight:700, color:textMuted2}}>{d}</div>))}
+          {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:12, fontWeight:700, color:textMuted2}}>{d}</div>))}
         </div>
         <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", rowGap:6}}>
           {cells.map((d,i) => {
@@ -9513,7 +9513,7 @@ function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSe
               <button key={i} onClick={()=>onSelectDay(d)} disabled={future && !hasAny}
                 title={isHoliday ? holidayName(dk, lang) : undefined}
                 style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, padding:"4px 0", border:"none", background:"transparent", cursor:(future&&!hasAny)?"default":"pointer", opacity:(future&&!hasAny)?0.4:1}}>
-                <div style={{position:"relative", width:26, height:26, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700,
+                <div style={{position:"relative", width:26, height:26, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700,
                   background: isSelected ? accent : "transparent",
                   border: isToday && !isSelected ? `1px solid ${accent}` : "none",
                   color: isSelected ? "#fff" : textMain}}>
@@ -10373,9 +10373,9 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         .fg-hide-scrollbar::-webkit-scrollbar{display:none;}
         .fg-hide-scrollbar{scrollbar-width:none;}
       `}</style>
-      <div style={{ fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:9 }}>{t.notesTitle}</div>
+      <div style={{ fontSize:21, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:9 }}>{t.notesTitle}</div>
 
-      <div style={{fontSize:11, fontWeight:800, letterSpacing: lang==="bn"?0:0.6, color:textMuted2, opacity:0.75, marginBottom:8, textTransform:"uppercase"}}>
+      <div style={{fontSize:12, fontWeight:800, letterSpacing: lang==="bn"?0:0.6, color:textMuted2, opacity:0.75, marginBottom:8, textTransform:"uppercase"}}>
         {lang==="bn" ? "সব নোট" : "All Notes"}
       </div>
 
@@ -10388,7 +10388,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
             value={search}
             onChange={e=>setSearch(e.target.value)}
             placeholder={t.notesSearch}
-            style={{flex:1,minWidth:0,border:"none",outline:"none",background:"transparent",color:textMain,fontFamily:"inherit",fontSize:13}}
+            style={{flex:1,minWidth:0,border:"none",outline:"none",background:"transparent",color:textMain,fontFamily:"inherit",fontSize:14}}
           />
           {search && <button onClick={()=>setSearch("")} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:0,display:"flex",flexShrink:0}}><X size={14}/></button>}
         </div>
@@ -10412,7 +10412,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           </button>
           {showSortMenu && (
             <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:4,boxShadow:"0 6px 16px rgba(0,0,0,0.11)",zIndex:30,display:"flex",flexDirection:"column",minWidth:190}}>
-              <div style={{fontSize:10,fontWeight:800,letterSpacing:0.4,color:textMuted2,padding:"6px 9px 2px",opacity:0.8}}>{lang==="bn"?"সাজানোর ধরন":"Sort by"}</div>
+              <div style={{fontSize:11,fontWeight:800,letterSpacing:0.4,color:textMuted2,padding:"6px 9px 2px",opacity:0.8}}>{lang==="bn"?"সাজানোর ধরন":"Sort by"}</div>
               {[
                 ["updated", lang==="bn"?"সর্বশেষ এডিট":"Last edited"],
                 ["created", lang==="bn"?"তৈরির তারিখ":"Date created"],
@@ -10420,13 +10420,13 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                 ["manual", lang==="bn"?"নিজে সাজান (ড্র্যাগ)":"Custom order (drag)"],
               ].map(([key,label]) => (
                 <button key={key} onClick={()=>{setSortMode(key);setShowSortMenu(false);}}
-                  style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12,fontWeight:700,color:sortMode===key?accent:textMain,cursor:"pointer",borderRadius:8}}>
+                  style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:13,fontWeight:700,color:sortMode===key?accent:textMain,cursor:"pointer",borderRadius:8}}>
                   {label}{sortMode===key && <Check size={13}/>}
                 </button>
               ))}
               <div style={{height:1,background:cardBorder,margin:"4px 2px"}}/>
               <button onClick={()=>{setShowSortMenu(false);setCalMonth(filterDate || new Date());setShowDatePicker(true);}}
-                style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12,fontWeight:700,color: filterDate ? accent : textMain,cursor:"pointer",borderRadius:8}}>
+                style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:13,fontWeight:700,color: filterDate ? accent : textMain,cursor:"pointer",borderRadius:8}}>
                 <Calendar size={13}/> {lang==="bn"?"তারিখ দিয়ে দেখুন":"View by date"}
                 {filterDate && <Check size={13} style={{marginLeft:"auto"}}/>}
               </button>
@@ -10444,7 +10444,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           {key:"Trash", label: (lang==="bn"?"ট্র্যাশ":"Trash")+(trashCount>0?` (${nf(trashCount)})`:""), icon:<Trash2 size={11}/>},
         ].map(f => (
           <button key={f.key} onClick={()=>setActiveFolder(f.key)}
-            style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,border:`1px solid ${activeFolder===f.key?textMain:cardBorder}`,background:activeFolder===f.key?textMain:cardBg,color:activeFolder===f.key?(dark?"#0A0A0A":"#fff"):textMain,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
+            style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,border:`1px solid ${activeFolder===f.key?textMain:cardBorder}`,background:activeFolder===f.key?textMain:cardBg,color:activeFolder===f.key?(dark?"#0A0A0A":"#fff"):textMain,fontSize:13,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
             {f.icon}{f.label}
           </button>
         ))}
@@ -10458,17 +10458,17 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               onClick={()=>{ if (justDraggedRef.current) return; setActiveFolder(cat); }}
               onMouseDown={()=>startCatPress(cat)} onMouseUp={cancelCatPress} onMouseLeave={cancelCatPress}
               onTouchStart={()=>startCatPress(cat)} onTouchEnd={cancelCatPress} onTouchMove={cancelCatPress}
-              style={{display:"flex",alignItems:"center",gap:6,border:`1px solid ${activeFolder===cat?textMain:cardBorder}`,background:activeFolder===cat?textMain:cardBg,color:activeFolder===cat?(dark?"#0A0A0A":"#fff"):textMain,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
+              style={{display:"flex",alignItems:"center",gap:6,border:`1px solid ${activeFolder===cat?textMain:cardBorder}`,background:activeFolder===cat?textMain:cardBg,color:activeFolder===cat?(dark?"#0A0A0A":"#fff"):textMain,fontSize:13,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
               <span style={{width:7,height:7,borderRadius:"50%",background:chipDot,flexShrink:0}}/>
               {cat}
             </button>
             {categoryMenuFor === cat && (
               <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:"calc(100% + 6px)",left:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:4,boxShadow:"0 6px 16px rgba(0,0,0,0.13)",zIndex:31,display:"flex",flexDirection:"column",minWidth:150}}>
-                <button onClick={()=>{renameCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12,fontWeight:700,color:textMain,cursor:"pointer",borderRadius:8}}>
+                <button onClick={()=>{renameCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:13,fontWeight:700,color:textMain,cursor:"pointer",borderRadius:8}}>
                   <Pencil size={13}/> {lang==="bn"?"নাম পরিবর্তন":"Rename"}
                 </button>
                 {cat !== "General" && (
-                  <button onClick={()=>{deleteCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12,fontWeight:700,color:"#C54B4B",cursor:"pointer",borderRadius:8}}>
+                  <button onClick={()=>{deleteCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:13,fontWeight:700,color:"#C54B4B",cursor:"pointer",borderRadius:8}}>
                     <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
                   </button>
                 )}
@@ -10477,7 +10477,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           </div>
         );})}
         <button onClick={addCategory}
-          style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,border:`1.5px dashed ${cardBorder}`,background:"transparent",color:textMuted2,fontSize:12,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
+          style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,border:`1.5px dashed ${cardBorder}`,background:"transparent",color:textMuted2,fontSize:13,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
           + {lang==="bn"?"নতুন":"New"}
         </button>
       </div>
@@ -10485,7 +10485,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       {/* কোনো নির্দিষ্ট তারিখ সিলেক্ট করা থাকলে তার একটা ছোট ব্যানার — সহজে ক্লিয়ার করা যায় */}
       {filterDate && (
         <div onClick={e=>e.stopPropagation()} style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,background:dark?"#2B281F":"#FFF4DF",border:`1px solid ${accent}`,borderRadius:12,padding:"9px 12px",marginBottom:10}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,fontSize:13,fontWeight:700,color:accent}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,fontSize:14,fontWeight:700,color:accent}}>
             <Calendar size={14}/>
             {lang==="bn" ? `${nf(filterDate.getDate())} ${MONTHS_BN[filterDate.getMonth()]}, ${nf(filterDate.getFullYear())}` : `${MONTHS_EN[filterDate.getMonth()]} ${filterDate.getDate()}, ${filterDate.getFullYear()}`}
           </div>
@@ -10498,16 +10498,16 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:60, padding:16}} onClick={()=>setShowDatePicker(false)}>
           <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:380, borderRadius:14, padding:16, color:textMain}}>
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
-              <div style={{fontSize:14, fontWeight:800}}>{lang==="bn"?"তারিখ বাছাই করুন":"Pick a date"}</div>
+              <div style={{fontSize:15, fontWeight:800}}>{lang==="bn"?"তারিখ বাছাই করুন":"Pick a date"}</div>
               <button onClick={()=>setShowDatePicker(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={18}/></button>
             </div>
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", margin:"6px 0 12px"}}>
               <button onClick={()=>setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth()-1, 1))} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, width:30,height:30, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", color:textMain}}><ChevronLeft size={15}/></button>
-              <div style={{fontWeight:700, fontSize:14}}>{lang==="bn"?MONTHS_BN[calMonth.getMonth()]:MONTHS_EN[calMonth.getMonth()]} {nf(calMonth.getFullYear())}</div>
+              <div style={{fontWeight:700, fontSize:15}}>{lang==="bn"?MONTHS_BN[calMonth.getMonth()]:MONTHS_EN[calMonth.getMonth()]} {nf(calMonth.getFullYear())}</div>
               <button onClick={()=>setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 1))} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, width:30,height:30, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", color:textMain}}><ChevronRight size={15}/></button>
             </div>
             <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4, marginBottom:5}}>
-              {weekdayShortLabels(lang).map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:10, fontWeight:700, color:textMuted2}}>{d}</div>))}
+              {weekdayShortLabels(lang).map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:11, fontWeight:700, color:textMuted2}}>{d}</div>))}
             </div>
             <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4}}>
               {(() => {
@@ -10528,7 +10528,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                   return (
                     <button key={i} onClick={()=>{setFilterDate(d);setShowDatePicker(false);}}
                       style={{position:"relative", aspectRatio:"1", border: isSelected ? `1.5px solid ${accent}` : isToday ? `1px solid ${accent}` : "1px solid transparent", borderRadius:10, background: isSelected ? (dark?"#2B281F":"#FFF4DF") : (dark?"#0A0A0A":"#F8F5EE"), cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2, color:textMain}}>
-                      <span style={{fontSize:12, fontWeight:600}}>{nf(d.getDate())}</span>
+                      <span style={{fontSize:13, fontWeight:600}}>{nf(d.getDate())}</span>
                       <span style={{width:4,height:4,borderRadius:"50%", background: hasNotes ? accent : "transparent"}}/>
                     </button>
                   );
@@ -10541,8 +10541,8 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
       {activeFolder === "Trash" && filtered.length > 0 && (
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-          <div style={{fontSize:11,color:textMuted2,fontWeight:600}}>{lang==="bn"?`নোট এখানে ${TRASH_RETENTION_DAYS} দিন থাকার পর নিজে থেকেই চিরতরে মুছে যাবে।`:`Notes here are permanently deleted automatically after ${TRASH_RETENTION_DAYS} days.`}</div>
-          <button onClick={(e)=>{e.stopPropagation();emptyTrash();}} style={{flexShrink:0,border:"none",background:"transparent",color:"#C54B4B",cursor:"pointer",fontSize:12,fontWeight:800,padding:"4px 6px"}}>{lang==="bn"?"ট্র্যাশ খালি করুন":"Empty Trash"}</button>
+          <div style={{fontSize:12,color:textMuted2,fontWeight:600}}>{lang==="bn"?`নোট এখানে ${TRASH_RETENTION_DAYS} দিন থাকার পর নিজে থেকেই চিরতরে মুছে যাবে।`:`Notes here are permanently deleted automatically after ${TRASH_RETENTION_DAYS} days.`}</div>
+          <button onClick={(e)=>{e.stopPropagation();emptyTrash();}} style={{flexShrink:0,border:"none",background:"transparent",color:"#C54B4B",cursor:"pointer",fontSize:13,fontWeight:800,padding:"4px 6px"}}>{lang==="bn"?"ট্র্যাশ খালি করুন":"Empty Trash"}</button>
         </div>
       )}
 
@@ -10551,8 +10551,8 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           <div style={{width:52,height:52,borderRadius:14,background:dark?"#242229":"#F0EEF5",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}>
             {activeFolder === "Trash" ? <Trash2 size={23} color={dark?"#B0ABC2":"#6E6B7A"}/> : <FileText size={23} color={dark?"#B0ABC2":"#6E6B7A"}/>}
           </div>
-          <div style={{fontSize:14,fontWeight:800,color:textMain}}>{activeFolder === "Trash" ? (lang==="bn"?"ট্র্যাশ খালি":"Trash is empty") : t.notesEmpty}</div>
-          <div style={{fontSize:12,color:textMuted2,marginTop:5}}>{activeFolder === "Trash" ? (lang==="bn"?"ডিলিট করা নোট এখানে দেখা যাবে।":"Deleted notes will show up here.") : (lang==="bn"?"নিচের + বাটনে ট্যাপ করে একটা নোট বা লিস্ট শুরু করুন।":"Tap the + button below to start a note or list.")}</div>
+          <div style={{fontSize:15,fontWeight:800,color:textMain}}>{activeFolder === "Trash" ? (lang==="bn"?"ট্র্যাশ খালি":"Trash is empty") : t.notesEmpty}</div>
+          <div style={{fontSize:13,color:textMuted2,marginTop:5}}>{activeFolder === "Trash" ? (lang==="bn"?"ডিলিট করা নোট এখানে দেখা যাবে।":"Deleted notes will show up here.") : (lang==="bn"?"নিচের + বাটনে ট্যাপ করে একটা নোট বা লিস্ট শুরু করুন।":"Tap the + button below to start a note or list.")}</div>
         </div>
       ) : (
         <div style={ viewMode==="list" ? {display:"flex",flexDirection:"column",gap:7} : {display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:8} }>
@@ -10585,7 +10585,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                 <div style={{minWidth:0,flex:1}}>
                   <div style={{display:"flex",alignItems:"center",gap:4}}>
                     {note.sensitive && <EyeOff size={12} color={colText}/>}
-                    <div style={{fontSize:14,fontWeight:800,color:coverText,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{note.title}</div>
+                    <div style={{fontSize:15,fontWeight:800,color:coverText,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{note.title}</div>
                   </div>
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:2,flexShrink:0}}>
@@ -10632,7 +10632,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               {activeFolder === "Trash" && note.deletedAt && (() => {
                 const daysLeft = Math.max(0, TRASH_RETENTION_DAYS - Math.floor((Date.now() - note.deletedAt) / (24*60*60*1000)));
                 return (
-                  <div style={{fontSize:11,color:coverText,opacity:0.65,fontWeight:700,marginTop:5}}>
+                  <div style={{fontSize:12,color:coverText,opacity:0.65,fontWeight:700,marginTop:5}}>
                     {lang==="bn" ? `${nf(daysLeft)} দিন পর চিরতরে মুছে যাবে` : `Deletes forever in ${daysLeft} day${daysLeft===1?"":"s"}`}
                   </div>
                 );
@@ -10642,32 +10642,32 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                 <div style={{position:"relative",marginTop:6,width: isList?44:"100%",height: isList?44:88, ...(note.sensitive ? {filter:"blur(6px)", userSelect:"none"} : {})}}>
                   <img src={note.images[0]} alt="" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:10,display:"block"}}/>
                   {note.images.length > 1 && (
-                    <span style={{position:"absolute",top:4,right:4,fontSize:10,fontWeight:800,color:"#fff",background:"rgba(0,0,0,0.6)",borderRadius:8,padding:"1px 6px"}}>+{note.images.length - 1}</span>
+                    <span style={{position:"absolute",top:4,right:4,fontSize:11,fontWeight:800,color:"#fff",background:"rgba(0,0,0,0.6)",borderRadius:8,padding:"1px 6px"}}>+{note.images.length - 1}</span>
                   )}
                 </div>
               )}
 
               {looksLikeHtml(note.body) ? (
-                <div className="fg-note-body" style={{fontSize:12,color:coverText,opacity:0.85,lineHeight:1.5,marginTop:6,display:"-webkit-box",WebkitLineClamp:isList?2:5,WebkitBoxOrient:"vertical",overflow:"hidden", ...(note.sensitive ? {filter:"blur(5px)", userSelect:"none"} : {})}} dangerouslySetInnerHTML={{__html: note.body || "—"}}/>
+                <div className="fg-note-body" style={{fontSize:13,color:coverText,opacity:0.85,lineHeight:1.5,marginTop:6,display:"-webkit-box",WebkitLineClamp:isList?2:5,WebkitBoxOrient:"vertical",overflow:"hidden", ...(note.sensitive ? {filter:"blur(5px)", userSelect:"none"} : {})}} dangerouslySetInnerHTML={{__html: note.body || "—"}}/>
               ) : (
-                <div style={{fontSize:12,color:coverText,opacity:0.85,lineHeight:1.5,marginTop:6,display:"-webkit-box",WebkitLineClamp:isList?2:5,WebkitBoxOrient:"vertical",overflow:"hidden",whiteSpace:"pre-wrap", ...(note.sensitive ? {filter:"blur(5px)", userSelect:"none"} : {})}}>{renderFormattedText(note.body) || "—"}</div>
+                <div style={{fontSize:13,color:coverText,opacity:0.85,lineHeight:1.5,marginTop:6,display:"-webkit-box",WebkitLineClamp:isList?2:5,WebkitBoxOrient:"vertical",overflow:"hidden",whiteSpace:"pre-wrap", ...(note.sensitive ? {filter:"blur(5px)", userSelect:"none"} : {})}}>{renderFormattedText(note.body) || "—"}</div>
               )}
 
               {Array.isArray(note.checklist) && note.checklist.length > 0 && (
                 <div style={{marginTop:8,display:"flex",flexDirection:"column",gap:4, ...(note.sensitive ? {filter:"blur(5px)", userSelect:"none"} : {})}}>
                   {note.checklist.slice(0,isList?2:3).map(item => (
-                    <div key={item.id} style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:coverText,opacity:0.85}}>
-                      <span style={{width:12,height:12,borderRadius:4,border:`1px solid ${colText}`,background:item.done?colText:"transparent",display:"inline-flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:10,flexShrink:0}}>{item.done?"✓":""}</span>
+                    <div key={item.id} style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:coverText,opacity:0.85}}>
+                      <span style={{width:12,height:12,borderRadius:4,border:`1px solid ${colText}`,background:item.done?colText:"transparent",display:"inline-flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:11,flexShrink:0}}>{item.done?"✓":""}</span>
                       <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.text}</span>
                     </div>
                   ))}
-                  {note.checklist.length > (isList?2:3) && <span style={{fontSize:10,color:colText,fontWeight:700}}>+{note.checklist.length - (isList?2:3)} more</span>}
+                  {note.checklist.length > (isList?2:3) && <span style={{fontSize:11,color:colText,fontWeight:700}}>+{note.checklist.length - (isList?2:3)} more</span>}
                 </div>
               )}
 
               <div style={{marginTop: isList ? 7 : "auto",paddingTop: isList ? 6 : 9,borderTop: isList ? "none" : `1px dashed ${dark?"rgba(255,255,255,0.14)":"rgba(33,29,24,0.14)"}`,display:"flex",alignItems:"center",justifyContent:"space-between",gap:6}}>
-                <span style={{fontSize:9.5,fontWeight:700,letterSpacing:0.3,textTransform:"uppercase",color:colText,opacity:0.9}}>{note.category || "General"}</span>
-                <span style={{fontSize:10,color:colText,opacity:0.6,fontWeight:600}} title={fullDateTimeLabel(note.updatedAt, lang)}>{timeAgoLabel(note.updatedAt || note.createdAt, lang)}</span>
+                <span style={{fontSize:10.5,fontWeight:700,letterSpacing:0.3,textTransform:"uppercase",color:colText,opacity:0.9}}>{note.category || "General"}</span>
+                <span style={{fontSize:11,color:colText,opacity:0.6,fontWeight:600}} title={fullDateTimeLabel(note.updatedAt, lang)}>{timeAgoLabel(note.updatedAt || note.createdAt, lang)}</span>
               </div>
             </div>
           );})}
@@ -10680,10 +10680,10 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       <div style={{position:"fixed", right:20, bottom: isDesktop ? 28 : 96, zIndex:41, display:"flex", flexDirection:"column", alignItems:"flex-end", gap:10}}>
         {fabOpen && (
           <div onClick={e=>e.stopPropagation()} style={{display:"flex", flexDirection:"column", gap:8, alignItems:"flex-end"}}>
-            <button onClick={()=>{vibrate(); openNew(true);}} style={{display:"flex",alignItems:"center",gap:8,border:`1px solid ${cardBorder}`,background:cardBg,color:textMain,borderRadius:999,padding:"9px 14px 9px 12px",fontSize:13,fontWeight:700,cursor:"pointer",boxShadow: dark ? "0 4px 12px rgba(0,0,0,0.25)" : "0 4px 12px rgba(0,0,0,0.10)"}}>
+            <button onClick={()=>{vibrate(); openNew(true);}} style={{display:"flex",alignItems:"center",gap:8,border:`1px solid ${cardBorder}`,background:cardBg,color:textMain,borderRadius:999,padding:"9px 14px 9px 12px",fontSize:14,fontWeight:700,cursor:"pointer",boxShadow: dark ? "0 4px 12px rgba(0,0,0,0.25)" : "0 4px 12px rgba(0,0,0,0.10)"}}>
               <ListChecks size={16} color={accent}/> {lang==="bn"?"লিস্ট":"List"}
             </button>
-            <button onClick={()=>{vibrate(); openNew(false);}} style={{display:"flex",alignItems:"center",gap:8,border:`1px solid ${cardBorder}`,background:cardBg,color:textMain,borderRadius:999,padding:"9px 14px 9px 12px",fontSize:13,fontWeight:700,cursor:"pointer",boxShadow: dark ? "0 4px 12px rgba(0,0,0,0.25)" : "0 4px 12px rgba(0,0,0,0.10)"}}>
+            <button onClick={()=>{vibrate(); openNew(false);}} style={{display:"flex",alignItems:"center",gap:8,border:`1px solid ${cardBorder}`,background:cardBg,color:textMain,borderRadius:999,padding:"9px 14px 9px 12px",fontSize:14,fontWeight:700,cursor:"pointer",boxShadow: dark ? "0 4px 12px rgba(0,0,0,0.25)" : "0 4px 12px rgba(0,0,0,0.10)"}}>
               <FileText size={16} color={accent}/> {lang==="bn"?"নোট":"Note"}
             </button>
           </div>
@@ -10701,10 +10701,10 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       {/* "নোট ট্র্যাশে গেছে" স্ন্যাকবার — Undo চাপলে সাথে সাথে ফিরে আসবে, নাহলে ৫ সেকেন্ড পর নিজে থেকেই লুকিয়ে যায় (নোটটা তখনও Trash-এই থাকে) */}
       {undo && (
         <div onClick={e=>e.stopPropagation()} style={{position:"fixed", left:16, right:16, bottom: isDesktop ? 28 : 96, maxWidth:420, margin:"0 auto", zIndex:42, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, background: dark ? "#2B281F" : "#1A1814", color:"#fff", borderRadius:14, padding:"12px 14px", boxShadow:"0 6px 16px rgba(0,0,0,0.16)"}}>
-          <span style={{fontSize:13, fontWeight:700, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+          <span style={{fontSize:14, fontWeight:700, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
             {lang==="bn" ? `"${undo.title}" ট্র্যাশে গেছে` : `"${undo.title}" moved to trash`}
           </span>
-          <button onClick={undoRemove} style={{flexShrink:0, border:"none", background:"transparent", color:accent, cursor:"pointer", fontSize:13, fontWeight:800, padding:"4px 6px"}}>
+          <button onClick={undoRemove} style={{flexShrink:0, border:"none", background:"transparent", color:accent, cursor:"pointer", fontSize:14, fontWeight:800, padding:"4px 6px"}}>
             {lang==="bn" ? "Undo" : "Undo"}
           </button>
         </div>
@@ -10715,19 +10715,19 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       {trashConfirm && (
         <div onClick={()=>setTrashConfirm(null)} style={{position:"fixed", inset:0, zIndex:60, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", padding:20}}>
           <div onClick={e=>e.stopPropagation()} style={{width:"100%", maxWidth:340, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:18, boxShadow:"0 10px 30px rgba(0,0,0,0.25)"}}>
-            <div style={{fontSize:14, fontWeight:800, color:textMain, marginBottom:6}}>
+            <div style={{fontSize:15, fontWeight:800, color:textMain, marginBottom:6}}>
               {lang==="bn" ? "নিশ্চিত করুন" : "Are you sure?"}
             </div>
-            <div style={{fontSize:12.5, color:textMuted2, lineHeight:1.5, marginBottom:16}}>
+            <div style={{fontSize:13.5, color:textMuted2, lineHeight:1.5, marginBottom:16}}>
               {trashConfirm.type === "one"
                 ? (lang==="bn" ? "এই নোটটা চিরতরে ডিলিট হবে। এটা আর ফেরত আনা যাবে না।" : "This note will be permanently deleted. This cannot be undone.")
                 : (lang==="bn" ? "ট্র্যাশের সব নোট চিরতরে ডিলিট হবে। এটা আর ফেরত আনা যাবে না।" : "All notes in Trash will be permanently deleted. This cannot be undone.")}
             </div>
             <div style={{display:"flex", gap:8, justifyContent:"flex-end"}}>
-              <button onClick={()=>setTrashConfirm(null)} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, borderRadius:10, padding:"8px 14px", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
+              <button onClick={()=>setTrashConfirm(null)} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, borderRadius:10, padding:"8px 14px", fontSize:13.5, fontWeight:700, cursor:"pointer"}}>
                 {lang==="bn" ? "বাতিল" : "Cancel"}
               </button>
-              <button onClick={confirmTrashAction} style={{border:"none", background:"#C54B4B", color:"#fff", borderRadius:10, padding:"8px 14px", fontSize:12.5, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", gap:6}}>
+              <button onClick={confirmTrashAction} style={{border:"none", background:"#C54B4B", color:"#fff", borderRadius:10, padding:"8px 14px", fontSize:13.5, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", gap:6}}>
                 <Trash2 size={13}/> {lang==="bn" ? "ডিলিট" : "Delete"}
               </button>
             </div>
@@ -10766,9 +10766,9 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               {showMoreMenu && (
                 <div onClick={e=>e.stopPropagation()} style={{position:"absolute",right:0,top:40,width:150,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:4,boxShadow:"0 6px 16px rgba(0,0,0,0.11)",zIndex:20}}>
                   {editing.id && (
-                    <button onClick={()=>remove(editing.id)} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:"#C54B4B",padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:12}}>{lang==="bn"?"ডিলিট":"Delete"}</button>
+                    <button onClick={()=>remove(editing.id)} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:"#C54B4B",padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:13}}>{lang==="bn"?"ডিলিট":"Delete"}</button>
                   )}
-                  <button onClick={closeEditor} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:textMain,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:12}}>{lang==="bn"?"বাতিল (সেভ ছাড়া)":"Discard"}</button>
+                  <button onClick={closeEditor} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:textMain,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:13}}>{lang==="bn"?"বাতিল (সেভ ছাড়া)":"Discard"}</button>
                 </div>
               )}
             </div>
@@ -10776,7 +10776,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
           {/* Created / edited date */}
           {editing.id && (
-            <div style={{fontSize:11,color:textMuted2,padding:"0 20px",marginBottom:8,flexShrink:0}}>
+            <div style={{fontSize:12,color:textMuted2,padding:"0 20px",marginBottom:8,flexShrink:0}}>
               {lang==="bn" ? "তৈরি" : "Created"}: {fullDateTimeLabel(editing.createdAt, lang)} · {lang==="bn" ? "সম্পাদিত" : "Edited"}: {fullDateTimeLabel(editing.updatedAt, lang)}
             </div>
           )}
@@ -10791,7 +10791,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               onChange={e=>setTitle(e.target.value)}
               onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
               placeholder={t.notesTitlePlaceholder}
-              style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",padding:"8px 0",fontSize:20,fontWeight:800,color:paperText,outline:"none",fontFamily:"inherit",marginBottom:2}}
+              style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",padding:"8px 0",fontSize:21,fontWeight:800,color:paperText,outline:"none",fontFamily:"inherit",marginBottom:2}}
             />
 
             {/* Checklist — টাইটেলের ঠিক পরেই আসে, বটম টুলবারের checklist আইকন দিয়ে দেখানো/লুকানো যায়; Google Keep-এর মতো
@@ -10804,7 +10804,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                       <div key={item.id} style={{display:"flex",alignItems:"center",gap:8}}>
                         <button
                           onClick={()=>setChecklist(prev=>prev.map((x,i)=>i===index?{...x,done:!x.done}:x))}
-                          style={{width:19,height:19,borderRadius:4,border:`1.5px solid ${item.done?accent:paperText}`,background:item.done?accent:"transparent",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",padding:0,cursor:"pointer",fontSize:12,flex:"0 0 auto"}}
+                          style={{width:19,height:19,borderRadius:4,border:`1.5px solid ${item.done?accent:paperText}`,background:item.done?accent:"transparent",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",padding:0,cursor:"pointer",fontSize:13,flex:"0 0 auto"}}
                         >
                           {item.done?"✓":""}
                         </button>
@@ -10825,7 +10825,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                           }}
                           onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
                           placeholder={lang==="bn"?"লিস্টে যোগ করুন":"List item"}
-                          style={{flex:1,minWidth:0,background:"transparent",border:"none",padding:"3px 0",fontSize:13,color:paperText,opacity:item.done?0.6:1,outline:"none",fontFamily:"inherit"}}
+                          style={{flex:1,minWidth:0,background:"transparent",border:"none",padding:"3px 0",fontSize:14,color:paperText,opacity:item.done?0.6:1,outline:"none",fontFamily:"inherit"}}
                         />
                         <button onClick={()=>setChecklist(prev=>prev.filter((_,i)=>i!==index))} style={{border:"none",background:"transparent",color:paperText,opacity:0.6,cursor:"pointer",padding:2}}><X size={14}/></button>
                       </div>
@@ -10836,7 +10836,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                   <div style={{width:19,height:19,borderRadius:4,border:`1.5px solid ${paperText}`,opacity:0.4,flex:"0 0 auto",display:"flex",alignItems:"center",justifyContent:"center"}}>
                     <Plus size={12} color={paperText} style={{opacity:0.7}}/>
                   </div>
-                  <span style={{fontSize:13,color:paperText,opacity:0.55}}>{lang==="bn"?"লিস্টে যোগ করুন":"List item"}</span>
+                  <span style={{fontSize:14,color:paperText,opacity:0.55}}>{lang==="bn"?"লিস্টে যোগ করুন":"List item"}</span>
                 </button>
               </div>
             )}
@@ -10948,7 +10948,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               <ListChecks size={19}/>
             </button>
             <button onClick={()=>{setShowFormatBar(v=>!v);setShowBgColorPicker(false);}} title={lang==="bn"?"টেক্সট ফরম্যাটিং":"Text formatting"}
-              style={{border:"none",background:showFormatBar?toolbarActiveBg:"transparent",color:showFormatBar?accent:iconColor,cursor:"pointer",padding:"9px 10px",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:13,fontFamily:"inherit"}}>
+              style={{border:"none",background:showFormatBar?toolbarActiveBg:"transparent",color:showFormatBar?accent:iconColor,cursor:"pointer",padding:"9px 10px",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14,fontFamily:"inherit"}}>
               Aa
             </button>
             <button onClick={()=>{setShowBgColorPicker(v=>!v);setShowChecklist(false);setShowColorPicker(false);}} title={lang==="bn"?"নোটের রঙ":"Note color"}
@@ -10962,19 +10962,19 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
             <div style={{display:"flex",alignItems:"center",gap:2,marginLeft:2}}>
               <button onMouseDown={e=>e.preventDefault()} onClick={()=>applyFontSizeDelta(-FONT_STEP)} disabled={activeFontSize<=FONT_MIN}
                 title={lang==="bn"?"ছোট ফন্ট":"Smaller text"}
-                style={{border:"none",background:"transparent",color:iconColor,opacity:activeFontSize<=FONT_MIN?0.35:1,cursor:activeFontSize<=FONT_MIN?"default":"pointer",padding:"9px 7px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:12,lineHeight:1}}>
+                style={{border:"none",background:"transparent",color:iconColor,opacity:activeFontSize<=FONT_MIN?0.35:1,cursor:activeFontSize<=FONT_MIN?"default":"pointer",padding:"9px 7px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:13,lineHeight:1}}>
                 A
               </button>
               <button onMouseDown={e=>e.preventDefault()} onClick={()=>applyFontSizeDelta(FONT_STEP)} disabled={activeFontSize>=FONT_MAX}
                 title={lang==="bn"?"বড় ফন্ট":"Larger text"}
-                style={{border:"none",background:"transparent",color:iconColor,opacity:activeFontSize>=FONT_MAX?0.35:1,cursor:activeFontSize>=FONT_MAX?"default":"pointer",padding:"9px 7px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:18,lineHeight:1}}>
+                style={{border:"none",background:"transparent",color:iconColor,opacity:activeFontSize>=FONT_MAX?0.35:1,cursor:activeFontSize>=FONT_MAX?"default":"pointer",padding:"9px 7px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:19,lineHeight:1}}>
                 A
               </button>
             </div>
             <div style={{flex:1}}/>
             <div style={{position:"relative"}}>
               <button onClick={()=>{setShowColorPicker(v=>!v);setShowChecklist(false);setShowBgColorPicker(false);}}
-                style={{border:"none",fontSize:11,fontWeight:800,color:noteCol.text,background:noteCol.bg,padding:"4px 11px",borderRadius:14,cursor:"pointer"}}>
+                style={{border:"none",fontSize:12,fontWeight:800,color:noteCol.text,background:noteCol.bg,padding:"4px 11px",borderRadius:14,cursor:"pointer"}}>
                 {category}
               </button>
               {/* ক্যাটাগরি লিস্ট — "General" পিলে ট্যাপ করলে ভাসমান প্যানেল হিসেবে উপরে খোলে; চেপে ধরলে Rename/Delete */}
@@ -10999,18 +10999,18 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                             display:"flex",alignItems:"center",gap:4,
                             background:c.bg, color:c.text,
                             border: selected ? `1.5px solid ${paperText}` : "1px solid transparent",
-                            borderRadius:999,padding:"6px 12px",fontSize:12,fontWeight:800,cursor:"pointer",whiteSpace:"nowrap"
+                            borderRadius:999,padding:"6px 12px",fontSize:13,fontWeight:800,cursor:"pointer",whiteSpace:"nowrap"
                           }}>
                             {selected && <Check size={12}/>}
                             {cat}
                           </button>
                           {categoryMenuFor === cat && (
                             <div onClick={e=>e.stopPropagation()} style={{position:"absolute",bottom:"calc(100% + 4px)",left:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:4,boxShadow:"0 6px 16px rgba(0,0,0,0.11)",zIndex:31,display:"flex",flexDirection:"column",minWidth:128}}>
-                              <button onClick={()=>{renameCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12,fontWeight:700,color:textMain,cursor:"pointer",borderRadius:8}}>
+                              <button onClick={()=>{renameCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:13,fontWeight:700,color:textMain,cursor:"pointer",borderRadius:8}}>
                                 <Pencil size={13}/> {lang==="bn"?"নাম পরিবর্তন":"Rename"}
                               </button>
                               {cat !== "General" && (
-                                <button onClick={()=>{deleteCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12,fontWeight:700,color:"#C54B4B",cursor:"pointer",borderRadius:8}}>
+                                <button onClick={()=>{deleteCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:13,fontWeight:700,color:"#C54B4B",cursor:"pointer",borderRadius:8}}>
                                   <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
                                 </button>
                               )}
@@ -11019,7 +11019,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
                         </div>
                       );
                     })}
-                    <button onClick={addCategory} style={{flex:"0 0 auto",border:`1.5px dashed ${paperText}`,background:"transparent",color:paperText,borderRadius:999,padding:"6px 12px",fontSize:12,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",gap:4,whiteSpace:"nowrap"}}>
+                    <button onClick={addCategory} style={{flex:"0 0 auto",border:`1.5px dashed ${paperText}`,background:"transparent",color:paperText,borderRadius:999,padding:"6px 12px",fontSize:13,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",gap:4,whiteSpace:"nowrap"}}>
                       <Plus size={12}/> {lang==="bn"?"নতুন":"New"}
                     </button>
                   </div>
@@ -11043,7 +11043,7 @@ function TaskDetailSheet({ task, priorityLabel, priorityColor, lang, nf, onClose
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:"80vh", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"14px 14px 0 0", padding:"18px 20px 26px", color:textMain}}>
         <div style={{width:36, height:4, borderRadius:4, background:cardBorder, margin:"0 auto 14px"}}/>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10}}>
-          <div style={{flex:1, fontSize:16, fontWeight:700, lineHeight:1.35, wordBreak:"break-word", opacity: task.done?0.6:1}}>
+          <div style={{flex:1, fontSize:17, fontWeight:700, lineHeight:1.35, wordBreak:"break-word", opacity: task.done?0.6:1}}>
             {task.title}
           </div>
           <div style={{position:"relative", flexShrink:0}}>
@@ -11056,20 +11056,20 @@ function TaskDetailSheet({ task, priorityLabel, priorityColor, lang, nf, onClose
                 <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 4px 12px rgba(0,0,0,0.08)", zIndex:60, minWidth:150, overflow:"hidden"}}>
                   {confirmDelete ? (
                     <>
-                      <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:600}}>{lang==="bn"?"টাস্কটি ডিলিট করবেন?":"Delete this task?"}</div>
-                      <button onClick={()=>{ closeMenu(); onDelete(); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:700, cursor:"pointer", textAlign:"left"}}>
+                      <div style={{padding:"9px 12px", fontSize:13, color:textMuted2, fontWeight:600}}>{lang==="bn"?"টাস্কটি ডিলিট করবেন?":"Delete this task?"}</div>
+                      <button onClick={()=>{ closeMenu(); onDelete(); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:14, fontWeight:700, cursor:"pointer", textAlign:"left"}}>
                         <Trash2 size={13}/> {lang==="bn"?"ডিলিট নিশ্চিত করুন":"Confirm delete"}
                       </button>
-                      <button onClick={()=>setConfirmDelete(false)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                      <button onClick={()=>setConfirmDelete(false)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:14, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
                         {lang==="bn"?"বাতিল":"Cancel"}
                       </button>
                     </>
                   ) : (
                     <>
-                      <button onClick={()=>{ closeMenu(); onEdit(); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                      <button onClick={()=>{ closeMenu(); onEdit(); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:14, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
                         <Pencil size={13}/> {lang==="bn"?"এডিট":"Edit"}
                       </button>
-                      <button onClick={()=>setConfirmDelete(true)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                      <button onClick={()=>setConfirmDelete(true)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:14, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
                         <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
                       </button>
                     </>
@@ -11083,30 +11083,30 @@ function TaskDetailSheet({ task, priorityLabel, priorityColor, lang, nf, onClose
           </button>
         </div>
 
-        <button onClick={onToggleDone} style={{display:"flex", alignItems:"center", gap:8, border:`1px solid ${task.done ? "#6E8B5E" : cardBorder}`, background: task.done ? "rgba(110,139,94,0.1)" : "transparent", color: task.done ? "#6E8B5E" : textMuted2, borderRadius:12, padding:"8px 12px", fontSize:13, fontWeight:700, cursor:"pointer", marginTop:14}}>
+        <button onClick={onToggleDone} style={{display:"flex", alignItems:"center", gap:8, border:`1px solid ${task.done ? "#6E8B5E" : cardBorder}`, background: task.done ? "rgba(110,139,94,0.1)" : "transparent", color: task.done ? "#6E8B5E" : textMuted2, borderRadius:12, padding:"8px 12px", fontSize:14, fontWeight:700, cursor:"pointer", marginTop:14}}>
           <span style={{width:16, height:16, borderRadius:"50%", border:`2px solid ${task.done ? "#6E8B5E" : textMuted2}`, background: task.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
             {task.done && <Check size={10} color="#fff" strokeWidth={3}/>}
           </span>
           {task.done ? (lang==="bn" ? "সম্পন্ন হয়েছে" : "Completed") : (lang==="bn" ? "সম্পন্ন হিসেবে চিহ্নিত করুন" : "Mark as done")}
         </button>
 
-        <div style={{fontSize:10, fontWeight:700, letterSpacing:0.5, color:textMuted2, textTransform:"uppercase", marginTop:18, marginBottom:6}}>{lang==="bn"?"প্রায়োরিটি":"Priority"}</div>
-        <span style={{display:"inline-flex", alignItems:"center", gap:4, fontSize:12, fontWeight:700, color:priorityColor, background:`${priorityColor}1A`, borderRadius:8, padding:"5px 10px"}}>
+        <div style={{fontSize:11, fontWeight:700, letterSpacing:0.5, color:textMuted2, textTransform:"uppercase", marginTop:18, marginBottom:6}}>{lang==="bn"?"প্রায়োরিটি":"Priority"}</div>
+        <span style={{display:"inline-flex", alignItems:"center", gap:4, fontSize:13, fontWeight:700, color:priorityColor, background:`${priorityColor}1A`, borderRadius:8, padding:"5px 10px"}}>
           <span style={{width:6,height:6,borderRadius:"50%", background:priorityColor}}/>
           {priorityLabel}
         </span>
 
         {task.dueDate && (
           <>
-            <div style={{fontSize:10, fontWeight:700, letterSpacing:0.5, color:textMuted2, textTransform:"uppercase", marginTop:16, marginBottom:6}}>{lang==="bn"?"ডিউ ডেট":"Due Date"}</div>
-            <div style={{fontSize:13, fontWeight:500, color:textMain}}>
+            <div style={{fontSize:11, fontWeight:700, letterSpacing:0.5, color:textMuted2, textTransform:"uppercase", marginTop:16, marginBottom:6}}>{lang==="bn"?"ডিউ ডেট":"Due Date"}</div>
+            <div style={{fontSize:14, fontWeight:500, color:textMain}}>
               {new Date(task.dueDate+"T00:00:00").toLocaleDateString(lang==="bn"?"bn-BD":"en-US", {day:"numeric", month:"short", year:"numeric"})}
             </div>
           </>
         )}
 
-        <div style={{fontSize:10, fontWeight:700, letterSpacing:0.5, color:textMuted2, textTransform:"uppercase", marginTop:16, marginBottom:6}}>{lang==="bn"?"নোট":"Note"}</div>
-        <div style={{fontSize:13, fontWeight:400, lineHeight:1.55, color: task.note ? textMain : textMuted2, background:bg, borderRadius:12, padding:"10px 12px", minHeight:20, whiteSpace:"pre-wrap", wordBreak:"break-word"}}>
+        <div style={{fontSize:11, fontWeight:700, letterSpacing:0.5, color:textMuted2, textTransform:"uppercase", marginTop:16, marginBottom:6}}>{lang==="bn"?"নোট":"Note"}</div>
+        <div style={{fontSize:14, fontWeight:400, lineHeight:1.55, color: task.note ? textMain : textMuted2, background:bg, borderRadius:12, padding:"10px 12px", minHeight:20, whiteSpace:"pre-wrap", wordBreak:"break-word"}}>
           {task.note || (lang==="bn" ? "কোনো নোট নেই — এডিট করে যোগ করুন।" : "No note yet — tap edit to add one.")}
         </div>
       </div>
@@ -11160,19 +11160,19 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
     <div className="fg-sheet-backdrop" style={{position:"fixed", left:0, top:0, width:"100%", height:vh, transition:"height .18s ease", background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div ref={sheetRef} className="fg-sheet" onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:Math.max(320, vh - 24), transition:"max-height .18s ease", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"20px 20px 0 0", padding:"14px 16px 18px", color:textMain}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
-          <div style={{fontSize:15, fontWeight:800}}>{isEditing ? (lang==="bn" ? "টাস্ক এডিট করুন" : "Edit Task") : t.taskAdd}</div>
+          <div style={{fontSize:16, fontWeight:800}}>{isEditing ? (lang==="bn" ? "টাস্ক এডিট করুন" : "Edit Task") : t.taskAdd}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:2}}><X size={18}/></button>
         </div>
 
         <input ref={titleInputRef} value={title} onChange={e=>setTitle(e.target.value)} placeholder={t.taskTitlePlaceholder}
           onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
-          style={{width:"100%", boxSizing:"border-box", background:bg, border:`1px solid ${cardBorder}`, borderRadius:11, padding:"9px 12px", fontSize:13.5, color:textMain, outline:"none", fontFamily:"inherit", marginBottom:9}}/>
+          style={{width:"100%", boxSizing:"border-box", background:bg, border:`1px solid ${cardBorder}`, borderRadius:11, padding:"9px 12px", fontSize:14.5, color:textMain, outline:"none", fontFamily:"inherit", marginBottom:9}}/>
 
         <div style={{display:"flex", alignItems:"center", gap:6, marginBottom:9}}>
           <div style={{flex:1, minWidth:0, display:"flex", alignItems:"center", gap:5, background:bg, border:`1px solid ${cardBorder}`, borderRadius:11, padding:"7px 9px"}}>
             <CalendarDays size={13} color={textMuted2} style={{flexShrink:0}}/>
             <input type="date" value={dueDate} onChange={e=>setDueDate(e.target.value)}
-              style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:12.5, color:textMain, outline:"none", fontFamily:"inherit"}}/>
+              style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:13.5, color:textMain, outline:"none", fontFamily:"inherit"}}/>
           </div>
 
           {/* রিমাইন্ডার — ডেট ফিল্ডের ঠিক পাশে, "More options" খোলার দরকার নেই। ডেট সিলেক্ট না থাকলে নিষ্ক্রিয়/ঘোলা দেখাবে। */}
@@ -11180,7 +11180,7 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
             style={{flex:1, minWidth:0, display:"flex", alignItems:"center", gap:5, background:bg, border:`1px solid ${cardBorder}`, borderRadius:11, padding:"7px 9px", opacity: dueDate ? 1 : 0.45}}>
             <Bell size={13} color={textMuted2} style={{flexShrink:0}}/>
             <input type="time" value={reminderTime} disabled={!dueDate} onChange={e=>setReminderTime(e.target.value)}
-              style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:12.5, color:textMain, outline:"none", fontFamily:"inherit"}}/>
+              style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:13.5, color:textMain, outline:"none", fontFamily:"inherit"}}/>
           </div>
 
           {(dueDate || reminderTime) && (
@@ -11190,21 +11190,21 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
           )}
         </div>
 
-        <button onClick={()=>setShowMore(v=>!v)} style={{display:"flex", alignItems:"center", gap:5, border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:"2px 0", fontSize:11.5, fontWeight:800, marginBottom: showMore ? 10 : 12}}>
+        <button onClick={()=>setShowMore(v=>!v)} style={{display:"flex", alignItems:"center", gap:5, border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:"2px 0", fontSize:12.5, fontWeight:800, marginBottom: showMore ? 10 : 12}}>
           <ChevronDown size={13} style={{transform: showMore ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
           {showMore ? (lang==="bn" ? "কম দেখাও" : "Fewer options") : (lang==="bn" ? "আরও অপশন" : "More options")}
         </button>
 
         {showMore && (
           <>
-            <div style={{fontSize:10.5, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.taskPriority}</div>
+            <div style={{fontSize:11.5, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.taskPriority}</div>
             <div style={{display:"flex", gap:6, marginBottom:12}}>
               {["high","med","low"].map(p => (
                 <button key={p} onClick={()=>setPriority(p)} style={{
                   flex:1, padding:"6px 0", borderRadius:10, cursor:"pointer",
                   border:`1.5px solid ${priority===p ? prColor[p] : cardBorder}`,
                   background: priority===p ? `${prColor[p]}14` : "transparent",
-                  color: priority===p ? prColor[p] : textMuted2, fontWeight:700, fontSize:12,
+                  color: priority===p ? prColor[p] : textMuted2, fontWeight:700, fontSize:13,
                 }}>
                   {prLabel[p]}
                 </button>
@@ -11213,7 +11213,7 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
 
             <div style={{display:"flex", alignItems:"center", gap:5, marginBottom:6}}>
               <Repeat size={11} color={textMuted2}/>
-              <div style={{fontSize:10.5, fontWeight:700, color:textMuted2}}>{t.taskRepeat}</div>
+              <div style={{fontSize:11.5, fontWeight:700, color:textMuted2}}>{t.taskRepeat}</div>
             </div>
             <div style={{display:"flex", gap:6, marginBottom:12, overflowX:"auto"}}>
               {[["none", t.taskRepeatNone], ["daily", t.taskRepeatDaily], ["weekly", t.taskRepeatWeekly], ["monthly", t.taskRepeatMonthly]].map(([r,label]) => (
@@ -11221,20 +11221,20 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
                   flex:1, padding:"6px 4px", borderRadius:10, cursor:"pointer", flexShrink:0, whiteSpace:"nowrap",
                   border:`1.5px solid ${repeat===r ? accent : cardBorder}`,
                   background: repeat===r ? "rgba(217,119,87,0.08)" : "transparent",
-                  color: repeat===r ? accent : textMuted2, fontWeight:700, fontSize:11.5,
+                  color: repeat===r ? accent : textMuted2, fontWeight:700, fontSize:12.5,
                 }}>
                   {label}
                 </button>
               ))}
             </div>
 
-            <div style={{fontSize:10.5, fontWeight:700, color:textMuted2, marginBottom:6}}>{lang==="bn" ? "নোট (ঐচ্ছিক)" : "Note (optional)"}</div>
+            <div style={{fontSize:11.5, fontWeight:700, color:textMuted2, marginBottom:6}}>{lang==="bn" ? "নোট (ঐচ্ছিক)" : "Note (optional)"}</div>
             <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder={lang==="bn" ? "কোনো নোট লিখুন..." : "Add a note..."}
-              style={{width:"100%", boxSizing:"border-box", minHeight:46, background:bg, border:`1px solid ${cardBorder}`, borderRadius:10, padding:"7px 10px", fontSize:12.5, color:textMain, outline:"none", fontFamily:"inherit", resize:"none", marginBottom:12}}/>
+              style={{width:"100%", boxSizing:"border-box", minHeight:46, background:bg, border:`1px solid ${cardBorder}`, borderRadius:10, padding:"7px 10px", fontSize:13.5, color:textMain, outline:"none", fontFamily:"inherit", resize:"none", marginBottom:12}}/>
           </>
         )}
 
-        <button onClick={submit} disabled={!isEditing && !title.trim()} style={{width:"100%", padding:"10px 0", borderRadius:12, border:"none", background:accent, color:"#fff", fontWeight:700, fontSize:13, cursor: (isEditing || title.trim()) ? "pointer" : "not-allowed", opacity: (isEditing || title.trim()) ? 1 : 0.45}}>
+        <button onClick={submit} disabled={!isEditing && !title.trim()} style={{width:"100%", padding:"10px 0", borderRadius:12, border:"none", background:accent, color:"#fff", fontWeight:700, fontSize:14, cursor: (isEditing || title.trim()) ? "pointer" : "not-allowed", opacity: (isEditing || title.trim()) ? 1 : 0.45}}>
           {isEditing ? (lang==="bn" ? "সেভ করুন" : "Save Changes") : t.taskAddBtn}
         </button>
       </div>
@@ -11257,16 +11257,16 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:50, padding:16}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, borderRadius:14, padding:20, color:textMain}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
-          <div style={{fontSize:16, fontWeight:800}}>{t.monthOverview}</div>
+          <div style={{fontSize:17, fontWeight:800}}>{t.monthOverview}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", margin:"10px 0 14px"}}>
           <button onClick={()=>setCalMonth(new Date(y,m-1,1))} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, width:32,height:32, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", color:textMain}}><ChevronLeft size={16}/></button>
-          <div style={{fontWeight:700, fontSize:16}}>{monthName(m)} <Num>{nf(y)}</Num></div>
+          <div style={{fontWeight:700, fontSize:17}}>{monthName(m)} <Num>{nf(y)}</Num></div>
           <button onClick={()=>setCalMonth(new Date(y,m+1,1))} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, width:32,height:32, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", color:textMain}}><ChevronRight size={16}/></button>
         </div>
         <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4, marginBottom:6}}>
-          {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:10, fontWeight:700, color:textMuted2}}>{d}</div>))}
+          {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:11, fontWeight:700, color:textMuted2}}>{d}</div>))}
         </div>
         <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4}}>
           {cells.map((d,i) => {
@@ -11285,7 +11285,7 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
                 style={{position:"relative", aspectRatio:"1", border: isToday ? `1.5px solid ${accent}` : "1px solid transparent", borderRadius:10, background: dark?"#0A0A0A":"#F8F5EE", cursor:(future&&!hasAny)?"default":"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4, opacity: (future&&!hasAny)?0.4:1}}>
                 {isExam && <span style={{position:"absolute", top:4, right:4, width:5, height:5, borderRadius:"50%", background: dark ? "#F3F1F8" : "#1A1814"}}/>}
                 {isHoliday && <span style={{position:"absolute", top:4, left:4, width:5, height:5, borderRadius:"50%", background:"#C0392B"}}/>}
-                <span style={{fontSize:12, fontWeight:600, color:textMain}}><Num>{nf(d.getDate())}</Num></span>
+                <span style={{fontSize:13, fontWeight:600, color:textMain}}><Num>{nf(d.getDate())}</Num></span>
                 <span style={{width:5,height:5,borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : (dark ? "#F3F1F8" : "#1A1814"))}}/>
               </button>
             );
@@ -11293,16 +11293,16 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
         </div>
         {/* Calendar legend */}
         <div style={{display:"flex", justifyContent:"center", alignItems:"center", gap:12, marginTop:14, flexWrap:"wrap"}}>
-          <span style={{display:"flex", alignItems:"center", gap:4, fontSize:10, color:textMuted2, fontWeight:600}}>
+          <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
             <span style={{width:6,height:6,borderRadius:"50%", background:"#6E8B5E"}}/>{t.calendarLegendCompleted}
           </span>
-          <span style={{display:"flex", alignItems:"center", gap:4, fontSize:10, color:textMuted2, fontWeight:600}}>
+          <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
             <span style={{width:6,height:6,borderRadius:"50%", background: dark ? "#F3F1F8" : "#1A1814"}}/>{t.calendarLegendExam}
           </span>
-          <span style={{display:"flex", alignItems:"center", gap:4, fontSize:10, color:textMuted2, fontWeight:600}}>
+          <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
             <span style={{width:6,height:6,borderRadius:"50%", background:(dark ? "#F3F1F8" : "#1A1814")}}/>{t.calendarLegendPlanned}
           </span>
-          <span style={{display:"flex", alignItems:"center", gap:4, fontSize:10, color:textMuted2, fontWeight:600}}>
+          <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11, color:textMuted2, fontWeight:600}}>
             <span style={{width:6,height:6,borderRadius:"50%", background:"#C0392B"}}/>{t.calendarLegendHoliday}
           </span>
         </div>
@@ -11323,31 +11323,31 @@ function DayDetailModal({ t, lang, nf, weekdayName, monthName, day, entries, all
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"75vh", overflowY:"auto"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4}}>
           <div>
-            <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>{weekdayName(day)}</div>
-            <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3}}><Num>{nf(day.getDate())}</Num> {monthName(day.getMonth())}, <Num>{nf(day.getFullYear())}</Num></div>
+            <div style={{fontSize:12, fontWeight:700, color:textMuted2}}>{weekdayName(day)}</div>
+            <div style={{fontSize:21, fontWeight:800, letterSpacing:-0.3}}><Num>{nf(day.getDate())}</Num> {monthName(day.getMonth())}, <Num>{nf(day.getFullYear())}</Num></div>
           </div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
         {isHolidayKey(dk) && (
           <div style={{marginTop:12, display:"flex", alignItems:"center", gap:8, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 12px"}}>
             <span style={{width:8,height:8,borderRadius:"50%", background:"#C0392B", flexShrink:0}}/>
-            <span style={{fontSize:13, fontWeight:700, color:textMain}}>{holidayName(dk, lang)}</span>
+            <span style={{fontSize:14, fontWeight:700, color:textMain}}>{holidayName(dk, lang)}</span>
           </div>
         )}
         {hasAnyStat && (
           <div style={{display:"flex", flexDirection:"column", gap:8, marginTop:14, background: dark?"rgba(237,236,242,0.08)":"rgba(26,24,20,0.05)", border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px"}}>
             {doneCount > 0 && (
-              <div style={{display:"flex", alignItems:"center", gap:8, fontSize:13, fontWeight:600, color:"#6E8B5E"}}>
+              <div style={{display:"flex", alignItems:"center", gap:8, fontSize:14, fontWeight:600, color:"#6E8B5E"}}>
                 <Check size={14} strokeWidth={3}/><span><Num>{nf(doneCount)}</Num> {t.topicsCompletedLabel}</span>
               </div>
             )}
             {focusedMin > 0 && (
-              <div style={{display:"flex", alignItems:"center", gap:8, fontSize:13, fontWeight:600, color:(dark ? "#F3F1F8" : "#1A1814")}}>
+              <div style={{display:"flex", alignItems:"center", gap:8, fontSize:14, fontWeight:600, color:(dark ? "#F3F1F8" : "#1A1814")}}>
                 <Clock size={14}/><span>{fh > 0 && <><Num>{nf(fh)}</Num>h </>}<Num>{nf(fm)}</Num>m {t.dayFocusedLabel}</span>
               </div>
             )}
             {tasksRemaining > 0 && (
-              <div style={{display:"flex", alignItems:"center", gap:8, fontSize:13, fontWeight:600, color:textMuted2}}>
+              <div style={{display:"flex", alignItems:"center", gap:8, fontSize:14, fontWeight:600, color:textMuted2}}>
                 <span style={{width:14, display:"flex", justifyContent:"center"}}>○</span><span><Num>{nf(tasksRemaining)}</Num> {t.tasksRemainingLabel}</span>
               </div>
             )}
