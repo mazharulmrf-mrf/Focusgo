@@ -8944,12 +8944,12 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
             transition:"background .15s ease, border-color .15s ease",
           }}>
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
-              <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0, flex:1}}>
+              <div style={{display:"flex", alignItems:"center", gap:9, minWidth:0, flex:1}}>
                 <button onClick={onToggle ? ()=>onToggle(item.id) : undefined} disabled={!onToggle} title={item.done ? t.markUndone || t.done : t.markDone || t.done}
                   style={{width:17, height:17, borderRadius:"50%", flexShrink:0, border:`2px solid ${item.done ? "#6E8B5E" : c.bg}`, background: item.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", cursor: onToggle?"pointer":"default", padding:0, transition:"background-color .2s ease, border-color .2s ease"}}>
                   {item.done && <Check size={10} color="#fff" strokeWidth={3.4}/>}
                 </button>
-                <span style={{display:"inline-block", fontSize:10, fontWeight:700, letterSpacing:ls(0.4), textTransform:"uppercase", color:c.bg, background:c.bgSoft, borderRadius:6, padding:"2px 7px", minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{item.subject.toUpperCase()}</span>
+                <span style={{fontSize:14.5, fontWeight:600, wordBreak:"break-word", opacity: item.done ? 0.6 : 1, lineHeight:1.3, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{item.topic}</span>
               </div>
               <div style={{display:"flex", alignItems:"center", gap:4, flexShrink:0}}>
                 {onStartTimer && !item.done && (
@@ -9004,27 +9004,13 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
               </div>
             </div>
 
-            <div style={{marginTop:6}}>
-              <div style={{fontSize:15, fontWeight:700, wordBreak:"break-word", opacity: item.done ? 0.6 : 1, lineHeight:1.3, marginBottom:2}}>{item.topic}</div>
-              {isActiveTimer ? (
+            {isActiveTimer && (
+              <div style={{marginTop:6, marginLeft:26}}>
                 <div className={timerRunning ? "fg-timer-running" : undefined} style={{fontSize:12, fontWeight:600, fontVariantNumeric:"tabular-nums", color:c.bg, whiteSpace:"nowrap"}}>
                   <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num> <span style={{fontSize:10, fontWeight:500, opacity:0.85}}>{t.timeRemainingLabel}</span>
                 </div>
-              ) : (
-                <div style={{fontSize:12, fontWeight:500, color:textMuted2}}>
-                  {item.time ? (() => {
-                    const st = parseTime12(item.time);
-                    const et = item.endTime ? parseTime12(item.endTime) : null;
-                    if (!st) return <span style={{fontSize:11}}>{t.noTimeSet}</span>;
-                    const stPart = <><Num>{nf(st.h12)}</Num>:<Num>{nf(pad2(st.m))}</Num> <span style={{fontSize:10}}>{st.pm ? t.pmLabel : t.amLabel}</span></>;
-                    if (!et) return stPart;
-                    const etPart = <><Num>{nf(et.h12)}</Num>:<Num>{nf(pad2(et.m))}</Num> <span style={{fontSize:10}}>{et.pm ? t.pmLabel : t.amLabel}</span></>;
-                    return <>{stPart}–{etPart}</>;
-                  })() : <span style={{fontSize:11}}>{t.noTimeSet}</span>}
-                  {!isActiveTimer && item.duration > 0 && <span style={{opacity:0.7}}> · <Num>{nf(item.duration)}</Num> {t.minutes}</span>}
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         );
       })}
