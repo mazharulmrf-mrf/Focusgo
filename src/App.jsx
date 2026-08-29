@@ -6406,33 +6406,33 @@ export default function FocusGo() {
             borderTop: tab === "today" ? "none" : `1px solid ${dark ? cardBorder : "#F0EEE8"}`,
             background: dark ? cardBg : "#FFFFFF",
             borderRadius: tab === "today" ? "0 0 14px 14px" : 14,
-            padding: tab === "today" ? "9px 16px 11px" : "12px 16px 14px",
+            padding: tab === "today" ? "7px 14px 8px" : "10px 14px 11px",
             position:"relative", overflow:"hidden",
             boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.24)" : "0 14px 34px rgba(32,34,43,0.08)"
           }}>
-          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
-            <div style={{display:"flex", alignItems:"center", gap:10, minWidth:0}}>
+          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}>
+            <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
               <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
-                size={48} stroke={5} accent={accent} trackColor={`${accent}40`} textMain={inkColor} nf={nf}/>
+                size={38} stroke={4} accent={accent} trackColor={`${accent}40`} textMain={inkColor} nf={nf}/>
               <div style={{minWidth:0}}>
-                <div style={{fontSize:13, fontWeight:600, color:inkColor, marginBottom:4}}>{t.todaysProgress}</div>
-                <div style={{display:"flex", alignItems:"center", gap:7, fontSize:12, fontWeight:500, whiteSpace:"nowrap"}}>
+                <div style={{fontSize:12, fontWeight:600, color:inkColor, marginBottom:2}}>{t.todaysProgress}</div>
+                <div style={{display:"flex", alignItems:"center", gap:6, fontSize:11, fontWeight:500, whiteSpace:"nowrap"}}>
                   <span style={{display:"inline-flex", alignItems:"center", gap:3, color:inkA(0.82)}}>
-                    <Check size={12} strokeWidth={3}/> <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.progressCompletedLabel}
+                    <Check size={11} strokeWidth={3}/> <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.progressCompletedLabel}
                   </span>
                   <span style={{color:inkA(0.3), fontWeight:400}}>|</span>
                   <span style={{display:"inline-flex", alignItems:"center", gap:3, color:inkA(0.82)}}>
-                    <Clock size={12}/> <Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}
+                    <Clock size={11}/> <Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}
                   </span>
                 </div>
               </div>
             </div>
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:2, paddingLeft:12, borderLeft: `1px solid ${accent}25`}}>
-              <div style={{width:28, height:28, borderRadius:"50%", background: `${accent}22`, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                <Flame size={14} color={accent} fill={`${accent}55`}/>
+            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:1, paddingLeft:10, borderLeft: `1px solid ${accent}25`}}>
+              <div style={{width:22, height:22, borderRadius:"50%", background: `${accent}22`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                <Flame size={12} color={accent} fill={`${accent}55`}/>
               </div>
-              <div style={{fontSize:14, fontWeight:600, color:inkColor, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
-              <div style={{fontSize:9.5, color:inkA(0.75), fontWeight:500, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
+              <div style={{fontSize:12.5, fontWeight:600, color:inkColor, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
+              <div style={{fontSize:8.5, color:inkA(0.75), fontWeight:500, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
             </div>
           </div>
           {/* Today's Tasks mini-summary — merged into the progress card so the card previews task progress at a glance, matching the home page mockup */}
@@ -6443,14 +6443,14 @@ export default function FocusGo() {
             const cardPct = hasTasks ? Math.round((cardDone / cardTodayTasks.length) * 100) : 0;
             const cardLeft = cardTodayTasks.length - cardDone;
             return (
-              <div style={{marginTop:8, paddingTop:8, borderTop:`1px solid ${accent}25`}}>
-                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:5}}>
-                  <div style={{fontSize:12.5, fontWeight:600, color:inkColor}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
-                  <div style={{fontSize:10.5, fontWeight:500, color:inkA(0.75), whiteSpace:"nowrap"}}>
+              <div style={{marginTop:6, paddingTop:6, borderTop:`1px solid ${accent}25`}}>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4}}>
+                  <div style={{fontSize:11.5, fontWeight:600, color:inkColor}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
+                  <div style={{fontSize:10, fontWeight:500, color:inkA(0.75), whiteSpace:"nowrap"}}>
                     {!hasTasks ? (lang==="bn" ? "কোনো টাস্ক নেই" : "No tasks today") : cardLeft > 0 ? (lang==="bn" ? `${nf(cardDone)}/${nf(cardTodayTasks.length)} সম্পন্ন` : `${cardDone}/${cardTodayTasks.length} completed`) : t.taskAllDoneLabel}
                   </div>
                 </div>
-                <div style={{height:5, borderRadius:8, background: `${accent}33`, overflow:"hidden"}}>
+                <div style={{height:4, borderRadius:8, background: `${accent}33`, overflow:"hidden"}}>
                   <div style={{width: hasTasks ? `${cardPct}%` : "0%", height:"100%", borderRadius:8, background:accent, transition:"width .25s ease"}}/>
                 </div>
               </div>
