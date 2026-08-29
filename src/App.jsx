@@ -5280,10 +5280,13 @@ export default function FocusGo() {
       document.body.style.background = themeColor;
       document.documentElement.style.colorScheme = dark ? "dark" : "light";
       document.body.style.margin = "0";
-      // আগে এখানে overscrollBehaviorY:"none" সেট করা হতো, যেটা ব্রাউজারের নিজস্ব
-      // "উপর থেকে টেনে রিফ্রেশ" (pull-to-refresh) গেসচারটাও বন্ধ করে দিচ্ছিল।
-      // এখন সেটা সরিয়ে দেওয়া হলো, যাতে ইউজার চাইলে উপর থেকে নিচে ধীরে টেনে
-      // পেজ ম্যানুয়ালি রিফ্রেশ করতে পারে (কোনো auto-refresh নেই, শুধু এই gesture)।
+      // overscrollBehaviorY:"none" আবার চালু করা হলো — এটা সরানোর পর ব্রাউজারের নিজস্ব
+      // rubber-band/bounce গেসচার (উপর থেকে টেনে ধরলে পুরো অ্যাপ নিচে সরে গিয়ে পেছনের
+      // কালো ব্যাকগ্রাউন্ড দেখা যাচ্ছিল) ফিরে এসেছিল — যেহেতু কোনো real pull-to-refresh UI
+      // (স্পিনার ইত্যাদি) implement করা নেই, তাই এই bounce শুধু একটা ভিজ্যুয়াল বাগ, দরকারি
+      // gesture না। তাই আবার বন্ধ করে দেওয়া হলো।
+      document.documentElement.style.overscrollBehaviorY = "none";
+      document.body.style.overscrollBehaviorY = "none";
 
       // Update <meta name=\"theme-color\"> dynamically. Chrome/Android uses
       // this for the browser/status/navigation UI around the web app.
@@ -5587,8 +5590,8 @@ export default function FocusGo() {
   return (
     <div style={{...styles.page, flexDirection: isDesktop ? "row" : "column", zoom: `${textScale}%`}}>
       <style>{`
-        html, body { margin:0; padding:0; background:${bg}; }
-        #root, #__next { background:${bg}; }
+        html, body { margin:0; padding:0; background:${bg}; overscroll-behavior-y: none; }
+        #root, #__next { background:${bg}; overscroll-behavior-y: none; }
         * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
 
         /* ---- subtle motion: tab switches, buttons, cards ---- */
@@ -5768,8 +5771,9 @@ export default function FocusGo() {
                     </div>
                   </div>
 
-                  {/* motivation লাইন থেকে date/time অংশটা visually আলাদা বোঝাতে হালকা accent hairline divider + স্পেস (greeting = personal, নিচেরটা = functional/data); নিচের progress-bar লাইনের সাথে length মিলাতে কোনো এক্সট্রা horizontal inset নেই */}
-                  <div style={{margin:"10px 0 8px", borderTop:`1px solid ${accent}`}}/>
+                  {/* motivation লাইন থেকে date/time অংশটা visually আলাদা বোঝাতে হালকা accent hairline divider — কার্ডের নিজস্ব padding ভেদ করে একদম বক্সের শুরু থেকে শেষ পর্যন্ত (edge-to-edge), 1px পুরু */}
+                  <div style={{margin:"10px -16px 8px", borderTop:`1px solid ${accent}`}}/>
+
 
                   <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"2px 2px 0", position:"relative"}}>
                     <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
