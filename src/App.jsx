@@ -10,7 +10,7 @@ import { NativeSettings, AndroidSettings, IOSSettings } from "capacitor-native-s
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert, BookOpen, Hourglass, Flag, Lightbulb, Cloud, UploadCloud, Globe, HelpCircle } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert, BookOpen, Hourglass, Flag, Lightbulb, Cloud, UploadCloud, Globe, HelpCircle, AlarmClock } from "lucide-react";
 
 // lucide-react-এর এই ভার্সনে Mars/Venus নেই, তাই নিজে ছোট SVG icon বানানো হলো
 const Mars = ({ size = 18, color = "currentColor" }) => (
@@ -3412,6 +3412,10 @@ export default function FocusGo() {
     try { window.localStorage.setItem("focusgo_plan_range", String(planRange)); } catch (e) {}
   }, [planRange]);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showAlarmPicker, setShowAlarmPicker] = useState(false);
+  const [alarmHour, setAlarmHour] = useState(8);
+  const [alarmMinute, setAlarmMinute] = useState(0);
+  const [alarmAmPm, setAlarmAmPm] = useState("AM");
   const [showProfile, setShowProfile] = useState(false);
   // ডেস্কটপ সাইডবার collapse/expand করা যায় কিনা — চাইলে ইউজার লুকিয়ে রাখতে পারবে,
   // পছন্দটা localStorage-এ থেকে যায় (রিফ্রেশ করলেও মনে থাকবে)।
@@ -5523,23 +5527,54 @@ export default function FocusGo() {
 
               return (
                 <>
-                  <div style={{padding:"2px 2px 4px", marginBottom:0}}>
-                    <div style={{minWidth:0, flex:1}}>
-                      <div style={{fontSize:12, fontWeight:800, color:accent, letterSpacing:0.2, marginBottom:2, display:"flex", alignItems:"center", gap:6}}>
-                        {lang === "bn" ? greetingBn : greetingEn}
-                        <greetTheme.Icon size={14} color={accent} strokeWidth={2.3} fill={greetKey==="night" ? `${accent}33` : "none"}/>
-                      </div>
-                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
+                  <div style={{padding:"2px 2px 4px", marginBottom:0, position:"relative"}} ref={salahMenuRef}>
+                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8}}>
+                      <div style={{minWidth:0, flex:1}}>
+                        <div style={{fontSize:12, fontWeight:800, color:accent, letterSpacing:0.2, marginBottom:2, display:"flex", alignItems:"center", gap:6}}>
+                          {lang === "bn" ? greetingBn : greetingEn}
+                          <greetTheme.Icon size={14} color={accent} strokeWidth={2.3} fill={greetKey==="night" ? `${accent}33` : "none"}/>
+                        </div>
                         <div style={{fontSize:23,fontWeight:800,letterSpacing:-0.6,color:textMain}}>
                           {firstName}
                         </div>
+                        <div style={{fontSize:12.5,color:textMuted2,marginTop:4,lineHeight:1.35,fontStyle:"italic"}}>
+                          {line}
+                        </div>
                       </div>
-                      <div style={{fontSize:12.5,color:textMuted2,marginTop:2,lineHeight:1.35}}>
-                        {line}
-                      </div>
+                      {salahFeatureEnabled && (
+                        <button
+                          onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
+                          style={{
+                            border:"none", background:"transparent", padding:4, flexShrink:0, marginTop:2,
+                            display:"flex", alignItems:"center", justifyContent:"center",
+                            cursor:"pointer", position:"relative",
+                          }}
+                          title={lang === "bn" ? "সালাতের সময়" : "Salah times"}
+                        >
+                          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 20h18"/>
+                            <path d="M5 20v-6.5c0-.9.7-1.5 1.5-1.5S8 12.6 8 13.5V20"/>
+                            <path d="M9.2 20v-9c0-1.5 1.2-3 2.8-3s2.8 1.5 2.8 3v9"/>
+                            <path d="M16.5 20v-6.5c0-.9.7-1.5 1.5-1.5s1.5.6 1.5 1.5V20"/>
+                            <circle cx="12" cy="4.5" r="1.3"/>
+                          </svg>
+                          {salahCoords && (
+                            <span style={{
+                              position:"absolute", top:2, right:2,
+                              width:6, height:6, borderRadius:"50%",
+                              background:accent,
+                              border:`1.5px solid ${cardBg}`,
+                            }}/>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:4, paddingBottom:6, borderBottom:`1px solid ${accent}25`, position:"relative"}} ref={salahMenuRef}>
+
+                  {/* motivation লাইন থেকে date/time অংশটা visually আলাদা বোঝাতে হালকা dashed divider + স্পেস (greeting = personal, নিচেরটা = functional/data) */}
+                  <div style={{margin:"10px 2px 8px", borderTop:`1px dashed ${dark ? cardBorder : `${accent}30`}`}}/>
+
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", paddingBottom:6, borderBottom:`1px solid ${accent}25`, position:"relative"}}>
                     <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
                       <span style={{width:30, height:30, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
                         <CalendarDays size={20} color={accent} strokeWidth={2}/>
@@ -5556,44 +5591,18 @@ export default function FocusGo() {
                         }}/>
                       )}
                     </button>
-                    <span style={{display:"flex", alignItems:"center", gap:10}}>
-                      <span style={{display:"flex", alignItems:"center", gap:4}}>
-                        <span style={{
-                          fontSize:13, color:textMuted2, fontWeight:500, fontVariantNumeric:"tabular-nums",
-                        }}>
-                          <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
-                        </span>
+                    {/* ঘড়ির পাশে ছোট অ্যালার্ম আইকন — ট্যাপ করলে Salah dropdown-এর মতোই একটা bottom-sheet popup খুলে সময় সেট করা যায় */}
+                    <button
+                      onClick={()=>{ vibrate(); setAlarmHour(((now.getHours()%12)||12)); setAlarmMinute(now.getMinutes()); setAlarmAmPm(now.getHours()>=12 ? "PM" : "AM"); setShowAlarmPicker(true); }}
+                      style={{display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", padding:0, cursor:"pointer"}}
+                      title={lang === "bn" ? "অ্যালার্ম সেট করুন" : "Set alarm"}
+                    >
+                      <span style={{fontSize:13, color:textMuted2, fontWeight:500, fontVariantNumeric:"tabular-nums"}}>
+                        <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
                       </span>
-                      {salahFeatureEnabled && (
-                        <button
-                          onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
-                          style={{
-                            width:30, height:30, borderRadius:"50%", flexShrink:0,
-                            background:"transparent", border:"none",
-                            display:"flex", alignItems:"center", justifyContent:"center",
-                            cursor:"pointer", padding:0, position:"relative",
-                            marginTop:-4,
-                          }}
-                          title={lang === "bn" ? "সালাতের সময়" : "Salah times"}
-                        >
-                          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M3 20h18"/>
-                            <path d="M5 20v-6.5c0-.9.7-1.5 1.5-1.5S8 12.6 8 13.5V20"/>
-                            <path d="M9.2 20v-9c0-1.5 1.2-3 2.8-3s2.8 1.5 2.8 3v9"/>
-                            <path d="M16.5 20v-6.5c0-.9.7-1.5 1.5-1.5s1.5.6 1.5 1.5V20"/>
-                            <circle cx="12" cy="4.5" r="1.3"/>
-                          </svg>
-                          {salahCoords && (
-                            <span style={{
-                              position:"absolute", top:3, right:3,
-                              width:6, height:6, borderRadius:"50%",
-                              background:accent,
-                              border:`1.5px solid ${cardBg}`,
-                            }}/>
-                          )}
-                        </button>
-                      )}
-                    </span>
+                      <AlarmClock size={15} color={accent} strokeWidth={2.1}/>
+                    </button>
+                  </div>
 
                     {salahFeatureEnabled && showSalahDropdown && (
                       <div onClick={() => setShowSalahDropdown(false)} style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:70}}>
@@ -5751,11 +5760,70 @@ export default function FocusGo() {
                         </div>
                       </div>
                     )}
-                  </div>
+
+                    {/* Quick alarm popup — Salah dropdown-এর মতোই bottom-sheet স্টাইল */}
+                    {showAlarmPicker && (
+                      <div onClick={() => setShowAlarmPicker(false)} style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:70}}>
+                        <div onClick={(e) => e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, borderRadius:"14px 14px 0 0", padding:"8px 16px 18px", color:textMain}}>
+                          <div style={{width:32, height:3.5, borderRadius:4, background:cardBorder, margin:"2px auto 12px"}}/>
+                          <div style={{fontSize:14.5, fontWeight:800, color:textMain, marginBottom:12}}>
+                            {lang === "bn" ? "অ্যালার্ম সেট করুন" : "Set alarm"}
+                          </div>
+                          <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:6, marginBottom:16}}>
+                            <input
+                              type="number" min={1} max={12} value={alarmHour}
+                              onChange={(e)=>{ const v = parseInt(e.target.value,10); setAlarmHour(Number.isFinite(v) ? Math.min(12, Math.max(1, v)) : 1); }}
+                              style={{width:52, textAlign:"center", fontSize:26, fontWeight:700, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${cardBorder}`, outline:"none", fontVariantNumeric:"tabular-nums"}}
+                            />
+                            <span style={{fontSize:26, fontWeight:700, color:textMuted2}}>:</span>
+                            <input
+                              type="number" min={0} max={59} value={pad2(alarmMinute)}
+                              onChange={(e)=>{ const v = parseInt(e.target.value,10); setAlarmMinute(Number.isFinite(v) ? Math.min(59, Math.max(0, v)) : 0); }}
+                              style={{width:52, textAlign:"center", fontSize:26, fontWeight:700, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${cardBorder}`, outline:"none", fontVariantNumeric:"tabular-nums"}}
+                            />
+                            <div style={{display:"flex", border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderRadius:8, overflow:"hidden", marginLeft:8}}>
+                              {["AM","PM"].map(ap => (
+                                <button key={ap} onClick={()=>setAlarmAmPm(ap)} style={{border:"none", padding:"6px 10px", fontSize:11.5, fontWeight:700, cursor:"pointer",
+                                  background: alarmAmPm===ap ? (dark ? `${accent}30` : `${accent}18`) : "transparent",
+                                  color: alarmAmPm===ap ? accent : textMuted2}}>{ap}</button>
+                              ))}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              vibrate();
+                              const nowD = new Date();
+                              let h24 = alarmHour % 12;
+                              if (alarmAmPm === "PM") h24 += 12;
+                              const target = new Date(nowD.getFullYear(), nowD.getMonth(), nowD.getDate(), h24, alarmMinute, 0, 0);
+                              if (target.getTime() <= nowD.getTime()) target.setDate(target.getDate() + 1);
+                              if (Capacitor.isNativePlatform() && notificationsEnabled) {
+                                LocalNotifications.schedule({
+                                  notifications: [{
+                                    id: strToNotifId("focusgo_quick_alarm"),
+                                    title: lang === "bn" ? "⏰ অ্যালার্ম" : "⏰ Alarm",
+                                    body: lang === "bn"
+                                      ? `${pad2(alarmHour)}:${pad2(alarmMinute)} ${alarmAmPm}`
+                                      : `Alarm for ${pad2(alarmHour)}:${pad2(alarmMinute)} ${alarmAmPm}`,
+                                    schedule: { at: target },
+                                    sound: "default",
+                                  }],
+                                }).catch(() => {});
+                              }
+                              setShowAlarmPicker(false);
+                            }}
+                            style={{width:"100%", border:"none", borderRadius:8, padding:"11px 0", background:accent, color:"#fff", fontWeight:700, fontSize:13.5, cursor:"pointer"}}
+                          >
+                            {lang === "bn" ? "অ্যালার্ম সেট করুন" : "Set alarm"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                 </>
               );
             })()}
           </div>
+
         </div>
         )}
 
