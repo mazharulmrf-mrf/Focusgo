@@ -5729,11 +5729,11 @@ export default function FocusGo() {
                       <div style={{minWidth:0, flex:1}}>
                         <div
                           onClick={() => { vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                          style={{fontSize:12.5, fontWeight:800, color:textMuted2, letterSpacing:0.2, marginBottom:2, display:"flex", alignItems:"center", gap:6, cursor:"pointer"}}
+                          style={{fontSize:12.5, fontWeight:800, color:accent, letterSpacing:0.2, marginBottom:2, display:"flex", alignItems:"center", gap:6, cursor:"pointer"}}
                           title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
                         >
                           {lang === "bn" ? greetingBn : greetingEn}
-                          <greetTheme.Icon size={14} color={textMuted2} strokeWidth={2.3} fill={greetKey==="night" ? `${textMuted2}33` : "none"}/>
+                          <greetTheme.Icon size={14} color={accent} strokeWidth={2.3} fill={greetKey==="night" ? `${accent}33` : "none"}/>
                           {weatherData && weatherData.temp != null && (
                             <span
                               onClick={(e) => { e.stopPropagation(); vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
@@ -5755,27 +5755,27 @@ export default function FocusGo() {
                         <button
                           onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
                           style={{
-                            border:"none", background: dark ? "rgba(237,236,242,0.08)" : "rgba(26,24,20,0.05)", padding:0, flexShrink:0,
+                            border:"none", background:`${accent}22`, padding:0, flexShrink:0,
                             width:34, height:34, borderRadius:"50%",
                             display:"flex", alignItems:"center", justifyContent:"center",
                             cursor:"pointer", position:"relative",
                           }}
                           title={lang === "bn" ? "সালাতের সময়" : "Salah times"}
                         >
-                          <MosqueIcon size={18} color={textMain}/>
+                          <MosqueIcon size={18} color={accent}/>
                         </button>
                       )}
                     </div>
                   </div>
 
-                  {/* motivation লাইন থেকে date/time অংশটা visually আলাদা বোঝাতে হালকা hairline divider + স্পেস (greeting = personal, নিচেরটা = functional/data) */}
-                  <div style={{margin:"10px 2px 8px", borderTop:`1px solid ${cardBorder}`}}/>
+                  {/* motivation লাইন থেকে date/time অংশটা visually আলাদা বোঝাতে হালকা accent hairline divider + স্পেস (greeting = personal, নিচেরটা = functional/data) */}
+                  <div style={{margin:"10px 2px 8px", borderTop:`1px solid ${accent}`}}/>
 
                   <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"2px 2px 0", position:"relative"}}>
                     <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
                       <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative", minWidth:0}}>
                         <span style={{width:30, height:30, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                          <CalendarDays size={20} color={textMuted2} strokeWidth={2}/>
+                          <CalendarDays size={20} color={accent} strokeWidth={2}/>
                         </span>
                         <span style={{fontSize:13.5, fontWeight:600, color:textMain, letterSpacing:-0.1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                           {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
@@ -5808,11 +5808,11 @@ export default function FocusGo() {
                           <Num>{nf(pad2(activeAlarm.hour))}</Num>:<Num>{nf(pad2(activeAlarm.minute))}</Num> {activeAlarm.ampm === "AM" ? t.amLabel : t.pmLabel}
                         </span>
                       ) : (
-                        <span style={{fontSize:13.5, color:textMuted2, fontWeight:500, fontVariantNumeric:"tabular-nums"}}>
+                        <span style={{fontSize:13.5, color:textMain, fontWeight:600, fontVariantNumeric:"tabular-nums"}}>
                           <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
                         </span>
                       )}
-                      <AlarmClock size={15} color={textMuted2} strokeWidth={activeAlarm ? 2.6 : 2.1}/>
+                      <AlarmClock size={15} color={accent} strokeWidth={activeAlarm ? 2.6 : 2.1}/>
                     </button>
                   </div>
 
