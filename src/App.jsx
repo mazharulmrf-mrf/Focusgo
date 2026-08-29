@@ -982,7 +982,8 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
   studyFeatureEnabled, setStudyFeatureEnabled, tasksFeatureEnabled, setTasksFeatureEnabled, notesFeatureEnabled, setNotesFeatureEnabled,
   focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes, weekStartDay, setWeekStartDay,
   onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage,
-  user, isGuest, onOpenProfile, notes, tasks, subjects, setNotes, setTasks, setSubjects }) {
+  user, isGuest, onOpenProfile, notes, tasks, subjects, setNotes, setTasks, setSubjects,
+  textScale, setTextScale, TEXT_SCALE_OPTIONS }) {
   const [showAbout, setShowAbout] = useState(false);
   const [legalDoc, setLegalDoc] = useState(null); // null | "privacy" | "terms"
   const isBn = lang === "bn";
@@ -7138,6 +7139,7 @@ export default function FocusGo() {
             weekStartDay={weekStartDay} setWeekStartDay={changeWeekStartDay}
             user={user} isGuest={isGuest} onOpenProfile={() => setShowProfile(true)}
             notes={notes} tasks={tasks} subjects={subjects} setNotes={setNotes} setTasks={setTasks} setSubjects={setSubjects}
+            textScale={textScale} setTextScale={setTextScale} TEXT_SCALE_OPTIONS={TEXT_SCALE_OPTIONS}
             cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
         )}
 
