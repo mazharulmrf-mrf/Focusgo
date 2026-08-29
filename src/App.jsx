@@ -951,7 +951,7 @@ function SettingsRow({ Icon, title, subtitle, right, onClick, href, expandKey, c
         borderTop: borderTop ? `1px solid ${cardBorder}` : "none",
         cursor: (onClick || href || isExpandable) ? "pointer" : "default",
       }}>
-      <span style={{ width:34, height:34, borderRadius:10, background:iconBg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}><Icon size={16} color={iconColor}/></span>
+      <span style={{ width:34, height:34, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}><Icon size={19} color={iconColor}/></span>
       <div style={{flex:1, minWidth:0}}>
         <div style={{fontSize:14, fontWeight:700, color:textMain, marginBottom:1}}>{title}</div>
         {subtitle && <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subtitle}</div>}
@@ -5654,7 +5654,7 @@ export default function FocusGo() {
               return (
                 <>
                   <div style={{padding:"2px 2px 4px", marginBottom:0, position:"relative"}} ref={salahMenuRef}>
-                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8}}>
+                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8}}>
                       <div style={{minWidth:0, flex:1}}>
                         <div
                           onClick={() => { vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
@@ -5663,11 +5663,6 @@ export default function FocusGo() {
                         >
                           {lang === "bn" ? greetingBn : greetingEn}
                           <greetTheme.Icon size={14} color={accent} strokeWidth={2.3} fill={greetKey==="night" ? `${accent}33` : "none"}/>
-                          {weatherData && weatherData.temp != null && (
-                            <span style={{fontSize:11, fontWeight:700, color:textMuted2, letterSpacing:0}}>
-                              · <Num>{nf(weatherData.temp)}</Num>°C
-                            </span>
-                          )}
                         </div>
                         <div onClick={()=>{vibrate(); setShowProfile(true);}} style={{fontSize:23,fontWeight:800,letterSpacing:-0.6,color:textMain, cursor:"pointer", display:"inline-block"}}>
                           {firstName}
@@ -5680,7 +5675,7 @@ export default function FocusGo() {
                         <button
                           onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
                           style={{
-                            border:"none", background:"transparent", padding:4, flexShrink:0, marginTop:2,
+                            border:"none", background:"transparent", padding:4, flexShrink:0,
                             display:"flex", alignItems:"center", justifyContent:"center",
                             cursor:"pointer", position:"relative",
                           }}
@@ -5693,14 +5688,6 @@ export default function FocusGo() {
                             <path d="M16.5 20v-6.5c0-.9.7-1.5 1.5-1.5s1.5.6 1.5 1.5V20"/>
                             <circle cx="12" cy="4.5" r="1.3"/>
                           </svg>
-                          {salahCoords && (
-                            <span style={{
-                              position:"absolute", top:2, right:2,
-                              width:6, height:6, borderRadius:"50%",
-                              background:accent,
-                              border:`1.5px solid ${cardBg}`,
-                            }}/>
-                          )}
                         </button>
                       )}
                     </div>
@@ -5710,26 +5697,37 @@ export default function FocusGo() {
                   <div style={{margin:"10px 2px 8px", borderTop:`1px dashed ${dark ? cardBorder : `${accent}30`}`}}/>
 
                   <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", paddingBottom:6, borderBottom:`1px solid ${accent}25`, position:"relative"}}>
-                    <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
-                      <span style={{width:30, height:30, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                        <CalendarDays size={20} color={accent} strokeWidth={2}/>
-                      </span>
-                      <span style={{fontSize:13, fontWeight:600, color:textMain, letterSpacing:-0.1}}>
-                        {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
-                      </span>
-                      {examDateKeys.has(todayKey) && (
-                        <span style={{
-                          position:"absolute", top:-2, left:24,
-                          width:7, height:7, borderRadius:"50%",
-                          background:"#C0392B",
-                          border:`1.5px solid ${cardBg}`,
-                        }}/>
+                    <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
+                      <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative", minWidth:0}}>
+                        <span style={{width:30, height:30, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                          <CalendarDays size={20} color={accent} strokeWidth={2}/>
+                        </span>
+                        <span style={{fontSize:13, fontWeight:600, color:textMain, letterSpacing:-0.1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                          {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
+                        </span>
+                        {examDateKeys.has(todayKey) && (
+                          <span style={{
+                            position:"absolute", top:-2, left:24,
+                            width:7, height:7, borderRadius:"50%",
+                            background:"#C0392B",
+                            border:`1.5px solid ${cardBg}`,
+                          }}/>
+                        )}
+                      </button>
+                      {weatherData && weatherData.temp != null && (
+                        <span
+                          onClick={() => { vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
+                          style={{fontSize:12, fontWeight:700, color:textMuted2, letterSpacing:0, cursor:"pointer", flexShrink:0}}
+                          title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
+                        >
+                          · <Num>{nf(weatherData.temp)}</Num>°C
+                        </span>
                       )}
-                    </button>
+                    </div>
                     {/* ঘড়ির পাশে ছোট অ্যালার্ম আইকন — ট্যাপ করলে Salah dropdown-এর মতোই একটা bottom-sheet popup খুলে সময় সেট করা যায় */}
                     <button
                       onClick={()=>{ vibrate(); setAlarmHour(((now.getHours()%12)||12)); setAlarmMinute(now.getMinutes()); setAlarmAmPm(now.getHours()>=12 ? "PM" : "AM"); setShowAlarmPicker(true); }}
-                      style={{display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", padding:0, cursor:"pointer"}}
+                      style={{display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", padding:0, cursor:"pointer", flexShrink:0}}
                       title={lang === "bn" ? "অ্যালার্ম সেট করুন" : "Set alarm"}
                     >
                       <span style={{fontSize:13, color:textMuted2, fontWeight:500, fontVariantNumeric:"tabular-nums"}}>
@@ -6168,75 +6166,83 @@ export default function FocusGo() {
             </div>
           </div>
 
-          <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:2, marginTop:14, position:"relative"}}>
-            {/* Timer/Stopwatch — single label + chevron, click toggles (no more two-button segmented control) */}
-            <button
-              onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setFocusMode(focusMode==="timer" ? "stopwatch" : "timer"); }}
-              disabled={timerRunning || stopwatchRunning}
-              style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:accent, fontSize:13, fontWeight:700, cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", padding:"2px 4px", opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1}}>
-              {focusMode==="timer" ? t.timerMode : t.stopwatchMode} <ChevronDown size={15}/>
-            </button>
-            {/* Digits, mode toggle, and controls — simplified to fewer stacked rows */}
-            <div style={{width:"100%", textAlign:"center"}}>
-              {focusMode === "timer" ? (
-                editingDuration ? (
-                  <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4}}>
-                    <input
-                      type="number"
-                      autoFocus
-                      value={durationInput}
-                      onChange={(e)=>setDurationInput(e.target.value)}
-                      onBlur={commitDurationEdit}
-                      onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
-                      min={1}
-                      max={180}
-                      style={{width:80, fontSize:32, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:1, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${accent}`, outline:"none"}}
-                    />
-                    <span style={{fontSize:14, fontWeight:500, color:textMuted2}}>{t.minutes}</span>
-                  </div>
-                ) : (
-                  <>
-                    <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined}
-                      style={{fontSize:42, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color:textMain, cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
-                      <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
-                    </div>
-                    {!timerRunning && (
-                      <div style={{fontSize:10.5, color:textMuted2, marginTop:3, fontWeight:500}}>
-                        {lang==="bn" ? "কাস্টম সময়ের জন্য উপরে ট্যাপ করো" : "Tap the time to customize"}
-                      </div>
-                    )}
-                  </>
-                )
-              ) : (
-                <div className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:42, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, lineHeight:1}}>
-                  <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
-                </div>
-              )}
+          <div style={{display:"flex", flexDirection:"column", gap:2, marginTop:14, position:"relative"}}>
+            {/* Two-column layout: left = Timer/Stopwatch toggle + digits (left-aligned); right = Focus/Break pill + Start/Reset — split by a thin vertical divider, app theme colors only */}
+            <div style={{display:"flex", alignItems:"stretch", gap:16}}>
+              {/* Left column */}
+              <div style={{flex:"1 1 0%", minWidth:0, textAlign:"left"}}>
+                <button
+                  onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setFocusMode(focusMode==="timer" ? "stopwatch" : "timer"); }}
+                  disabled={timerRunning || stopwatchRunning}
+                  style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:accent, fontSize:13, fontWeight:700, cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", padding:0, opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1}}>
+                  {focusMode==="timer" ? t.timerMode : t.stopwatchMode} <ChevronDown size={15}/>
+                </button>
 
-              {/* Focus/Break — single pill, label + chevron, click toggles (accent orange, same as before) */}
-              {focusMode === "timer" && (
-                <div style={{display:"flex", justifyContent:"center", marginTop:10}}>
+                <div style={{marginTop:8}}>
+                  {focusMode === "timer" ? (
+                    editingDuration ? (
+                      <div style={{display:"flex", alignItems:"center", gap:4}}>
+                        <input
+                          type="number"
+                          autoFocus
+                          value={durationInput}
+                          onChange={(e)=>setDurationInput(e.target.value)}
+                          onBlur={commitDurationEdit}
+                          onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
+                          min={1}
+                          max={180}
+                          style={{width:80, fontSize:32, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:1, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${accent}`, outline:"none"}}
+                        />
+                        <span style={{fontSize:14, fontWeight:500, color:textMuted2}}>{t.minutes}</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined}
+                          style={{fontSize:42, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color:textMain, cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
+                          <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
+                        </div>
+                        {!timerRunning && (
+                          <div style={{fontSize:10.5, color:textMuted2, marginTop:3, fontWeight:500}}>
+                            {lang==="bn" ? "কাস্টম সময়ের জন্য ট্যাপ করো" : "Tap to customize"}
+                          </div>
+                        )}
+                      </>
+                    )
+                  ) : (
+                    <div className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:42, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color: textMain, lineHeight:1}}>
+                      <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div style={{width:1, alignSelf:"stretch", background: dark ? cardBorder : "#EDEAE1", flexShrink:0}}/>
+
+              {/* Right column: Focus/Break pill + Start/Reset, stacked */}
+              <div style={{flex:"1 1 0%", minWidth:0, display:"flex", flexDirection:"column", justifyContent:"center", gap:10}}>
+                {focusMode === "timer" && (
                   <button
                     onClick={()=>{ if (timerRunning) return; vibrate(); changeSessionType(sessionType==="focus" ? "break" : "focus"); }}
                     disabled={timerRunning}
-                    style={{display:"flex", alignItems:"center", gap:3, border:"none", background: dark ? `${accent}30` : `${accent}18`, color:accent, borderRadius:20, padding:"7px 14px", fontSize:12.5, fontWeight:700, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
+                    style={{alignSelf:"flex-start", display:"flex", alignItems:"center", gap:3, border:"none", background: dark ? `${accent}30` : `${accent}18`, color:accent, borderRadius:20, padding:"7px 14px", fontSize:12.5, fontWeight:700, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
                     {sessionType==="focus" ? t.focusOption : t.breakOption} <ChevronDown size={14}/>
                   </button>
-                </div>
-              )}
+                )}
 
-              {/* Start + Reset — Custom Time removed since tapping the digits already edits duration */}
-              <div style={{display:"flex", justifyContent:"center", gap:7, marginTop:10, maxWidth:260, marginLeft:"auto", marginRight:"auto"}}>
-                <button
-                  onClick={focusMode==="timer" ? toggleTimerRunning : toggleStopwatchRunning}
-                  style={{display:"flex", alignItems:"center", justifyContent:"center", gap:7, flex:"1 1 auto", minWidth:0, background: accent, border:"none", borderRadius:14, padding:"12px 16px", color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", boxShadow:`0 10px 22px ${accent}45`, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-                  {(focusMode==="timer" ? timerRunning : stopwatchRunning) ? <Pause size={15} fill="#fff" style={{flexShrink:0}}/> : <Play size={15} fill="#fff" style={{flexShrink:0}}/>} <span style={{overflow:"hidden", textOverflow:"ellipsis"}}>{(focusMode==="timer" ? timerRunning : stopwatchRunning) ? t.pause : t.start}</span>
-                </button>
-                <button onClick={()=>{ if (focusMode==="timer") { setTimerRunning(false); setTimerSeconds(timerTotal); } else { setStopwatchRunning(false); setStopwatchSeconds(0); } }} title={t.reset}
-                  style={{background: dark?"#332E25":"#FAF9F6", border:`1px solid ${dark ? "transparent" : "#F0EEE8"}`, borderRadius:14, width:42, height:42, flexShrink:0, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
-                  <RotateCcw size={15} color={textMain}/>
-                </button>
+                <div style={{display:"flex", gap:7}}>
+                  <button
+                    onClick={focusMode==="timer" ? toggleTimerRunning : toggleStopwatchRunning}
+                    style={{display:"flex", alignItems:"center", justifyContent:"center", gap:7, flex:"1 1 auto", minWidth:0, background: accent, border:"none", borderRadius:14, padding:"12px 16px", color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", boxShadow:`0 10px 22px ${accent}45`, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                    {(focusMode==="timer" ? timerRunning : stopwatchRunning) ? <Pause size={15} fill="#fff" style={{flexShrink:0}}/> : <Play size={15} fill="#fff" style={{flexShrink:0}}/>} <span style={{overflow:"hidden", textOverflow:"ellipsis"}}>{(focusMode==="timer" ? timerRunning : stopwatchRunning) ? t.pause : t.start}</span>
+                  </button>
+                  <button onClick={()=>{ if (focusMode==="timer") { setTimerRunning(false); setTimerSeconds(timerTotal); } else { setStopwatchRunning(false); setStopwatchSeconds(0); } }} title={t.reset}
+                    style={{background: dark?"#332E25":"#FAF9F6", border:`1px solid ${dark ? "transparent" : "#F0EEE8"}`, borderRadius:14, width:42, height:42, flexShrink:0, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+                    <RotateCcw size={15} color={textMain}/>
+                  </button>
+                </div>
               </div>
+            </div>
 
               {/* Topic — always-visible horizontal chip row instead of a hidden picker menu; no preset-minute chips */}
               <div style={{marginTop:10}}>
