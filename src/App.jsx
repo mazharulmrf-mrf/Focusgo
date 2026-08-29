@@ -1390,8 +1390,14 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
     return (
       <div className="fg-tab-panel" style={{marginTop:18, paddingBottom:8}}>
 
-        {/* ---- হেডার — ছোট, একরঙা, বাড়তি সাবটেক্সট ছাড়া ---- */}
-        <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:18}}>{t.settings}</div>
+        {/* ---- হেডার — ছোট, একরঙা, বাড়তি সাবটেক্সট ছাড়া; ডানপাশে ভাষা পিল — Preferences লিস্ট থেকে
+             আলাদা রো সরিয়ে এখানে আনা হলো, যাতে লিস্টে একটা আইটেম কমে আর ভাষা সবসময় এক ট্যাপে বদলানো যায় ---- */}
+        <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18}}>
+          <div style={{fontSize:20, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.settings}</div>
+          <span onClick={()=>{vibrate(); setLang(l=>l==="bn"?"en":"bn");}} style={{border:`1px solid ${cardBorder}`, background: dark?"#0A0A0A":"#fff", color:textMain, borderRadius:999, padding:"6px 14px", fontSize:12.5, fontWeight:800, cursor:"pointer", flexShrink:0}}>
+            {lang==="bn" ? "বাং" : "EN"}
+          </span>
+        </div>
 
         {/* ---- প্রোফাইল রো ---- */}
         <button onClick={() => { vibrate(); onOpenProfile && onOpenProfile(); }} style={{
@@ -1434,14 +1440,6 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
               })}
             </div>
           </SettingsRow>
-
-          <SettingsRow {...rowCtx} Icon={Globe} title={t.language} subtitle={lang === "bn" ? "বাংলা" : "English"}
-            right={<span style={{display:"flex", alignItems:"center", gap:6}}>
-              <span onClick={(e)=>{e.stopPropagation(); vibrate(); setLang(l=>l==="bn"?"en":"bn");}} style={{border:`1px solid ${cardBorder}`, background: dark?"#0A0A0A":"#fff", color:textMain, borderRadius:999, padding:"4px 10px", fontSize:11.5, fontWeight:800}}>
-                {lang==="bn" ? "বাং" : "EN"}
-              </span>
-            </span>}
-            onClick={()=>{vibrate(); setLang(l=>l==="bn"?"en":"bn");}}/>
 
           <SettingsRow {...rowCtx} Icon={CalendarRange} title={t.weekStartsOn} subtitle={weekStartDayLabel(weekStartDay)} expandKey="weekStart">
             <SettingsDropdown
@@ -6171,6 +6169,13 @@ export default function FocusGo() {
           </div>
 
           <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:2, marginTop:14, position:"relative"}}>
+            {/* Timer/Stopwatch — single label + chevron, click toggles (no more two-button segmented control) */}
+            <button
+              onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setFocusMode(focusMode==="timer" ? "stopwatch" : "timer"); }}
+              disabled={timerRunning || stopwatchRunning}
+              style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:accent, fontSize:13, fontWeight:700, cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", padding:"2px 4px", opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1}}>
+              {focusMode==="timer" ? t.timerMode : t.stopwatchMode} <ChevronDown size={15}/>
+            </button>
             {/* Digits, mode toggle, and controls — simplified to fewer stacked rows */}
             <div style={{width:"100%", textAlign:"center"}}>
               {focusMode === "timer" ? (
@@ -6208,31 +6213,17 @@ export default function FocusGo() {
                 </div>
               )}
 
-              {/* Mode toggle: Timer/Stopwatch and Focus/Break — both plain segmented switches, same visual language */}
-              <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:10, flexWrap:"wrap"}}>
-                <div style={{display:"flex", border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderRadius:13, overflow:"hidden"}}>
-                  <button onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setFocusMode("timer"); }} disabled={timerRunning || stopwatchRunning}
-                    style={{border:"none", background: focusMode==="timer" ? (dark ? `${accent}30` : `${accent}18`) : "transparent", color: focusMode==="timer" ? accent : textMuted2, padding:"7px 13px", fontSize:12, fontWeight:600, cursor: (timerRunning||stopwatchRunning) ? "default" : "pointer"}}>
-                    {t.timerMode}
-                  </button>
-                  <button onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setFocusMode("stopwatch"); }} disabled={timerRunning || stopwatchRunning}
-                    style={{border:"none", background: focusMode==="stopwatch" ? (dark ? `${accent}30` : `${accent}18`) : "transparent", color: focusMode==="stopwatch" ? accent : textMuted2, padding:"7px 13px", fontSize:12, fontWeight:600, cursor: (timerRunning||stopwatchRunning) ? "default" : "pointer"}}>
-                    {t.stopwatchMode}
+              {/* Focus/Break — single pill, label + chevron, click toggles (accent orange, same as before) */}
+              {focusMode === "timer" && (
+                <div style={{display:"flex", justifyContent:"center", marginTop:10}}>
+                  <button
+                    onClick={()=>{ if (timerRunning) return; vibrate(); changeSessionType(sessionType==="focus" ? "break" : "focus"); }}
+                    disabled={timerRunning}
+                    style={{display:"flex", alignItems:"center", gap:3, border:"none", background: dark ? `${accent}30` : `${accent}18`, color:accent, borderRadius:20, padding:"7px 14px", fontSize:12.5, fontWeight:700, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
+                    {sessionType==="focus" ? t.focusOption : t.breakOption} <ChevronDown size={14}/>
                   </button>
                 </div>
-                {focusMode === "timer" && (
-                  <div style={{display:"flex", border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderRadius:13, overflow:"hidden"}}>
-                    <button onClick={()=>{ if (timerRunning) return; changeSessionType("focus"); }} disabled={timerRunning}
-                      style={{border:"none", background: sessionType==="focus" ? (dark ? `${accent}30` : `${accent}18`) : "transparent", color: sessionType==="focus" ? accent : textMuted2, padding:"7px 13px", fontSize:12, fontWeight:600, cursor: timerRunning ? "default" : "pointer"}}>
-                      {t.focusOption}
-                    </button>
-                    <button onClick={()=>{ if (timerRunning) return; changeSessionType("break"); }} disabled={timerRunning}
-                      style={{border:"none", background: sessionType==="break" ? (dark ? `${accent}30` : `${accent}18`) : "transparent", color: sessionType==="break" ? accent : textMuted2, padding:"7px 13px", fontSize:12, fontWeight:600, cursor: timerRunning ? "default" : "pointer"}}>
-                      {t.breakOption}
-                    </button>
-                  </div>
-                )}
-              </div>
+              )}
 
               {/* Start + Reset — Custom Time removed since tapping the digits already edits duration */}
               <div style={{display:"flex", justifyContent:"center", gap:7, marginTop:10, maxWidth:260, marginLeft:"auto", marginRight:"auto"}}>
