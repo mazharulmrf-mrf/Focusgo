@@ -5736,13 +5736,13 @@ export default function FocusGo() {
                   {/* motivation লাইন থেকে date/time অংশটা visually আলাদা বোঝাতে হালকা dashed divider + স্পেস (greeting = personal, নিচেরটা = functional/data) */}
                   <div style={{margin:"10px 2px 8px", borderTop:`1px dashed ${dark ? cardBorder : `${accent}30`}`}}/>
 
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", paddingBottom:6, borderBottom:`1px solid ${accent}25`, position:"relative"}}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", margin:"0 -16px", padding:"10px 16px", background:accent, position:"relative"}}>
                     <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
                       <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative", minWidth:0}}>
                         <span style={{width:30, height:30, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                          <CalendarDays size={20} color={accent} strokeWidth={2}/>
+                          <CalendarDays size={20} color="#fff" strokeWidth={2}/>
                         </span>
-                        <span style={{fontSize:13, fontWeight:600, color:textMain, letterSpacing:-0.1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                        <span style={{fontSize:13, fontWeight:600, color:"#fff", letterSpacing:-0.1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                           {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
                         </span>
                         {examDateKeys.has(todayKey) && (
@@ -5750,13 +5750,13 @@ export default function FocusGo() {
                             position:"absolute", top:-2, left:24,
                             width:7, height:7, borderRadius:"50%",
                             background:"#C0392B",
-                            border:`1.5px solid ${cardBg}`,
+                            border:`1.5px solid ${accent}`,
                           }}/>
                         )}
                       </button>
                     </div>
                     {/* ঘড়ির পাশে ছোট অ্যালার্ম আইকন — ট্যাপ করলে Salah dropdown-এর মতোই একটা bottom-sheet popup খুলে সময় সেট করা যায়।
-                        একটা অ্যালার্ম অ্যাক্টিভ থাকলে এখানে লাইভ ঘড়ির বদলে সেট করা অ্যালার্মের সময়টা accent রঙে বোল্ড করে দেখানো হয়,
+                        একটা অ্যালার্ম অ্যাক্টিভ থাকলে এখানে লাইভ ঘড়ির বদলে সেট করা অ্যালার্মের সময়টা সাদা রঙে বোল্ড করে দেখানো হয়,
                         যাতে ইউজার এক নজরে বুঝতে পারে কোন সময়ে অ্যালার্ম সেট আছে। */}
                     <button
                       onClick={()=>{
@@ -5769,15 +5769,15 @@ export default function FocusGo() {
                       title={activeAlarm ? `${t.nextAlarmLabel}: ${pad2(activeAlarm.hour)}:${pad2(activeAlarm.minute)} ${activeAlarm.ampm}` : (lang === "bn" ? "অ্যালার্ম সেট করুন" : "Set alarm")}
                     >
                       {activeAlarm ? (
-                        <span style={{fontSize:13, color:accent, fontWeight:800, fontVariantNumeric:"tabular-nums"}}>
+                        <span style={{fontSize:13, color:"#fff", fontWeight:800, fontVariantNumeric:"tabular-nums"}}>
                           <Num>{nf(pad2(activeAlarm.hour))}</Num>:<Num>{nf(pad2(activeAlarm.minute))}</Num> {activeAlarm.ampm === "AM" ? t.amLabel : t.pmLabel}
                         </span>
                       ) : (
-                        <span style={{fontSize:13, color:textMuted2, fontWeight:500, fontVariantNumeric:"tabular-nums"}}>
+                        <span style={{fontSize:13, color:"#fff", fontWeight:500, fontVariantNumeric:"tabular-nums"}}>
                           <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
                         </span>
                       )}
-                      <AlarmClock size={15} color={accent} strokeWidth={activeAlarm ? 2.6 : 2.1}/>
+                      <AlarmClock size={15} color="#fff" strokeWidth={activeAlarm ? 2.6 : 2.1}/>
                     </button>
                   </div>
 
