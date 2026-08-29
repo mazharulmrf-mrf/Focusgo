@@ -5768,8 +5768,8 @@ export default function FocusGo() {
                     </div>
                   </div>
 
-                  {/* motivation লাইন থেকে date/time অংশটা visually আলাদা বোঝাতে হালকা accent hairline divider + স্পেস (greeting = personal, নিচেরটা = functional/data) */}
-                  <div style={{margin:"10px 2px 8px", borderTop:`1px solid ${accent}`}}/>
+                  {/* motivation লাইন থেকে date/time অংশটা visually আলাদা বোঝাতে হালকা accent hairline divider + স্পেস (greeting = personal, নিচেরটা = functional/data); নিচের progress-bar লাইনের সাথে length মিলাতে কোনো এক্সট্রা horizontal inset নেই */}
+                  <div style={{margin:"10px 0 8px", borderTop:`1px solid ${accent}`}}/>
 
                   <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"2px 2px 0", position:"relative"}}>
                     <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
