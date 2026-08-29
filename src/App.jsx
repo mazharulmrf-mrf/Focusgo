@@ -5484,7 +5484,7 @@ export default function FocusGo() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:10, border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderBottom:"none", background: dark ? cardBg : "#FFFFFF", borderRadius:"26px 26px 0 0", padding:"14px 18px 6px", boxSizing:"border-box", boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.24)" : "0 14px 34px rgba(32,34,43,0.08)", position:"relative", overflow:"hidden"}}>
+        <div style={{marginTop:10, border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderBottom:"none", background: dark ? cardBg : "#FFFFFF", borderRadius:"18px 18px 0 0", padding:"12px 16px 5px", boxSizing:"border-box", boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.24)" : "0 14px 34px rgba(32,34,43,0.08)", position:"relative", overflow:"hidden"}}>
           <div style={{position:"absolute", top:-50, right:-50, width:130, height:130, borderRadius:"50%", background:`${accent}0F`, pointerEvents:"none"}}/>
           <div style={{marginBottom:2, position:"relative"}}>
             {(() => {
@@ -5534,10 +5534,10 @@ export default function FocusGo() {
                           {lang === "bn" ? greetingBn : greetingEn}
                           <greetTheme.Icon size={14} color={accent} strokeWidth={2.3} fill={greetKey==="night" ? `${accent}33` : "none"}/>
                         </div>
-                        <div style={{fontSize:23,fontWeight:800,letterSpacing:-0.6,color:textMain}}>
+                        <div onClick={()=>{vibrate(); setShowProfile(true);}} style={{fontSize:23,fontWeight:800,letterSpacing:-0.6,color:textMain, cursor:"pointer", display:"inline-block"}}>
                           {firstName}
                         </div>
-                        <div style={{fontSize:12.5,color:textMuted2,marginTop:4,lineHeight:1.35,fontStyle:"italic"}}>
+                        <div style={{fontSize:12.5,color:textMuted2,marginTop:4,lineHeight:1.35}}>
                           {line}
                         </div>
                       </div>
@@ -5860,7 +5860,6 @@ export default function FocusGo() {
             mockup: title/subtitle + controls on the left, a decorative progress ring with an hourglass on the right */}
         {tab === "study" && studySection === "plan" && (
         <div className="fg-tab-panel" style={{marginTop:10, background: dark ? cardBg : "#FFFFFF", border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderRadius:26, padding:"18px 18px 16px", color:textMain, boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.24)" : "0 14px 34px rgba(32,34,43,0.08)", position:"relative", overflow:"hidden"}}>
-          <div style={{position:"absolute", top:-50, right:-50, width:130, height:130, borderRadius:"50%", background:`${accent}0F`, pointerEvents:"none"}}/>
 
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", position:"relative", gap:8}}>
             <div style={{minWidth:0}}>
@@ -6066,8 +6065,8 @@ export default function FocusGo() {
             border:`1px solid ${dark ? cardBorder : (tab === "today" ? "#F0EEE8" : `${accent}1A`)}`,
             borderTop: tab === "today" ? "none" : `1px solid ${dark ? cardBorder : `${accent}1A`}`,
             background: dark ? cardBg : (tab === "today" ? "#FFFFFF" : `${accent}0A`),
-            borderRadius: tab === "today" ? "0 0 26px 26px" : 20,
-            padding: tab === "today" ? "10px 18px 14px" : "16px 18px",
+            borderRadius: tab === "today" ? "0 0 18px 18px" : 20,
+            padding: tab === "today" ? "9px 16px 11px" : "16px 18px",
             position:"relative", overflow:"hidden",
             boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.24)" : (tab === "today" ? "0 14px 34px rgba(32,34,43,0.08)" : `0 6px 16px ${accent}0A`)
           }}>
@@ -6190,7 +6189,7 @@ export default function FocusGo() {
             activeTimerId={timerTopicId} timerRunning={timerRunning} timerSeconds={timerSeconds} onToggleRun={toggleTimerRunning}
             onEdit={(item)=>setEditTopic({...item, _dk: todayKey})} onDelete={(id)=>deleteTopicFor(todayKey, id)}
             onRename={(item, newTopic)=>saveEditFor(todayKey, {...item, topic:newTopic})}
-            emptyText={t.noTopicsToday} emptySubtext={t.noTopicsTodaySub} emptyIcon={Sparkles}/>
+            emptyText={t.noTopicsToday} emptySubtext={t.noTopicsTodaySub} emptyIcon={Sparkles} useAccentColor/>
         </div>
         )}
 
@@ -8556,7 +8555,7 @@ function TopicSummaryPeriodCard({ label, rangeLabel, isComplete, pendingText, co
 }
 
 // Read-only-capable list of topics used by the Today and Plan tabs.
-function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textMuted2, textMain, accent, onToggle, onStartTimer, onEdit, onDelete, onRename, emptyText, emptySubtext, emptyIcon: EmptyIcon, onEmptyAdd, emptyAddLabel, activeTimerId, timerRunning, timerSeconds, onToggleRun }) {
+function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textMuted2, textMain, accent, onToggle, onStartTimer, onEdit, onDelete, onRename, emptyText, emptySubtext, emptyIcon: EmptyIcon, onEmptyAdd, emptyAddLabel, activeTimerId, timerRunning, timerSeconds, onToggleRun, useAccentColor }) {
   const ls = (px) => (lang === "bn" ? 0 : px);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
@@ -8579,22 +8578,78 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
   return (
     <div style={{display:"flex", flexDirection:"column", gap:8}}>
       {items.map(item => {
-        const c = colorForSubject(item.subject, allSubjects);
+        const c = useAccentColor ? { bg: accent, bgSoft: `${accent}1A` } : colorForSubject(item.subject, allSubjects);
         const isActiveTimer = activeTimerId && activeTimerId === item.id;
         return (
           <div key={item.id} style={{
             background: isActiveTimer ? `${c.bg}0F` : cardBg,
             border: `1px solid ${isActiveTimer ? c.bg : cardBorder}`,
-            borderRadius:16, padding:"9px 13px", display:"flex", alignItems:"center", gap:11, position:"relative",
+            borderRadius:16, padding:"10px 13px", position:"relative",
             boxShadow: isActiveTimer ? "none" : "0 2px 8px rgba(0,0,0,0.04)",
             transition:"background .15s ease, border-color .15s ease",
           }}>
-            <button onClick={onToggle ? ()=>onToggle(item.id) : undefined} disabled={!onToggle} title={item.done ? t.markUndone || t.done : t.markDone || t.done}
-              style={{width:18, alignSelf:"stretch", minHeight:36, borderRadius:0, border:"none", background:"transparent", flexShrink:0, cursor: onToggle?"pointer":"default", padding:0, display:"flex", alignItems:"stretch", justifyContent:"center"}}>
-              <span style={{width:6, borderRadius:6, background: item.done ? "#6E8B5E" : c.bg, transition:"background-color .2s ease", alignSelf:"stretch"}}/>
-            </button>
-            <div style={{flex:1, minWidth:0}}>
-              <span style={{display:"inline-block", fontSize:10, fontWeight:700, letterSpacing:ls(0.4), textTransform:"uppercase", color:c.bg, background:c.bgSoft, borderRadius:6, padding:"2px 7px", marginBottom:4, maxWidth:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{item.subject.toUpperCase()}</span>
+            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
+              <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0, flex:1}}>
+                <button onClick={onToggle ? ()=>onToggle(item.id) : undefined} disabled={!onToggle} title={item.done ? t.markUndone || t.done : t.markDone || t.done}
+                  style={{width:17, height:17, borderRadius:"50%", flexShrink:0, border:`2px solid ${item.done ? "#6E8B5E" : c.bg}`, background: item.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", cursor: onToggle?"pointer":"default", padding:0, transition:"background-color .2s ease, border-color .2s ease"}}>
+                  {item.done && <Check size={10} color="#fff" strokeWidth={3.4}/>}
+                </button>
+                <span style={{display:"inline-block", fontSize:10, fontWeight:700, letterSpacing:ls(0.4), textTransform:"uppercase", color:c.bg, background:c.bgSoft, borderRadius:6, padding:"2px 7px", minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{item.subject.toUpperCase()}</span>
+              </div>
+              <div style={{display:"flex", alignItems:"center", gap:4, flexShrink:0}}>
+                {onStartTimer && !item.done && (
+                  isActiveTimer ? (
+                    <button onClick={onToggleRun} title={timerRunning ? t.pause : t.start} style={{width:24,height:24, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: c.bg, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 2px 6px ${c.bg}59`}}>
+                      {timerRunning ? <Pause size={10} fill="#fff" color="#fff"/> : <Play size={10} fill="#fff" color="#fff"/>}
+                    </button>
+                  ) : (
+                    <button onClick={()=>onStartTimer(item.id, item.duration)} title={t.start} style={{width:24,height:24, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: c.bg, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 2px 6px ${c.bg}59`}}>
+                      <Play size={10} fill="#fff" color="#fff"/>
+                    </button>
+                  )
+                )}
+                {(onEdit || onDelete) && (
+                  <div style={{position:"relative", flexShrink:0}}>
+                    <button onClick={()=>{ setOpenMenuId(v => v===item.id ? null : item.id); setConfirmDeleteId(null); }} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4}}>
+                      <MoreVertical size={15}/>
+                    </button>
+                    {openMenuId === item.id && (
+                      <>
+                        <div onClick={closeMenu} style={{position:"fixed", inset:0, zIndex:59}}/>
+                        <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 4px 12px rgba(0,0,0,0.08)", zIndex:60, minWidth:150, overflow:"hidden"}}>
+                          {confirmDeleteId === item.id ? (
+                            <>
+                              <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:500}}>{t.confirmDeleteTopic || t.deleteTopic}</div>
+                              <button onClick={()=>{ closeMenu(); onDelete(item.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
+                                <Trash2 size={13}/> {t.confirmDelete || t.deleteTopic}
+                              </button>
+                              <button onClick={()=>setConfirmDeleteId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
+                                {t.cancel}
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              {onEdit && (
+                                <button onClick={()=>{closeMenu(); onEdit(item);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
+                                  <Pencil size={13}/> {t.edit}
+                                </button>
+                              )}
+                              {onDelete && (
+                                <button onClick={()=>setConfirmDeleteId(item.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
+                                  <Trash2 size={13}/> {t.deleteTopic}
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{marginTop:6}}>
               <div style={{fontSize:15, fontWeight:700, wordBreak:"break-word", opacity: item.done ? 0.6 : 1, lineHeight:1.3, marginBottom:2}}>{item.topic}</div>
               {isActiveTimer ? (
                 <div className={timerRunning ? "fg-timer-running" : undefined} style={{fontSize:12, fontWeight:600, fontVariantNumeric:"tabular-nums", color:c.bg, whiteSpace:"nowrap"}}>
@@ -8615,55 +8670,6 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
                 </div>
               )}
             </div>
-            {onStartTimer && !item.done && (
-              isActiveTimer ? (
-                <button onClick={onToggleRun} title={timerRunning ? t.pause : t.start} style={{width:34,height:34, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: c.bg, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 3px 8px ${c.bg}59`}}>
-                  {timerRunning ? <Pause size={14} fill="#fff" color="#fff"/> : <Play size={14} fill="#fff" color="#fff"/>}
-                </button>
-              ) : (
-                <button onClick={()=>onStartTimer(item.id, item.duration)} title={t.start} style={{width:34,height:34, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", background: c.bg, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 3px 8px ${c.bg}59`}}>
-                  <Play size={14} fill="#fff" color="#fff"/>
-                </button>
-              )
-            )}
-            {(onEdit || onDelete) && (
-              <div style={{position:"relative", flexShrink:0}}>
-                <button onClick={()=>{ setOpenMenuId(v => v===item.id ? null : item.id); setConfirmDeleteId(null); }} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4}}>
-                  <MoreVertical size={16}/>
-                </button>
-                {openMenuId === item.id && (
-                  <>
-                    <div onClick={closeMenu} style={{position:"fixed", inset:0, zIndex:59}}/>
-                    <div style={{position:"absolute", right:0, top:"100%", marginTop:4, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:10, boxShadow:"0 4px 12px rgba(0,0,0,0.08)", zIndex:60, minWidth:150, overflow:"hidden"}}>
-                      {confirmDeleteId === item.id ? (
-                        <>
-                          <div style={{padding:"9px 12px", fontSize:12, color:textMuted2, fontWeight:500}}>{t.confirmDeleteTopic || t.deleteTopic}</div>
-                          <button onClick={()=>{ closeMenu(); onDelete(item.id); }} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
-                            <Trash2 size={13}/> {t.confirmDelete || t.deleteTopic}
-                          </button>
-                          <button onClick={()=>setConfirmDeleteId(null)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
-                            {t.cancel}
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          {onEdit && (
-                            <button onClick={()=>{closeMenu(); onEdit(item);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
-                              <Pencil size={13}/> {t.edit}
-                            </button>
-                          )}
-                          {onDelete && (
-                            <button onClick={()=>setConfirmDeleteId(item.id)} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:"#C0392B", padding:"9px 12px", fontSize:13, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
-                              <Trash2 size={13}/> {t.deleteTopic}
-                            </button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
           </div>
         );
       })}
