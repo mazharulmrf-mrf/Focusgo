@@ -3146,12 +3146,26 @@ export default function FocusGo() {
     }
   }, []);
 
-  // পুরো অ্যাপ একটু বড় (~৬%) দেখানোর জন্য — যেহেতু পুরো কোডে সব সাইজ px-এ ফিক্সড করা,
-  // প্রতিটা element আলাদাভাবে বড় না করে পুরো html-এ CSS zoom দিয়ে uniform ভাবে সবকিছু
-  // (টেক্সট, আইকন, প্যাডিং — সব) একসাথে একটু বড় করে দেওয়া হচ্ছে। Chrome/Android WebView
-  // (এই অ্যাপের মূল টার্গেট) zoom সাপোর্ট করে; না করলে চুপচাপ ignore হয়ে যাবে, ভাঙবে না।
+  // পুরো অ্যাপ সামান্য (~৩%) বড় দেখানোর জন্য — কিন্তু আগেরবার এটা করতে গিয়ে উপরে বড় ফাঁকা
+  // জায়গা তৈরি হয়েছিল, কারণ zoom আর env(safe-area-inset-top) একসাথে থাকলে Android WebView
+  // ওই safe-area মানটা ভুলভাবে (দ্বিগুণের বেশি) হিসাব করে ফেলে। এখানে সেটা এড়ানো হচ্ছে এভাবে:
+  // ১) zoom বসানোর আগেই আসল safe-area-inset-top মাপ (raw px) বের করে নেওয়া হচ্ছে,
+  // ২) zoom বসানো হচ্ছে, ৩) সেই raw মাপ zoom দিয়ে ভাগ করে একটা CSS variable-এ বসানো হচ্ছে —
+  // এতে zoom সেটাকে আবার গুণ করলেও ফলাফল আসল সঠিক মাপেই ফিরে আসে, দ্বিগুণ হয় না।
   useEffect(() => {
-    try { document.documentElement.style.zoom = "1.06"; } catch (e) {}
+    try {
+      const ZOOM = 1.03;
+      const probe = document.createElement("div");
+      probe.style.position = "absolute";
+      probe.style.visibility = "hidden";
+      probe.style.paddingTop = "env(safe-area-inset-top)";
+      document.body.appendChild(probe);
+      const rawInset = parseFloat(getComputedStyle(probe).paddingTop) || 0;
+      document.body.removeChild(probe);
+
+      document.documentElement.style.zoom = String(ZOOM);
+      document.documentElement.style.setProperty("--fg-safe-top", `${rawInset / ZOOM}px`);
+    } catch (e) { /* zoom না হলেও অ্যাপ স্বাভাবিকভাবে চলবে */ }
   }, []);
 
 
@@ -5236,7 +5250,7 @@ export default function FocusGo() {
   const containerPadding = isDesktop ? "24px 28px 36px" : breakpoint === "tablet" ? "22px 24px 28px" : "18px 16px 24px";
 
   const styles = {
-    page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column", paddingTop:"env(safe-area-inset-top)" },
+    page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column", paddingTop:"var(--fg-safe-top, env(safe-area-inset-top))" },
     container: { maxWidth: containerMaxWidth, margin: "0 auto", padding: containerPadding, width:"100%", boxSizing:"border-box", flex:"1 0 auto", transition: "max-width .2s ease" },
   };
 
@@ -7382,10 +7396,9 @@ export default function FocusGo() {
           ].map(({k, Icon}) => (
             <button key={k} onClick={()=>{vibrate(); setTab(k);}} style={{
               flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:2, border:"none", borderRadius:12, padding:"7px 4px", fontSize:10, fontWeight:700, cursor:"pointer",
-              background: tab===k ? "rgba(217,119,87,0.15)" : "transparent",
+              background: "transparent",
               color: tab===k ? accent : textMuted2,
-              transform: tab===k ? "translateY(-1px)" : "none",
-              transition:"background .2s ease, color .2s ease, transform .2s cubic-bezier(0.16,1,0.3,1)"
+              transition:"color .2s ease"
             }}>
               <Icon size={18} strokeWidth={tab===k?2.3:2} style={{transition:"stroke-width .15s ease"}}/>
               {t.tabs[k]}
@@ -7738,7 +7751,7 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
 
   return (
     <div style={{position:"fixed", inset:0, zIndex:100, background:screenBg, color:fgMain, display:"flex", flexDirection:"column", isolation:"isolate", overflow:"hidden", WebkitBackfaceVisibility:"hidden"}}>
-      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"calc(14px + env(safe-area-inset-top, 0px)) 20px 0", flexShrink:0}}>
+      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"calc(14px + var(--fg-safe-top, env(safe-area-inset-top, 0px))) 20px 0", flexShrink:0}}>
         <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:fgMuted, display:"flex", alignItems:"center", padding:6}}>
           <ChevronDown size={22}/>
         </button>
