@@ -8941,7 +8941,6 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
             background: isActiveTimer ? `${c.bg}0F` : cardBg,
             border: `1px solid ${isActiveTimer ? c.bg : cardBorder}`,
             borderRadius:14, padding:"10px 13px", position:"relative",
-            boxShadow: isActiveTimer ? "none" : "0 2px 8px rgba(0,0,0,0.04)",
             transition:"background .15s ease, border-color .15s ease",
           }}>
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
