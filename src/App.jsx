@@ -265,7 +265,7 @@ function OnboardingScreen({ lang, dark, cardBg, textMain, textMuted2, accent, on
 
   return (
     <div style={{ minHeight: "100dvh", background: bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div style={{ width: "100%", maxWidth: 380, background: cardBg, borderRadius: 24, padding: "32px 24px 24px", border: `1px solid ${border}` }}>
+      <div style={{ width: "100%", maxWidth: 380, background: cardBg, borderRadius: 14, padding: "32px 24px 24px", border: `1px solid ${border}` }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", minHeight: 220, justifyContent: "center" }}>
           <div style={{ width: 76, height: 76, borderRadius: "50%", background: `${s.ring}18`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
             <s.Icon size={32} color={s.ring} strokeWidth={2} />
@@ -447,7 +447,7 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
   if (mode === "forgot") {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding:20, background: dark ? "#1A1814" : "#F8F5EF" }}>
-        <div style={{ width: "100%", maxWidth: cardMaxWidth, background: cardBg, border: `1px solid ${cardBorder}`, borderRadius:20, padding: "28px 24px" }}>
+        <div style={{ width: "100%", maxWidth: cardMaxWidth, background: cardBg, border: `1px solid ${cardBorder}`, borderRadius:14, padding: "28px 24px" }}>
           <div style={{ display: "flex", alignItems: "center", gap:8, marginBottom: 18 }}>
             <button type="button" onClick={() => { setMode("login"); setError(""); setInfo(""); setForgotEmail(""); }}
               style={{ border: "none", background: "transparent", cursor: "pointer", color: textMuted2, padding:4, display: "flex" }}>
@@ -482,7 +482,7 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding:20, background: dark ? "#1A1814" : "#F8F5EF" }}>
-      <div style={{ width: "100%", maxWidth: cardMaxWidth, background: cardBg, border: `1px solid ${cardBorder}`, borderRadius:20, padding: "28px 24px" }}>
+      <div style={{ width: "100%", maxWidth: cardMaxWidth, background: cardBg, border: `1px solid ${cardBorder}`, borderRadius:14, padding: "28px 24px" }}>
         <div style={{ textAlign: "center", marginBottom: 20 }}>
           <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt="FocusGo" style={{height:30, width:"auto", objectFit:"contain", display:"block", margin:"0 auto"}}/>
           <div style={{ fontSize:12, color: textMuted2, marginTop: 8 }}>{L.subtitle}</div>
@@ -621,7 +621,7 @@ function NotificationBell({ t, lang, notifications, onMarkAllRead, onClear, card
       {open && (
         <>
           <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 59 }} />
-          <div style={{ position: "absolute", right: 0, top: "100%", marginTop: 6, background: cardBg, border: `1px solid ${cardBorder}`, borderRadius:16, boxShadow: "0 4px 14px rgba(0,0,0,0.10)", zIndex: 60, width: 300, maxWidth: "88vw", maxHeight: 360, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <div style={{ position: "absolute", right: 0, top: "100%", marginTop: 6, background: cardBg, border: `1px solid ${cardBorder}`, borderRadius:14, boxShadow: "0 4px 14px rgba(0,0,0,0.10)", zIndex: 60, width: 300, maxWidth: "88vw", maxHeight: 360, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderBottom: `1px solid ${cardBorder}` }}>
               <span style={{ fontSize:13, fontWeight: 800, color: textMain }}>{t.notifications}</span>
               {notifications.length > 0 && (
@@ -813,12 +813,12 @@ function UniversalSearchModal({
 }
 
 // ডেস্কটপ (≥1024px) এ bottom-nav এর বদলে বাম পাশে সাইডবার — বড় স্ক্রিনে familiar "app" লেআউট
-function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, textMuted2, accent, collapsed, onToggleCollapse, onHideAll }) {
+function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, textMuted2, accent, collapsed, onToggleCollapse, onHideAll, studyFeatureEnabled, tasksFeatureEnabled, notesFeatureEnabled }) {
   const items = [
     { k: "today", Icon: Home },
-    { k: "study", Icon: GraduationCap },
-    { k: "task", Icon: ListChecks },
-    { k: "notes", Icon: FileText },
+    ...(studyFeatureEnabled ? [{ k: "study", Icon: GraduationCap }] : []),
+    ...(tasksFeatureEnabled ? [{ k: "task", Icon: ListChecks }] : []),
+    ...(notesFeatureEnabled ? [{ k: "notes", Icon: FileText }] : []),
     { k: "settings", Icon: Settings },
   ];
   return (
@@ -977,6 +977,7 @@ function SettingsRow({ Icon, title, subtitle, right, onClick, href, expandKey, c
 function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, setAccentKey, notificationsEnabled, setNotificationsEnabled,
   examNotifEnabled, setExamNotifEnabled, taskNotifEnabled, setTaskNotifEnabled, salahNotifEnabled, setSalahNotifEnabled, timerNotifEnabled, setTimerNotifEnabled,
   salahFeatureEnabled, setSalahFeatureEnabled,
+  studyFeatureEnabled, setStudyFeatureEnabled, tasksFeatureEnabled, setTasksFeatureEnabled, notesFeatureEnabled, setNotesFeatureEnabled,
   focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes, weekStartDay, setWeekStartDay,
   onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage,
   user, isGuest, onOpenProfile, notes, tasks, subjects, setNotes, setTasks, setSubjects }) {
@@ -1116,7 +1117,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
     const title = legalDoc === "privacy" ? t.privacyPolicy : t.termsOfUse;
     return (
       <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={()=>setLegalDoc(null)}>
-        <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"85vh", display:"flex", flexDirection:"column"}}>
+        <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"85vh", display:"flex", flexDirection:"column"}}>
           <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:6, flexShrink:0}}>
             <button onClick={()=>setLegalDoc(null)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
               <ChevronLeft size={20}/>
@@ -1143,7 +1144,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
   if (showAbout) {
     return (
       <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={()=>setShowAbout(false)}>
-        <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain}}>
+        <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain}}>
           <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:14}}>
             <button onClick={()=>setShowAbout(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
               <ChevronLeft size={20}/>
@@ -1383,7 +1384,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
     // overflow:"hidden" আগে এখানে ছিল, কিন্তু এই কার্ডের ভেতরের accordion (Focus Timer / Study Reminders)
     // খুললে SettingsDropdown-এর ফ্লাইআউট মেনু position:absolute হয়ে কার্ডের বর্ডারের বাইরে বসতে চায় —
     // overflow hidden থাকায় সেটা ক্লিপ হয়ে যেত, তাই অপশনে ট্যাপ করলেও কিছু হতো না (ক্লিক অদৃশ্য অংশে পড়ত)
-    const groupCardStyle = { background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"0 12px", overflow:"visible" };
+    const groupCardStyle = { background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"0 12px", overflow:"visible" };
     const sectionHeadingStyle = { fontSize:12, fontWeight:800, color:textMuted2, letterSpacing:0.4, textTransform:"uppercase", opacity:0.75, margin:"22px 4px 8px" };
 
     return (
@@ -1485,6 +1486,31 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             right={<Toggle on={salahFeatureEnabled} onClick={()=>{vibrate(); setSalahFeatureEnabled(v=>!v);}}/>}
             onClick={()=>{vibrate(); setSalahFeatureEnabled(v=>!v);}}/>
 
+          {/* Visible Tabs — Study/Tasks/Notes বটম ন্যাভ থেকে দেখানো/লুকানো; Today ও Settings সবসময় থাকে (তাই এখানে টগল নেই) */}
+          <SettingsRow {...rowCtx} Icon={LayoutGrid} title={isBn ? "ভিজিবল ট্যাব" : "Visible Tabs"}
+            subtitle={[studyFeatureEnabled && (isBn ? "স্টাডি" : "Study"), tasksFeatureEnabled && (isBn ? "টাস্ক" : "Tasks"), notesFeatureEnabled && (isBn ? "নোটস" : "Notes")].filter(Boolean).join(", ") || (isBn ? "সব বন্ধ" : "All off")}
+            expandKey="visibleTabs">
+            <div style={{display:"flex", flexDirection:"column", gap:12}}>
+              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+                <span style={{fontSize:13, fontWeight:700, color:textMain}}>{isBn ? "স্টাডি" : "Study"}</span>
+                <Toggle on={studyFeatureEnabled} onClick={()=>{vibrate(); setStudyFeatureEnabled(v=>!v);}}/>
+              </div>
+              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+                <span style={{fontSize:13, fontWeight:700, color:textMain}}>{isBn ? "টাস্ক" : "Tasks"}</span>
+                <Toggle on={tasksFeatureEnabled} onClick={()=>{vibrate(); setTasksFeatureEnabled(v=>!v);}}/>
+              </div>
+              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+                <span style={{fontSize:13, fontWeight:700, color:textMain}}>{isBn ? "নোটস" : "Notes"}</span>
+                <Toggle on={notesFeatureEnabled} onClick={()=>{vibrate(); setNotesFeatureEnabled(v=>!v);}}/>
+              </div>
+              <div style={{fontSize:11, color:textMuted2, lineHeight:1.5, paddingTop:10, borderTop:`1px dashed ${cardBorder}`}}>
+                {isBn
+                  ? "বন্ধ করলে সেই ট্যাব বটম নেভিগেশন থেকে সরে যাবে। স্টাডি বন্ধ করলে Exam banner ও Today's Study কার্ডও Today ট্যাব থেকে লুকাবে; টাস্ক বন্ধ করলে Today's Tasks কার্ড লুকাবে।"
+                  : "Turning one off removes it from the bottom navigation. Turning Study off also hides the Exam banner and Today's Study card from the Today tab; turning Tasks off hides the Today's Tasks card."}
+              </div>
+            </div>
+          </SettingsRow>
+
           <SettingsRow {...rowCtx} Icon={Bell} title={t.notifications} subtitle={notificationsEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")} expandKey="notifications">
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: notificationsEnabled ? 14 : 0}}>
               <span style={{fontSize:13, fontWeight:700, color:textMain}}>{isBn ? "সব নোটিফিকেশন" : "All notifications"}</span>
@@ -1546,7 +1572,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
         {importConfirm && (
           <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200, padding:20}} onClick={()=>setImportConfirm(null)}>
-            <div onClick={(e)=>e.stopPropagation()} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:18, padding:20, maxWidth:340, width:"100%"}}>
+            <div onClick={(e)=>e.stopPropagation()} style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:20, maxWidth:340, width:"100%"}}>
               <div style={{fontSize:16, fontWeight:800, color:textMain, marginBottom:8}}>{isBn ? "ডেটা রিস্টোর করবেন?" : "Restore this backup?"}</div>
               <div style={{fontSize:13, color:textMuted2, fontWeight:600, lineHeight:1.5, marginBottom:16}}>
                 {isBn
@@ -1577,7 +1603,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
           <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.settings}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
@@ -1596,7 +1622,7 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
   const breakpoint = useViewport();
   const isDesktop = breakpoint === "desktop";
   const overlayStyle = { position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems: isDesktop ? "center" : "flex-end", justifyContent:"center", zIndex:50, padding: isDesktop ? 16 : 0 };
-  const sheetRadius = isDesktop ? 22 : "22px 22px 0 0";
+  const sheetRadius = isDesktop ? 22 : "14px 14px 0 0";
 
   // গেস্ট মোডে কোনো real user অবজেক্ট নেই — সংক্ষিপ্ত "sign in to save" কার্ড দেখানো, এডিট ফর্ম নয়
   if (isGuest) {
@@ -2901,7 +2927,7 @@ function RecentTopicChips({ topics, onPick, accent, cardBorder, textMuted2, dark
             border: `1px solid ${cardBorder}`,
             background: dark ? "#0A0A0A" : "#F8F5EE",
             color: textMuted2,
-            borderRadius:20,
+            borderRadius:14,
             padding: "6px 12px",
             fontSize:12,
             fontWeight: 600,
@@ -3222,6 +3248,15 @@ export default function FocusGo() {
   useEffect(() => {
     try { window.localStorage.setItem("focusgo_salah_completed", JSON.stringify(salahCompleted)); } catch (e) {}
   }, [salahCompleted]);
+  // ওয়েদার — Open-Meteo (ফ্রি, API key লাগে না)। সালাতের জন্য নেওয়া লোকেশন (salahCoords) পুনরায়
+  // ব্যবহার করা হয়, যাতে আলাদা করে আরেকবার লোকেশন পারমিশন চাইতে না হয়। ক্যাশ localStorage-এ থাকে
+  // বলে অ্যাপ খোলার সাথে সাথেই আগের রিডিং দেখানো যায়, তারপর ব্যাকগ্রাউন্ডে রিফ্রেশ হয়।
+  const [showWeatherModal, setShowWeatherModal] = useState(false);
+  const [weatherData, setWeatherData] = useState(() => {
+    try { return JSON.parse(window.localStorage.getItem("focusgo_weather_cache") || "null"); } catch (e) { return null; }
+  });
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherError, setWeatherError] = useState("");
   const salahMenuRef = useRef(null);
   useEffect(() => {
     if (!showSalahDropdown) return;
@@ -3232,6 +3267,27 @@ export default function FocusGo() {
   }, [showSalahDropdown]);
 
   const [tab, setTab] = useState("today");
+  // Visible Tabs — Study/Tasks/Notes বটম ন্যাভ থেকে দেখানো/লুকানো যায় (Today ও Settings সবসময় থাকে)।
+  // OFF করলে সংশ্লিষ্ট ফিচার-রিলেটেড সবকিছু Today ট্যাব থেকেও লুকায় (নিচে দেখুন)।
+  const [studyFeatureEnabled, setStudyFeatureEnabled] = useState(() => {
+    try { return window.localStorage.getItem("focusgo_tab_study_enabled") !== "0"; } catch (e) { return true; }
+  });
+  const [tasksFeatureEnabled, setTasksFeatureEnabled] = useState(() => {
+    try { return window.localStorage.getItem("focusgo_tab_tasks_enabled") !== "0"; } catch (e) { return true; }
+  });
+  const [notesFeatureEnabled, setNotesFeatureEnabled] = useState(() => {
+    try { return window.localStorage.getItem("focusgo_tab_notes_enabled") !== "0"; } catch (e) { return true; }
+  });
+  useEffect(() => { try { window.localStorage.setItem("focusgo_tab_study_enabled", studyFeatureEnabled ? "1" : "0"); } catch (e) {} }, [studyFeatureEnabled]);
+  useEffect(() => { try { window.localStorage.setItem("focusgo_tab_tasks_enabled", tasksFeatureEnabled ? "1" : "0"); } catch (e) {} }, [tasksFeatureEnabled]);
+  useEffect(() => { try { window.localStorage.setItem("focusgo_tab_notes_enabled", notesFeatureEnabled ? "1" : "0"); } catch (e) {} }, [notesFeatureEnabled]);
+  // চালু থাকা ট্যাবের ফিচার সেটিংস থেকে বন্ধ হয়ে গেলে (bottom nav-এ আর নেই এমন ট্যাবে আটকে থাকা এড়াতে)
+  // সাথে সাথে "Today"-তে ফিরিয়ে আনা হয়
+  useEffect(() => {
+    if ((tab === "study" && !studyFeatureEnabled) || (tab === "task" && !tasksFeatureEnabled) || (tab === "notes" && !notesFeatureEnabled)) {
+      setTab("today");
+    }
+  }, [tab, studyFeatureEnabled, tasksFeatureEnabled, notesFeatureEnabled]);
   // ব্যাক বাটন চাপলে "Today" ছাড়া অন্য কোনো ট্যাবে থাকলে অ্যাপ বন্ধ না হয়ে সরাসরি "Today" ট্যাবে ফিরে যাবে
   // দেখাতে এই toast ব্যবহার হয় ("Today" ট্যাবে থেকেও একবার ব্যাক চাপলে অ্যাপ বন্ধ হবে না, দ্বিতীয়বার চাপলে বন্ধ হবে)
   const [showExitToast, setShowExitToast] = useState(false);
@@ -4962,6 +5018,77 @@ export default function FocusGo() {
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 3600000 }
     );
   };
+  // Open-Meteo থেকে বর্তমান তাপমাত্রা + সূর্যোদয়/সূর্যাস্ত আনা হয় — কোনো API key লাগে না।
+  // ৩০ মিনিটের মধ্যে একই কোঅর্ডিনেটের জন্য আবার কল করা হলে ক্যাশড ডেটাই থেকে যায় (force দিলে বাদে)
+  const fetchWeather = async (lat, lng, force) => {
+    if (!force && weatherData && weatherData.lat === lat && weatherData.lng === lng && (Date.now() - weatherData.fetchedAt) < 30 * 60 * 1000) return;
+    setWeatherLoading(true);
+    setWeatherError("");
+    try {
+      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code&daily=sunrise,sunset&timezone=auto`);
+      const json = await res.json();
+      const data = {
+        lat, lng,
+        temp: json.current && json.current.temperature_2m != null ? Math.round(json.current.temperature_2m) : null,
+        code: json.current ? json.current.weather_code : null,
+        sunrise: (json.daily && json.daily.sunrise && json.daily.sunrise[0]) || null,
+        sunset: (json.daily && json.daily.sunset && json.daily.sunset[0]) || null,
+        fetchedAt: Date.now(),
+      };
+      setWeatherData(data);
+      try { window.localStorage.setItem("focusgo_weather_cache", JSON.stringify(data)); } catch (e) {}
+    } catch (e) {
+      setWeatherError(lang === "bn" ? "আবহাওয়ার তথ্য আনা যায়নি" : "Couldn't fetch weather");
+    } finally {
+      setWeatherLoading(false);
+    }
+  };
+  // salahCoords পাওয়া গেলে/পরিবর্তন হলে ওয়েদার আনা হয়
+  useEffect(() => {
+    if (salahCoords) fetchWeather(salahCoords.lat, salahCoords.lng);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [salahCoords]);
+  // প্রতি ৩০ মিনিটে অটো-রিফ্রেশ, যাতে তাপমাত্রা পুরনো না থেকে যায়
+  useEffect(() => {
+    if (!salahCoords) return;
+    const id = setInterval(() => fetchWeather(salahCoords.lat, salahCoords.lng, true), 30 * 60 * 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [salahCoords]);
+  // WMO weather code → সংক্ষিপ্ত বর্ণনা + আইকন (Open-Meteo-র স্ট্যান্ডার্ড কোড অনুযায়ী)
+  const weatherInfo = (code) => {
+    const map = {
+      0: { en: "Clear sky", bn: "পরিষ্কার আকাশ", Icon: Sun },
+      1: { en: "Mainly clear", bn: "মোটামুটি পরিষ্কার", Icon: Sun },
+      2: { en: "Partly cloudy", bn: "আংশিক মেঘলা", Icon: Cloud },
+      3: { en: "Overcast", bn: "মেঘলা", Icon: Cloud },
+      45: { en: "Foggy", bn: "কুয়াশাচ্ছন্ন", Icon: Cloud },
+      48: { en: "Foggy", bn: "কুয়াশাচ্ছন্ন", Icon: Cloud },
+      51: { en: "Light drizzle", bn: "হালকা গুঁড়ি বৃষ্টি", Icon: CloudRain },
+      53: { en: "Drizzle", bn: "গুঁড়ি বৃষ্টি", Icon: CloudRain },
+      55: { en: "Dense drizzle", bn: "ঘন গুঁড়ি বৃষ্টি", Icon: CloudRain },
+      56: { en: "Freezing drizzle", bn: "হিমায়িত গুঁড়ি বৃষ্টি", Icon: CloudRain },
+      57: { en: "Freezing drizzle", bn: "হিমায়িত গুঁড়ি বৃষ্টি", Icon: CloudRain },
+      61: { en: "Light rain", bn: "হালকা বৃষ্টি", Icon: CloudRain },
+      63: { en: "Rain", bn: "বৃষ্টি", Icon: CloudRain },
+      65: { en: "Heavy rain", bn: "ভারী বৃষ্টি", Icon: CloudRain },
+      66: { en: "Freezing rain", bn: "হিমায়িত বৃষ্টি", Icon: CloudRain },
+      67: { en: "Freezing rain", bn: "হিমায়িত বৃষ্টি", Icon: CloudRain },
+      71: { en: "Light snow", bn: "হালকা তুষারপাত", Icon: Cloud },
+      73: { en: "Snow", bn: "তুষারপাত", Icon: Cloud },
+      75: { en: "Heavy snow", bn: "ভারী তুষারপাত", Icon: Cloud },
+      77: { en: "Snow grains", bn: "তুষারকণা", Icon: Cloud },
+      80: { en: "Light showers", bn: "হালকা বৃষ্টি ঝরছে", Icon: CloudRain },
+      81: { en: "Showers", bn: "বৃষ্টি ঝরছে", Icon: CloudRain },
+      82: { en: "Heavy showers", bn: "ভারী বৃষ্টি ঝরছে", Icon: CloudRain },
+      85: { en: "Snow showers", bn: "তুষার ঝরছে", Icon: Cloud },
+      86: { en: "Snow showers", bn: "তুষার ঝরছে", Icon: Cloud },
+      95: { en: "Thunderstorm", bn: "বজ্রঝড়", Icon: CloudRain },
+      96: { en: "Thunderstorm w/ hail", bn: "শিলাসহ বজ্রঝড়", Icon: CloudRain },
+      99: { en: "Thunderstorm w/ hail", bn: "শিলাসহ বজ্রঝড়", Icon: CloudRain },
+    };
+    return map[code] || { en: "—", bn: "—", Icon: Cloud };
+  };
   const salahTimes = React.useMemo(() => {
     if (!salahCoords) return null;
     try {
@@ -5426,7 +5553,8 @@ export default function FocusGo() {
         .fg-sheet { animation: fg-sheet-up .26s cubic-bezier(0.16,1,0.3,1); will-change: transform; }
       `}</style>
       {isDesktop && !sidebarHidden && (
-        <DesktopSidebar t={t} tab={tab} setTab={setTab} vibrate={vibrate} dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(v => !v)} onHideAll={() => setSidebarHidden(true)} />
+        <DesktopSidebar t={t} tab={tab} setTab={setTab} vibrate={vibrate} dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(v => !v)} onHideAll={() => setSidebarHidden(true)}
+          studyFeatureEnabled={studyFeatureEnabled} tasksFeatureEnabled={tasksFeatureEnabled} notesFeatureEnabled={notesFeatureEnabled} />
       )}
       {isDesktop && sidebarHidden && (
         <div style={{ width: 40, flexShrink: 0, borderRight: `1px solid ${cardBorder}`, display: "flex", flexDirection: "column", alignItems: "center", padding: "28px 8px", position: "sticky", top: 0, height: "100dvh", boxSizing: "border-box" }}>
@@ -5449,7 +5577,7 @@ export default function FocusGo() {
 
           <div style={{display:"flex", alignItems:"center", gap:6}}>
             {!isOnline && (
-              <div title={t.offlineNote} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#242424":"#F8F5EE", color:textMuted2, borderRadius:20, padding:"5px 9px 5px 8px", fontSize:11, fontWeight:700, flexShrink:0}}>
+              <div title={t.offlineNote} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#242424":"#F8F5EE", color:textMuted2, borderRadius:14, padding:"5px 9px 5px 8px", fontSize:11, fontWeight:700, flexShrink:0}}>
                 <WifiOff size={12}/> {t.offlineBadge}
               </div>
             )}
@@ -5484,7 +5612,7 @@ export default function FocusGo() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:10, border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderBottom:"none", background: dark ? cardBg : "#FFFFFF", borderRadius:"18px 18px 0 0", padding:"12px 16px 5px", boxSizing:"border-box", boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.24)" : "0 14px 34px rgba(32,34,43,0.08)", position:"relative", overflow:"hidden"}}>
+        <div style={{marginTop:10, border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderBottom:"none", background: dark ? cardBg : "#FFFFFF", borderRadius:"14px 14px 0 0", padding:"12px 16px 5px", boxSizing:"border-box", boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.24)" : "0 14px 34px rgba(32,34,43,0.08)", position:"relative", overflow:"hidden"}}>
           <div style={{position:"absolute", top:-50, right:-50, width:130, height:130, borderRadius:"50%", background:`${accent}0F`, pointerEvents:"none"}}/>
           <div style={{marginBottom:2, position:"relative"}}>
             {(() => {
@@ -5530,9 +5658,18 @@ export default function FocusGo() {
                   <div style={{padding:"2px 2px 4px", marginBottom:0, position:"relative"}} ref={salahMenuRef}>
                     <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8}}>
                       <div style={{minWidth:0, flex:1}}>
-                        <div style={{fontSize:12, fontWeight:800, color:accent, letterSpacing:0.2, marginBottom:2, display:"flex", alignItems:"center", gap:6}}>
+                        <div
+                          onClick={() => { vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
+                          style={{fontSize:12, fontWeight:800, color:accent, letterSpacing:0.2, marginBottom:2, display:"flex", alignItems:"center", gap:6, cursor:"pointer"}}
+                          title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
+                        >
                           {lang === "bn" ? greetingBn : greetingEn}
                           <greetTheme.Icon size={14} color={accent} strokeWidth={2.3} fill={greetKey==="night" ? `${accent}33` : "none"}/>
+                          {weatherData && weatherData.temp != null && (
+                            <span style={{fontSize:11, fontWeight:700, color:textMuted2, letterSpacing:0}}>
+                              · <Num>{nf(weatherData.temp)}</Num>°C
+                            </span>
+                          )}
                         </div>
                         <div onClick={()=>{vibrate(); setShowProfile(true);}} style={{fontSize:23,fontWeight:800,letterSpacing:-0.6,color:textMain, cursor:"pointer", display:"inline-block"}}>
                           {firstName}
@@ -5606,7 +5743,7 @@ export default function FocusGo() {
 
                     {salahFeatureEnabled && showSalahDropdown && (
                       <div onClick={() => setShowSalahDropdown(false)} style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:70}}>
-                        <div onClick={(e) => e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:"85vh", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"22px 22px 0 0", padding:"8px 16px 18px", color:textMain}}>
+                        <div onClick={(e) => e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:"85vh", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"14px 14px 0 0", padding:"8px 16px 18px", color:textMain}}>
                           <div style={{width:32, height:3.5, borderRadius:4, background:cardBorder, margin:"2px auto 10px"}}/>
 
                           <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10}}>
@@ -5761,6 +5898,126 @@ export default function FocusGo() {
                       </div>
                     )}
 
+                    {/* ওয়েদার — Salah dropdown-এর মতোই bottom-sheet, একই লোকেশন (salahCoords) ব্যবহার করে */}
+                    {showWeatherModal && (
+                      <div onClick={() => setShowWeatherModal(false)} style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:70}}>
+                        <div onClick={(e) => e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:"85vh", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"14px 14px 0 0", padding:"8px 16px 18px", color:textMain}}>
+                          <div style={{width:32, height:3.5, borderRadius:4, background:cardBorder, margin:"2px auto 10px"}}/>
+
+                          <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10}}>
+                            <div style={{minWidth:0}}>
+                              <div style={{fontSize:14.5, fontWeight:800, color:textMain}}>{lang === "bn" ? "আবহাওয়া" : "Weather"}</div>
+                              <div style={{display:"flex", alignItems:"center", gap:5, marginTop:2, minHeight:14}}>
+                                <MapPin size={11} color={textMuted2} strokeWidth={2.4}/>
+                                <span style={{fontSize:12, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                                  {salahLocLoading
+                                    ? (lang === "bn" ? "লোকেশন খোঁজা হচ্ছে…" : "Getting location…")
+                                    : salahCoords
+                                      ? (salahLocationName || (lang === "bn" ? "লোকেশন সেট করা আছে" : "Location set"))
+                                      : (lang === "bn" ? "লোকেশন সেট করা নেই" : "Location not set")}
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); vibrate(); requestSalahLocation(); }}
+                              disabled={salahLocLoading}
+                              title={
+                                salahLocLoading
+                                  ? (lang === "bn" ? "লোকেশন খোঁজা হচ্ছে…" : "Getting location…")
+                                  : salahCoords
+                                    ? (lang === "bn" ? "লোকেশন পরিবর্তন করুন" : "Change location")
+                                    : (lang === "bn" ? "লাইভ লোকেশন নিন" : "Get live location")
+                              }
+                              style={{
+                                width:28, height:28, borderRadius:"50%", flexShrink:0, border:"none", padding:0,
+                                background: salahCoords ? accent : (dark ? "#242229" : "#F0EEF5"),
+                                display:"flex", alignItems:"center", justifyContent:"center",
+                                cursor: salahLocLoading ? "default" : "pointer",
+                                opacity: salahLocLoading ? 0.55 : 1,
+                                transition:"background .18s ease, opacity .18s ease",
+                              }}
+                            >
+                              <MapPin size={13.5} color={salahCoords ? "#fff" : textMuted2} strokeWidth={2.4}/>
+                            </button>
+                          </div>
+
+                          {!salahCoords && !salahLocLoading && (
+                            <div style={{marginTop:10, fontSize:12, color:textMuted2, lineHeight:1.5}}>
+                              {salahLocError || (lang === "bn" ? "উপরের লোকেশন আইকনে ট্যাপ করে আপনার এলাকা সেট করুন।" : "Tap the location icon above to set your area.")}
+                            </div>
+                          )}
+                          {salahCoords && salahLocError && (
+                            <div style={{marginTop:10, fontSize:12.5, color:"#C0392B", lineHeight:1.5}}>{salahLocError}</div>
+                          )}
+                          {salahPermDenied && Capacitor.isNativePlatform() && (
+                            <button
+                              onClick={openLocationSettings}
+                              style={{
+                                marginTop:10, width:"100%", border:"none", borderRadius:12, padding:"10px 0",
+                                background: accent, color:"#fff", fontWeight:700, fontSize:12.5, cursor:"pointer",
+                              }}
+                            >
+                              {lang === "bn" ? "সেটিংস থেকে লোকেশন অন করুন" : "Enable location in Settings"}
+                            </button>
+                          )}
+
+                          {salahCoords && weatherLoading && !weatherData && (
+                            <div style={{marginTop:14, fontSize:12.5, color:textMuted2}}>
+                              {lang === "bn" ? "আবহাওয়ার তথ্য আনা হচ্ছে…" : "Fetching weather…"}
+                            </div>
+                          )}
+                          {weatherError && (
+                            <div style={{marginTop:10, fontSize:12.5, color:"#C0392B", lineHeight:1.5}}>{weatherError}</div>
+                          )}
+
+                          {salahCoords && weatherData && weatherData.temp != null && (() => {
+                            const info = weatherInfo(weatherData.code);
+                            const WIcon = info.Icon;
+                            const sunriseD = weatherData.sunrise ? new Date(weatherData.sunrise) : null;
+                            const sunsetD = weatherData.sunset ? new Date(weatherData.sunset) : null;
+                            return (
+                              <>
+                                <div style={{marginTop:14, background:`${accent}${dark ? "1E" : "0F"}`, borderRadius:14, padding:"16px 14px", display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+                                  <div>
+                                    <div style={{fontSize:32, fontWeight:800, color:textMain, letterSpacing:-1, lineHeight:1}}>
+                                      <Num>{nf(weatherData.temp)}</Num>°C
+                                    </div>
+                                    <div style={{fontSize:12.5, fontWeight:600, color:textMuted2, marginTop:4}}>
+                                      {lang === "bn" ? info.bn : info.en}
+                                    </div>
+                                  </div>
+                                  <WIcon size={36} color={accent} strokeWidth={1.8}/>
+                                </div>
+
+                                {(sunriseD || sunsetD) && (
+                                  <div style={{display:"flex", gap:8, marginTop:10}}>
+                                    {sunriseD && (
+                                      <div style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 10px", display:"flex", alignItems:"center", gap:8}}>
+                                        <Sun size={16} color="#E0A83A" strokeWidth={2}/>
+                                        <div>
+                                          <div style={{fontSize:9.5, fontWeight:700, color:textMuted2, letterSpacing:0.3}}>{lang === "bn" ? "সূর্যোদয়" : "SUNRISE"}</div>
+                                          <div style={{fontSize:12.5, fontWeight:700, color:textMain}}>{fmtSalahTime(sunriseD)}</div>
+                                        </div>
+                                      </div>
+                                    )}
+                                    {sunsetD && (
+                                      <div style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 10px", display:"flex", alignItems:"center", gap:8}}>
+                                        <Moon size={16} color={dark ? "#8FA0E0" : "#4B5A96"} strokeWidth={2}/>
+                                        <div>
+                                          <div style={{fontSize:9.5, fontWeight:700, color:textMuted2, letterSpacing:0.3}}>{lang === "bn" ? "সূর্যাস্ত" : "SUNSET"}</div>
+                                          <div style={{fontSize:12.5, fontWeight:700, color:textMain}}>{fmtSalahTime(sunsetD)}</div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Quick alarm popup — Salah dropdown-এর মতোই bottom-sheet স্টাইল */}
                     {showAlarmPicker && (
                       <div onClick={() => setShowAlarmPicker(false)} style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:70}}>
@@ -5859,7 +6116,7 @@ export default function FocusGo() {
         {/* Focus timer - main home of Study tab (Study Plan sub-section only) — redesigned to match the two-column
             mockup: title/subtitle + controls on the left, a decorative progress ring with an hourglass on the right */}
         {tab === "study" && studySection === "plan" && (
-        <div className="fg-tab-panel" style={{marginTop:10, background: dark ? cardBg : "#FFFFFF", border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderRadius:26, padding:"18px 18px 16px", color:textMain, boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.24)" : "0 14px 34px rgba(32,34,43,0.08)", position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:10, background: dark ? cardBg : "#FFFFFF", border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderRadius:14, padding:"18px 18px 16px", color:textMain, boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.24)" : "0 14px 34px rgba(32,34,43,0.08)", position:"relative", overflow:"hidden"}}>
 
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", position:"relative", gap:8}}>
             <div style={{minWidth:0}}>
@@ -5881,7 +6138,7 @@ export default function FocusGo() {
                 {showWhiteNoisePicker && (
                   <>
                   <div onClick={()=>setShowWhiteNoisePicker(false)} style={{position:"fixed", inset:0, zIndex:19}}/>
-                  <div onClick={e=>e.stopPropagation()} style={{position:"absolute", top:"calc(100% + 6px)", right:0, zIndex:20, width:220, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:12, boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.35)" : "0 10px 24px rgba(0,0,0,0.14)"}}>
+                  <div onClick={e=>e.stopPropagation()} style={{position:"absolute", top:"calc(100% + 6px)", right:0, zIndex:20, width:220, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:12, boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.35)" : "0 10px 24px rgba(0,0,0,0.14)"}}>
                     <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:6}}>
                       {WHITE_NOISE_TYPES.map(opt => {
                         const active = whiteNoiseSound === opt.id;
@@ -5981,11 +6238,11 @@ export default function FocusGo() {
               <div style={{display:"flex", justifyContent:"center", gap:7, marginTop:10, maxWidth:260, marginLeft:"auto", marginRight:"auto"}}>
                 <button
                   onClick={focusMode==="timer" ? toggleTimerRunning : toggleStopwatchRunning}
-                  style={{display:"flex", alignItems:"center", justifyContent:"center", gap:7, flex:"1 1 auto", minWidth:0, background: accent, border:"none", borderRadius:16, padding:"12px 16px", color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", boxShadow:`0 10px 22px ${accent}45`, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                  style={{display:"flex", alignItems:"center", justifyContent:"center", gap:7, flex:"1 1 auto", minWidth:0, background: accent, border:"none", borderRadius:14, padding:"12px 16px", color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", boxShadow:`0 10px 22px ${accent}45`, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                   {(focusMode==="timer" ? timerRunning : stopwatchRunning) ? <Pause size={15} fill="#fff" style={{flexShrink:0}}/> : <Play size={15} fill="#fff" style={{flexShrink:0}}/>} <span style={{overflow:"hidden", textOverflow:"ellipsis"}}>{(focusMode==="timer" ? timerRunning : stopwatchRunning) ? t.pause : t.start}</span>
                 </button>
                 <button onClick={()=>{ if (focusMode==="timer") { setTimerRunning(false); setTimerSeconds(timerTotal); } else { setStopwatchRunning(false); setStopwatchSeconds(0); } }} title={t.reset}
-                  style={{background: dark?"#332E25":"#FAF9F6", border:`1px solid ${dark ? "transparent" : "#F0EEE8"}`, borderRadius:16, width:42, height:42, flexShrink:0, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+                  style={{background: dark?"#332E25":"#FAF9F6", border:`1px solid ${dark ? "transparent" : "#F0EEE8"}`, borderRadius:14, width:42, height:42, flexShrink:0, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
                   <RotateCcw size={15} color={textMain}/>
                 </button>
               </div>
@@ -5998,11 +6255,11 @@ export default function FocusGo() {
                   </div>
                 ) : (
                   <div style={{display:"flex", gap:6, overflowX:"auto", WebkitOverflowScrolling:"touch", justifyContent: (todayTopics.filter(x=>!x.done).length < 3) ? "center" : "flex-start", paddingBottom:2}}>
-                    <button onClick={()=>selectTimerTopic(null)} style={{flexShrink:0, border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer", whiteSpace:"nowrap"}}>
+                    <button onClick={()=>selectTimerTopic(null)} style={{flexShrink:0, border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:14, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer", whiteSpace:"nowrap"}}>
                       {t.freeSessionOption}
                     </button>
                     {todayTopics.filter(x=>!x.done).map(x => (
-                      <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{flexShrink:0, border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:20, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                      <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{flexShrink:0, border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:14, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                         {x.topic}
                       </button>
                     ))}
@@ -6058,17 +6315,17 @@ export default function FocusGo() {
 
         {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — Option 2: circular progress, premium look
             এখন accent color ব্যবহার হচ্ছে (আগে dark teal ছিল, সেই রঙ Next Exam কার্ডে সরানো হয়েছে) */}
-        {(tab === "today" || (tab === "study" && studySection === "plan")) && (() => {
+        {((tab === "today" && studyFeatureEnabled) || (tab === "study" && studySection === "plan")) && (() => {
           return (
         <div className="fg-tab-panel" style={{
             marginTop: tab === "today" ? 0 : 16,
-            border:`1px solid ${dark ? cardBorder : (tab === "today" ? "#F0EEE8" : `${accent}1A`)}`,
-            borderTop: tab === "today" ? "none" : `1px solid ${dark ? cardBorder : `${accent}1A`}`,
-            background: dark ? cardBg : (tab === "today" ? "#FFFFFF" : `${accent}0A`),
-            borderRadius: tab === "today" ? "0 0 18px 18px" : 20,
-            padding: tab === "today" ? "9px 16px 11px" : "16px 18px",
+            border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`,
+            borderTop: tab === "today" ? "none" : `1px solid ${dark ? cardBorder : "#F0EEE8"}`,
+            background: dark ? cardBg : "#FFFFFF",
+            borderRadius: tab === "today" ? "0 0 14px 14px" : 14,
+            padding: tab === "today" ? "9px 16px 11px" : "12px 16px 14px",
             position:"relative", overflow:"hidden",
-            boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.24)" : (tab === "today" ? "0 14px 34px rgba(32,34,43,0.08)" : `0 6px 16px ${accent}0A`)
+            boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.24)" : "0 14px 34px rgba(32,34,43,0.08)"
           }}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
             <div style={{display:"flex", alignItems:"center", gap:10, minWidth:0}}>
@@ -6096,7 +6353,7 @@ export default function FocusGo() {
             </div>
           </div>
           {/* Today's Tasks mini-summary — merged into the progress card so the card previews task progress at a glance, matching the home page mockup */}
-          {tab === "today" && (() => {
+          {tab === "today" && tasksFeatureEnabled && (() => {
             const cardTodayTasks = tasks.filter(x => x.dueDate === todayKey);
             const hasTasks = cardTodayTasks.length > 0;
             const cardDone = cardTodayTasks.filter(x => x.done).length;
@@ -6136,7 +6393,7 @@ export default function FocusGo() {
         )}
 
         {/* Exam ব্যানার — হোমপেজ মকআপের মতো ফুল-উইথ কালো বার: ক্যালেন্ডার আইকন | "Exam" | ডিভাইডার | সাবজেক্ট | "X Days Left" পিল | শেভরন */}
-        {tab === "today" && nearestUpcomingExam && (() => {
+        {tab === "today" && studyFeatureEnabled && nearestUpcomingExam && (() => {
           const diffDays = Math.round((new Date(nearestUpcomingExam.date + "T00:00:00") - new Date(todayKey + "T00:00:00")) / 86400000);
           const daysLabel = diffDays <= 0 ? (lang==="bn" ? "আজ" : "Today")
             : diffDays === 1 ? (lang==="bn" ? "১ দিন বাকি" : "1 Day Left")
@@ -6147,7 +6404,7 @@ export default function FocusGo() {
               role="button" tabIndex={0}
               style={{
                 display:"flex", flexWrap:"nowrap", alignItems:"center", width:"100%", boxSizing:"border-box",
-                marginTop:8, background:"#141118", color:"#fff", borderRadius:16, padding:"10px 13px",
+                marginTop:8, background:"#141118", color:"#fff", borderRadius:14, padding:"10px 13px",
                 cursor:"pointer", boxShadow:"0 6px 16px rgba(0,0,0,0.28)",
               }}
             >
@@ -6169,7 +6426,7 @@ export default function FocusGo() {
 
 
         {/* Today's study list - Today tab + Study tab (shown above Study Plan/Exam) */}
-        {(tab === "today" || (tab === "study" && studySection === "plan")) && (
+        {((tab === "today" && studyFeatureEnabled) || (tab === "study" && studySection === "plan")) && (
         <div className="fg-tab-panel" style={{marginTop:12}}>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
             <div style={{display:"flex", alignItems:"center", gap:8}}>
@@ -6199,7 +6456,7 @@ export default function FocusGo() {
         )}
 
         {/* Today's Tasks — after Today's Study */}
-        {tab === "today" && (() => {
+        {tab === "today" && tasksFeatureEnabled && (() => {
           const homeTodayTasks = tasks.filter(x => x.dueDate === todayKey);
           return (
           <div className="fg-tab-panel" style={{marginTop:12}}>
@@ -6222,7 +6479,7 @@ export default function FocusGo() {
               </button>
             </div>
             {homeTodayTasks.length === 0 ? (
-              <div style={{border:`1px dashed ${inkA(0.35)}`, borderRadius:16, padding:"12px 13px", background:inkA(0.06), display:"flex", alignItems:"flex-start", gap:10}}>
+              <div style={{border:`1px dashed ${inkA(0.35)}`, borderRadius:14, padding:"12px 13px", background:inkA(0.06), display:"flex", alignItems:"flex-start", gap:10}}>
                 <span style={{width:30, height:30, borderRadius:"50%", background:inkA(0.14), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                   <ListChecks size={15} color={inkColor} strokeWidth={2}/>
                 </span>
@@ -6234,7 +6491,7 @@ export default function FocusGo() {
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:6}}>
                 {homeTodayTasks.map(x => (
-                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:11,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:16,padding:"8px 13px",boxSizing:"border-box",boxShadow: dark ? "none" : "0 2px 8px rgba(0,0,0,0.04)"}}>
+                  <div key={x.id} style={{display:"flex",alignItems:"center",gap:11,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:"8px 13px",boxSizing:"border-box",boxShadow: dark ? "none" : "0 2px 8px rgba(0,0,0,0.04)"}}>
                     <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:23,height:23,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
                       {x.done && <Check size={13} color="#fff" strokeWidth={3}/>}
                     </button>
@@ -6518,7 +6775,7 @@ export default function FocusGo() {
                   <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m+1,1));}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", display:"flex", padding:4}}><ChevronRight size={18}/></button>
                 </div>
 
-                <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 12px", marginBottom:10}}>
+                <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"14px 12px", marginBottom:10}}>
                   <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:8}}>
                     {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:11, fontWeight:500, color:textMuted2}}>{d}</div>))}
                   </div>
@@ -6635,7 +6892,7 @@ export default function FocusGo() {
                     <div className="fg-chip-row" style={{display:"flex", gap:6, overflowX:"auto", WebkitMaskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)", maskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)"}}>
                       {filterChips.map(([key,label,Icon,count]) => (
                         <button key={key} onClick={()=>{vibrate(); setTaskFilter(key);}} style={{
-                          display:"flex", alignItems:"center", gap:5, padding:"7px 13px", borderRadius:20, cursor:"pointer", flexShrink:0,
+                          display:"flex", alignItems:"center", gap:5, padding:"7px 13px", borderRadius:14, cursor:"pointer", flexShrink:0,
                           border:"none",
                           background: taskFilter===key ? accent : (dark ? "#232127" : "#EFEBE3"),
                           color: taskFilter===key ? "#fff" : textMain, fontWeight:600, fontSize:12.5, whiteSpace:"nowrap",
@@ -6755,6 +7012,9 @@ export default function FocusGo() {
             salahNotifEnabled={salahNotifEnabled} setSalahNotifEnabled={setSalahNotifEnabled}
             timerNotifEnabled={timerNotifEnabled} setTimerNotifEnabled={setTimerNotifEnabled}
             salahFeatureEnabled={salahFeatureEnabled} setSalahFeatureEnabled={setSalahFeatureEnabled}
+            studyFeatureEnabled={studyFeatureEnabled} setStudyFeatureEnabled={setStudyFeatureEnabled}
+            tasksFeatureEnabled={tasksFeatureEnabled} setTasksFeatureEnabled={setTasksFeatureEnabled}
+            notesFeatureEnabled={notesFeatureEnabled} setNotesFeatureEnabled={setNotesFeatureEnabled}
             focusMinutes={focusMinutes} setFocusMinutes={setFocusMinutes}
             breakMinutes={breakMinutes} setBreakMinutes={setBreakMinutes}
             weekStartDay={weekStartDay} setWeekStartDay={changeWeekStartDay}
@@ -6782,7 +7042,7 @@ export default function FocusGo() {
                 { Icon: Flame, color:"#C08A2E", value: nf(studyOverview.streak), label: t.streakLabel },
               ];
               return (
-                <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:20, padding:"16px 16px 14px", marginBottom:20, boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.18)" : "0 6px 16px rgba(0,0,0,0.04)"}}>
+                <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"16px 16px 14px", marginBottom:20, boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.18)" : "0 6px 16px rgba(0,0,0,0.04)"}}>
                   <div style={{display:"flex", alignItems:"center", gap:10}}>
                     <div style={{width:38,height:38, borderRadius:11, background: inkA(dark?0.22:0.12), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                       <Clock size={18} color={inkColor}/>
@@ -6843,7 +7103,7 @@ export default function FocusGo() {
                         const c = colorForSubject(subj, allSubjects);
                         const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
                         return (
-                          <button key={subj} onClick={()=>{vibrate(); setShowManageTopicsFor(subj); setShowSubjects(true);}} style={{display:"flex", alignItems:"center", gap:12, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:18, padding:"12px 14px", cursor:"pointer", textAlign:"left", boxShadow: dark ? "none" : "0 2px 8px rgba(0,0,0,0.04)", width:"100%"}}>
+                          <button key={subj} onClick={()=>{vibrate(); setShowManageTopicsFor(subj); setShowSubjects(true);}} style={{display:"flex", alignItems:"center", gap:12, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px", cursor:"pointer", textAlign:"left", boxShadow: dark ? "none" : "0 2px 8px rgba(0,0,0,0.04)", width:"100%"}}>
                             <span style={{width:10, height:10, borderRadius:"50%", background:c.bg, flexShrink:0}}/>
                             <div style={{flex:1, minWidth:0}}>
                               <div style={{fontSize:10.5, fontWeight:800, letterSpacing:0.4, color:c.bg, textTransform:"uppercase", marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{v.total ? `${nf(pct)}%` : t.noTopicsSubjectShort}</div>
@@ -6891,7 +7151,7 @@ export default function FocusGo() {
                 })()}
               </span>
             </div>
-            <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"18px 12px 12px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:118, marginBottom:20}}>
+            <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"18px 12px 12px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:118, marginBottom:20}}>
               {(() => {
                 const maxMin = Math.max(1, ...weeklyActivity.map(w=>w.min));
                 return weeklyActivity.map((w,i) => {
@@ -6924,7 +7184,7 @@ export default function FocusGo() {
                 })()}
               </span>
             </div>
-            <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"18px 12px 12px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:118, marginBottom:20}}>
+            <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"18px 12px 12px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:118, marginBottom:20}}>
               {(() => {
                 const maxMin = Math.max(1, ...monthlyActivity.map(w=>w.min));
                 const currentWeekNum = (() => {
@@ -7014,7 +7274,7 @@ export default function FocusGo() {
           width:"100%", maxWidth:480, display:"flex",
           background: dark ? "rgba(18,17,16,0.6)" : "rgba(255,255,255,0.55)",
           border:`1px solid ${dark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.6)"}`,
-          borderRadius:16, padding:"4px",
+          borderRadius:14, padding:"4px",
           backdropFilter:"blur(18px) saturate(160%)",
           WebkitBackdropFilter:"blur(18px) saturate(160%)",
           boxShadow: dark
@@ -7023,9 +7283,9 @@ export default function FocusGo() {
         }}>
           {[
             {k:"today", Icon: Home},
-            {k:"study", Icon: GraduationCap},
-            {k:"task", Icon: ListChecks},
-            {k:"notes", Icon: FileText},
+            ...(studyFeatureEnabled ? [{k:"study", Icon: GraduationCap}] : []),
+            ...(tasksFeatureEnabled ? [{k:"task", Icon: ListChecks}] : []),
+            ...(notesFeatureEnabled ? [{k:"notes", Icon: FileText}] : []),
             {k:"settings", Icon: Settings},
           ].map(({k, Icon}) => (
             <button key={k} onClick={()=>{vibrate(); setTab(k);}} style={{
@@ -7242,7 +7502,7 @@ function FlipBlock({ children, textMain, dark, stacked, running, blockWidth, blo
       position:"relative",
       background: running ? "transparent" : (dark ? "#1F1B17" : "#FFFFFF"),
       border: running ? "1px solid rgba(245,241,232,0.28)" : `1px solid ${dark ? "#332E25" : "#F0DCC9"}`,
-      borderRadius:24,
+      borderRadius:14,
       width,
       height,
       display:"flex",
@@ -7277,7 +7537,7 @@ function FlipBlock({ children, textMain, dark, stacked, running, blockWidth, blo
 function BreakPromptModal({ t, nf, breakMinutes, accent, onAccept, onSkip }) {
   return (
     <div style={{position:"fixed", inset:0, zIndex:200, background:"rgba(0,0,0,0.55)", display:"flex", alignItems:"center", justifyContent:"center", padding:20}}>
-      <div style={{background:"#1A1A1A", color:"#F5F1E8", borderRadius:20, padding:"26px 22px", maxWidth:320, width:"100%", textAlign:"center"}}>
+      <div style={{background:"#1A1A1A", color:"#F5F1E8", borderRadius:14, padding:"26px 22px", maxWidth:320, width:"100%", textAlign:"center"}}>
         <div style={{fontSize:18, fontWeight:800, marginBottom:8}}>{t.focusCompleteTitle}</div>
         <div style={{fontSize:14, color:"#B8B2A2", marginBottom:20}}>
           {t.takeBreakQuestion} <Num>{nf(breakMinutes)}</Num> {t.breakQSuffix}
@@ -7335,10 +7595,10 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
   // ছোট আইকন বাটন — reset উপরে, start/pause নিচে (landscape-এ seconds বক্সের ডান পাশে বসবে)
   const sideButtons = (
     <div style={{display:"flex", flexDirection:"column", gap:10, marginLeft:"clamp(8px,1.6vw,16px)"}}>
-      <button onClick={onReset} title={t.reset} style={{background:resetBtnBg, border:"none", borderRadius:16, width:48, height:48, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+      <button onClick={onReset} title={t.reset} style={{background:resetBtnBg, border:"none", borderRadius:14, width:48, height:48, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
         <RotateCcw size={18} color={fgMain}/>
       </button>
-      <button onClick={onToggleRun} title={running ? t.pause : t.start} style={{background:accent, border:"none", borderRadius:16, width:48, height:48, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+      <button onClick={onToggleRun} title={running ? t.pause : t.start} style={{background:accent, border:"none", borderRadius:14, width:48, height:48, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
         {running ? <Pause size={18} fill="#fff" color="#fff"/> : <Play size={18} fill="#fff" color="#fff"/>}
       </button>
     </div>
@@ -7423,10 +7683,10 @@ function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, acc
       {/* portrait/vertical মোডে বাটন আগের মতোই নিচে থাকবে */}
       {stacked && (
         <div style={{display:"flex", gap:16, padding:"0 30px 64px", justifyContent:"center", alignItems:"center"}}>
-          <button onClick={onToggleRun} title={running ? t.pause : t.start} style={{background:accent, border:"none", borderRadius:16, width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+          <button onClick={onToggleRun} title={running ? t.pause : t.start} style={{background:accent, border:"none", borderRadius:14, width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
             {running ? <Pause size={20} fill="#fff" color="#fff"/> : <Play size={20} fill="#fff" color="#fff"/>}
           </button>
-          <button onClick={onReset} title={t.reset} style={{background:resetBtnBg, border:"none", borderRadius:16, width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+          <button onClick={onReset} title={t.reset} style={{background:resetBtnBg, border:"none", borderRadius:14, width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
             <RotateCcw size={20} color={fgMain}/>
           </button>
         </div>
@@ -7582,7 +7842,7 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
   const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", flex:1 };
 
   return (
-    <div className="fg-card" style={{background: completed ? (dark?"rgba(110,139,94,0.10)":"rgba(110,139,94,0.07)") : cardBg, border: completed ? `1px solid rgba(110,139,94,0.4)` : `1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px", transition:"background .2s ease, border-color .2s ease, transform .16s cubic-bezier(0.16,1,0.3,1), box-shadow .2s ease"}}>
+    <div className="fg-card" style={{background: completed ? (dark?"rgba(110,139,94,0.10)":"rgba(110,139,94,0.07)") : cardBg, border: completed ? `1px solid rgba(110,139,94,0.4)` : `1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px", transition:"background .2s ease, border-color .2s ease, transform .16s cubic-bezier(0.16,1,0.3,1), box-shadow .2s ease"}}>
       {renaming ? (
         <div style={{display:"flex", flexDirection:"column", gap:6}} onClick={e=>e.stopPropagation()}>
           <div style={{display:"flex", gap:6, alignItems:"center"}}>
@@ -7603,7 +7863,7 @@ function TopicFolderCard({ subj, topicName, attempts, t, nf, lang, cardBg, cardB
           </div>
           <div style={{display:"flex", alignItems:"center", gap:6, flexShrink:0}}>
             {completed ? (
-              <span style={{fontSize:11, fontWeight:700, color:green, background: dark?"rgba(110,139,94,0.18)":"rgba(110,139,94,0.15)", padding:"3px 8px", borderRadius:20, display:"flex", alignItems:"center", gap:4}}>
+              <span style={{fontSize:11, fontWeight:700, color:green, background: dark?"rgba(110,139,94,0.18)":"rgba(110,139,94,0.15)", padding:"3px 8px", borderRadius:14, display:"flex", alignItems:"center", gap:4}}>
                 <Check size={10}/> {t.completedBadge}
               </span>
             ) : (
@@ -7764,12 +8024,12 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
   const dateInput = { border:`1px solid ${cardBorder}`, borderRadius:8, padding:"6px 8px", fontSize:12, background: dark?"#0A0A0A":"#F8F5EE", color: dark?"#F3F1F8":"#262433", outline:"none", flex:1 };
 
   return (
-    <div className="fg-card" style={{background: hasAttempts ? (dark?"rgba(110,139,94,0.10)":"rgba(110,139,94,0.07)") : cardBg, border: hasAttempts ? `1px solid rgba(110,139,94,0.4)` : `1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px", transition:"background .2s ease, border-color .2s ease"}}>
+    <div className="fg-card" style={{background: hasAttempts ? (dark?"rgba(110,139,94,0.10)":"rgba(110,139,94,0.07)") : cardBg, border: hasAttempts ? `1px solid rgba(110,139,94,0.4)` : `1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px", transition:"background .2s ease, border-color .2s ease"}}>
       <button onClick={()=>setExpanded(x=>!x)} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between", padding:0, color:"inherit", textAlign:"left"}}>
         <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
           <GraduationCap size={14} style={{color:textMuted2, flexShrink:0}}/>
           <span style={{fontWeight:700, fontSize:14, wordBreak:"break-word"}}>{name}</span>
-          <span style={{fontSize:10, fontWeight:700, letterSpacing:ls(0.5), color:textMuted2, background: dark?"#242229":"#F0EEF5", padding:"2px 7px", borderRadius:20, flexShrink:0, textTransform:"uppercase"}}>{typeLabel}</span>
+          <span style={{fontSize:10, fontWeight:700, letterSpacing:ls(0.5), color:textMuted2, background: dark?"#242229":"#F0EEF5", padding:"2px 7px", borderRadius:14, flexShrink:0, textTransform:"uppercase"}}>{typeLabel}</span>
         </div>
         <ChevronDown size={15} style={{color:textMuted2, transform: expanded ? "rotate(180deg)" : "none", transition:"transform .15s", flexShrink:0}}/>
       </button>
@@ -7777,7 +8037,7 @@ function CombinedExamCard({ id, combinedExam, t, nf, lang, allSubjects, cardBg, 
       <div style={{display:"flex", flexWrap:"wrap", gap:4, marginTop:8, paddingLeft:22}}>
         {(subjects || []).map(s => {
           const c = colorForSubject(s, allSubjects);
-          return <span key={s} style={{fontSize:11, fontWeight:700, color:c.bg, background:c.bgSoft, padding:"2px 8px", borderRadius:20}}>{s}</span>;
+          return <span key={s} style={{fontSize:11, fontWeight:700, color:c.bg, background:c.bgSoft, padding:"2px 8px", borderRadius:14}}>{s}</span>;
         })}
       </div>
 
@@ -7983,7 +8243,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
 
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, maxHeight:"min(80dvh, calc(100dvh - 24px))", borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, display:"flex", flexDirection:"column", gap:16, overflow:"hidden"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, maxHeight:"min(80dvh, calc(100dvh - 24px))", borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain, display:"flex", flexDirection:"column", gap:16, overflow:"hidden"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", flexShrink:0}}>
           <div style={{fontSize:16, fontWeight:800}}>{lang==="bn" ? "পরীক্ষার সময়সূচি" : "Exam Schedule"}</div>
           <div style={{display:"flex", alignItems:"center", gap:6}}>
@@ -7997,7 +8257,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
 
         <div style={{flex:1, minHeight:0, overflowY:"auto", display:"flex", flexDirection:"column", gap:16, WebkitOverflowScrolling:"touch"}}>
           {/* Add / edit form — collapsible */}
-          <div style={{background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:16, padding:12, display:"flex", flexDirection:"column", gap: formOpen ? 8 : 0, flexShrink:0}}>
+          <div style={{background: dark?"rgba(255,255,255,0.025)":"rgba(0,0,0,0.02)", border:`1px solid ${cardBorder}`, borderRadius:14, padding:12, display:"flex", flexDirection:"column", gap: formOpen ? 8 : 0, flexShrink:0}}>
             <button onClick={()=>setFormOpen(v=>!v)} style={{display:"flex", alignItems:"center", justifyContent:"space-between", border:"none", background:"transparent", padding:0, cursor:"pointer", width:"100%"}}>
               <span style={{display:"flex", alignItems:"center", gap:8, fontSize:12, fontWeight:800, color:textMain}}>
                 <CalendarDays size={14} color={accent}/>
@@ -8125,7 +8385,7 @@ function NextExamModal({ t, examSubjects, nextExam, onSave, onClose, cardBg, car
 
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, display:"flex", flexDirection:"column", gap:16}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain, display:"flex", flexDirection:"column", gap:16}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
           <div style={{fontSize:16, fontWeight:800}}>{t.setNextExam}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
@@ -8182,7 +8442,7 @@ function CombinedExamEditorModal({ t, allSubjects, editingCombinedExam, onSave, 
 
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, display:"flex", flexDirection:"column", gap:16, maxHeight:"85vh", overflowY:"auto"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain, display:"flex", flexDirection:"column", gap:16, maxHeight:"85vh", overflowY:"auto"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
           <div style={{fontSize:16, fontWeight:800}}>{editingCombinedExam ? t.editCombinedExam : t.addCombinedExam}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
@@ -8214,7 +8474,7 @@ function CombinedExamEditorModal({ t, allSubjects, editingCombinedExam, onSave, 
                   const on = picked.includes(s);
                   const c = colorForSubject(s, allSubjects);
                   return (
-                    <button key={s} onClick={()=>toggleSubject(s)} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${on ? c.bg : cardBorder}`, background: on ? c.bgSoft : "transparent", color: on ? c.bg : textMuted2, borderRadius:20, padding:"6px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+                    <button key={s} onClick={()=>toggleSubject(s)} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${on ? c.bg : cardBorder}`, background: on ? c.bgSoft : "transparent", color: on ? c.bg : textMuted2, borderRadius:14, padding:"6px 12px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
                       {on && <Check size={11}/>} {s}
                     </button>
                   );
@@ -8260,7 +8520,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
   const totalExams = examTopicSet.size;
   const rows = Object.entries(perSubject).sort((a,b)=>a[0].localeCompare(b[0]));
 
-  const statBox = { background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px" };
+  const statBox = { background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px" };
 
   return (
     <div style={{marginTop:26}}>
@@ -8279,7 +8539,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
       </div>
 
       {totalAttempts === 0 ? (
-        <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16, marginTop:14}}>
+        <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, marginTop:14}}>
           {t.noExamDataMonth}
         </div>
       ) : (
@@ -8305,7 +8565,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
 
           <div style={{marginTop:16}}>
             <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:8}}>{t.subjectBreakdown}</div>
-            <div style={{border:`1px solid ${cardBorder}`, borderRadius:16, overflow:"hidden"}}>
+            <div style={{border:`1px solid ${cardBorder}`, borderRadius:14, overflow:"hidden"}}>
               <div style={{display:"grid", gridTemplateColumns:"1.6fr 0.8fr 0.8fr 0.8fr", padding:"8px 12px", background: dark?"#0A0A0A":"#F8F5EE", fontSize:11, fontWeight:700, color:textMuted2}}>
                 <span>{t.subjectLabel}</span><span style={{textAlign:"right"}}>{t.examsCol}</span><span style={{textAlign:"right"}}>{t.attemptsCol}</span><span style={{textAlign:"right"}}>{t.avgCol}</span>
               </div>
@@ -8369,7 +8629,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
       <div style={{fontSize:12, color:textMuted2, marginBottom:16, fontWeight:600}}>{rangeLabel}</div>
 
       {/* Overview card */}
-      <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px", marginBottom:20}}>
+      <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"14px 16px", marginBottom:20}}>
         <div>
           <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:8}}>{t.overview}</div>
           <div style={{display:"flex", gap:16}}>
@@ -8394,7 +8654,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
           <div style={{fontSize:10, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:10}}>{t.subjectTimeBreakdown}</div>
           <div style={{display:"flex", flexDirection:"column", gap:10}}>
             {Object.keys(subjMinutes).length === 0 && (
-              <div style={{textAlign:"center", padding:"26px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16, display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
+              <div style={{textAlign:"center", padding:"26px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
                 <BarChart3 size={20} style={{opacity:0.6}}/>
                 {t.noTimeData}
               </div>
@@ -8403,7 +8663,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
               const c = colorForSubject(subj, allSubjects);
               const pct = Math.round((mins/maxMinutes)*100);
               return (
-                <div key={subj} className="fg-card" style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"12px 16px"}}>
+                <div key={subj} className="fg-card" style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 16px"}}>
                   <div style={{display:"flex", justifyContent:"space-between", marginBottom:6}}>
                     <span style={{fontWeight:700, fontSize:13}}>{subj}</span>
                     <span style={{fontSize:12, fontWeight:700, color:c.bg}}>{formatDuration(mins, lang, nf)}</span>
@@ -8419,7 +8679,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
       ) : (
         <div style={{display:"flex", flexDirection:"column", gap:10, marginBottom:20}}>
           {Object.entries(subjTotals).length === 0 && (
-            <div style={{textAlign:"center", padding:"26px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16, display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
+            <div style={{textAlign:"center", padding:"26px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
               <Calendar size={20} style={{opacity:0.6}}/>
               {t.noSubjectData}
             </div>
@@ -8428,7 +8688,7 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
             const c = colorForSubject(subj, allSubjects);
             const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
             return (
-              <div key={subj} className="fg-card" style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"12px 16px"}}>
+              <div key={subj} className="fg-card" style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 16px"}}>
                 <div style={{display:"flex", justifyContent:"space-between", marginBottom:6}}>
                   <span style={{fontWeight:700, fontSize:13}}>{subj}</span>
                   <span style={{fontSize:12, fontWeight:700, color:c.bg}}><Num>{nf(pct)}</Num>%</span>
@@ -8467,7 +8727,7 @@ function SubjectGroupedList({ entries, nf, t, remainingLabel, doneLabel, remaini
       <div>
         <div style={{fontSize:12, fontWeight:700, color:textMain, marginBottom:8}}>✕ {remainingLabel} (<Num>{nf(remainingCount)}</Num>)</div>
         {remainingSubjects.length === 0 ?
-          <div style={{textAlign:"center", padding:"18px 10px", color:textMuted2, fontSize:12, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16, display:"flex", flexDirection:"column", alignItems:"center", gap:6}}>
+          <div style={{textAlign:"center", padding:"18px 10px", color:textMuted2, fontSize:12, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", gap:6}}>
             <Check size={16} style={{opacity:0.7, color:"#6E8B5E"}}/>
             {remainingEmptyText}
           </div> :
@@ -8487,7 +8747,7 @@ function SubjectGroupedList({ entries, nf, t, remainingLabel, doneLabel, remaini
       <div>
         <div style={{fontSize:12, fontWeight:700, color:"#6E8B5E", marginBottom:8}}>✓ {doneLabel} (<Num>{nf(doneCount)}</Num>)</div>
         {doneSubjects.length === 0 ?
-          <div style={{textAlign:"center", padding:"18px 10px", color:textMuted2, fontSize:12, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16, display:"flex", flexDirection:"column", alignItems:"center", gap:6}}>
+          <div style={{textAlign:"center", padding:"18px 10px", color:textMuted2, fontSize:12, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", gap:6}}>
             <Folder size={16} style={{opacity:0.6}}/>
             {doneEmptyText}
           </div> :
@@ -8541,7 +8801,7 @@ function TopicSummaryPeriodCard({ label, rangeLabel, isComplete, pendingText, co
         </div>
       </div>
       {!isComplete ? (
-        <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:16}}>
+        <div style={{textAlign:"center", padding:"22px 10px", color:textMuted2, fontSize:13, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14}}>
           {pendingText}
         </div>
       ) : (
@@ -8562,7 +8822,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
   const closeMenu = () => { setOpenMenuId(null); setConfirmDeleteId(null); };
   if (items.length === 0) {
     return (
-      <div style={{border:`1px dashed ${cardBorder}`, borderRadius:16, padding:"12px 13px", textAlign:"left", background: `${accent}08`, display:"flex", alignItems:"flex-start", gap:10}}>
+      <div style={{border:`1px dashed ${cardBorder}`, borderRadius:14, padding:"12px 13px", textAlign:"left", background: `${accent}08`, display:"flex", alignItems:"flex-start", gap:10}}>
         {EmptyIcon && (
           <span style={{width:30, height:30, borderRadius:"50%", background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
             <EmptyIcon size={15} color={accent} strokeWidth={2}/>
@@ -8584,7 +8844,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
           <div key={item.id} style={{
             background: isActiveTimer ? `${c.bg}0F` : cardBg,
             border: `1px solid ${isActiveTimer ? c.bg : cardBorder}`,
-            borderRadius:16, padding:"10px 13px", position:"relative",
+            borderRadius:14, padding:"10px 13px", position:"relative",
             boxShadow: isActiveTimer ? "none" : "0 2px 8px rgba(0,0,0,0.04)",
             transition:"background .15s ease, border-color .15s ease",
           }}>
@@ -8704,7 +8964,7 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
   };
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
           <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.addTopicTitle}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
@@ -8813,7 +9073,7 @@ function EditModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, item
   };
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
           <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.editTopicTitle}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
@@ -8902,7 +9162,7 @@ function SubjectsModal({ t, subjects, onAdd, onRemove, onRename, onClose, topicB
   };
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"82vh", display:"flex", flexDirection:"column"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"82vh", display:"flex", flexDirection:"column"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
           <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.manageSubjects}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
@@ -9041,7 +9301,7 @@ function ExamsModal({ t, nf, subjects, examSubjects, onAdd, onRemove, onClose, c
   const examList = Object.entries(examSubjects).sort((a,b)=>a[0].localeCompare(b[0], undefined, {sensitivity:"base"}));
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"80vh", display:"flex", flexDirection:"column"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"80vh", display:"flex", flexDirection:"column"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
           <div style={{fontSize:18, fontWeight:800, letterSpacing:-0.2}}>{t.manageExams}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
@@ -9099,7 +9359,7 @@ function WeekDayStrip({ days, entries, selectedKey, onSelectDay, todayKey, weekd
         return (
           <button key={i} onClick={()=>onSelectDay(d)} style={{
             flex:"0 0 auto", width:56, display:"flex", flexDirection:"column", alignItems:"center", gap:6,
-            padding:"10px 0 11px", borderRadius:16, scrollSnapAlign:"start",
+            padding:"10px 0 11px", borderRadius:14, scrollSnapAlign:"start",
             border: isSelected ? "1px solid transparent" : (isToday ? `1px solid ${accent}` : `1px solid ${cardBorder}`),
             background: cardBg,
             cursor:"pointer", transition:"background .15s ease, border-color .15s ease",
@@ -9123,7 +9383,7 @@ function DaySelectedCard({ day, entries, allSubjects, t, nf, lang, weekdayName, 
   const list = entries || [];
   const doneCount = list.filter(x=>x.done).length;
   return (
-    <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 16px", marginTop:14}}>
+    <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"14px 16px", marginTop:14}}>
       <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
         <span style={{fontSize:14, fontWeight:700}}>{weekdayName(day)}, <Num>{nf(day.getDate())}</Num> {monthName(day.getMonth())}</span>
         {list.length > 0 && <span style={{fontSize:12, color:textMuted2, fontWeight:600}}><Num>{nf(doneCount)}</Num>/<Num>{nf(list.length)}</Num></span>}
@@ -9152,7 +9412,7 @@ function InlineMonthCalendar({ calMonth, setCalMonth, entries, selectedKey, onSe
         <span style={{fontSize:14, fontWeight:800}}>{monthName(m)} <Num>{nf(y)}</Num></span>
         <button onClick={()=>setCalMonth(new Date(y,m+1,1))} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", display:"flex", padding:4}}><ChevronRight size={18}/></button>
       </div>
-      <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:"14px 12px"}}>
+      <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"14px 12px"}}>
         <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:8}}>
           {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:11, fontWeight:700, color:textMuted2}}>{d}</div>))}
         </div>
@@ -10155,7 +10415,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       {/* তারিখ পিক করার ছোট ক্যালেন্ডার — দিনে ট্যাপ করলে সেদিনের নোট দেখা যাবে */}
       {showDatePicker && (
         <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:60, padding:16}} onClick={()=>setShowDatePicker(false)}>
-          <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:380, borderRadius:24, padding:16, color:textMain}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:380, borderRadius:14, padding:16, color:textMain}}>
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
               <div style={{fontSize:14, fontWeight:800}}>{lang==="bn"?"তারিখ বাছাই করুন":"Pick a date"}</div>
               <button onClick={()=>setShowDatePicker(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={18}/></button>
@@ -10206,8 +10466,8 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       )}
 
       {filtered.length === 0 ? (
-        <div style={{textAlign:"center",padding:"40px 20px",background:cardBg,border:`1px dashed ${cardBorder}`,borderRadius:16}}>
-          <div style={{width:52,height:52,borderRadius:16,background:dark?"#242229":"#F0EEF5",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}>
+        <div style={{textAlign:"center",padding:"40px 20px",background:cardBg,border:`1px dashed ${cardBorder}`,borderRadius:14}}>
+          <div style={{width:52,height:52,borderRadius:14,background:dark?"#242229":"#F0EEF5",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}>
             {activeFolder === "Trash" ? <Trash2 size={23} color={dark?"#B0ABC2":"#6E6B7A"}/> : <FileText size={23} color={dark?"#B0ABC2":"#6E6B7A"}/>}
           </div>
           <div style={{fontSize:14,fontWeight:800,color:textMain}}>{activeFolder === "Trash" ? (lang==="bn"?"ট্র্যাশ খালি":"Trash is empty") : t.notesEmpty}</div>
@@ -10359,7 +10619,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
 
       {/* "নোট ট্র্যাশে গেছে" স্ন্যাকবার — Undo চাপলে সাথে সাথে ফিরে আসবে, নাহলে ৫ সেকেন্ড পর নিজে থেকেই লুকিয়ে যায় (নোটটা তখনও Trash-এই থাকে) */}
       {undo && (
-        <div onClick={e=>e.stopPropagation()} style={{position:"fixed", left:16, right:16, bottom: isDesktop ? 28 : 96, maxWidth:420, margin:"0 auto", zIndex:42, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, background: dark ? "#2B281F" : "#1A1814", color:"#fff", borderRadius:16, padding:"12px 14px", boxShadow:"0 6px 16px rgba(0,0,0,0.16)"}}>
+        <div onClick={e=>e.stopPropagation()} style={{position:"fixed", left:16, right:16, bottom: isDesktop ? 28 : 96, maxWidth:420, margin:"0 auto", zIndex:42, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, background: dark ? "#2B281F" : "#1A1814", color:"#fff", borderRadius:14, padding:"12px 14px", boxShadow:"0 6px 16px rgba(0,0,0,0.16)"}}>
           <span style={{fontSize:13, fontWeight:700, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
             {lang==="bn" ? `"${undo.title}" ট্র্যাশে গেছে` : `"${undo.title}" moved to trash`}
           </span>
@@ -10373,7 +10633,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           কারণ Capacitor/Android WebView-তে window.confirm() নির্ভরযোগ্যভাবে কাজ করে না */}
       {trashConfirm && (
         <div onClick={()=>setTrashConfirm(null)} style={{position:"fixed", inset:0, zIndex:60, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", padding:20}}>
-          <div onClick={e=>e.stopPropagation()} style={{width:"100%", maxWidth:340, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:16, padding:18, boxShadow:"0 10px 30px rgba(0,0,0,0.25)"}}>
+          <div onClick={e=>e.stopPropagation()} style={{width:"100%", maxWidth:340, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:18, boxShadow:"0 10px 30px rgba(0,0,0,0.25)"}}>
             <div style={{fontSize:14, fontWeight:800, color:textMain, marginBottom:6}}>
               {lang==="bn" ? "নিশ্চিত করুন" : "Are you sure?"}
             </div>
@@ -10633,7 +10893,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
             <div style={{flex:1}}/>
             <div style={{position:"relative"}}>
               <button onClick={()=>{setShowColorPicker(v=>!v);setShowChecklist(false);setShowBgColorPicker(false);}}
-                style={{border:"none",fontSize:11,fontWeight:800,color:noteCol.text,background:noteCol.bg,padding:"4px 11px",borderRadius:20,cursor:"pointer"}}>
+                style={{border:"none",fontSize:11,fontWeight:800,color:noteCol.text,background:noteCol.bg,padding:"4px 11px",borderRadius:14,cursor:"pointer"}}>
                 {category}
               </button>
               {/* ক্যাটাগরি লিস্ট — "General" পিলে ট্যাপ করলে ভাসমান প্যানেল হিসেবে উপরে খোলে; চেপে ধরলে Rename/Delete */}
@@ -10699,7 +10959,7 @@ function TaskDetailSheet({ task, priorityLabel, priorityColor, lang, nf, onClose
   const closeMenu = () => { setMenuOpen(false); setConfirmDelete(false); };
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:"80vh", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"22px 22px 0 0", padding:"18px 20px 26px", color:textMain}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:"80vh", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"14px 14px 0 0", padding:"18px 20px 26px", color:textMain}}>
         <div style={{width:36, height:4, borderRadius:4, background:cardBorder, margin:"0 auto 14px"}}/>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10}}>
           <div style={{flex:1, fontSize:16, fontWeight:700, lineHeight:1.35, wordBreak:"break-word", opacity: task.done?0.6:1}}>
@@ -10914,7 +11174,7 @@ function CalendarModal({ t, lang, nf, monthName, weekdayShort, calMonth, setCalM
 
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:50, padding:16}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, borderRadius:24, padding:20, color:textMain}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, borderRadius:14, padding:20, color:textMain}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
           <div style={{fontSize:16, fontWeight:800}}>{t.monthOverview}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
@@ -10979,7 +11239,7 @@ function DayDetailModal({ t, lang, nf, weekdayName, monthName, day, entries, all
   const hasAnyStat = doneCount > 0 || focusedMin > 0 || tasksRemaining > 0;
   return (
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"22px 22px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"75vh", overflowY:"auto"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"75vh", overflowY:"auto"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4}}>
           <div>
             <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>{weekdayName(day)}</div>
@@ -10994,7 +11254,7 @@ function DayDetailModal({ t, lang, nf, weekdayName, monthName, day, entries, all
           </div>
         )}
         {hasAnyStat && (
-          <div style={{display:"flex", flexDirection:"column", gap:8, marginTop:14, background: dark?"rgba(237,236,242,0.08)":"rgba(26,24,20,0.05)", border:`1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px"}}>
+          <div style={{display:"flex", flexDirection:"column", gap:8, marginTop:14, background: dark?"rgba(237,236,242,0.08)":"rgba(26,24,20,0.05)", border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px"}}>
             {doneCount > 0 && (
               <div style={{display:"flex", alignItems:"center", gap:8, fontSize:13, fontWeight:600, color:"#6E8B5E"}}>
                 <Check size={14} strokeWidth={3}/><span><Num>{nf(doneCount)}</Num> {t.topicsCompletedLabel}</span>
