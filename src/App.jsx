@@ -3921,6 +3921,13 @@ export default function FocusGo() {
       if (document.fullscreenElement && exitFs) {
         exitFs.call(document).catch(() => {});
       }
+      // ফুলস্ক্রিন থেকে বের হওয়ার পর মোবাইল ব্রাউজারে address bar ফিরে আসার সময়
+      // viewport height রিক্যালকুলেট হয়, কিন্তু page-এর scroll position পুরনো
+      // মান থেকে যাওয়ায় Study ট্যাবের উপরে ফাঁকা জায়গা দেখা যাচ্ছিল আর পুরো
+      // কনটেন্ট নিচে নেমে যাচ্ছিল — তাই এক্সিট করার পর জোর করে scroll top-এ
+      // রিসেট করা হচ্ছে (address bar animation শেষ হওয়ার সময় দেওয়ার জন্য দুইবার)।
+      requestAnimationFrame(() => window.scrollTo(0, 0));
+      setTimeout(() => window.scrollTo(0, 0), 350);
     }
   }, [focusFullscreen]);
 
@@ -5280,13 +5287,14 @@ export default function FocusGo() {
       document.body.style.background = themeColor;
       document.documentElement.style.colorScheme = dark ? "dark" : "light";
       document.body.style.margin = "0";
-      // overscrollBehaviorY:"none" আবার চালু করা হলো — এটা সরানোর পর ব্রাউজারের নিজস্ব
-      // rubber-band/bounce গেসচার (উপর থেকে টেনে ধরলে পুরো অ্যাপ নিচে সরে গিয়ে পেছনের
-      // কালো ব্যাকগ্রাউন্ড দেখা যাচ্ছিল) ফিরে এসেছিল — যেহেতু কোনো real pull-to-refresh UI
-      // (স্পিনার ইত্যাদি) implement করা নেই, তাই এই bounce শুধু একটা ভিজ্যুয়াল বাগ, দরকারি
-      // gesture না। তাই আবার বন্ধ করে দেওয়া হলো।
-      document.documentElement.style.overscrollBehaviorY = "none";
-      document.body.style.overscrollBehaviorY = "none";
+      // overscrollBehaviorY আবার চালু করা হলো, কিন্তু "none" এর বদলে "contain" ব্যবহার
+      // করা হচ্ছে — "none" পুরো ব্রাউজারের rubber-band বন্ধ করে দেয় (আগের কালো ব্যাকগ্রাউন্ড
+      // reveal বাগ ঠিক করেছিল), কিন্তু সাথে Chrome-এর নিজস্ব address bar hide/show
+      // অ্যানিমেশনও গুলিয়ে ফেলছিল — অ্যাপ প্রথমবার খোলার সময় উপরে ধূসর/আধ-ভাঙা toolbar
+      // আটকে থাকছিল। "contain" bounce-টা এই এলিমেন্টের ভেতরেই আটকে রাখে (তাই কালো
+      // ব্যাকগ্রাউন্ড আর দেখা যাবে না) কিন্তু ব্রাউজারের toolbar gesture-এ হস্তক্ষেপ করে না।
+      document.documentElement.style.overscrollBehaviorY = "contain";
+      document.body.style.overscrollBehaviorY = "contain";
 
       // Update <meta name=\"theme-color\"> dynamically. Chrome/Android uses
       // this for the browser/status/navigation UI around the web app.
@@ -5590,8 +5598,8 @@ export default function FocusGo() {
   return (
     <div style={{...styles.page, flexDirection: isDesktop ? "row" : "column", zoom: `${textScale}%`}}>
       <style>{`
-        html, body { margin:0; padding:0; background:${bg}; overscroll-behavior-y: none; }
-        #root, #__next { background:${bg}; overscroll-behavior-y: none; }
+        html, body { margin:0; padding:0; background:${bg}; overscroll-behavior-y: contain; }
+        #root, #__next { background:${bg}; overscroll-behavior-y: contain; }
         * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
 
         /* ---- subtle motion: tab switches, buttons, cards ---- */
