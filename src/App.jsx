@@ -6450,7 +6450,7 @@ export default function FocusGo() {
         <div className="fg-tab-panel" style={{
             marginTop: tab === "today" ? 0 : 16,
             border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`,
-            borderTop: tab === "today" ? "none" : `1px solid ${dark ? cardBorder : "#F0EEE8"}`,
+            borderTop: tab === "today" ? `1px solid ${dark ? cardBorder : "#F0EEE8"}` : `1px solid ${dark ? cardBorder : "#F0EEE8"}`,
             background: dark ? cardBg : "#FFFFFF",
             borderRadius: tab === "today" ? "0 0 14px 14px" : 14,
             padding: tab === "today" ? "7px 14px 8px" : "10px 14px 11px",
