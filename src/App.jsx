@@ -4025,6 +4025,7 @@ export default function FocusGo() {
               if (cached.lang) setLang(cached.lang);
               if (cached.themeMode && !themeLoadedOnceRef.current) { setThemeMode(normalizeThemeMode(cached.themeMode)); themeLoadedOnceRef.current = true; }
               if (cached.accentKey && ACCENT_OPTIONS.some(a => a.key === cached.accentKey)) { setAccentKey(cached.accentKey); }
+              if (cached.textScale && TEXT_SCALE_OPTIONS.includes(cached.textScale)) { setTextScale(cached.textScale); }
               setLoaded(true);
             }
           }
@@ -4080,6 +4081,7 @@ export default function FocusGo() {
           if (saved.lang) setLang(saved.lang);
           if (saved.themeMode && !themeLoadedOnceRef.current) { setThemeMode(normalizeThemeMode(saved.themeMode)); themeLoadedOnceRef.current = true; }
           if (saved.accentKey && ACCENT_OPTIONS.some(a => a.key === saved.accentKey)) { setAccentKey(saved.accentKey); }
+          if (saved.textScale && TEXT_SCALE_OPTIONS.includes(saved.textScale)) { setTextScale(saved.textScale); }
         }
       }
       setLoaded(true);
@@ -4093,10 +4095,10 @@ export default function FocusGo() {
     if (!loaded || user || !isGuest) return;
     if (!isStandaloneApp()) return;
     const timer = setTimeout(() => {
-      saveGuestData({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, accentKey });
+      saveGuestData({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, accentKey, textScale });
     }, 600);
     return () => clearTimeout(timer);
-  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, accentKey, loaded, user, isGuest]);
+  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, accentKey, textScale, loaded, user, isGuest]);
 
   // ইউজার লগইন করার পর Firestore-এর সাথে real-time sync (users/{uid}) —
   // getDoc দিয়ে একবার read করার বদলে onSnapshot দিয়ে live listen করা হয়, তাই অন্য কোনো
@@ -4121,7 +4123,7 @@ export default function FocusGo() {
             const incomingKey = JSON.stringify({
               entries: data.entries, subjects: data.subjects, topicBank: data.topicBank, examSubjects: data.examSubjects,
               combinedExams: data.combinedExams, nextExam: data.nextExam, examSchedule: data.examSchedule, tasks: data.tasks, notes: data.notes,
-              lang: data.lang, themeMode: data.themeMode, accentKey: data.accentKey,
+              lang: data.lang, themeMode: data.themeMode, accentKey: data.accentKey, textScale: data.textScale,
             });
             // যদি এই data আমাদেরই সবশেষ write-এর echo হয়, আবার setState করে re-render/re-save লুপ তৈরি করার দরকার নেই।
             // এছাড়াও, যদি local-এ এখনো unsaved change থাকে (pendingLocalWriteRef), তাহলে এই incoming data
@@ -4161,6 +4163,7 @@ export default function FocusGo() {
               if (data.lang) setLang(data.lang);
               if (data.themeMode && !themeLoadedOnceRef.current) { setThemeMode(normalizeThemeMode(data.themeMode)); themeLoadedOnceRef.current = true; }
               if (data.accentKey && ACCENT_OPTIONS.some(a => a.key === data.accentKey)) { setAccentKey(data.accentKey); }
+              if (data.textScale && TEXT_SCALE_OPTIONS.includes(data.textScale)) { setTextScale(data.textScale); }
               // প্রোফাইল এক্সট্রা ফিল্ড (Auth-এ রাখা যায় না/সমস্যা হয় বলে Firestore-এ সেভ হয়) —
               // gender, জন্মতারিখ, সোশ্যাল লিংক, আর প্রোফাইল ছবি (resize করা base64, Storage ছাড়াই)
               if (data.gender !== undefined || data.dob !== undefined || data.socialLinks !== undefined || data.photoURL !== undefined) {
@@ -4213,7 +4216,7 @@ export default function FocusGo() {
     pendingLocalWriteRef.current = true;
 
     const payload = {
-      entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, accentKey,
+      entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, accentKey, textScale,
       updatedAt: new Date().toISOString(),
     };
 
@@ -4226,7 +4229,7 @@ export default function FocusGo() {
     const t = setTimeout(() => {
       // এই মুহূর্তে যা লিখছি তার একটা "ছাপ" রেখে দেওয়া — real-time listener পরে এই একই data
       // ফেরত পেলে বুঝবে এটা নিজেরই echo, আবার setState/re-save করবে না
-      lastSavedPayloadRef.current = JSON.stringify({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, accentKey });
+      lastSavedPayloadRef.current = JSON.stringify({ entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, accentKey, textScale });
       setDoc(doc(db, "users", user.uid), payload, { merge: true })
         .catch(e => console.error("Firestore save error:", e))
         .finally(() => { pendingLocalWriteRef.current = false; }); // সেভ সফল হোক বা ব্যর্থ — এখন local আবার "in sync" ধরে নেওয়া হচ্ছে, নাহলে flag চিরকাল আটকে থাকতে পারে
@@ -4239,7 +4242,7 @@ export default function FocusGo() {
       }
     }, 600); // দ্রুত একের পর এক change হলে বারবার write না করে একবারে সেভ করা
     return () => clearTimeout(t);
-  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, accentKey, serverSynced, user]);
+  }, [entries, subjects, topicBank, examSubjects, combinedExams, nextExam, examSchedule, tasks, notes, lang, themeMode, accentKey, textScale, serverSynced, user]);
 
   // clock tick — শুধু minute display-এর জন্য, তাই প্রতি সেকেন্ডে না বদলে প্রতি মিনিটে একবার বদলালেই যথেষ্ট।
   // আগে setInterval(...,1000) পুরো App কম্পোনেন্টকে (পুরো UI ট্রি) সেকেন্ডে একবার re-render করাতো,
