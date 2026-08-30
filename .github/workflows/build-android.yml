@@ -31,6 +31,33 @@ jobs:
       - name: Add Android platform
         run: npx cap add android
 
+      # "npx cap add android" প্রতিবার একটা fresh/default MainActivity.java বানায়, যেখানে
+      # Android WebView-এর নিজস্ব overscroll bounce/glow effect চালু থাকে — এই effect-টাই
+      # উপর/নিচ থেকে টানলে পুরো অ্যাপ সরে গিয়ে পেছনের কালো ব্যাকগ্রাউন্ড দেখা যাওয়ার আসল কারণ।
+      # CSS-এর overscroll-behavior এটা পুরোপুরি বন্ধ করতে পারে না, কারণ এটা native Android View
+      # লেভেলের আচরণ। তাই platform যোগ হওয়ার পরপরই MainActivity.java-কে overwrite করে
+      # setOverScrollMode(OVER_SCROLL_NEVER) বসিয়ে দেওয়া হচ্ছে, যাতে প্রতিটা বিল্ডেই এটা প্রয়োগ হয়।
+      - name: Disable WebView overscroll glow (fixes black background flash when dragging past top/bottom)
+        run: |
+          mkdir -p android/app/src/main/java/com/maruf/focusgo
+          cat > android/app/src/main/java/com/maruf/focusgo/MainActivity.java << 'EOF'
+          package com.maruf.focusgo;
+
+          import android.os.Bundle;
+          import android.view.View;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+            @Override
+            public void onCreate(Bundle savedInstanceState) {
+              super.onCreate(savedInstanceState);
+              if (this.bridge != null && this.bridge.getWebView() != null) {
+                this.bridge.getWebView().setOverScrollMode(View.OVER_SCROLL_NEVER);
+              }
+            }
+          }
+          EOF
+
       # @capacitor-firebase/authentication-এর Google Sign-In (Android) নেটিভ কোড ছাড়া কাজ করবে না
       # যতক্ষণ না variables.gradle-এ এই দুটো ফ্ল্যাগ থাকে — নাহলে GoogleAuthProviderHandler null থেকে যায়
       # এবং "Attempt to invoke virtual method ... on a null object reference" ক্র্যাশ হয়।
