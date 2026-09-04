@@ -5752,7 +5752,7 @@ export default function FocusGo() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:10, border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderBottom:"none", background: dark ? cardBg : "#FFFFFF", borderRadius:"14px 14px 0 0", padding:"12px 16px 5px", boxSizing:"border-box", boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.24)" : "0 14px 34px rgba(32,34,43,0.08)", position:"relative", overflow:"hidden"}}>
+        <div style={{marginTop:18, padding:"6px 16px 8px", boxSizing:"border-box", position:"relative"}}>
           <div style={{marginBottom:2, position:"relative"}}>
             {(() => {
               const fullName = (user?.displayName || "").trim();
@@ -5814,10 +5814,10 @@ export default function FocusGo() {
                             </span>
                           )}
                         </div>
-                        <div style={{fontSize:23.5,fontWeight:800,letterSpacing:-0.6,color:textMain, display:"inline-block"}}>
+                        <div style={{fontSize:21,fontWeight:600,letterSpacing:-0.5,color:"var(--text)", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", display:"inline-block"}}>
                           {firstName}
                         </div>
-                        <div style={{fontSize:13,color:textMuted2,marginTop:4,lineHeight:1.35}}>
+                        <div style={{fontSize:13,color:textMuted2,marginTop:5,lineHeight:1.4}}>
                           {line}
                         </div>
                       </div>
@@ -5825,8 +5825,8 @@ export default function FocusGo() {
                         <button
                           onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
                           style={{
-                            border:"none", background:`${accent}22`, padding:0, flexShrink:0,
-                            width:34, height:34, borderRadius:"50%",
+                            border:"none", background:`${accent}14`, padding:0, flexShrink:0,
+                            width:32, height:32, borderRadius:"50%",
                             display:"flex", alignItems:"center", justifyContent:"center",
                             cursor:"pointer", position:"relative",
                           }}
@@ -5838,8 +5838,7 @@ export default function FocusGo() {
                     </div>
                   </div>
 
-                  {/* motivation লাইন থেকে date/time অংশটা visually আলাদা বোঝাতে হালকা accent hairline divider — কার্ডের নিজস্ব padding ভেদ করে একদম বক্সের শুরু থেকে শেষ পর্যন্ত (edge-to-edge), 1px পুরু */}
-                  <div style={{margin:"10px -16px 8px", borderTop:`1px solid ${accent}`}}/>
+                  <div style={{height:16}}/>
 
 
                   <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"2px 2px 0", position:"relative"}}>
@@ -6489,14 +6488,12 @@ export default function FocusGo() {
         {((tab === "today" && studyFeatureEnabled) || (tab === "study" && studySection === "plan")) && (() => {
           return (
         <div className="fg-tab-panel" style={{
-            marginTop: tab === "today" ? 0 : 16,
-            border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`,
-            borderTop: tab === "today" ? `1px solid ${dark ? cardBorder : "#F0EEE8"}` : `1px solid ${dark ? cardBorder : "#F0EEE8"}`,
+            marginTop: tab === "today" ? 4 : 16,
             background: dark ? cardBg : "#FFFFFF",
-            borderRadius: tab === "today" ? "0 0 14px 14px" : 14,
-            padding: tab === "today" ? "7px 14px 8px" : "10px 14px 11px",
+            borderRadius: tab === "today" ? 14 : 14,
+            padding: tab === "today" ? "10px 14px 10px" : "10px 14px 11px",
             position:"relative", overflow:"hidden",
-            boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.24)" : "0 14px 34px rgba(32,34,43,0.08)"
+            boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)"
           }}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}>
             <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
