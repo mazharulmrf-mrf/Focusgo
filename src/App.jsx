@@ -5633,6 +5633,7 @@ export default function FocusGo() {
         .fg-body-label--muted { color: var(--muted); }
 
         .fg-divider { height: 1px; width: 100%; background: var(--track); border: none; margin: 0; }
+        .fg-task-row + .fg-task-row { border-top: 1px solid var(--track); }
 
         .fg-btn-circle {
           -webkit-appearance: none; appearance: none;
@@ -5716,7 +5717,7 @@ export default function FocusGo() {
 
           <div style={{display:"flex", alignItems:"center", gap:6}}>
             {!isOnline && (
-              <div title={t.offlineNote} style={{display:"flex", alignItems:"center", gap:4, border:`1px solid ${cardBorder}`, background: dark?"#242424":"#F8F5EE", color:textMuted2, borderRadius:14, padding:"5px 9px 5px 8px", fontSize:11.5, fontWeight:700, flexShrink:0}}>
+              <div title={t.offlineNote} style={{display:"flex", alignItems:"center", gap:4, background: dark?"#242424":"#F8F5EE", color:textMuted2, borderRadius:14, padding:"5px 9px 5px 8px", fontSize:11.5, fontWeight:700, flexShrink:0}}>
                 <WifiOff size={12}/> {t.offlineBadge}
               </div>
             )}
@@ -5799,26 +5800,22 @@ export default function FocusGo() {
                       <div style={{minWidth:0, flex:1}}>
                         <div
                           onClick={() => { vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                          style={{fontSize:12.5, fontWeight:800, color:accent, letterSpacing:0.2, marginBottom:2, display:"flex", alignItems:"center", gap:6, cursor:"pointer"}}
+                          style={{fontSize:12.5, fontWeight:500, color:"var(--muted)", letterSpacing:0.2, marginBottom:3, display:"flex", alignItems:"center", gap:6, cursor:"pointer"}}
                           title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
                         >
                           {lang === "bn" ? greetingBn : greetingEn}
-                          <greetTheme.Icon size={14} color={accent} strokeWidth={2.3} fill={greetKey==="night" ? `${accent}33` : "none"}/>
                           {weatherData && weatherData.temp != null && (
                             <span
                               onClick={(e) => { e.stopPropagation(); vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                              style={{display:"inline-flex", alignItems:"center", fontSize:12.5, fontWeight:700, color:textMuted2, cursor:"pointer"}}
+                              style={{display:"inline-flex", alignItems:"center", fontSize:12.5, fontWeight:500, color:"var(--muted)", cursor:"pointer"}}
                               title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
                             >
-                              <Num>{nf(weatherData.temp)}</Num>°C
+                              · <Num>{nf(weatherData.temp)}</Num>°C
                             </span>
                           )}
                         </div>
                         <div style={{fontSize:21,fontWeight:600,letterSpacing:-0.5,color:"var(--text)", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", display:"inline-block"}}>
                           {firstName}
-                        </div>
-                        <div style={{fontSize:13,color:textMuted2,marginTop:5,lineHeight:1.4}}>
-                          {line}
                         </div>
                       </div>
                       {salahFeatureEnabled && (
@@ -6488,12 +6485,12 @@ export default function FocusGo() {
         {((tab === "today" && studyFeatureEnabled) || (tab === "study" && studySection === "plan")) && (() => {
           return (
         <div className="fg-tab-panel" style={{
-            marginTop: tab === "today" ? 4 : 16,
-            background: dark ? cardBg : "#FFFFFF",
-            borderRadius: tab === "today" ? 14 : 14,
-            padding: tab === "today" ? "10px 14px 10px" : "10px 14px 11px",
+            marginTop: tab === "today" ? 8 : 16,
+            background: tab === "today" ? "transparent" : (dark ? cardBg : "#FFFFFF"),
+            borderRadius: 14,
+            padding: tab === "today" ? "4px 2px 10px" : "10px 14px 11px",
             position:"relative", overflow:"hidden",
-            boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)"
+            boxShadow: tab === "today" ? "none" : (dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)")
           }}>
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}>
             <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
@@ -6842,13 +6839,12 @@ export default function FocusGo() {
             const pr = x.priority || "med";
             const due = dueLabel(x.dueDate);
             return (
-              <div key={x.id} className="fg-card" onClick={()=>setTaskDetailId(x.id)} style={{
-                background: cardBg,
-                border: `1px solid ${cardBorder}`,
-                borderRadius:14, padding:"9px 11px", display:"flex", alignItems:"flex-start", gap:9, position:"relative", cursor:"pointer",
-                transition:"background .15s ease", maxHeight:76,
+              <div key={x.id} className="fg-card fg-task-row" onClick={()=>setTaskDetailId(x.id)} style={{
+                background: "transparent",
+                borderRadius:0, padding:"13px 2px", display:"flex", alignItems:"flex-start", gap:10, position:"relative", cursor:"pointer",
+                transition:"background .15s ease", maxHeight:84,
               }}>
-                <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{width:19, height:19, marginTop:2, borderRadius:"50%", flexShrink:0, cursor:"pointer", border:`2px solid ${x.done ? "#6E8B5E" : due ? accent : cardBorder}`, background: x.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", padding:0}}>
+                <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{width:19, height:19, marginTop:2, borderRadius:"50%", flexShrink:0, cursor:"pointer", border:`2px solid ${x.done ? "#6E8B5E" : due ? accent : "var(--track)"}`, background: x.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", padding:0}}>
                   {x.done ? <Check size={11} color="#fff" strokeWidth={3}/> : due ? <span style={{fontSize:8, fontWeight:600, color:accent, lineHeight:1}}>{due.text}</span> : null}
                 </button>
                 <div style={{flex:1, minWidth:0, maxHeight:58, overflow:"hidden"}}>
@@ -7009,13 +7005,13 @@ export default function FocusGo() {
                     <span style={{fontWeight:500}}>{t.taskCalEmptyDay}</span>
                   </div>
                 ) : (
-                  <div style={{display:"flex", flexDirection:"column", gap:8, marginBottom: noDateTasks.length ? 12 : 0}}>{dayTasks.map(renderTask)}</div>
+                  <div style={{display:"flex", flexDirection:"column", gap:0, marginBottom: noDateTasks.length ? 12 : 0}}>{dayTasks.map(renderTask)}</div>
                 )}
 
                 {noDateTasks.length > 0 && (
                   <div>
                     <div style={{fontSize:11.5, fontWeight:600, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskCalNoDateTasks}</div>
-                    <div style={{display:"flex", flexDirection:"column", gap:8}}>{noDateTasks.map(renderTask)}</div>
+                    <div style={{display:"flex", flexDirection:"column", gap:0}}>{noDateTasks.map(renderTask)}</div>
                   </div>
                 )}
               </div>
@@ -7105,19 +7101,19 @@ export default function FocusGo() {
                                 <Calendar size={12}/> <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}, {weekdayShort(today)}
                               </div>
                             </div>
-                            <div style={{display:"flex", flexDirection:"column", gap:8}}>{todayBucket.map(renderTask)}</div>
+                            <div style={{display:"flex", flexDirection:"column", gap:0}}>{todayBucket.map(renderTask)}</div>
                           </div>
                         )}
                         {upcomingBucket.length > 0 && (
                           <div style={{marginBottom: (nodateBucket.length || doneTodayBucket.length) ? 16 : 0}}>
                             <div style={{fontSize:11.5, fontWeight:500, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskSectionUpcoming}</div>
-                            <div style={{display:"flex", flexDirection:"column", gap:8}}>{upcomingBucket.map(renderTask)}</div>
+                            <div style={{display:"flex", flexDirection:"column", gap:0}}>{upcomingBucket.map(renderTask)}</div>
                           </div>
                         )}
                         {nodateBucket.length > 0 && (
                           <div style={{marginBottom: doneTodayBucket.length ? 16 : 0}}>
                             <div style={{fontSize:11.5, fontWeight:500, letterSpacing:ls(1), color:textMuted2, opacity:0.85, marginBottom:7}}>{t.taskSectionNoDate}</div>
-                            <div style={{display:"flex", flexDirection:"column", gap:8}}>{nodateBucket.map(renderTask)}</div>
+                            <div style={{display:"flex", flexDirection:"column", gap:0}}>{nodateBucket.map(renderTask)}</div>
                           </div>
                         )}
                         {doneTodayBucket.length > 0 && (
@@ -7133,7 +7129,7 @@ export default function FocusGo() {
                                 {lang==="bn" ? "সব দেখো" : "See all"} <ChevronRight size={13}/>
                               </button>
                             </div>
-                            <div style={{display:"flex", flexDirection:"column", gap:8}}>{doneTodayBucket.map(renderTask)}</div>
+                            <div style={{display:"flex", flexDirection:"column", gap:0}}>{doneTodayBucket.map(renderTask)}</div>
                           </div>
                         )}
                       </>
