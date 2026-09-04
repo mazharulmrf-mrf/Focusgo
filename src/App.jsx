@@ -611,10 +611,11 @@ function NotificationBell({ t, lang, notifications, onMarkAllRead, onClear, card
     <div style={{ position: "relative", flexShrink: 0 }}>
       <button
         onClick={() => { setOpen(v => !v); if (!open) onMarkAllRead(); }}
-        style={{ position: "relative", border: "none", background: "transparent", color: textMain, borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
+        className="fg-btn-circle fg-btn-circle--sm"
+        style={{ position: "relative" }}
         title={t.notifications}
       >
-        <Bell size={19} strokeWidth={1.8} />
+        <Bell size={18} strokeWidth={1.8} />
         {unreadCount > 0 && (
           <span style={{ position: "absolute", top: 1, right: 2, width: 8, height: 8, borderRadius: "50%", background: "#F0651E", border: `1.5px solid ${cardBg}` }} />
         )}
@@ -708,7 +709,7 @@ function UniversalSearchModal({
 
   const totalCount = results ? Object.values(results).reduce((s, arr) => s + arr.length, 0) : 0;
 
-  const sectionLabel = { fontSize: 11, fontWeight: 800, color: textMuted2, textTransform: "uppercase", letterSpacing: 0.4, margin: "16px 2px 6px" };
+  const sectionLabel = { fontSize: 11, fontWeight: 800, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 0.4, margin: "16px 2px 6px" };
   const rowIconWrap = { width: 32, height: 32, borderRadius: 10, background: dark ? "#232129" : "#F1EEE5", display: "flex", alignItems: "center", justifyContent: "center", color: textMuted2, flexShrink: 0 };
 
   const Row = ({ icon, title, subtitle, onClick }) => (
@@ -1103,8 +1104,8 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
   };
 
 
-  const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:`1px solid ${cardBorder}` };
-  const labelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14.5, fontWeight:700, color:textMain };
+  const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:"1px solid var(--track)" };
+  const labelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14.5, fontWeight:400, letterSpacing:"0.3px", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", color:"var(--text)" };
   const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#B0ABC2" : "#6E6B7A" };
   // pill বাটন — নির্বাচিত হলে accent রঙে ভরাট থাকবে; Appearance সেকশনে (থিম ও অ্যাকসেন্ট) সরাসরি ইনলাইন ব্যবহার হয়
   const pillBase = { border:"1px solid transparent", borderRadius:999, padding:"9px 16px", fontSize:14, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" };
@@ -1125,7 +1126,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             <button onClick={()=>setLegalDoc(null)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
               <ChevronLeft size={20}/>
             </button>
-            <div style={{fontSize:18.5, fontWeight:800, flex:1}}>{title}</div>
+            <div className="fg-section-header" style={{flex:1}}>{title}</div>
             <button onClick={()=>setLegalDoc(null)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
           </div>
           <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, marginBottom:14, paddingLeft:32}}>{t.lastUpdated}: {t.effectiveDate}</div>
@@ -1152,14 +1153,14 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             <button onClick={()=>setShowAbout(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
               <ChevronLeft size={20}/>
             </button>
-            <div style={{fontSize:18.5, fontWeight:800, flex:1}}>{t.aboutUs}</div>
+            <div className="fg-section-header" style={{flex:1}}>{t.aboutUs}</div>
             <button onClick={()=>setShowAbout(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
           </div>
           <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", padding:"8px 0 20px"}}>
             <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt={t.appName} style={{height:34, width:"auto", objectFit:"contain", marginBottom:16}}/>
             <div style={{fontSize:13.5, color:textMain, lineHeight:1.7, textAlign:"center"}}>{t.aboutBody}</div>
 
-            <div style={{width:"100%", borderTop:`1px solid ${cardBorder}`, marginTop:20, paddingTop:18}}>
+            <div style={{width:"100%", borderTop:"1px solid var(--track)", marginTop:20, paddingTop:18}}>
               <div style={{fontSize:11.5, letterSpacing: isBn ? 0 : "1.3px", color:textMuted2, fontWeight:700, opacity:0.85, marginBottom:8}}>{t.creatorLabel}</div>
               <div style={{fontSize:16.5, fontWeight:800, color:textMain, marginBottom:14}}>Md. Mazharul Islam Maruf</div>
 
@@ -1177,19 +1178,19 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
               </a>
             </div>
 
-            <div style={{width:"100%", borderTop:`1px solid ${cardBorder}`, marginTop:20, paddingTop:6}}>
+            <div style={{width:"100%", borderTop:"1px solid var(--track)", marginTop:20, paddingTop:6}}>
               <div style={{fontSize:11.5, letterSpacing: isBn ? 0 : "1.3px", color:textMuted2, fontWeight:700, opacity:0.85, margin:"12px 0 2px", textAlign:"left"}}>{t.legalSection}</div>
               <button onClick={()=>setLegalDoc("privacy")} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", padding:"12px 0", display:"flex", alignItems:"center", justifyContent:"space-between", color:textMain}}>
                 <span style={{fontSize:14.5, fontWeight:700}}>{t.privacyPolicy}</span>
                 <ChevronRight size={16} style={{color:textMuted2}}/>
               </button>
-              <button onClick={()=>setLegalDoc("terms")} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", padding:"12px 0", display:"flex", alignItems:"center", justifyContent:"space-between", color:textMain, borderTop:`1px solid ${cardBorder}`}}>
+              <button onClick={()=>setLegalDoc("terms")} style={{width:"100%", border:"none", background:"transparent", cursor:"pointer", padding:"12px 0", display:"flex", alignItems:"center", justifyContent:"space-between", color:textMain, borderTop:"1px solid var(--track)"}}>
                 <span style={{fontSize:14.5, fontWeight:700}}>{t.termsOfUse}</span>
                 <ChevronRight size={16} style={{color:textMuted2}}/>
               </button>
             </div>
           </div>
-          <div style={{display:"flex", justifyContent:"space-between", fontSize:12.5, color:textMuted2, paddingTop:14, borderTop:`1px solid ${cardBorder}`}}>
+          <div style={{display:"flex", justifyContent:"space-between", fontSize:12.5, color:textMuted2, paddingTop:14, borderTop:"1px solid var(--track)"}}>
             <span>{t.version}</span>
             <span>1.0.0</span>
           </div>
@@ -1209,7 +1210,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
       </div>
 
       {/* Appearance — theme & accent pills shown directly inline, no separate page to tap into */}
-      <div style={{padding:"14px 2px", borderBottom:`1px solid ${cardBorder}`}}>
+      <div style={{padding:"14px 2px", borderBottom:"1px solid var(--track)"}}>
         <div style={{...labelStyle, marginBottom:14}}>
           <span style={{...iconWrapStyle, background:"transparent", border:"none"}}>
             <span style={{width:20, height:20, borderRadius:"50%", background:accent, border:`1px solid ${cardBorder}`, display:"block"}}/>
@@ -1263,7 +1264,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
       {/* Notification fine-tuning — Notifications রো-তে ক্লিক করলে খোলে; মাস্টার টগল অফ থাকলে dim/disabled থাকে */}
       {notifExpanded && (
-        <div style={{padding:"4px 2px 14px 42px", borderBottom:`1px solid ${cardBorder}`, display:"flex", flexDirection:"column", gap:12, opacity: notificationsEnabled ? 1 : 0.45, pointerEvents: notificationsEnabled ? "auto" : "none"}}>
+        <div style={{padding:"4px 2px 14px 42px", borderBottom:"1px solid var(--track)", display:"flex", flexDirection:"column", gap:12, opacity: notificationsEnabled ? 1 : 0.45, pointerEvents: notificationsEnabled ? "auto" : "none"}}>
           {[
             { label: t.notifExam, val: examNotifEnabled, set: setExamNotifEnabled },
             { label: t.notifTask, val: taskNotifEnabled, set: setTaskNotifEnabled },
@@ -1290,7 +1291,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
       )}
 
       {/* Default Focus/Break duration — এখন দুইটা কমপ্যাক্ট ড্রপডাউন পাশাপাশি, টাইমার শুরু করার সময় এই মানই ডিফল্ট হিসেবে বসবে */}
-      <div style={{padding:"14px 2px", borderBottom:`1px solid ${cardBorder}`}}>
+      <div style={{padding:"14px 2px", borderBottom:"1px solid var(--track)"}}>
         <div style={{...labelStyle, marginBottom:12}}><span style={iconWrapStyle}><Clock size={15}/></span>{t.defaultTimerDuration}</div>
         <div style={{display:"flex", gap:10}}>
           <div style={{flex:1, minWidth:0}}>
@@ -1389,7 +1390,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
     // খুললে SettingsDropdown-এর ফ্লাইআউট মেনু position:absolute হয়ে কার্ডের বর্ডারের বাইরে বসতে চায় —
     // overflow hidden থাকায় সেটা ক্লিপ হয়ে যেত, তাই অপশনে ট্যাপ করলেও কিছু হতো না (ক্লিক অদৃশ্য অংশে পড়ত)
     const groupCardStyle = { background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"0 12px", overflow:"visible" };
-    const sectionHeadingStyle = { fontSize:12.5, fontWeight:800, color:textMuted2, letterSpacing:0.4, textTransform:"uppercase", opacity:0.75, margin:"22px 4px 8px" };
+    const sectionHeadingStyle = { fontSize:12.5, fontWeight:800, color:"var(--muted)", letterSpacing:0.4, textTransform:"uppercase", opacity:0.75, margin:"22px 4px 8px" };
 
     return (
       <div className="fg-tab-panel" style={{marginTop:18, paddingBottom:8}}>
@@ -1397,7 +1398,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
         {/* ---- হেডার — ছোট, একরঙা, বাড়তি সাবটেক্সট ছাড়া; ডানপাশে ভাষা পিল — Preferences লিস্ট থেকে
              আলাদা রো সরিয়ে এখানে আনা হলো, যাতে লিস্টে একটা আইটেম কমে আর ভাষা সবসময় এক ট্যাপে বদলানো যায় ---- */}
         <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18}}>
-          <div style={{fontSize:20.5, fontWeight:800, letterSpacing:-0.3, color:textMain}}>{t.settings}</div>
+          <div className="fg-title">{t.settings}</div>
           <span onClick={()=>{vibrate(); setLang(l=>l==="bn"?"en":"bn");}} style={{border:`1px solid ${cardBorder}`, background: dark?"#0A0A0A":"#fff", color:textMain, borderRadius:999, padding:"6px 14px", fontSize:13, fontWeight:800, cursor:"pointer", flexShrink:0}}>
             {lang==="bn" ? "বাং" : "EN"}
           </span>
@@ -1635,7 +1636,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
-          <div style={{fontSize:18.5, fontWeight:800, letterSpacing:-0.2}}>{t.settings}</div>
+          <div className="fg-section-header">{t.settings}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
         {settingsRows}
@@ -1669,7 +1670,7 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
       <div style={overlayStyle} onClick={onClose}>
         <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:sheetRadius, padding:"20px 20px 28px", color:textMain}}>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14}}>
-            <div style={{fontSize:18.5, fontWeight:800, letterSpacing:-0.2}}>{t.profile}</div>
+            <div className="fg-section-header">{t.profile}</div>
             <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
           </div>
           <div style={{display:"flex", alignItems:"center", gap:16, marginBottom:16}}>
@@ -1762,7 +1763,7 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
 
   const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14.5, color:textMain, outline:"none", fontFamily:"inherit" };
   const labelStyle = { fontSize:11.5, fontWeight:700, color:textMuted2, marginBottom:6 };
-  const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:`1px solid ${cardBorder}`, cursor:"pointer" };
+  const rowStyle = { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 2px", borderBottom:"1px solid var(--track)", cursor:"pointer" };
   const menuLabelStyle = { display:"flex", alignItems:"center", gap:10, fontSize:14.5, fontWeight:700, color:textMain };
   const iconWrapStyle = { width:32, height:32, borderRadius:"50%", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color: dark ? "#B0ABC2" : "#6E6B7A" };
 
@@ -1912,7 +1913,7 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
       <button onClick={closeSection} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex"}}>
         <ChevronLeft size={20}/>
       </button>
-      <div style={{fontSize:18.5, fontWeight:800, flex:1}}>{title}</div>
+      <div className="fg-section-header" style={{flex:1}}>{title}</div>
       <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
     </div>
   );
@@ -2059,7 +2060,7 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
     <div style={overlayStyle} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:sheetRadius, padding:"20px 20px 28px", color:textMain, maxHeight:"88vh", overflowY:"auto"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18}}>
-          <div style={{fontSize:18.5, fontWeight:800, letterSpacing:-0.2}}>{t.profile}</div>
+          <div className="fg-section-header">{t.profile}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
 
@@ -5602,9 +5603,62 @@ export default function FocusGo() {
   return (
     <div style={{...styles.page, flexDirection: isDesktop ? "row" : "column", zoom: `${textScale}%`}}>
       <style>{`
+        :root {
+          --text: ${textMain};
+          --muted: ${textMuted2};
+          --strong: ${textMain};
+          --track: ${cardBorder};
+          --card-bg: ${cardBg};
+        }
         html, body { margin:0; padding:0; background:${bg}; ${(Capacitor.isNativePlatform() || isStandaloneApp()) ? "overscroll-behavior-y: contain;" : ""} }
         #root, #__next { background:${bg}; ${(Capacitor.isNativePlatform() || isStandaloneApp()) ? "overscroll-behavior-y: contain;" : ""} }
         * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
+
+        /* ---- design tokens: titles / section headers / body labels / circular buttons / dividers ---- */
+        .fg-title {
+          font-family: 'Inter Tight', 'Inter', 'Helvetica Neue', sans-serif;
+          font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.7px;
+          color: var(--text); margin: 0;
+        }
+        .fg-section-header {
+          font-family: 'Inter Tight', 'Inter', 'Helvetica Neue', sans-serif;
+          font-size: 19px; line-height: 24px; font-weight: 600; letter-spacing: -0.6px;
+          color: var(--text); margin: 0;
+        }
+        .fg-body-label {
+          font-family: 'Inter Tight', 'Inter', 'Helvetica Neue', sans-serif;
+          font-size: 14.5px; line-height: 18px; font-weight: 400; letter-spacing: 0.3px;
+          color: var(--text); margin: 0;
+        }
+        .fg-body-label--muted { color: var(--muted); }
+
+        .fg-divider { height: 1px; width: 100%; background: var(--track); border: none; margin: 0; }
+
+        .fg-btn-circle {
+          -webkit-appearance: none; appearance: none;
+          width: 42px; height: 42px; border-radius: 50%; border: none; padding: 0;
+          display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+          background: var(--card-bg); color: var(--strong); cursor: pointer;
+          box-shadow: inset 0 1px 0 ${dark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.65)"},
+                      inset 0 -1px 2px rgba(0,0,0,${dark ? "0.35" : "0.05"}),
+                      0 2px 6px rgba(0,0,0,${dark ? "0.4" : "0.09"}),
+                      0 1px 2px rgba(0,0,0,${dark ? "0.3" : "0.05"});
+          transition: transform .16s cubic-bezier(0.16,1,0.3,1), box-shadow .2s ease;
+        }
+        .fg-btn-circle:active:not(:disabled) { transform: scale(0.94); }
+        .fg-btn-circle--sm { width: 38px; height: 38px; }
+        .fg-btn-circle--lg { width: 46px; height: 46px; }
+
+        .fg-card-flat {
+          border: none; border-radius: 14px; background: var(--card-bg);
+          box-shadow: 0 1px 2px rgba(0,0,0,${dark ? "0.4" : "0.04"}),
+                      0 8px 20px rgba(0,0,0,${dark ? "0.35" : "0.06"});
+        }
+        .fg-card-deep {
+          border: none; border-radius: 18px; background: var(--card-bg);
+          box-shadow: 0 2px 4px rgba(0,0,0,${dark ? "0.45" : "0.05"}),
+                      0 14px 32px rgba(0,0,0,${dark ? "0.4" : "0.09"});
+        }
 
         /* ---- subtle motion: tab switches, buttons, cards ---- */
         @keyframes fg-fade-up { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:translateY(0); } }
@@ -5668,8 +5722,8 @@ export default function FocusGo() {
             )}
             <button onClick={()=>{vibrate(); setShowSearch(true);}}
               title={lang==="bn" ? "খুঁজুন" : "Search"}
-              style={{border:"none", background:"transparent", color:textMain, borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0}}>
-              <Search size={19} strokeWidth={1.8}/>
+              className="fg-btn-circle fg-btn-circle--sm">
+              <Search size={18} strokeWidth={1.8}/>
             </button>
             <NotificationBell
               t={t} lang={lang} notifications={notifications}
@@ -5679,7 +5733,8 @@ export default function FocusGo() {
             />
             <button onClick={()=>{vibrate(); setShowProfile(true);}}
               title={t.profile}
-              style={{border:"none", background:cardBg, color:textMain, borderRadius:"50%", width:29, height:29, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, overflow:"hidden", padding:0}}>
+              className="fg-btn-circle fg-btn-circle--sm"
+              style={{overflow:"hidden"}}>
               {user && user.photoURL ? (
                 <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
               ) : user && user.gender === "female" ? (
@@ -5968,7 +6023,7 @@ export default function FocusGo() {
                               </div>
 
                               {/* নিচে: আজকের প্রগ্রেস ডট + কিবলার দিক */}
-                              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10, paddingTop:8, borderTop:`1px solid ${cardBorder}`}}>
+                              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10, paddingTop:8, borderTop:"1px solid var(--track)"}}>
                                 <div style={{display:"flex", alignItems:"center", gap:7}}>
                                   <div style={{display:"flex", gap:3}}>
                                     {salahTimes.map(w => (
@@ -6418,7 +6473,7 @@ export default function FocusGo() {
 
         {tab === "study" && (
           <div className="fg-tab-panel" style={{marginTop:12, marginBottom:-2}}>
-            <div style={{display:"flex", gap:20, marginTop:0, borderBottom:`1px solid ${cardBorder}`}}>
+            <div style={{display:"flex", gap:20, marginTop:0, borderBottom:"1px solid var(--track)"}}>
               <button onClick={()=>{vibrate(); setStudySection("plan");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 8px", fontSize:14, fontWeight:600, color: studySection==="plan" ? textMain : textMuted2, borderBottom: studySection==="plan" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
                 {t.planViewStudy}
               </button>
@@ -6984,7 +7039,7 @@ export default function FocusGo() {
               </div>
 
               {/* List / Calendar ভিউ টগল — Study Plan/Stats-এর মতো একই underline-tab স্টাইল */}
-              <div style={{display:"flex", gap:24, marginBottom:10, borderBottom:`1px solid ${cardBorder}`}}>
+              <div style={{display:"flex", gap:24, marginBottom:10, borderBottom:"1px solid var(--track)"}}>
                 {[["list", t.taskViewList, List], ["calendar", t.taskViewCalendar, CalendarRange]].map(([key,label,Icon]) => {
                   const active = taskViewMode === key;
                   return (
@@ -8438,7 +8493,7 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
           </div>
 
           {/* Status tabs */}
-          <div style={{display:"flex", gap:20, borderBottom:`1px solid ${cardBorder}`, flexShrink:0}}>
+          <div style={{display:"flex", gap:20, borderBottom:"1px solid var(--track)", flexShrink:0}}>
             {[
               { key:"upcoming", label: lang==="bn"?"আসন্ন":"Upcoming", count: upcoming.length },
               { key:"completed", label: lang==="bn"?"সম্পন্ন":"Completed", count: completed.length },
@@ -8656,7 +8711,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
     <div style={{marginTop:26}}>
       <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
         <div style={{display:"flex", alignItems:"center", gap:8}}>
-          <div style={{fontSize:18.5, fontWeight:800, letterSpacing:-0.2}}>{t.monthlySummaryExam}</div>
+          <div className="fg-section-header">{t.monthlySummaryExam}</div>
           <span style={{fontSize:10.5, fontWeight:800, letterSpacing:0.3, padding:"2px 7px", borderRadius:10, background: dark?"#242229":"#F0EEF5", color: dark?"#B0ABC2":"#6E6B7A", flexShrink:0}}>
             {t.planViewExam}
           </span>
@@ -8703,7 +8758,7 @@ function ExamMonthlySummary({ t, nf, lang, ls, monthName, examSubjects, examMont
                 const c = colorForSubject(subj, allSubjects);
                 const avg = Math.round(d.scoreSum/d.attempts);
                 return (
-                  <div key={subj} style={{display:"grid", gridTemplateColumns:"1.6fr 0.8fr 0.8fr 0.8fr", padding:"9px 12px", fontSize:13.5, fontWeight:600, borderTop:`1px solid ${cardBorder}`, alignItems:"center"}}>
+                  <div key={subj} style={{display:"grid", gridTemplateColumns:"1.6fr 0.8fr 0.8fr 0.8fr", padding:"9px 12px", fontSize:13.5, fontWeight:600, borderTop:"1px solid var(--track)", alignItems:"center"}}>
                     <span style={{display:"flex", alignItems:"center", gap:6, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                       <span style={{width:7,height:7,borderRadius:"50%", background:c.bg, flexShrink:0}}/>{subj}
                     </span>
@@ -9081,7 +9136,7 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
-          <div style={{fontSize:18.5, fontWeight:800, letterSpacing:-0.2}}>{t.addTopicTitle}</div>
+          <div className="fg-section-header">{t.addTopicTitle}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
         <div style={{display:"flex", flexDirection:"column", gap:12}}>
@@ -9190,7 +9245,7 @@ function EditModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, item
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
-          <div style={{fontSize:18.5, fontWeight:800, letterSpacing:-0.2}}>{t.editTopicTitle}</div>
+          <div className="fg-section-header">{t.editTopicTitle}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
         <div style={{display:"flex", flexDirection:"column", gap:12}}>
@@ -9279,7 +9334,7 @@ function SubjectsModal({ t, subjects, onAdd, onRemove, onRename, onClose, topicB
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"82vh", display:"flex", flexDirection:"column"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
-          <div style={{fontSize:18.5, fontWeight:800, letterSpacing:-0.2}}>{t.manageSubjects}</div>
+          <div className="fg-section-header">{t.manageSubjects}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
         <div style={{display:"flex", gap:8, marginBottom:16}}>
@@ -9350,7 +9405,7 @@ function SubjectTopicBank({ t, subject, topics, onAddTopic, onAddTopicsBulk, onR
     setEditingTopic(null); setEditError("");
   };
   return (
-    <div style={{marginTop:12, paddingTop:12, borderTop:`1px solid ${cardBorder}`}}>
+    <div style={{marginTop:12, paddingTop:12, borderTop:"1px solid var(--track)"}}>
       <div style={{display:"flex", gap:6, marginBottom:8}}>
         <input style={smallInput} value={single} onChange={e=>setSingle(e.target.value)} placeholder={t.topicNamePlaceholder}
           onKeyDown={e=>{ if (e.key==="Enter") addSingle(); }}/>
@@ -9418,7 +9473,7 @@ function ExamsModal({ t, nf, subjects, examSubjects, onAdd, onRemove, onClose, c
     <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:50}} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:480, borderRadius:"14px 14px 0 0", padding:"20px 20px 28px", color:textMain, maxHeight:"80vh", display:"flex", flexDirection:"column"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16}}>
-          <div style={{fontSize:18.5, fontWeight:800, letterSpacing:-0.2}}>{t.manageExams}</div>
+          <div className="fg-section-header">{t.manageExams}</div>
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
 
@@ -10976,7 +11031,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           </div>
 
           {/* Bottom icon toolbar — পেজ ব্যাকগ্রাউন্ডের উপর, উপরের বর্ডার দিয়ে paper card থেকে আলাদা করা */}
-          <div onClick={e=>e.stopPropagation()} style={{display:"flex",alignItems:"center",gap:2,padding:"10px 14px",borderTop:`1px solid ${cardBorder}`,flexShrink:0}}>
+          <div onClick={e=>e.stopPropagation()} style={{display:"flex",alignItems:"center",gap:2,padding:"10px 14px",borderTop:"1px solid var(--track)",flexShrink:0}}>
             <button onClick={()=>{setShowChecklist(v=>!v);setShowColorPicker(false);setShowBgColorPicker(false);}} title={lang==="bn"?"লিস্ট":"List"}
               style={{border:"none",background:showChecklist?toolbarActiveBg:"transparent",color:iconColor,cursor:"pointer",padding:8,borderRadius:"50%",display:"flex"}}>
               <ListChecks size={19}/>
