@@ -10006,6 +10006,10 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
   const nf = (n) => (isBn ? toBn(n) : n);
   const TRASH_RETENTION_DAYS = 30;
 
+  // ---- Keep-এর মতো টান-দিয়ে-সরানো (drag-to-reorder) — long-press শুরু, তারপর pointermove দিয়ে অবস্থান বদল ----
+  const [draggingId, setDraggingId] = useState(null); // যে নোটটা এখন টানা হচ্ছে, না হলে null
+  const dragInfoRef = useRef({ timer: null, startX: 0, startY: 0, longPressed: false }); // সব কার্ডের জন্য একটাই শেয়ারড রেফ (একবারে একটাই ড্র্যাগ চলে)
+
   const [editing, setEditing] = useState(null); // {} নতুন নোটের জন্য, নাহলে আসল নোট অবজেক্ট
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -10182,11 +10186,55 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
       if (activeFolder === "Trash") return (b.deletedAt || 0) - (a.deletedAt || 0);
       const pinDiff = Number(!!b.pinned) - Number(!!a.pinned);
       if (pinDiff !== 0) return pinDiff;
+      if (a.order != null && b.order != null) return a.order - b.order; // ইউজার নিজে টেনে সাজালে সেটাই মানা হয়
       return new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime();
     });
 
   const pinnedList = activeFolder === "Trash" ? [] : filtered.filter(n => n.pinned);
   const othersList = activeFolder === "Trash" ? filtered : filtered.filter(n => !n.pinned);
+
+  // ড্র্যাগ চলাকালীন আঙুলের নিচের কার্ড বের করে (elementFromPoint) সেই গ্রুপের (পিন/অন্যান্য) মধ্যেই অর্ডার বদলানো হয়
+  useEffect(() => {
+    if (!draggingId) return;
+    const handleMove = (e) => {
+      const point = e.touches && e.touches[0] ? e.touches[0] : e;
+      const el = document.elementFromPoint(point.clientX, point.clientY);
+      const cardEl = el && el.closest && el.closest("[data-note-id]");
+      if (!cardEl) return;
+      const overId = cardEl.getAttribute("data-note-id");
+      if (overId === draggingId) return;
+      setNotes(prev => {
+        const draggedNote = prev.find(n => n.id === draggingId);
+        const overNote = prev.find(n => n.id === overId);
+        if (!draggedNote || !overNote) return prev;
+        if (draggedNote.deletedAt || overNote.deletedAt) return prev;
+        if (!!draggedNote.pinned !== !!overNote.pinned) return prev; // পিন করা আর সাধারণ নোট আলাদা গ্রুপ — একটার মধ্যে অন্যটা ঢুকবে না
+        const group = prev
+          .filter(n => !n.deletedAt && !!n.pinned === !!draggedNote.pinned)
+          .sort((a, b) => (a.order != null && b.order != null) ? a.order - b.order : new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
+        const ids = group.map(n => n.id);
+        const fromIdx = ids.indexOf(draggingId);
+        const toIdx = ids.indexOf(overId);
+        if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return prev;
+        const newIds = [...ids];
+        const [moved] = newIds.splice(fromIdx, 1);
+        newIds.splice(toIdx, 0, moved);
+        const base = -Date.now();
+        const orderMap = {};
+        newIds.forEach((id, i) => { orderMap[id] = base + i; });
+        return prev.map(n => (orderMap[n.id] != null ? { ...n, order: orderMap[n.id] } : n));
+      });
+    };
+    const handleEnd = () => setDraggingId(null);
+    document.addEventListener("pointermove", handleMove);
+    document.addEventListener("pointerup", handleEnd);
+    document.addEventListener("pointercancel", handleEnd);
+    return () => {
+      document.removeEventListener("pointermove", handleMove);
+      document.removeEventListener("pointerup", handleEnd);
+      document.removeEventListener("pointercancel", handleEnd);
+    };
+  }, [draggingId, setNotes]);
 
   const sw = (colorKey) => ({ bg: noteBgFor(colorKey, dark), text: noteTextFor(colorKey, dark) });
   const editorSw = sw(color);
@@ -10201,15 +10249,47 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
   const renderCard = (note) => {
     const csw = sw(note.color);
     const doneCount = (note.checklist || []).filter(c => c.done).length;
+    const draggable = activeFolder !== "Trash" && !note.deletedAt;
+    const isDraggingThis = draggingId === note.id;
+    const handleCardPointerDown = (e) => {
+      if (!draggable) return;
+      dragInfoRef.current.startX = e.clientX;
+      dragInfoRef.current.startY = e.clientY;
+      dragInfoRef.current.longPressed = false;
+      if (dragInfoRef.current.timer) clearTimeout(dragInfoRef.current.timer);
+      dragInfoRef.current.timer = setTimeout(() => {
+        dragInfoRef.current.longPressed = true;
+        setDraggingId(note.id);
+        vibrate();
+      }, 350);
+    };
+    const handleCardPointerMove = (e) => {
+      // long-press টাইমার শেষ হওয়ার আগেই যদি আঙুল সরে যায় (স্ক্রল করছে ধরে নিয়ে) ড্র্যাগ ক্যানসেল
+      if (dragInfoRef.current.timer && !dragInfoRef.current.longPressed) {
+        const dx = Math.abs(e.clientX - dragInfoRef.current.startX);
+        const dy = Math.abs(e.clientY - dragInfoRef.current.startY);
+        if (dx > 8 || dy > 8) { clearTimeout(dragInfoRef.current.timer); dragInfoRef.current.timer = null; }
+      }
+    };
+    const handleCardPointerUp = () => {
+      if (dragInfoRef.current.timer) { clearTimeout(dragInfoRef.current.timer); dragInfoRef.current.timer = null; }
+    };
+    const handleCardClick = () => {
+      if (dragInfoRef.current.longPressed) { dragInfoRef.current.longPressed = false; return; } // ড্র্যাগ শেষে ক্লিক ওপেন হবে না
+      if (!note.deletedAt) openEdit(note);
+    };
     return (
-      <div key={note.id} onClick={() => { if (!note.deletedAt) openEdit(note); }}
-        style={{ position: "relative", background: csw.bg, color: csw.text, borderRadius: 12, padding: "11px 12px 9px", cursor: note.deletedAt ? "default" : "pointer", marginBottom: 9, breakInside: "avoid", border: `1px solid ${cardBorder}`, display: "flex", flexDirection: "column" }}>
+      <div key={note.id} data-note-id={note.id}
+        onClick={handleCardClick}
+        onPointerDown={handleCardPointerDown} onPointerMove={handleCardPointerMove}
+        onPointerUp={handleCardPointerUp} onPointerCancel={handleCardPointerUp}
+        style={{ position: "relative", background: csw.bg, color: csw.text, borderRadius: 12, padding: "11px 12px 9px", cursor: note.deletedAt ? "default" : "pointer", marginBottom: 9, breakInside: "avoid", border: `1px solid ${cardBorder}`, display: "flex", flexDirection: "column", opacity: isDraggingThis ? 0.5 : 1, boxShadow: isDraggingThis ? "0 10px 22px -8px rgba(0,0,0,0.35)" : "none", transform: isDraggingThis ? "scale(1.03)" : "none", touchAction: draggable ? "pan-y" : undefined }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 6, marginBottom: 3 }}>
           <div style={{ fontWeight: 700, fontSize: 14, lineHeight: 1.25 }}>{note.title || (isBn ? "শিরোনামহীন" : "Untitled")}</div>
           {note.pinned && !note.deletedAt && <Pin size={11} fill={csw.text} color={csw.text} style={{ flexShrink: 0, marginTop: 2 }} />}
         </div>
         {note.body && (
-          <div style={{ fontSize: 12, opacity: 0.78, lineHeight: 1.4, marginBottom: (note.checklist || []).length ? 5 : 2, display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{note.body}</div>
+          <div style={{ fontSize: 12, opacity: 0.78, lineHeight: 1.4, marginBottom: (note.checklist || []).length ? 5 : 2, display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{stripHtmlToText(note.body)}</div>
         )}
         {(note.checklist || []).length > 0 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 3, marginBottom: 2 }}>
@@ -10377,18 +10457,18 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
       </button>
 
       {editing && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(20,17,13,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 18 }} onClick={save}>
-          {/* মোডাল বন্ধ হলেই (X বাটন বা বাইরে ট্যাপ) save() চলে — এটাই অটো-সেভ। এডিটরে আর আলাদা Save/Delete বাটন নেই। */}
-          <div onClick={e => e.stopPropagation()} style={{ background: editorSw.bg, width: "100%", maxWidth: 400, borderRadius: 16, color: editorSw.text, maxHeight: "88vh", boxShadow: "0 24px 48px -16px rgba(0,0,0,0.35)", display: "flex", flexDirection: "column" }}>
+        <div style={{ position: "fixed", inset: 0, background: editorSw.bg, zIndex: 50, display: "flex", flexDirection: "column" }}>
+          {/* এখন ফুল-পেজ এডিটর (Keep-এর মতো) — ব্যাকড্রপ নেই, হেডারের back arrow-ই একমাত্র close/save trigger (অটো-সেভ) */}
+          <div style={{ width: "100%", height: "100%", color: editorSw.text, display: "flex", flexDirection: "column" }}>
 
-            {/* ---- ফিক্সড হেডার: কম্প্যাক্ট টাইটেল বার + টাইটেল ইনপুট + ফরম্যাটিং টুলবার ---- */}
+            {/* ---- ফিক্সড হেডার: ব্যাক অ্যারো + টাইটেল ইনপুট + ফরম্যাটিং টুলবার ---- */}
             <div style={{ flexShrink: 0, padding: "12px 14px 0" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <button onClick={save} title={isBn ? "বন্ধ করুন (অটো-সেভ)" : "Close (auto-saves)"} style={{ border: "none", background: "transparent", borderRadius: 7, width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: editorSw.text }}><ChevronLeft size={20} /></button>
                 <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 0.6, opacity: 0.6 }}>{(editing.id ? t.notesEdit : t.notesNew).toUpperCase()}</span>
                 <div style={{ display: "flex", gap: 4 }}>
                   <button onClick={() => setPaperStyle(p => p === "lined" ? "plain" : "lined")} title={isBn ? (paperStyle === "lined" ? "প্লেইন পাতা" : "খাতার লাইন") : (paperStyle === "lined" ? "Plain page" : "Ruled lines")} style={{ border: "none", background: paperStyle === "lined" ? `${editorSw.text}22` : "transparent", borderRadius: 7, width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: editorSw.text }}><RuledPaperIcon size={12} /></button>
                   <button onClick={() => setPinned(p => !p)} title={isBn ? "পিন" : "Pin"} style={{ border: "none", background: pinned ? `${editorSw.text}22` : "transparent", borderRadius: 7, width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: editorSw.text }}><Pin size={12} fill={pinned ? editorSw.text : "none"} /></button>
-                  <button onClick={save} title={isBn ? "বন্ধ করুন (অটো-সেভ)" : "Close (auto-saves)"} style={{ border: "none", background: "transparent", borderRadius: 7, width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: editorSw.text }}><X size={13} /></button>
                 </div>
               </div>
 
