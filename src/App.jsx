@@ -615,7 +615,7 @@ function NotificationBell({ t, lang, notifications, onMarkAllRead, onClear, card
         style={{ position: "relative" }}
         title={t.notifications}
       >
-        <Bell size={18} strokeWidth={1.8} />
+        <Bell size={15} strokeWidth={1.8} />
         {unreadCount > 0 && (
           <span style={{ position: "absolute", top: 1, right: 2, width: 8, height: 8, borderRadius: "50%", background: "#F0651E", border: `1.5px solid ${cardBg}` }} />
         )}
@@ -5647,7 +5647,7 @@ export default function FocusGo() {
           transition: transform .16s cubic-bezier(0.16,1,0.3,1), box-shadow .2s ease;
         }
         .fg-btn-circle:active:not(:disabled) { transform: scale(0.94); }
-        .fg-btn-circle--sm { width: 38px; height: 38px; }
+        .fg-btn-circle--sm { width: 33px; height: 33px; }
         .fg-btn-circle--lg { width: 46px; height: 46px; }
 
         .fg-card-flat {
@@ -5724,7 +5724,7 @@ export default function FocusGo() {
             <button onClick={()=>{vibrate(); setShowSearch(true);}}
               title={lang==="bn" ? "খুঁজুন" : "Search"}
               className="fg-btn-circle fg-btn-circle--sm">
-              <Search size={18} strokeWidth={1.8}/>
+              <Search size={15} strokeWidth={1.8}/>
             </button>
             <NotificationBell
               t={t} lang={lang} notifications={notifications}
@@ -5739,11 +5739,11 @@ export default function FocusGo() {
               {user && user.photoURL ? (
                 <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
               ) : user && user.gender === "female" ? (
-                <Venus size={15}/>
+                <Venus size={13}/>
               ) : user && user.gender === "male" ? (
-                <Mars size={15}/>
+                <Mars size={13}/>
               ) : (
-                <User size={15}/>
+                <User size={13}/>
               )}
             </button>
           </div>
