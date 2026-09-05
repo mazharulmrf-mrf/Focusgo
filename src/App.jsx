@@ -3148,7 +3148,7 @@ const FOCUSGO_MOTIVATIONS = {
   },
 };
 
-export default function FocusGo() {
+function FocusGoInner() {
   // দ্বিতীয় স্তরের সুরক্ষা: Android WebView-তে কখনো কখনো "backspace = back navigation"
   // আচরণটা এমন লেভেলে ট্রিগার হয় যেটা নিচের keydown guard-ও সবসময় ধরতে পারে না
   // (একাধিকবার Backspace চাপলে দ্বিতীয়/তৃতীয়বারে অ্যাপ পুরো বন্ধ হয়ে যাচ্ছিল)।
@@ -7740,6 +7740,64 @@ export default function FocusGo() {
         </div>
       )}
     </div>
+  );
+}
+
+// লগইন/গেস্ট-মোডে ঢোকার পর (onboarding/loading/মূল অ্যাপ রেন্ডার করার সময়) যদি কোনো JS error হয়,
+// আগে পুরো স্ক্রিন সাদা/ফাঁকা হয়ে যেত (React ক্র্যাশ করে কিছুই রেন্ডার করত না) — কোনো error message
+// চোখেই পড়ত না, তাই বাগ খুঁজে বের করা কঠিন ছিল। এই ErrorBoundary সেই ক্র্যাশ ধরে ফেলে এবং আসল error
+// message + stack trace স্ক্রিনে দেখায়, সাথে "আবার চেষ্টা করুন" বাটন — এতে সমস্যাটা ঠিক কোথায় তা
+// সহজেই বোঝা যাবে, আর ইউজারও পুরোপুরি আটকে থাকবেন না।
+class FocusGoErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  componentDidCatch(error, info) {
+    console.error("FocusGo crashed:", error, info);
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{
+          minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center",
+          padding: 20, background: "#F8F5EF", color: "#1A1814", fontFamily: "system-ui, sans-serif",
+        }}>
+          <div style={{ width: "100%", maxWidth: 440, background: "#fff", border: "1px solid #E7E5ED", borderRadius: 14, padding: "24px 20px" }}>
+            <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 10, color: "#C0553F" }}>
+              অ্যাপ একটা সমস্যায় আটকে গেছে
+            </div>
+            <div style={{ fontSize: 13, color: "#6E6B7A", marginBottom: 14, lineHeight: 1.5 }}>
+              নিচের error message-টা স্ক্রিনশট নিয়ে পাঠিয়ে দিলে সমস্যাটা ঠিক করে দেওয়া যাবে।
+            </div>
+            <pre style={{
+              fontSize: 11.5, background: "#F7F6FA", border: "1px solid #E7E5ED", borderRadius: 10,
+              padding: 12, overflowX: "auto", whiteSpace: "pre-wrap", wordBreak: "break-word", maxHeight: 260, overflowY: "auto",
+            }}>
+              {String(this.state.error && (this.state.error.stack || this.state.error.message || this.state.error))}
+            </pre>
+            <button onClick={() => window.location.reload()} style={{
+                marginTop: 16, width: "100%", border: "none", borderRadius: 12, padding: "12px 0",
+                fontSize: 14, fontWeight: 800, background: "#1A1814", color: "#fff", cursor: "pointer",
+              }}>
+              আবার চেষ্টা করুন
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function FocusGo() {
+  return (
+    <FocusGoErrorBoundary>
+      <FocusGoInner />
+    </FocusGoErrorBoundary>
   );
 }
 
