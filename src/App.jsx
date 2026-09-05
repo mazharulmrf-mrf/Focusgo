@@ -5811,7 +5811,7 @@ export default function FocusGo() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:18, padding:"6px 16px 8px", boxSizing:"border-box", position:"relative"}}>
+        <div style={{marginTop:18, padding:"6px 0 8px", boxSizing:"border-box", position:"relative"}}>
           <div style={{marginBottom:2, position:"relative"}}>
             {(() => {
               const fullName = (user?.displayName || "").trim();
@@ -5901,7 +5901,6 @@ export default function FocusGo() {
                   </div>
 
                   <div style={{height:14}}/>
-
 
                   <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"2px 2px 0", position:"relative"}}>
                     <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
@@ -6526,12 +6525,10 @@ export default function FocusGo() {
             এখন accent color ব্যবহার হচ্ছে (আগে dark teal ছিল, সেই রঙ Next Exam কার্ডে সরানো হয়েছে) */}
         {((tab === "today" && studyFeatureEnabled) || (tab === "study" && studySection === "plan")) && (() => {
           if (tab === "today") {
-            // Today tab hero: a single calm, focus-oriented card — a ring for the day's study
-            // completion, the streak as a quiet badge, and the task progress as a slim bar below.
+            // Today tab hero: a single calm, focus-oriented card — a flat "X of Y done" summary,
+            // the streak next to it behind a divider, and the task progress as a slim bar below.
             const doneToday = todayTopics.filter(x => x.done).length;
             const totalToday = todayTopics.length;
-            const dayPct = totalToday > 0 ? doneToday / totalToday : 0;
-            const ringSize = 72, ringStroke = 7, ringR = (ringSize - ringStroke) / 2, ringC = 2 * Math.PI * ringR;
 
             const cardTodayTasks = tasksFeatureEnabled ? tasks.filter(x => x.dueDate === todayKey) : [];
             const hasTasks = cardTodayTasks.length > 0;
@@ -6546,36 +6543,21 @@ export default function FocusGo() {
                 border:`1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(20,17,24,0.045)"}`,
                 boxShadow: dark ? "0 2px 12px rgba(0,0,0,0.32)" : "0 4px 18px rgba(32,34,43,0.06)",
               }}>
-                <div style={{display:"flex", alignItems:"center", gap:16}}>
-                  <div style={{position:"relative", width:ringSize, height:ringSize, flexShrink:0}}>
-                    <svg width={ringSize} height={ringSize} viewBox={`0 0 ${ringSize} ${ringSize}`} style={{transform:"rotate(-90deg)"}}>
-                      <circle cx={ringSize/2} cy={ringSize/2} r={ringR} fill="none" stroke={dark ? "#242229" : "#F0EEF5"} strokeWidth={ringStroke}/>
-                      {dayPct > 0 && (
-                        <circle cx={ringSize/2} cy={ringSize/2} r={ringR} fill="none" stroke={accent} strokeWidth={ringStroke}
-                          strokeLinecap="round" strokeDasharray={ringC} strokeDashoffset={ringC * (1 - dayPct)}
-                          style={{transition:"stroke-dashoffset .5s cubic-bezier(0.34,1.2,0.64,1)"}}/>
-                      )}
-                    </svg>
-                    <div style={{position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                      <span style={{fontSize:16.5, fontWeight:800, color:textMain, letterSpacing:-0.3, fontVariantNumeric:"tabular-nums"}}>
-                        <Num>{nf(Math.round(dayPct * 100))}</Num>%
-                      </span>
+                <div style={{display:"flex", alignItems:"center", gap:14}}>
+                  <div style={{flex:1, minWidth:0}}>
+                    <div style={{fontSize:13, fontWeight:600, color:textMuted2, marginBottom:4}}>{isBn ? "আজ" : "Today"}</div>
+                    <div style={{fontSize:19, fontWeight:800, color:textMain, letterSpacing:-0.3, fontVariantNumeric:"tabular-nums"}}>
+                      {isBn
+                        ? <><Num>{nf(doneToday)}</Num>/<Num>{nf(totalToday)}</Num> {t.doneCount}</>
+                        : <><Num>{nf(doneToday)}</Num> of <Num>{nf(totalToday)}</Num> {t.doneCount.toLowerCase()}</>}
                     </div>
                   </div>
-                  <div style={{flex:1, minWidth:0}}>
-                    <div style={{fontSize:12.5, fontWeight:600, color:textMuted2, letterSpacing:0.1, marginBottom:4}}>{t.todaysProgress}</div>
-                    <div style={{display:"flex", alignItems:"center", gap:6, flexWrap:"wrap"}}>
-                      <span style={{display:"flex", alignItems:"center", gap:5, fontSize:14, fontWeight:700, color:textMain}}>
-                        <Check size={14} strokeWidth={3} color="#6E8B5E"/><Num>{nf(doneToday)}</Num> {t.doneCount}
-                      </span>
-                      <span style={{width:3, height:3, borderRadius:"50%", background:textMuted2, flexShrink:0}}/>
-                      <span style={{display:"flex", alignItems:"center", gap:5, fontSize:14, fontWeight:700, color:textMain}}>
-                        <Clock size={13} color={textMuted2}/><Num>{nf(Math.max(0, totalToday - doneToday))}</Num> {t.remaining}
-                      </span>
-                    </div>
-                    <div style={{display:"inline-flex", alignItems:"center", gap:6, marginTop:10, background: `${accent}14`, borderRadius:999, padding:"4px 10px 4px 8px"}}>
-                      <Flame size={13} color={accent} fill={`${accent}55`}/>
-                      <span style={{fontSize:12.5, fontWeight:700, color:accent}}><Num>{nf(studyOverview.streak)}</Num> {t.streakLabel}</span>
+                  <div style={{width:1, alignSelf:"stretch", background: dark ? "rgba(255,255,255,0.08)" : "rgba(20,17,24,0.08)", flexShrink:0}}/>
+                  <div style={{display:"flex", alignItems:"center", gap:8, flexShrink:0}}>
+                    <Flame size={20} color={accent} fill={`${accent}55`}/>
+                    <div style={{display:"flex", alignItems:"baseline", gap:5, whiteSpace:"nowrap"}}>
+                      <span style={{fontSize:19, fontWeight:800, color:textMain, fontVariantNumeric:"tabular-nums"}}><Num>{nf(studyOverview.streak)}</Num></span>
+                      <span style={{fontSize:13, fontWeight:600, color:textMuted2}}>{t.streakLabel}</span>
                     </div>
                   </div>
                 </div>
@@ -6762,7 +6744,7 @@ export default function FocusGo() {
                       {x.done && <Check size={13} color="#fff" strokeWidth={3}/>}
                     </button>
                     <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:14,fontWeight:500,color:x.done?textMuted2:textMain,textDecoration:"none",overflow:"visible",whiteSpace:"normal",wordBreak:"break-word",lineHeight:1.35}}>
+                      <div style={{fontSize:13.5,fontWeight:500,color:x.done?textMuted2:textMain,opacity:x.done?0.7:0.85,textDecoration:"none",overflow:"visible",whiteSpace:"normal",wordBreak:"break-word",lineHeight:1.35}}>
                         {x.title}
                       </div>
                       {x.done && (
@@ -6949,7 +6931,7 @@ export default function FocusGo() {
                   {x.done ? <Check size={11} color="#fff" strokeWidth={3}/> : due ? <span style={{fontSize:8, fontWeight:600, color:accent, lineHeight:1}}>{due.text}</span> : null}
                 </button>
                 <div style={{flex:1, minWidth:0, maxHeight:58, overflow:"hidden"}}>
-                  <div style={{fontSize:13.5, fontWeight:600, color: x.done ? textMuted2 : textMain, textDecoration:"none", wordBreak:"break-word", overflowWrap:"break-word", lineHeight:1.3, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden"}}>
+                  <div style={{fontSize:13.5, fontWeight:500, color: x.done ? textMuted2 : textMain, opacity: x.done ? 0.7 : 0.85, textDecoration:"none", wordBreak:"break-word", overflowWrap:"break-word", lineHeight:1.3, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden"}}>
                     {x.title}
                     {x.note && (
                       <FileText size={12} color={textMuted2} style={{display:"inline", verticalAlign:"middle", marginLeft:5, opacity:0.75}}/>
@@ -9136,7 +9118,7 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
                   style={{width:17, height:17, borderRadius:"50%", flexShrink:0, border:`2px solid ${item.done ? "#6E8B5E" : c.bg}`, background: item.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", cursor: onToggle?"pointer":"default", padding:0, transition:"background-color .2s ease, border-color .2s ease"}}>
                   {item.done && <Check size={10} color="#fff" strokeWidth={3.4}/>}
                 </button>
-                <span style={{fontSize:15, fontWeight:600, wordBreak:"break-word", opacity: item.done ? 0.6 : 1, lineHeight:1.3, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{item.topic}</span>
+                <span style={{fontSize:13.5, fontWeight:500, wordBreak:"break-word", opacity: item.done ? 0.55 : 0.85, lineHeight:1.3, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", color:textMain}}>{item.topic}</span>
               </div>
               <div style={{display:"flex", alignItems:"center", gap:4, flexShrink:0}}>
                 {onStartTimer && !item.done && (
