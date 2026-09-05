@@ -6406,7 +6406,7 @@ function FocusGoInner() {
 
           {/* সার্কুলার প্রগ্রেস রিং — মাঝে সময়, দুই পাশে Reset ও Focus (কুইক ডিউরেশন) বাটন */}
           {(() => {
-            const ringSize = 190, ringStroke = 12;
+            const ringSize = 216, ringStroke = 13;
             const r = (ringSize - ringStroke) / 2;
             const circumference = 2 * Math.PI * r;
             const rawPct = focusMode === "timer"
@@ -6436,9 +6436,14 @@ function FocusGoInner() {
                       style={{transition: runningNow ? "stroke-dashoffset 1s linear" : "stroke-dashoffset .3s ease", filter:`drop-shadow(0 0 6px ${accent}99)`}}/>
                   </svg>
                   {pct > 1 && (
-                    <div style={{position:"absolute", left:dotX-7, top:dotY-7, width:14, height:14, borderRadius:"50%", background:"#fff", boxShadow:`0 0 10px 3px ${accent}aa`}}/>
+                    <div style={{position:"absolute", left:dotX-8, top:dotY-8, width:16, height:16, borderRadius:"50%", background:"#fff", boxShadow:`0 0 14px 4px ${accent}cc`}}/>
                   )}
                   <div style={{position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center"}}>
+                    {!(focusMode==="timer" ? timerRunning : stopwatchRunning) && (
+                      <div style={{fontSize:10.5, fontWeight:700, letterSpacing:2.5, color:"rgba(255,255,255,0.4)", marginBottom:6}}>
+                        {lang==="bn" ? "মনোযোগী থাকো" : "STAY FOCUSED"}
+                      </div>
+                    )}
                     {focusMode === "timer" ? (
                       editingDuration ? (
                         <div style={{display:"flex", alignItems:"baseline", gap:4}}>
@@ -6539,8 +6544,17 @@ function FocusGoInner() {
             )}
           </div>
 
-          {/* উটিলিটি আইকন সারি — Strict Mode / White Noise / Fullscreen — কার্ডের একদম নিচে সেন্টার্ড করে রাখা হয়েছে */}
-          <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:22, marginTop:16, paddingTop:14, borderTop:"1px solid rgba(255,255,255,0.07)"}}>
+          {/* কোট + উটিলিটি আইকন সারি — বাঁয়ে অনুপ্রেরণামূলক কোট, ডানে Strict Mode / White Noise / Fullscreen */}
+          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginTop:16, paddingTop:14, borderTop:"1px solid rgba(255,255,255,0.07)"}}>
+            <div style={{textAlign:"left", flexShrink:1, minWidth:0}}>
+              <div style={{fontFamily:"Georgia, 'Times New Roman', serif", fontStyle:"italic", fontSize:12.5, lineHeight:1.25, color:"rgba(255,255,255,0.5)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
+                {lang==="bn" ? '"ছোট পদক্ষেপ, বড় অগ্রগতি"' : <>“Small Steps<br/>Big Progress”</>}
+              </div>
+              <svg width="46" height="10" viewBox="0 0 46 10" style={{marginTop:3}}>
+                <path d="M2 7 Q 22 -1, 44 6" stroke={accent} strokeWidth="2" fill="none" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <div style={{display:"flex", alignItems:"center", gap:14, flexShrink:0}}>
             <button
               onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setStrictModeEnabled(s=>!s); }}
               disabled={timerRunning || stopwatchRunning}
@@ -6584,6 +6598,7 @@ function FocusGoInner() {
             <button onClick={()=>{vibrate(); setFocusFullscreen(true);}} title={lang==="bn" ? "ফুলস্ক্রিন" : "Fullscreen"} style={{border:"none", background:"transparent", cursor:"pointer", color:"rgba(255,255,255,0.45)", display:"flex", alignItems:"center", padding:4}}>
               <Maximize2 size={17}/>
             </button>
+            </div>
           </div>
         </div>
         )}
