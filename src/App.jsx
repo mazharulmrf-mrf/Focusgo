@@ -23,6 +23,12 @@ const Venus = ({ size = 18, color = "currentColor" }) => (
     <circle cx="12" cy="9" r="6"/><path d="M12 15v7"/><path d="M9 19h6"/>
   </svg>
 );
+// নোট এডিটরে "খাতার লাইন" টগল বাটনের আইকন — লাইন-টানা পাতার মতো ছোট SVG
+const RuledPaperIcon = ({ size = 14, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="4" y="3" width="16" height="18" rx="2"/><path d="M7 9h10M7 13h10M7 17h6"/>
+  </svg>
+);
 // সেটিংসে "সালাত টাইমার" রো ও Today ট্যাবের হেডারে ব্যবহৃত মসজিদ আইকন — গম্বুজ, দরজা, মিনার ও ক্রিসেন্ট চাঁদসহ
 const MosqueIcon = ({ size = 16, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -9881,6 +9887,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
   };
   const [category, setCategory] = useState("General");
   const [color, setColor] = useState(null);
+  const [paperStyle, setPaperStyle] = useState("plain"); // "plain" | "lined" — নোট বডিতে খাতার মতো লাইন দেখাবে কিনা, প্রতিটা নোটে আলাদাভাবে সেভ থাকে
   const [pinned, setPinned] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(null); // null | "category" | "color" — কম্প্যাক্ট রো-তে ট্যাপ করলে ফ্লোটিং পিকার খোলে
   const [checklist, setChecklist] = useState([]);
@@ -9916,7 +9923,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
     setEditing({});
     setTitle(""); setBody(""); setBodyEmpty(true);
     setCategory(activeFolder !== "All Notes" && activeFolder !== "Pinned" && activeFolder !== "Trash" ? activeFolder : "General");
-    setColor(null); setPinned(false); setChecklist([]); setChecklistDraft(""); setPickerOpen(null);
+    setColor(null); setPinned(false); setChecklist([]); setChecklistDraft(""); setPickerOpen(null); setPaperStyle("plain");
   };
   const openEdit = (note) => {
     setEditing(note);
@@ -9928,6 +9935,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
     setChecklist(Array.isArray(note.checklist) ? note.checklist : []);
     setChecklistDraft("");
     setPickerOpen(null);
+    setPaperStyle(note.paperStyle || "plain");
   };
   const closeEditor = () => setEditing(null);
 
@@ -9943,13 +9951,13 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
     const now = new Date().toISOString();
     if (editing && editing.id) {
       setNotes(prev => prev.map(n => n.id === editing.id
-        ? { ...n, title: title.trim() || (isBn ? "শিরোনামহীন" : "Untitled"), body: finalBody, category, color, pinned, checklist: cleanChecklist, updatedAt: now }
+        ? { ...n, title: title.trim() || (isBn ? "শিরোনামহীন" : "Untitled"), body: finalBody, category, color, pinned, checklist: cleanChecklist, paperStyle, updatedAt: now }
         : n));
     } else {
       setNotes(prev => [{
         id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
         title: title.trim() || (isBn ? "শিরোনামহীন" : "Untitled"),
-        body: finalBody, category, color, pinned, checklist: cleanChecklist,
+        body: finalBody, category, color, pinned, checklist: cleanChecklist, paperStyle,
         deletedAt: null, createdAt: now, updatedAt: now,
       }, ...prev]);
     }
@@ -10071,7 +10079,9 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
           </div>
         )}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto", paddingTop: 5, borderTop: `1px solid ${csw.text}22` }}>
-          <span style={{ fontSize: 10.5, fontWeight: 700, opacity: 0.75 }}>{note.category || "General"}</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10.5, fontWeight: 700, opacity: 0.75 }}>
+            <Tag size={10} />{note.category || "General"}
+          </span>
           <div style={{ display: "flex", gap: 9 }}>
             {!note.deletedAt ? (
               <>
@@ -10228,6 +10238,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                 <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 0.6, opacity: 0.6 }}>{(editing.id ? t.notesEdit : t.notesNew).toUpperCase()}</span>
                 <div style={{ display: "flex", gap: 4 }}>
+                  <button onClick={() => setPaperStyle(p => p === "lined" ? "plain" : "lined")} title={isBn ? (paperStyle === "lined" ? "প্লেইন পাতা" : "খাতার লাইন") : (paperStyle === "lined" ? "Plain page" : "Ruled lines")} style={{ border: "none", background: paperStyle === "lined" ? `${editorSw.text}22` : "transparent", borderRadius: 7, width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: editorSw.text }}><RuledPaperIcon size={12} /></button>
                   <button onClick={() => setPinned(p => !p)} title={isBn ? "পিন" : "Pin"} style={{ border: "none", background: pinned ? `${editorSw.text}22` : "transparent", borderRadius: 7, width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: editorSw.text }}><Pin size={12} fill={pinned ? editorSw.text : "none"} /></button>
                   <button onClick={save} title={isBn ? "বন্ধ করুন (অটো-সেভ)" : "Close (auto-saves)"} style={{ border: "none", background: "transparent", borderRadius: 7, width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: editorSw.text }}><X size={13} /></button>
                 </div>
@@ -10262,7 +10273,12 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
                   <div style={{ position: "absolute", top: 0, left: 0, right: 0, fontSize: 14, color: editorSw.text, opacity: 0.45, pointerEvents: "none" }}>{t.notesBodyPlaceholder}</div>
                 )}
                 <div ref={bodyRef} contentEditable suppressContentEditableWarning onInput={handleBodyInput}
-                  style={{ width: "100%", minHeight: 220, outline: "none", fontSize: 14, color: editorSw.text, opacity: 0.95, lineHeight: 1.55, wordBreak: "break-word", fontFamily: "inherit" }} />
+                  style={{
+                    width: "100%", minHeight: 220, outline: "none", fontSize: 14, color: editorSw.text, opacity: 0.95, wordBreak: "break-word", fontFamily: "inherit",
+                    lineHeight: paperStyle === "lined" ? "22px" : 1.55,
+                    backgroundImage: paperStyle === "lined" ? `repeating-linear-gradient(to bottom, transparent, transparent 21px, ${editorSw.text}2E 21px, ${editorSw.text}2E 22px)` : "none",
+                    backgroundPositionY: paperStyle === "lined" ? "1px" : undefined,
+                  }} />
               </div>
 
               {checklist.length > 0 && (
@@ -10295,7 +10311,8 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
                   <Tag size={11} />{category}<ChevronDown size={11} style={{ opacity: 0.7 }} />
                 </button>
                 <button onClick={() => setPickerOpen(p => p === "color" ? null : "color")}
-                  style={{ display: "flex", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: 2 }}>
+                  style={{ display: "flex", alignItems: "center", gap: 5, border: "none", background: "transparent", cursor: "pointer", padding: 2 }}>
+                  <Palette size={11} color={editorSw.text} style={{ opacity: 0.7 }} />
                   <span style={{ width: 18, height: 18, borderRadius: "50%", border: `1.5px solid ${editorSw.text}55`, background: (dark ? (NOTE_BG_PALETTE.find(c => c.key === (color || null))?.bgDark || NOTE_BG_PALETTE.find(c => c.key === (color || null))?.bg) : NOTE_BG_PALETTE.find(c => c.key === (color || null))?.bg) || (dark ? "#221E19" : NOTE_PAPER_BG), display: "inline-block" }} />
                   <ChevronDown size={11} style={{ opacity: 0.7, color: editorSw.text }} />
                 </button>
