@@ -23,6 +23,15 @@ const Venus = ({ size = 18, color = "currentColor" }) => (
     <circle cx="12" cy="9" r="6"/><path d="M12 15v7"/><path d="M9 19h6"/>
   </svg>
 );
+// ব্ল্যাক-থিম ফোকাস টাইমার কার্ডের ডানপাশের "Focus" (কুইক ডিউরেশন সেটিংস) বাটনের sliders আইকন
+const SlidersIcon = ({ size = 18, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+    <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+    <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+    <circle cx="4" cy="12" r="2" fill={color}/><circle cx="12" cy="10" r="2" fill={color}/><circle cx="20" cy="14" r="2" fill={color}/>
+  </svg>
+);
 // নোট এডিটরে "খাতার লাইন" টগল বাটনের আইকন — লাইন-টানা পাতার মতো ছোট SVG
 const RuledPaperIcon = ({ size = 14, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -3624,6 +3633,7 @@ function FocusGoInner() {
   const [summaryMonthAnchor, setSummaryMonthAnchor] = useState(() => { const d = new Date(); d.setMonth(d.getMonth()-1); return d; });
   const [timerTopicId, setTimerTopicId] = useState(null);
   const [showTopicPicker, setShowTopicPicker] = useState(false);
+  const [showFocusQuickSettings, setShowFocusQuickSettings] = useState(false); // ব্ল্যাক-থিম টাইমার কার্ডে ডানপাশের "Focus" (sliders) বাটনে কুইক ডিউরেশন সেটিংস
   const [freeSessionTouched, setFreeSessionTouched] = useState(false); // Free Session pill explicitly click না করা পর্যন্ত duration presets দেখানো হয় না
   const [timerSeconds, setTimerSeconds] = useState(30*60);
   const [timerTotal, setTimerTotal] = useState(30*60);
@@ -6360,107 +6370,168 @@ function FocusGoInner() {
         {/* Focus timer - center-aligned minimal layout: title, big time, controls — all centered as one calm block.
             studySection চেক তুলে দেওয়া হয়েছে যাতে Study ট্যাবে Plan/Stats যেটাতেই থাকুন না কেন, টাইমার কার্ডটা সবসময় সবার উপরে থাকে */}
         {tab === "study" && (
-        <div className="fg-tab-panel" style={{marginTop:8, background: dark ? cardBg : "#FFFFFF", borderRadius:14, padding:"16px 14px 14px", color:textMain, boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)", position:"relative", overflow:"hidden", textAlign:"center"}}>
+        <div className="fg-tab-panel" style={{marginTop:8, background:"#0A0A0A", borderRadius:20, padding:"18px 18px 16px", color:"#fff", boxShadow:"0 10px 30px rgba(0,0,0,0.5)", position:"relative", overflow:"hidden", textAlign:"center", border:"1px solid rgba(255,255,255,0.06)"}}>
 
-          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
-            <div style={{fontSize:12, fontWeight:600, color:"var(--muted)", letterSpacing:0.4}}>
-              {lang==="bn" ? "ফোকাস টাইমার" : "Focus Timer"}
+          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}>
+            <div style={{display:"flex", alignItems:"center", gap:10, minWidth:0}}>
+              <div style={{width:34, height:34, borderRadius:10, background:`${accent}22`, display:"flex", alignItems:"center", justifyContent:"center", color:accent, flexShrink:0}}>
+                <Hourglass size={17}/>
+              </div>
+              <div style={{textAlign:"left", minWidth:0}}>
+                <div style={{fontSize:14.5, fontWeight:800, color:"#fff", letterSpacing:-0.2, whiteSpace:"nowrap"}}>
+                  {lang==="bn" ? "ফোকাস টাইমার" : "Focus Timer"}
+                </div>
+                <div style={{fontSize:10.5, fontWeight:500, color:"rgba(255,255,255,0.4)", marginTop:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
+                  {lang==="bn" ? "গভীর মনোযোগ। আরও ভালো তুমি।" : "Deep work. A better you."}
+                </div>
+              </div>
             </div>
-            <div style={{display:"flex", alignItems:"center", gap:6}}>
+            <div style={{display:"flex", alignItems:"center", gap:6, flexShrink:0}}>
               <button
                 onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setFocusMode(focusMode==="timer" ? "stopwatch" : "timer"); }}
                 disabled={timerRunning || stopwatchRunning}
-                style={{display:"flex", alignItems:"center", gap:3, border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:999, padding:"5px 9px", color:"var(--muted)", fontSize:11, fontWeight:500, cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1}}>
+                style={{display:"flex", alignItems:"center", gap:4, border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.06)", borderRadius:999, padding:"6px 10px", color:"rgba(255,255,255,0.75)", fontSize:11, fontWeight:600, cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", opacity:(timerRunning||stopwatchRunning) ? 0.5 : 1}}>
                 <Hourglass size={12}/>{focusMode==="timer" ? t.timerMode : t.stopwatchMode}
               </button>
               {focusMode === "timer" && (
                 <button
                   onClick={()=>{ if (timerRunning) return; vibrate(); changeSessionType(sessionType==="focus" ? "break" : "focus"); }}
                   disabled={timerRunning}
-                  style={{display:"flex", alignItems:"center", gap:3, border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:999, padding:"5px 9px", color:"var(--muted)", fontSize:11, fontWeight:500, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
+                  style={{display:"flex", alignItems:"center", gap:4, border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.06)", borderRadius:999, padding:"6px 10px", color:"rgba(255,255,255,0.75)", fontSize:11, fontWeight:600, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.5 : 1}}>
                   {sessionType==="focus" ? t.focusOption : t.breakOption}<ChevronDown size={12}/>
                 </button>
               )}
             </div>
           </div>
 
-          {/* সময় + Play/Reset — এখন সময়ের ডানপাশে দুটো ছোট আইকন-বাটন (রিসেট উপরে, প্লে/পজ নিচে,
-              ফুলস্ক্রিন মোডের স্টাইলের মতো) — আগের বড় "Start" টেক্সট পিল বাদ দেওয়া হয়েছে */}
-          <div style={{marginTop:16, display:"flex", alignItems:"center", justifyContent:"center", gap:18}}>
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", minWidth:0}}>
-              {focusMode === "timer" ? (
-                editingDuration ? (
-                  <div style={{display:"flex", alignItems:"baseline", gap:4}}>
-                    <input
-                      type="number"
-                      autoFocus
-                      value={durationInput}
-                      onChange={(e)=>setDurationInput(e.target.value)}
-                      onBlur={commitDurationEdit}
-                      onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
-                      min={1}
-                      max={180}
-                      style={{width:72, fontSize:34, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:-0.5, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${accent}`, outline:"none", textAlign:"center"}}
-                    />
-                    <span style={{fontSize:12.5, fontWeight:500, color:textMuted2}}>{t.minutes}</span>
+          {/* সার্কুলার প্রগ্রেস রিং — মাঝে সময়, দুই পাশে Reset ও Focus (কুইক ডিউরেশন) বাটন */}
+          {(() => {
+            const ringSize = 190, ringStroke = 12;
+            const r = (ringSize - ringStroke) / 2;
+            const circumference = 2 * Math.PI * r;
+            const rawPct = focusMode === "timer"
+              ? (timerTotal > 0 ? (1 - timerSeconds / timerTotal) * 100 : 0)
+              : ((stopwatchSeconds % 3600) / 3600) * 100;
+            const pct = Math.min(100, Math.max(0, rawPct));
+            const dashOffset = circumference - (pct / 100) * circumference;
+            const angle = (pct / 100) * 2 * Math.PI - Math.PI / 2;
+            const dotX = ringSize / 2 + r * Math.cos(angle);
+            const dotY = ringSize / 2 + r * Math.sin(angle);
+            const runningNow = focusMode === "timer" ? timerRunning : stopwatchRunning;
+            return (
+              <div style={{marginTop:22, display:"flex", alignItems:"center", justifyContent:"center", gap:"clamp(10px,4vw,26px)"}}>
+                <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:8, flexShrink:0, width:52}}>
+                  <button onClick={()=>{ vibrate(); if (focusMode==="timer") { setTimerRunning(false); setTimerSeconds(timerTotal); } else { setStopwatchRunning(false); setStopwatchSeconds(0); } }} title={t.reset}
+                    style={{background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.08)", width:48, height:48, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:"rgba(255,255,255,0.8)"}}>
+                    <RotateCcw size={18}/>
+                  </button>
+                  <span style={{fontSize:11, fontWeight:600, color:"rgba(255,255,255,0.5)"}}>{t.reset}</span>
+                </div>
+
+                <div style={{position:"relative", width:ringSize, height:ringSize, flexShrink:0}}>
+                  <svg width={ringSize} height={ringSize} style={{transform:"rotate(-90deg)"}}>
+                    <circle cx={ringSize/2} cy={ringSize/2} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={ringStroke}/>
+                    <circle cx={ringSize/2} cy={ringSize/2} r={r} fill="none" stroke={accent} strokeWidth={ringStroke}
+                      strokeDasharray={circumference} strokeDashoffset={dashOffset} strokeLinecap="round"
+                      style={{transition: runningNow ? "stroke-dashoffset 1s linear" : "stroke-dashoffset .3s ease", filter:`drop-shadow(0 0 6px ${accent}99)`}}/>
+                  </svg>
+                  {pct > 1 && (
+                    <div style={{position:"absolute", left:dotX-7, top:dotY-7, width:14, height:14, borderRadius:"50%", background:"#fff", boxShadow:`0 0 10px 3px ${accent}aa`}}/>
+                  )}
+                  <div style={{position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center"}}>
+                    {focusMode === "timer" ? (
+                      editingDuration ? (
+                        <div style={{display:"flex", alignItems:"baseline", gap:4}}>
+                          <input
+                            type="number"
+                            autoFocus
+                            value={durationInput}
+                            onChange={(e)=>setDurationInput(e.target.value)}
+                            onBlur={commitDurationEdit}
+                            onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
+                            min={1}
+                            max={180}
+                            style={{width:64, fontSize:30, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:-0.5, color:"#fff", background:"transparent", border:"none", borderBottom:`2px solid ${accent}`, outline:"none", textAlign:"center"}}
+                          />
+                          <span style={{fontSize:11.5, fontWeight:500, color:"rgba(255,255,255,0.5)"}}>{t.minutes}</span>
+                        </div>
+                      ) : (
+                        <span onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined}
+                          style={{fontSize:38, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:-1, color:"#fff", cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
+                          <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
+                        </span>
+                      )
+                    ) : (
+                      <span className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:38, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:-1, color:"#fff", lineHeight:1}}>
+                        <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
+                      </span>
+                    )}
+                    <div style={{width:30, height:1.5, background:"rgba(255,255,255,0.15)", borderRadius:2, marginTop:8}}/>
+                    {focusMode === "timer" && (
+                      <div style={{fontSize:11.5, fontWeight:500, color:"rgba(255,255,255,0.45)", marginTop:8}}>
+                        <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num> {lang==="bn" ? "সেশন" : "sessions"}
+                      </div>
+                    )}
+                    {focusMode === "timer" && timerTargetMinutes && (
+                      <div style={{fontSize:10, color:"rgba(255,255,255,0.35)", fontWeight:500, marginTop:2}}>
+                        <Num>{nf(timerElapsedMinutes)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <span onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined}
-                    style={{fontSize:42, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:-0.8, color:textMain, cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
-                    <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
-                  </span>
-                )
-              ) : (
-                <span className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:42, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:-0.8, color: textMain, lineHeight:1}}>
-                  <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
-                </span>
-              )}
-
-              {focusMode === "timer" && (
-                <div style={{width:"100%", maxWidth:180, height:3, borderRadius:2, background:"var(--track)", marginTop:10, overflow:"hidden"}}>
-                  <div style={{width:`${Math.min(100, Math.max(0, (1 - timerSeconds/timerTotal)*100))}%`, height:"100%", background:accent, borderRadius:2, transition:"width .3s linear"}}/>
                 </div>
-              )}
 
-              {focusMode === "timer" && (
-                <div style={{fontSize:11, fontWeight:500, color:"var(--muted)", marginTop:8}}>
-                  <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num> {lang==="bn" ? "সেশন" : "sessions"}
+                <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:8, flexShrink:0, width:52, position:"relative"}}>
+                  <button
+                    onClick={()=>{ if (timerRunning || stopwatchRunning || focusMode !== "timer") return; vibrate(); setShowFocusQuickSettings(s=>!s); }}
+                    disabled={timerRunning || stopwatchRunning || focusMode !== "timer"}
+                    title={lang==="bn" ? "ডিউরেশন সেটিংস" : "Duration settings"}
+                    style={{background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.08)", width:48, height:48, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", cursor:(timerRunning||stopwatchRunning||focusMode!=="timer") ? "default" : "pointer", color:"rgba(255,255,255,0.8)", opacity:(timerRunning||stopwatchRunning||focusMode!=="timer") ? 0.45 : 1}}>
+                    <SlidersIcon size={17}/>
+                  </button>
+                  <span style={{fontSize:11, fontWeight:600, color:"rgba(255,255,255,0.5)"}}>{lang==="bn" ? "ফোকাস" : "Focus"}</span>
+                  {showFocusQuickSettings && (
+                    <>
+                    <div onClick={()=>setShowFocusQuickSettings(false)} style={{position:"fixed", inset:0, zIndex:19}}/>
+                    <div onClick={e=>e.stopPropagation()} style={{position:"absolute", bottom:"calc(100% + 10px)", right:-6, zIndex:20, width:170, background:"#161616", border:"1px solid rgba(255,255,255,0.1)", borderRadius:14, padding:12, boxShadow:"0 14px 30px rgba(0,0,0,0.5)", textAlign:"left"}}>
+                      <div style={{fontSize:10.5, fontWeight:700, color:"rgba(255,255,255,0.45)", marginBottom:8, letterSpacing:0.3}}>{lang==="bn" ? "ডিউরেশন" : "DURATION"}</div>
+                      <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:6}}>
+                        <button onClick={()=>adjustTimer(-5)} style={{width:28, height:28, borderRadius:"50%", border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.06)", color:"#fff", fontSize:16, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center"}}>−</button>
+                        <span style={{fontSize:14.5, fontWeight:700, color:"#fff", fontVariantNumeric:"tabular-nums"}}><Num>{nf(Math.round(timerTotal/60))}</Num> {t.minutes}</span>
+                        <button onClick={()=>adjustTimer(5)} style={{width:28, height:28, borderRadius:"50%", border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.06)", color:"#fff", fontSize:16, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center"}}>+</button>
+                      </div>
+                    </div>
+                    </>
+                  )}
                 </div>
-              )}
-              {focusMode === "timer" && timerTargetMinutes && (
-                <div style={{fontSize:10.5, color:textMuted2, fontWeight:500, opacity:0.75, marginTop:2}}>
-                  <Num>{nf(timerElapsedMinutes)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
-                </div>
-              )}
-            </div>
+              </div>
+            );
+          })()}
 
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:8, flexShrink:0}}>
-              <button onClick={()=>{ if (focusMode==="timer") { setTimerRunning(false); setTimerSeconds(timerTotal); } else { setStopwatchRunning(false); setStopwatchSeconds(0); } }} title={t.reset}
-                style={{background: dark ? "rgba(255,255,255,0.06)" : "rgba(20,17,24,0.045)", border:"none", width:34, height:34, borderRadius:"50%", flexShrink:0, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", color:"var(--muted)"}}>
-                <RotateCcw size={14}/>
-              </button>
-              <button
-                onClick={focusMode==="timer" ? toggleTimerRunning : toggleStopwatchRunning}
-                title={(focusMode==="timer" ? timerRunning : stopwatchRunning) ? t.pause : t.start}
-                style={{display:"flex", alignItems:"center", justifyContent:"center", background: accent, border:"none", borderRadius:"50%", width:52, height:52, color:"#fff", cursor:"pointer", boxShadow:`0 10px 22px ${accent}45`}}>
-                {(focusMode==="timer" ? timerRunning : stopwatchRunning) ? <Pause size={18} fill="#fff"/> : <Play size={18} fill="#fff" style={{marginLeft:2}}/>}
-              </button>
-            </div>
+          {/* Play/Pause বাটন — রিং-এর নিচে বড় সেন্টার্ড বাটন */}
+          <div style={{display:"flex", justifyContent:"center", marginTop:20}}>
+            <button
+              onClick={focusMode==="timer" ? toggleTimerRunning : toggleStopwatchRunning}
+              title={(focusMode==="timer" ? timerRunning : stopwatchRunning) ? t.pause : t.start}
+              style={{display:"flex", alignItems:"center", justifyContent:"center", background: accent, border:"none", borderRadius:"50%", width:64, height:64, color:"#fff", cursor:"pointer", boxShadow:`0 0 0 10px ${accent}1F, 0 14px 30px ${accent}55`}}>
+              {(focusMode==="timer" ? timerRunning : stopwatchRunning) ? <Pause size={22} fill="#fff"/> : <Play size={22} fill="#fff" style={{marginLeft:3}}/>}
+            </button>
           </div>
 
           {/* Topic — কেন্দ্রে align করা চিপ রো */}
-          <div style={{marginTop:14}}>
+          <div style={{marginTop:16}}>
             {(focusMode==="timer" ? timerRunning : stopwatchRunning) ? (
-              <div style={{fontSize:11.5, color:"var(--muted)"}}>
+              <div style={{fontSize:11.5, color:"rgba(255,255,255,0.5)"}}>
                 {timerTopic ? `${timerTopic.subject} — ${timerTopic.topic}` : t.freeSessionOption}
               </div>
             ) : (
-              <div style={{display:"flex", gap:6, overflowX:"auto", WebkitOverflowScrolling:"touch", paddingBottom:2, justifyContent: todayTopics.filter(x=>!x.done).length <= 2 ? "center" : "flex-start"}}>
-                <button onClick={()=>{ selectTimerTopic(null); setTimerRunning(true); setFocusFullscreen(true); playStartSound(); }} style={{flexShrink:0, border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:14, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer", whiteSpace:"nowrap"}}>
+              <div style={{display:"flex", gap:8, overflowX:"auto", WebkitOverflowScrolling:"touch", paddingBottom:2, justifyContent: todayTopics.filter(x=>!x.done).length <= 2 ? "center" : "flex-start"}}>
+                <button onClick={()=>{ selectTimerTopic(null); setTimerRunning(true); setFocusFullscreen(true); playStartSound(); }}
+                  style={{flexShrink:0, border:`1.5px solid ${!timerTopic ? accent : "rgba(255,255,255,0.14)"}`, background: !timerTopic ? `${accent}1F` : "transparent", color: !timerTopic ? accent : "rgba(255,255,255,0.55)", borderRadius:999, padding:"8px 16px", fontSize:12, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap"}}>
                   {t.freeSessionOption}
                 </button>
                 {todayTopics.filter(x=>!x.done).map(x => (
-                  <button key={x.id} onClick={()=>selectTimerTopic(x)} style={{flexShrink:0, border:`1px solid ${timerTopicId===x.id ? inkColor : cardBorder}`, background: timerTopicId===x.id ? inkA(0.10) : "transparent", color: timerTopicId===x.id ? inkColor : textMuted2, borderRadius:14, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer", maxWidth:140, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                  <button key={x.id} onClick={()=>selectTimerTopic(x)}
+                    style={{flexShrink:0, border:`1.5px solid ${timerTopicId===x.id ? accent : "rgba(255,255,255,0.14)"}`, background: timerTopicId===x.id ? `${accent}1F` : "transparent", color: timerTopicId===x.id ? accent : "rgba(255,255,255,0.55)", borderRadius:999, padding:"8px 14px", fontSize:12, fontWeight:600, cursor:"pointer", maxWidth:140, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                     {x.topic}
                   </button>
                 ))}
@@ -6468,30 +6539,29 @@ function FocusGoInner() {
             )}
           </div>
 
-          {/* উটিলিটি আইকন — Strict Mode / White Noise / Fullscreen — আগে সেশন-কাউন্টের নিচে বড় করে
-              দেখানো হতো, এখন কার্ডের একদম নিচে ডানপাশের কোণায়, ছোট ও মিউটেড করে রাখা হয়েছে */}
-          <div style={{display:"flex", alignItems:"center", justifyContent:"flex-end", gap:10, marginTop:14, paddingTop:10, borderTop:`1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(20,17,24,0.05)"}`}}>
+          {/* উটিলিটি আইকন সারি — Strict Mode / White Noise / Fullscreen — কার্ডের একদম নিচে সেন্টার্ড করে রাখা হয়েছে */}
+          <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:22, marginTop:16, paddingTop:14, borderTop:"1px solid rgba(255,255,255,0.07)"}}>
             <button
               onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setStrictModeEnabled(s=>!s); }}
               disabled={timerRunning || stopwatchRunning}
               title={lang==="bn" ? "স্ট্রিক্ট মোড (মাঝপথে অ্যাপ ছাড়লে সেশন ফেইল হবে)" : "Strict Mode (leaving mid-session fails it)"}
-              style={{border:"none", background:"transparent", cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", color: strictModeEnabled ? "#C0392B" : "var(--muted)", opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1, display:"flex", alignItems:"center", padding:4}}>
-              {strictModeEnabled ? <ShieldAlert size={13}/> : <Shield size={13}/>}
+              style={{border:"none", background:"transparent", cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", color: strictModeEnabled ? "#E8604C" : "rgba(255,255,255,0.45)", opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1, display:"flex", alignItems:"center", padding:4}}>
+              {strictModeEnabled ? <ShieldAlert size={17}/> : <Shield size={17}/>}
             </button>
             <div style={{position:"relative"}}>
-              <button onClick={()=>{vibrate(); setShowWhiteNoisePicker(s=>!s);}} title={lang==="bn" ? "হোয়াইট নয়েজ" : "White Noise"} style={{border:"none", background:"transparent", cursor:"pointer", color: whiteNoiseSound!=="none" ? accent : "var(--muted)", display:"flex", alignItems:"center", padding:4}}>
-                <Music size={13}/>
+              <button onClick={()=>{vibrate(); setShowWhiteNoisePicker(s=>!s);}} title={lang==="bn" ? "হোয়াইট নয়েজ" : "White Noise"} style={{border:"none", background:"transparent", cursor:"pointer", color: whiteNoiseSound!=="none" ? accent : "rgba(255,255,255,0.45)", display:"flex", alignItems:"center", padding:4}}>
+                <Music size={17}/>
               </button>
               {showWhiteNoisePicker && (
                 <>
                 <div onClick={()=>setShowWhiteNoisePicker(false)} style={{position:"fixed", inset:0, zIndex:19}}/>
-                <div onClick={e=>e.stopPropagation()} style={{position:"absolute", bottom:"calc(100% + 6px)", right:0, zIndex:20, width:220, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:12, boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.35)" : "0 10px 24px rgba(0,0,0,0.14)", textAlign:"left"}}>
+                <div onClick={e=>e.stopPropagation()} style={{position:"absolute", bottom:"calc(100% + 6px)", left:"50%", transform:"translateX(-50%)", zIndex:20, width:220, background:"#161616", border:"1px solid rgba(255,255,255,0.1)", borderRadius:14, padding:12, boxShadow:"0 14px 30px rgba(0,0,0,0.5)", textAlign:"left"}}>
                   <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:6}}>
                     {WHITE_NOISE_TYPES.map(opt => {
                       const active = whiteNoiseSound === opt.id;
                       const OptIcon = opt.Icon;
                       return (
-                        <button key={opt.id} onClick={()=>{ vibrate(); setWhiteNoiseSound(opt.id); }} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, border:`1px solid ${active ? accent : cardBorder}`, background: active ? `${accent}14` : "transparent", borderRadius:12, padding:"8px 4px", cursor:"pointer", color: active ? accent : textMain}}>
+                        <button key={opt.id} onClick={()=>{ vibrate(); setWhiteNoiseSound(opt.id); }} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, border:`1px solid ${active ? accent : "rgba(255,255,255,0.12)"}`, background: active ? `${accent}22` : "transparent", borderRadius:12, padding:"8px 4px", cursor:"pointer", color: active ? accent : "#fff"}}>
                           <OptIcon size={16}/>
                           <span style={{fontSize:10.5, fontWeight:500, textAlign:"center"}}>{lang==="bn" ? opt.labelBn : opt.labelEn}</span>
                         </button>
@@ -6500,19 +6570,19 @@ function FocusGoInner() {
                   </div>
                   {whiteNoiseSound !== "none" && (
                     <div style={{display:"flex", alignItems:"center", gap:8, marginTop:10}}>
-                      <VolumeX size={13} color={textMuted2}/>
+                      <VolumeX size={13} color="rgba(255,255,255,0.5)"/>
                       <input type="range" min={0} max={1} step={0.01} value={whiteNoiseVolume}
                         onChange={e=>setWhiteNoiseVolume(Number(e.target.value))}
                         style={{flex:1}}/>
-                      <Volume2 size={13} color={textMuted2}/>
+                      <Volume2 size={13} color="rgba(255,255,255,0.5)"/>
                     </div>
                   )}
                 </div>
                 </>
               )}
             </div>
-            <button onClick={()=>{vibrate(); setFocusFullscreen(true);}} title={lang==="bn" ? "ফুলস্ক্রিন" : "Fullscreen"} style={{border:"none", background:"transparent", cursor:"pointer", color:"var(--muted)", display:"flex", alignItems:"center", padding:4}}>
-              <Maximize2 size={13}/>
+            <button onClick={()=>{vibrate(); setFocusFullscreen(true);}} title={lang==="bn" ? "ফুলস্ক্রিন" : "Fullscreen"} style={{border:"none", background:"transparent", cursor:"pointer", color:"rgba(255,255,255,0.45)", display:"flex", alignItems:"center", padding:4}}>
+              <Maximize2 size={17}/>
             </button>
           </div>
         </div>
