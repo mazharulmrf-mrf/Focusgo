@@ -9794,6 +9794,12 @@ function stripHtmlToText(str) {
   if (!str) return "";
   return String(str).replace(/<br\s*\/?>/gi, "\n").replace(/<\/(p|div|h1|h2|li)>/gi, "\n").replace(/<[^>]+>/g, "").replace(/\u00a0/g, " ").trim();
 }
+// পুরনো প্লেইন-টেক্সট নোট contentEditable-এ দেখানোর আগে সেফলি HTML-এ কনভার্ট করা হয় (লাইন ব্রেক ঠিক রেখে)
+function textToHtml(str) {
+  if (!str) return "";
+  const esc = String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return esc.replace(/\n/g, "<br>");
+}
 
 // ---------- ফুল date + time (Created / Last edited দেখানোর জন্য) ----------
 function fullDateTimeLabel(iso, lang) {
@@ -9849,16 +9855,34 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
   const [editing, setEditing] = useState(null); // {} নতুন নোটের জন্য, নাহলে আসল নোট অবজেক্ট
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const bodyRef = useRef(null);
-  useLayoutEffect(() => {
+  const bodyRef = useRef(null); // এখন contentEditable div — Bold/Italic/সাইজ/রঙ প্রয়োগের জন্য
+  const [bodyEmpty, setBodyEmpty] = useState(true);
+  // মোডাল খোলার সময় (নতুন নোট বা এডিট) contentEditable-এর ভেতরে আসল HTML/টেক্সট বসিয়ে দেওয়া হয়
+  useEffect(() => {
+    if (!editing) return;
     const el = bodyRef.current;
     if (!el) return;
-    el.style.height = "auto";
-    el.style.height = el.scrollHeight + "px";
-  }, [body, editing]);
+    el.innerHTML = looksLikeHtml(body) ? body : textToHtml(body);
+    setBodyEmpty(!el.textContent.trim());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing]);
+  const handleBodyInput = () => {
+    const el = bodyRef.current;
+    if (!el) return;
+    setBodyEmpty(!el.textContent.trim());
+  };
+  // সিলেক্ট করা টেক্সটে Bold/Italic/Underline/সাইজ/রঙ প্রয়োগ — টুলবার বাটনে mousedown-এ preventDefault করা থাকে বলে সিলেকশন হারায় না
+  const applyFormat = (cmd, value = null) => {
+    const el = bodyRef.current;
+    if (!el) return;
+    el.focus();
+    try { document.execCommand(cmd, false, value); } catch (e) {}
+    setBodyEmpty(!el.textContent.trim());
+  };
   const [category, setCategory] = useState("General");
   const [color, setColor] = useState(null);
   const [pinned, setPinned] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(null); // null | "category" | "color" — কম্প্যাক্ট রো-তে ট্যাপ করলে ফ্লোটিং পিকার খোলে
   const [checklist, setChecklist] = useState([]);
   const [checklistDraft, setChecklistDraft] = useState("");
   const [activeFolder, setActiveFolder] = useState("All Notes");
@@ -9890,37 +9914,42 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
 
   const openNew = () => {
     setEditing({});
-    setTitle(""); setBody("");
+    setTitle(""); setBody(""); setBodyEmpty(true);
     setCategory(activeFolder !== "All Notes" && activeFolder !== "Pinned" && activeFolder !== "Trash" ? activeFolder : "General");
-    setColor(null); setPinned(false); setChecklist([]); setChecklistDraft("");
+    setColor(null); setPinned(false); setChecklist([]); setChecklistDraft(""); setPickerOpen(null);
   };
   const openEdit = (note) => {
     setEditing(note);
     setTitle(note.title || "");
-    setBody(looksLikeHtml(note.body) ? stripHtmlToText(note.body) : (note.body || ""));
+    setBody(note.body || "");
     setCategory(note.category || "General");
     setColor(note.color || null);
     setPinned(!!note.pinned);
     setChecklist(Array.isArray(note.checklist) ? note.checklist : []);
     setChecklistDraft("");
+    setPickerOpen(null);
   };
   const closeEditor = () => setEditing(null);
 
   const save = () => {
+    const el = bodyRef.current;
+    const liveHtml = el ? el.innerHTML : (looksLikeHtml(body) ? body : textToHtml(body));
+    const liveText = el ? el.textContent : body;
+    const finalBody = (liveText || "").trim() ? liveHtml : "";
     const cleanChecklist = checklist
       .map(x => ({ id: x.id || `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`, text: (x.text || "").trim(), done: !!x.done }))
       .filter(x => x.text);
-    if (!title.trim() && !body.trim() && cleanChecklist.length === 0) { closeEditor(); return; }
+    if (!title.trim() && !finalBody && cleanChecklist.length === 0) { closeEditor(); return; }
     const now = new Date().toISOString();
     if (editing && editing.id) {
       setNotes(prev => prev.map(n => n.id === editing.id
-        ? { ...n, title: title.trim() || (isBn ? "শিরোনামহীন" : "Untitled"), body: body.trim(), category, color, pinned, checklist: cleanChecklist, updatedAt: now }
+        ? { ...n, title: title.trim() || (isBn ? "শিরোনামহীন" : "Untitled"), body: finalBody, category, color, pinned, checklist: cleanChecklist, updatedAt: now }
         : n));
     } else {
       setNotes(prev => [{
         id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
         title: title.trim() || (isBn ? "শিরোনামহীন" : "Untitled"),
-        body: body.trim(), category, color, pinned, checklist: cleanChecklist,
+        body: finalBody, category, color, pinned, checklist: cleanChecklist,
         deletedAt: null, createdAt: now, updatedAt: now,
       }, ...prev]);
     }
@@ -10005,6 +10034,13 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
 
   const sw = (colorKey) => ({ bg: noteBgFor(colorKey, dark), text: noteTextFor(colorKey, dark) });
   const editorSw = sw(color);
+  // ফরম্যাটিং টুলবারের ছোট আইকন বাটন — mousedown-এ preventDefault করে যাতে ক্লিক করার সময় টেক্সট সিলেকশন হারিয়ে না যায়
+  const ToolbarBtn = ({ onClick, title: btnTitle, children }) => (
+    <button type="button" onMouseDown={e => e.preventDefault()} onClick={onClick} title={btnTitle}
+      style={{ border: "none", background: "transparent", cursor: "pointer", color: editorSw.text, display: "flex", alignItems: "center", justifyContent: "center", width: 26, height: 26, borderRadius: 8, flexShrink: 0 }}>
+      {children}
+    </button>
+  );
 
   const renderCard = (note) => {
     const csw = sw(note.color);
@@ -10184,68 +10220,116 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
 
       {editing && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(20,17,13,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 18 }} onClick={save}>
-          <div onClick={e => e.stopPropagation()} style={{ background: editorSw.bg, width: "100%", maxWidth: 400, borderRadius: 16, padding: "18px 18px 16px", color: editorSw.text, maxHeight: "85vh", overflowY: "auto", boxShadow: "0 24px 48px -16px rgba(0,0,0,0.35)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, opacity: 0.7 }}>{(editing.id ? t.notesEdit : t.notesNew).toUpperCase()}</span>
-              <div style={{ display: "flex", gap: 6 }}>
-                <button onClick={() => setPinned(p => !p)} title={isBn ? "পিন" : "Pin"} style={{ border: "none", background: pinned ? `${editorSw.text}22` : "rgba(0,0,0,0.06)", borderRadius: 8, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: editorSw.text }}><Pin size={13} fill={pinned ? editorSw.text : "none"} /></button>
-                <button onClick={save} style={{ border: "none", background: "rgba(0,0,0,0.06)", borderRadius: 8, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: editorSw.text }}><X size={14} /></button>
+          {/* মোডাল বন্ধ হলেই (X বাটন বা বাইরে ট্যাপ) save() চলে — এটাই অটো-সেভ। এডিটরে আর আলাদা Save/Delete বাটন নেই। */}
+          <div onClick={e => e.stopPropagation()} style={{ background: editorSw.bg, width: "100%", maxWidth: 400, borderRadius: 16, color: editorSw.text, maxHeight: "88vh", boxShadow: "0 24px 48px -16px rgba(0,0,0,0.35)", display: "flex", flexDirection: "column" }}>
+
+            {/* ---- ফিক্সড হেডার: কম্প্যাক্ট টাইটেল বার + টাইটেল ইনপুট + ফরম্যাটিং টুলবার ---- */}
+            <div style={{ flexShrink: 0, padding: "12px 14px 0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 0.6, opacity: 0.6 }}>{(editing.id ? t.notesEdit : t.notesNew).toUpperCase()}</span>
+                <div style={{ display: "flex", gap: 4 }}>
+                  <button onClick={() => setPinned(p => !p)} title={isBn ? "পিন" : "Pin"} style={{ border: "none", background: pinned ? `${editorSw.text}22` : "transparent", borderRadius: 7, width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: editorSw.text }}><Pin size={12} fill={pinned ? editorSw.text : "none"} /></button>
+                  <button onClick={save} title={isBn ? "বন্ধ করুন (অটো-সেভ)" : "Close (auto-saves)"} style={{ border: "none", background: "transparent", borderRadius: 7, width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: editorSw.text }}><X size={13} /></button>
+                </div>
               </div>
-            </div>
 
-            <input value={title} onChange={e => setTitle(e.target.value)} placeholder={t.notesTitlePlaceholder}
-              style={{ width: "100%", border: "none", background: "transparent", outline: "none", fontSize: 19, fontWeight: 700, color: editorSw.text, marginBottom: 6, fontFamily: "inherit" }} />
-            <textarea ref={bodyRef} value={body} onChange={e => setBody(e.target.value)} placeholder={t.notesBodyPlaceholder} rows={4}
-              style={{ width: "100%", border: "none", background: "transparent", outline: "none", fontSize: 14, color: editorSw.text, opacity: 0.9, resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.55, marginBottom: 10, minHeight: 90 }} />
+              <input value={title} onChange={e => setTitle(e.target.value)} placeholder={t.notesTitlePlaceholder}
+                style={{ width: "100%", border: "none", background: "transparent", outline: "none", fontSize: 16.5, fontWeight: 700, color: editorSw.text, marginBottom: 4, fontFamily: "inherit" }} />
 
-            {checklist.length > 0 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 8 }}>
-                {checklist.map(item => (
-                  <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <button onClick={() => toggleCheck(item.id)} style={{ width: 16, height: 16, borderRadius: 5, border: `1.5px solid ${editorSw.text}`, flexShrink: 0, background: item.done ? editorSw.text : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      {item.done && <Check size={10} color={dark ? "#0A0A0A" : "#FFF"} strokeWidth={3.5} />}
-                    </button>
-                    <input value={item.text} onChange={e => setChecklist(c => c.map(x => x.id === item.id ? { ...x, text: e.target.value } : x))}
-                      style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: 13.5, color: editorSw.text, textDecoration: item.done ? "line-through" : "none", opacity: item.done ? 0.6 : 1, fontFamily: "inherit" }} />
-                    <button onClick={() => removeCheck(item.id)} style={{ border: "none", background: "transparent", cursor: "pointer", color: editorSw.text, opacity: 0.5, display: "flex" }}><X size={13} /></button>
-                  </div>
+              {/* ---- ফরম্যাটিং টুলবার: Bold, Italic, Underline, লেখার সাইজ (ছোট/মাঝারি/বড়), রঙ, ফরম্যাট মুছে ফেলা ---- */}
+              <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", paddingBottom: 6, borderBottom: `1px solid ${editorSw.text}1A` }} className="fg-hide-scrollbar">
+                <ToolbarBtn onClick={() => applyFormat("bold")} btnTitle={isBn ? "বোল্ড" : "Bold"}><Bold size={13} /></ToolbarBtn>
+                <ToolbarBtn onClick={() => applyFormat("italic")} btnTitle={isBn ? "ইটালিক" : "Italic"}><Italic size={13} /></ToolbarBtn>
+                <ToolbarBtn onClick={() => applyFormat("underline")} btnTitle={isBn ? "আন্ডারলাইন" : "Underline"}><Underline size={13} /></ToolbarBtn>
+                <span style={{ width: 1, height: 15, background: `${editorSw.text}26`, margin: "0 3px", flexShrink: 0 }} />
+                <ToolbarBtn onClick={() => applyFormat("fontSize", "2")} btnTitle={isBn ? "ছোট লেখা" : "Small text"}><span style={{ fontSize: 9, fontWeight: 800 }}>A</span></ToolbarBtn>
+                <ToolbarBtn onClick={() => applyFormat("fontSize", "3")} btnTitle={isBn ? "সাধারণ লেখা" : "Normal text"}><span style={{ fontSize: 12, fontWeight: 800 }}>A</span></ToolbarBtn>
+                <ToolbarBtn onClick={() => applyFormat("fontSize", "5")} btnTitle={isBn ? "বড় লেখা" : "Large text"}><span style={{ fontSize: 15, fontWeight: 800 }}>A</span></ToolbarBtn>
+                <span style={{ width: 1, height: 15, background: `${editorSw.text}26`, margin: "0 3px", flexShrink: 0 }} />
+                {NOTE_TEXT_COLORS.map(c => (
+                  <button key={c.key} type="button" onMouseDown={e => e.preventDefault()} onClick={() => applyFormat("foreColor", c.hex)} title={c.key}
+                    style={{ width: 15, height: 15, borderRadius: "50%", border: "none", background: c.hex, cursor: "pointer", flexShrink: 0, padding: 0, margin: "0 2.5px" }} />
                 ))}
+                <span style={{ width: 1, height: 15, background: `${editorSw.text}26`, margin: "0 3px", flexShrink: 0 }} />
+                <ToolbarBtn onClick={() => applyFormat("removeFormat")} btnTitle={isBn ? "ফরম্যাট মুছুন" : "Clear formatting"}><RemoveFormatting size={13} /></ToolbarBtn>
               </div>
-            )}
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-              <Plus size={14} color={editorSw.text} style={{ opacity: 0.6 }} />
-              <input value={checklistDraft} onChange={e => setChecklistDraft(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addCheckItem(); } }} placeholder={isBn ? "তালিকায় যোগ করুন" : "Add item"}
-                style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: 13, color: editorSw.text, opacity: 0.85, fontFamily: "inherit" }} />
-              {checklistDraft.trim() && <button onClick={addCheckItem} style={{ border: "none", background: "transparent", cursor: "pointer", color: editorSw.text, fontSize: 12, fontWeight: 700 }}>{isBn ? "যোগ" : "Add"}</button>}
             </div>
 
-            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4, opacity: 0.6, marginBottom: 6 }}>{isBn ? "ক্যাটাগরি" : "CATEGORY"}</div>
-            <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2, marginBottom: 12 }} className="fg-hide-scrollbar">
-              {categories.map(cat => (
-                <button key={cat} onClick={() => setCategory(cat)}
-                  style={{ flexShrink: 0, border: "none", borderRadius: 999, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", background: category === cat ? editorSw.text : "rgba(0,0,0,0.06)", color: category === cat ? editorSw.bg : editorSw.text, whiteSpace: "nowrap" }}>
-                  {cat}
+            {/* ---- স্ক্রলযোগ্য অংশ: টেক্সট লেখার জন্য এখন সবচেয়ে বেশি জায়গা এখানেই ---- */}
+            <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "8px 14px 0" }}>
+              <div style={{ position: "relative", marginBottom: 8, minHeight: "100%" }}>
+                {bodyEmpty && (
+                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, fontSize: 14, color: editorSw.text, opacity: 0.45, pointerEvents: "none" }}>{t.notesBodyPlaceholder}</div>
+                )}
+                <div ref={bodyRef} contentEditable suppressContentEditableWarning onInput={handleBodyInput}
+                  style={{ width: "100%", minHeight: 220, outline: "none", fontSize: 14, color: editorSw.text, opacity: 0.95, lineHeight: 1.55, wordBreak: "break-word", fontFamily: "inherit" }} />
+              </div>
+
+              {checklist.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 6 }}>
+                  {checklist.map(item => (
+                    <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <button onClick={() => toggleCheck(item.id)} style={{ width: 15, height: 15, borderRadius: 5, border: `1.5px solid ${editorSw.text}`, flexShrink: 0, background: item.done ? editorSw.text : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        {item.done && <Check size={9} color={dark ? "#0A0A0A" : "#FFF"} strokeWidth={3.5} />}
+                      </button>
+                      <input value={item.text} onChange={e => setChecklist(c => c.map(x => x.id === item.id ? { ...x, text: e.target.value } : x))}
+                        style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: 13, color: editorSw.text, textDecoration: item.done ? "line-through" : "none", opacity: item.done ? 0.6 : 1, fontFamily: "inherit" }} />
+                      <button onClick={() => removeCheck(item.id)} style={{ border: "none", background: "transparent", cursor: "pointer", color: editorSw.text, opacity: 0.5, display: "flex" }}><X size={12} /></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <Plus size={13} color={editorSw.text} style={{ opacity: 0.6 }} />
+                <input value={checklistDraft} onChange={e => setChecklistDraft(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addCheckItem(); } }} placeholder={isBn ? "তালিকায় যোগ করুন" : "Add item"}
+                  style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: 12.5, color: editorSw.text, opacity: 0.85, fontFamily: "inherit" }} />
+                {checklistDraft.trim() && <button onClick={addCheckItem} style={{ border: "none", background: "transparent", cursor: "pointer", color: editorSw.text, fontSize: 11.5, fontWeight: 700 }}>{isBn ? "যোগ" : "Add"}</button>}
+              </div>
+            </div>
+
+            {/* ---- ফিক্সড ফুটার: ক্যাটাগরি + রঙ একই কম্প্যাক্ট লাইনে — শুধু বর্তমান সিলেকশন দেখায়, ট্যাপ করলে ফ্লোটিং পিকার খোলে ---- */}
+            <div style={{ flexShrink: 0, padding: "8px 14px 12px", borderTop: `1px solid ${editorSw.text}1A`, position: "relative" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <button onClick={() => setPickerOpen(p => p === "category" ? null : "category")}
+                  style={{ display: "flex", alignItems: "center", gap: 5, border: "none", borderRadius: 999, padding: "5px 10px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", background: `${editorSw.text}14`, color: editorSw.text }}>
+                  <Tag size={11} />{category}<ChevronDown size={11} style={{ opacity: 0.7 }} />
                 </button>
-              ))}
-            </div>
+                <button onClick={() => setPickerOpen(p => p === "color" ? null : "color")}
+                  style={{ display: "flex", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: 2 }}>
+                  <span style={{ width: 18, height: 18, borderRadius: "50%", border: `1.5px solid ${editorSw.text}55`, background: (dark ? (NOTE_BG_PALETTE.find(c => c.key === (color || null))?.bgDark || NOTE_BG_PALETTE.find(c => c.key === (color || null))?.bg) : NOTE_BG_PALETTE.find(c => c.key === (color || null))?.bg) || (dark ? "#221E19" : NOTE_PAPER_BG), display: "inline-block" }} />
+                  <ChevronDown size={11} style={{ opacity: 0.7, color: editorSw.text }} />
+                </button>
+              </div>
 
-            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4, opacity: 0.6, marginBottom: 6 }}>{isBn ? "রঙ" : "COLOR"}</div>
-            <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-              {NOTE_BG_PALETTE.map(c => {
-                const cbg = (dark ? (c.bgDark || c.bg) : c.bg) || (dark ? "#221E19" : NOTE_PAPER_BG);
-                const isSel = (color || null) === c.key;
-                return (
-                  <button key={c.key || "default"} onClick={() => setColor(c.key)} title={isBn ? c.labelBn : c.labelEn}
-                    style={{ width: 22, height: 22, borderRadius: "50%", border: isSel ? `2px solid ${editorSw.text}` : `1px solid ${cardBorder}`, background: cbg, cursor: "pointer", padding: 0 }} />
-                );
-              })}
-            </div>
-
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 10, borderTop: `1px solid ${editorSw.text}22` }}>
-              {editing.id ? (
-                <button onClick={() => setTrashConfirm({ type: "one", id: editing.id, fromEditor: true })} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#C0392B", display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 700 }}><Trash2 size={13} />{t.notesDelete}</button>
-              ) : <span />}
-              <button onClick={save} style={{ border: "none", background: editorSw.text, color: editorSw.bg, borderRadius: 10, padding: "8px 18px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>{t.notesSave}</button>
+              {pickerOpen && (
+                <>
+                  {/* বাইরে ট্যাপ করলে পিকার বন্ধ হয়ে যাবে */}
+                  <div onClick={() => setPickerOpen(null)} style={{ position: "fixed", inset: 0, zIndex: 55 }} />
+                  <div onClick={e => e.stopPropagation()} style={{ position: "absolute", bottom: "calc(100% + 8px)", left: 14, right: 14, background: editorSw.bg, border: `1px solid ${editorSw.text}22`, borderRadius: 14, padding: 12, boxShadow: "0 12px 28px -10px rgba(0,0,0,0.4)", zIndex: 56 }}>
+                    {pickerOpen === "category" ? (
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {categories.map(cat => (
+                          <button key={cat} onClick={() => { setCategory(cat); setPickerOpen(null); }}
+                            style={{ border: "none", borderRadius: 999, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", background: category === cat ? editorSw.text : "rgba(0,0,0,0.06)", color: category === cat ? editorSw.bg : editorSw.text, whiteSpace: "nowrap" }}>
+                            {cat}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                        {NOTE_BG_PALETTE.map(c => {
+                          const cbg = (dark ? (c.bgDark || c.bg) : c.bg) || (dark ? "#221E19" : NOTE_PAPER_BG);
+                          const isSel = (color || null) === c.key;
+                          return (
+                            <button key={c.key || "default"} onClick={() => { setColor(c.key); setPickerOpen(null); }} title={isBn ? c.labelBn : c.labelEn}
+                              style={{ width: 24, height: 24, borderRadius: "50%", border: isSel ? `2px solid ${editorSw.text}` : `1px solid ${cardBorder}`, background: cbg, cursor: "pointer", padding: 0 }} />
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
