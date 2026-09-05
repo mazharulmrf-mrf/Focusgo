@@ -6545,9 +6545,9 @@ function FocusGoInner() {
               }}>
                 <div style={{display:"flex", alignItems:"center", gap:14}}>
                   <div style={{flex:1, minWidth:0}}>
-                    <div style={{fontSize:13, fontWeight:600, color:textMuted2, marginBottom:4}}>{isBn ? "আজ" : "Today"}</div>
+                    <div style={{fontSize:13, fontWeight:600, color:textMuted2, marginBottom:4}}>{lang === "bn" ? "আজ" : "Today"}</div>
                     <div style={{fontSize:19, fontWeight:800, color:textMain, letterSpacing:-0.3, fontVariantNumeric:"tabular-nums"}}>
-                      {isBn
+                      {lang === "bn"
                         ? <><Num>{nf(doneToday)}</Num>/<Num>{nf(totalToday)}</Num> {t.doneCount}</>
                         : <><Num>{nf(doneToday)}</Num> of <Num>{nf(totalToday)}</Num> {t.doneCount.toLowerCase()}</>}
                     </div>
