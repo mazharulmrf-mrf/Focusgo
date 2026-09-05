@@ -6288,124 +6288,69 @@ export default function FocusGo() {
           </div>
         )}
 
-        {/* Focus timer - main home of Study tab (Study Plan sub-section only) — redesigned to match the two-column
-            mockup: title/subtitle + controls on the left, a decorative progress ring with an hourglass on the right */}
+        {/* Focus timer - center-aligned minimal layout: title, big time, controls — all centered as one calm block */}
         {tab === "study" && studySection === "plan" && (
-        <div className="fg-tab-panel" style={{marginTop:8, background: dark ? cardBg : "#FFFFFF", borderRadius:14, padding:"12px 14px 12px", color:textMain, boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)", position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:8, background: dark ? cardBg : "#FFFFFF", borderRadius:14, padding:"16px 14px 14px", color:textMain, boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)", position:"relative", overflow:"hidden", textAlign:"center"}}>
 
-          {/* কমপ্যাক্ট হেডার: আইকন + টাইটেল এক লাইনে, subtitle বাদ (redundant ছিল) */}
-          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", position:"relative", gap:8}}>
-            <div style={{display:"flex", alignItems:"center", gap:6, minWidth:0}}>
-              <Hourglass size={16} color={accent} strokeWidth={2.2}/>
-              <span style={{fontSize:14.5, fontWeight:700, color:textMain, letterSpacing:-0.2}}>{lang==="bn" ? "ফোকাস টাইমার" : "Focus Timer"}</span>
-            </div>
-            <div style={{display:"flex", alignItems:"center", gap:2, flexShrink:0}}>
-              <button
-                onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setStrictModeEnabled(s=>!s); }}
-                disabled={timerRunning || stopwatchRunning}
-                title={lang==="bn" ? "স্ট্রিক্ট মোড (মাঝপথে অ্যাপ ছাড়লে সেশন ফেইল হবে)" : "Strict Mode (leaving mid-session fails it)"}
-                style={{border:"none", background:"transparent", cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", color: strictModeEnabled ? "#C0392B" : textMuted2, opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1, display:"flex", alignItems:"center", padding:4}}>
-                {strictModeEnabled ? <ShieldAlert size={14}/> : <Shield size={14}/>}
-              </button>
-              <div style={{position:"relative"}}>
-                <button onClick={()=>{vibrate(); setShowWhiteNoisePicker(s=>!s);}} title={lang==="bn" ? "হোয়াইট নয়েজ" : "White Noise"} style={{border:"none", background:"transparent", cursor:"pointer", color: whiteNoiseSound!=="none" ? accent : textMuted2, display:"flex", alignItems:"center", padding:4}}>
-                  <Music size={14}/>
-                </button>
-                {showWhiteNoisePicker && (
-                  <>
-                  <div onClick={()=>setShowWhiteNoisePicker(false)} style={{position:"fixed", inset:0, zIndex:19}}/>
-                  <div onClick={e=>e.stopPropagation()} style={{position:"absolute", top:"calc(100% + 6px)", right:0, zIndex:20, width:220, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:12, boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.35)" : "0 10px 24px rgba(0,0,0,0.14)"}}>
-                    <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:6}}>
-                      {WHITE_NOISE_TYPES.map(opt => {
-                        const active = whiteNoiseSound === opt.id;
-                        const OptIcon = opt.Icon;
-                        return (
-                          <button key={opt.id} onClick={()=>{ vibrate(); setWhiteNoiseSound(opt.id); }} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, border:`1px solid ${active ? accent : cardBorder}`, background: active ? `${accent}14` : "transparent", borderRadius:12, padding:"8px 4px", cursor:"pointer", color: active ? accent : textMain}}>
-                            <OptIcon size={16}/>
-                            <span style={{fontSize:10.5, fontWeight:500, textAlign:"center"}}>{lang==="bn" ? opt.labelBn : opt.labelEn}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {whiteNoiseSound !== "none" && (
-                      <div style={{display:"flex", alignItems:"center", gap:8, marginTop:10}}>
-                        <VolumeX size={13} color={textMuted2}/>
-                        <input type="range" min={0} max={1} step={0.01} value={whiteNoiseVolume}
-                          onChange={e=>setWhiteNoiseVolume(Number(e.target.value))}
-                          style={{flex:1}}/>
-                        <Volume2 size={13} color={textMuted2}/>
-                      </div>
-                    )}
-                  </div>
-                  </>
-                )}
-              </div>
-              <button onClick={()=>{vibrate(); setFocusFullscreen(true);}} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, display:"flex", alignItems:"center", padding:4}}>
-                <Maximize2 size={14}/>
-              </button>
-            </div>
+          <div style={{fontSize:12, fontWeight:600, color:"var(--muted)", letterSpacing:0.4}}>
+            {lang==="bn" ? "ফোকাস টাইমার" : "Focus Timer"}
           </div>
 
-          {/* কমপ্যাক্ট মিডল রো: ডিজিট + মোড-টগল একসাথে বামে, Focus/Break পিল ডানে — আলাদা কলাম/ডিভাইডার আর নেই */}
-          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginTop:10, position:"relative"}}>
-            <div style={{display:"flex", alignItems:"baseline", gap:7, minWidth:0}}>
-              {focusMode === "timer" ? (
-                editingDuration ? (
-                  <div style={{display:"flex", alignItems:"baseline", gap:4}}>
-                    <input
-                      type="number"
-                      autoFocus
-                      value={durationInput}
-                      onChange={(e)=>setDurationInput(e.target.value)}
-                      onBlur={commitDurationEdit}
-                      onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
-                      min={1}
-                      max={180}
-                      style={{width:64, fontSize:26, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:0.5, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${accent}`, outline:"none"}}
-                    />
-                    <span style={{fontSize:12.5, fontWeight:500, color:textMuted2}}>{t.minutes}</span>
-                  </div>
-                ) : (
-                  <span onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined}
-                    style={{fontSize:32, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:0.3, color:textMain, cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
-                    <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
-                  </span>
-                )
+          <div style={{marginTop:12, display:"flex", flexDirection:"column", alignItems:"center"}}>
+            {focusMode === "timer" ? (
+              editingDuration ? (
+                <div style={{display:"flex", alignItems:"baseline", gap:4}}>
+                  <input
+                    type="number"
+                    autoFocus
+                    value={durationInput}
+                    onChange={(e)=>setDurationInput(e.target.value)}
+                    onBlur={commitDurationEdit}
+                    onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
+                    min={1}
+                    max={180}
+                    style={{width:72, fontSize:34, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:-0.5, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${accent}`, outline:"none", textAlign:"center"}}
+                  />
+                  <span style={{fontSize:12.5, fontWeight:500, color:textMuted2}}>{t.minutes}</span>
+                </div>
               ) : (
-                <span className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:32, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:0.3, color: textMain, lineHeight:1}}>
-                  <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
+                <span onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined}
+                  style={{fontSize:38, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:-0.7, color:textMain, cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
+                  <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
                 </span>
-              )}
+              )
+            ) : (
+              <span className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:38, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:-0.7, color: textMain, lineHeight:1}}>
+                <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
+              </span>
+            )}
+
+            <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:12, marginTop:8}}>
               <button
                 onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setFocusMode(focusMode==="timer" ? "stopwatch" : "timer"); }}
                 disabled={timerRunning || stopwatchRunning}
-                style={{display:"flex", alignItems:"center", gap:2, border:"none", background:"transparent", color:textMuted2, fontSize:11.5, fontWeight:600, cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", padding:0, opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1, flexShrink:0}}>
+                style={{display:"flex", alignItems:"center", gap:2, border:"none", background:"transparent", color:"var(--muted)", fontSize:11.5, fontWeight:600, cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", padding:0, opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1}}>
                 {focusMode==="timer" ? t.timerMode : t.stopwatchMode} <ChevronDown size={12}/>
               </button>
+              {focusMode === "timer" && (
+                <button
+                  onClick={()=>{ if (timerRunning) return; vibrate(); changeSessionType(sessionType==="focus" ? "break" : "focus"); }}
+                  disabled={timerRunning}
+                  style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:"var(--muted)", padding:0, fontSize:11.5, fontWeight:600, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
+                  {sessionType==="focus" ? t.focusOption : t.breakOption} <ChevronDown size={12}/>
+                </button>
+              )}
             </div>
-            {focusMode === "timer" && (
-              <button
-                onClick={()=>{ if (timerRunning) return; vibrate(); changeSessionType(sessionType==="focus" ? "break" : "focus"); }}
-                disabled={timerRunning}
-                style={{flexShrink:0, display:"flex", alignItems:"center", gap:3, border:"none", background: dark ? `${accent}30` : `${accent}18`, color:accent, borderRadius:20, padding:"5px 11px", fontSize:12, fontWeight:700, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
-                {sessionType==="focus" ? t.focusOption : t.breakOption} <ChevronDown size={13}/>
-              </button>
-            )}
           </div>
-          {!timerRunning && !stopwatchRunning && focusMode === "timer" && !editingDuration && (
-            <div style={{fontSize:10.5, color:textMuted2, marginTop:1, fontWeight:500}}>
-              {lang==="bn" ? "কাস্টম সময়ের জন্য ট্যাপ করো" : "Tap to customize"}
-            </div>
-          )}
 
-          {/* Topic — কমপ্যাক্ট চিপ রো */}
-          <div style={{marginTop:9}}>
+          {/* Topic — কেন্দ্রে align করা চিপ রো */}
+          <div style={{marginTop:14}}>
             {(focusMode==="timer" ? timerRunning : stopwatchRunning) ? (
-              <div style={{fontSize:11.5, color:textMuted2}}>
+              <div style={{fontSize:11.5, color:"var(--muted)"}}>
                 {timerTopic ? `${timerTopic.subject} — ${timerTopic.topic}` : t.freeSessionOption}
               </div>
             ) : (
-              <div style={{display:"flex", gap:6, overflowX:"auto", WebkitOverflowScrolling:"touch", paddingBottom:2}}>
+              <div style={{display:"flex", gap:6, overflowX:"auto", WebkitOverflowScrolling:"touch", paddingBottom:2, justifyContent: todayTopics.filter(x=>!x.done).length <= 2 ? "center" : "flex-start"}}>
                 <button onClick={()=>{ selectTimerTopic(null); setTimerRunning(true); setFocusFullscreen(true); playStartSound(); }} style={{flexShrink:0, border:`1px solid ${!timerTopic ? inkColor : cardBorder}`, background: !timerTopic ? inkA(0.10) : "transparent", color: !timerTopic ? inkColor : textMuted2, borderRadius:14, padding:"5px 11px", fontSize:11, fontWeight:500, cursor:"pointer", whiteSpace:"nowrap"}}>
                   {t.freeSessionOption}
                 </button>
@@ -6418,42 +6363,75 @@ export default function FocusGo() {
             )}
           </div>
 
-          {/* কমপ্যাক্ট বটম রো: Start + Reset + session dots সব এক লাইনে */}
-          <div style={{display:"flex", alignItems:"center", gap:7, marginTop:10}}>
+          {/* Start + Reset + session count — কেন্দ্রে, Start বাটন আর ফুল-উইথ না, ফিক্সড-উইথ পিল */}
+          <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:16}}>
             <button
               onClick={focusMode==="timer" ? toggleTimerRunning : toggleStopwatchRunning}
-              style={{display:"flex", alignItems:"center", justifyContent:"center", gap:6, flex:"1 1 auto", minWidth:0, background: accent, border:"none", borderRadius:12, padding:"10px 14px", color:"#fff", fontWeight:700, fontSize:13.5, cursor:"pointer", boxShadow:`0 10px 22px ${accent}45`, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-              {(focusMode==="timer" ? timerRunning : stopwatchRunning) ? <Pause size={14} fill="#fff" style={{flexShrink:0}}/> : <Play size={14} fill="#fff" style={{flexShrink:0}}/>} <span style={{overflow:"hidden", textOverflow:"ellipsis"}}>{(focusMode==="timer" ? timerRunning : stopwatchRunning) ? t.pause : t.start}</span>
+              style={{display:"flex", alignItems:"center", justifyContent:"center", gap:6, background: accent, border:"none", borderRadius:26, padding:"11px 28px", color:"#fff", fontWeight:600, fontSize:13.5, cursor:"pointer", boxShadow:`0 10px 22px ${accent}45`}}>
+              {(focusMode==="timer" ? timerRunning : stopwatchRunning) ? <Pause size={14} fill="#fff"/> : <Play size={14} fill="#fff"/>} {(focusMode==="timer" ? timerRunning : stopwatchRunning) ? t.pause : t.start}
             </button>
             <button onClick={()=>{ if (focusMode==="timer") { setTimerRunning(false); setTimerSeconds(timerTotal); } else { setStopwatchRunning(false); setStopwatchSeconds(0); } }} title={t.reset}
-              style={{background: dark?"#332E25":"#FAF9F6", border:`1px solid ${dark ? "transparent" : "#F0EEE8"}`, borderRadius:12, width:38, height:38, flexShrink:0, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
-              <RotateCcw size={14} color={textMain}/>
+              style={{background:"transparent", border:"none", width:38, height:38, flexShrink:0, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", color:"var(--muted)"}}>
+              <RotateCcw size={15}/>
             </button>
-            {focusMode === "timer" && (
-              <span style={{display:"flex", alignItems:"center", gap:5, fontSize:10.5, fontWeight:500, color:textMuted2, flexShrink:0, whiteSpace:"nowrap", paddingLeft:1}}>
-                <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num>
-                <span style={{display:"flex", alignItems:"center", gap:4}}>
-                  {Array.from({length:pomodoroTotalSessions}, (_,i)=>i+1).map(i => {
-                    const state = i < pomodoroSession ? "done" : (i === pomodoroSession ? "current" : "upcoming");
-                    return (
-                      <span key={i} style={{
-                        width: state === "current" ? 7 : 5, height: state === "current" ? 7 : 5, borderRadius:"50%",
-                        background: state === "upcoming" ? "transparent" : accent,
-                        border: state === "upcoming" ? `1.5px solid ${textMuted2}` : "none",
-                        opacity: state === "done" ? 0.55 : 1,
-                        transition:"all .2s ease"
-                      }}/>
-                    );
-                  })}
-                </span>
-              </span>
-            )}
           </div>
+          {focusMode === "timer" && (
+            <div style={{fontSize:11, fontWeight:500, color:"var(--muted)", marginTop:8}}>
+              <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num> {lang==="bn" ? "সেশন" : "sessions"}
+            </div>
+          )}
           {focusMode === "timer" && timerTargetMinutes && (
-            <div style={{fontSize:10.5, color:textMuted2, fontWeight:500, opacity:0.75, textAlign:"right", marginTop:4}}>
+            <div style={{fontSize:10.5, color:textMuted2, fontWeight:500, opacity:0.75, marginTop:2}}>
               <Num>{nf(timerElapsedMinutes)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
             </div>
           )}
+
+          {/* উইউটিলিটি আইকন — Strict Mode / White Noise / Fullscreen — সবচেয়ে নিচে, ছোট, মিউটেড, কেন্দ্রে */}
+          <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:16, marginTop:16, paddingTop:12, borderTop:"1px solid var(--track)"}}>
+            <button
+              onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setStrictModeEnabled(s=>!s); }}
+              disabled={timerRunning || stopwatchRunning}
+              title={lang==="bn" ? "স্ট্রিক্ট মোড (মাঝপথে অ্যাপ ছাড়লে সেশন ফেইল হবে)" : "Strict Mode (leaving mid-session fails it)"}
+              style={{border:"none", background:"transparent", cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", color: strictModeEnabled ? "#C0392B" : "var(--muted)", opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1, display:"flex", alignItems:"center", padding:4}}>
+              {strictModeEnabled ? <ShieldAlert size={15}/> : <Shield size={15}/>}
+            </button>
+            <div style={{position:"relative"}}>
+              <button onClick={()=>{vibrate(); setShowWhiteNoisePicker(s=>!s);}} title={lang==="bn" ? "হোয়াইট নয়েজ" : "White Noise"} style={{border:"none", background:"transparent", cursor:"pointer", color: whiteNoiseSound!=="none" ? accent : "var(--muted)", display:"flex", alignItems:"center", padding:4}}>
+                <Music size={15}/>
+              </button>
+              {showWhiteNoisePicker && (
+                <>
+                <div onClick={()=>setShowWhiteNoisePicker(false)} style={{position:"fixed", inset:0, zIndex:19}}/>
+                <div onClick={e=>e.stopPropagation()} style={{position:"absolute", top:"calc(100% + 6px)", left:"50%", transform:"translateX(-50%)", zIndex:20, width:220, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:12, boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.35)" : "0 10px 24px rgba(0,0,0,0.14)", textAlign:"left"}}>
+                  <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:6}}>
+                    {WHITE_NOISE_TYPES.map(opt => {
+                      const active = whiteNoiseSound === opt.id;
+                      const OptIcon = opt.Icon;
+                      return (
+                        <button key={opt.id} onClick={()=>{ vibrate(); setWhiteNoiseSound(opt.id); }} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, border:`1px solid ${active ? accent : cardBorder}`, background: active ? `${accent}14` : "transparent", borderRadius:12, padding:"8px 4px", cursor:"pointer", color: active ? accent : textMain}}>
+                          <OptIcon size={16}/>
+                          <span style={{fontSize:10.5, fontWeight:500, textAlign:"center"}}>{lang==="bn" ? opt.labelBn : opt.labelEn}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {whiteNoiseSound !== "none" && (
+                    <div style={{display:"flex", alignItems:"center", gap:8, marginTop:10}}>
+                      <VolumeX size={13} color={textMuted2}/>
+                      <input type="range" min={0} max={1} step={0.01} value={whiteNoiseVolume}
+                        onChange={e=>setWhiteNoiseVolume(Number(e.target.value))}
+                        style={{flex:1}}/>
+                      <Volume2 size={13} color={textMuted2}/>
+                    </div>
+                  )}
+                </div>
+                </>
+              )}
+            </div>
+            <button onClick={()=>{vibrate(); setFocusFullscreen(true);}} style={{border:"none", background:"transparent", cursor:"pointer", color:"var(--muted)", display:"flex", alignItems:"center", padding:4}}>
+              <Maximize2 size={15}/>
+            </button>
+          </div>
         </div>
         )}
 
@@ -7010,15 +6988,10 @@ export default function FocusGo() {
 
           return (
             <>
-            <div key="task" className="fg-tab-panel" style={{marginTop:10}}>
-              <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:12}}>
-                <div style={{width:44, height:44, borderRadius:14, background: dark ? `${accent}30` : `${accent}1c`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                  <ListChecks size={21} color={accent} strokeWidth={2.2}/>
-                </div>
-                <div style={{minWidth:0}}>
-                  <div style={{fontSize:20.5, fontWeight:600, letterSpacing:-0.3, color:textMain}}>{t.taskTitle}</div>
-                  <div style={{fontSize:12.5, color:textMuted2, marginTop:2, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden", lineHeight:1.3}}>{t.taskSubtitle}</div>
-                </div>
+            <div key="task" className="fg-tab-panel" style={{marginTop:16}}>
+              <div style={{marginBottom:14}}>
+                <div className="fg-title" style={{fontSize:21}}>{t.taskTitle}</div>
+                <div style={{fontSize:12.5, color:"var(--muted)", marginTop:3, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden", lineHeight:1.3}}>{t.taskSubtitle}</div>
               </div>
 
               {/* List / Calendar ভিউ টগল — Study Plan/Stats-এর মতো একই underline-tab স্টাইল */}
@@ -7042,16 +7015,16 @@ export default function FocusGo() {
 
               {taskViewMode === "list" ? (
                 <>
-                  <div style={{position:"relative", marginBottom:10}}>
-                    <div className="fg-chip-row" style={{display:"flex", gap:6, overflowX:"auto", WebkitMaskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)", maskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)"}}>
+                  <div style={{position:"relative", marginBottom:12, borderBottom:"1px solid var(--track)"}}>
+                    <div className="fg-chip-row" style={{display:"flex", gap:18, overflowX:"auto", WebkitMaskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)", maskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)"}}>
                       {filterChips.map(([key,label,Icon,count]) => (
                         <button key={key} onClick={()=>{vibrate(); setTaskFilter(key);}} style={{
-                          display:"flex", alignItems:"center", gap:5, padding:"7px 13px", borderRadius:14, cursor:"pointer", flexShrink:0,
-                          border:"none",
-                          background: taskFilter===key ? accent : (dark ? "#232127" : "#EFEBE3"),
-                          color: taskFilter===key ? "#fff" : textMain, fontWeight:600, fontSize:13, whiteSpace:"nowrap",
+                          display:"flex", alignItems:"center", gap:5, padding:"0 0 8px", cursor:"pointer", flexShrink:0,
+                          border:"none", background:"transparent",
+                          color: taskFilter===key ? "var(--text)" : "var(--muted)", fontWeight:600, fontSize:13.5, whiteSpace:"nowrap",
+                          borderBottom: taskFilter===key ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1,
                         }}>
-                          {label} (<Num>{nf(count)}</Num>)
+                          {label} ({nf(count)})
                         </button>
                       ))}
                       <div style={{width:1, flexShrink:0}}/>
@@ -7198,26 +7171,14 @@ export default function FocusGo() {
                 { Icon: Flame, color:"#C08A2E", value: nf(studyOverview.streak), label: t.streakLabel },
               ];
               return (
-                <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"16px 16px 14px", marginBottom:20, boxShadow: dark ? "0 6px 16px rgba(0,0,0,0.18)" : "0 6px 16px rgba(0,0,0,0.04)"}}>
-                  <div style={{display:"flex", alignItems:"center", gap:10}}>
-                    <div style={{width:38,height:38, borderRadius:11, background: inkA(dark?0.22:0.12), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                      <Clock size={18} color={inkColor}/>
-                    </div>
-                    <div>
-                      <div style={{fontSize:20.5, fontWeight:800, letterSpacing:-0.4, color:textMain, lineHeight:1.15}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
-                      <div style={{fontSize:11.5, color:textMuted2, fontWeight:600, opacity:0.8}}>{t.focusedLabel}</div>
-                    </div>
-                  </div>
-                  <div style={{height:1, background:cardBorder, margin:"14px 0"}}/>
-                  <div style={{display:"grid", gridTemplateColumns:"repeat(5, 1fr)"}}>
+                <div style={{background:"transparent", borderRadius:14, padding:"4px 2px 14px", marginBottom:8, textAlign:"center"}}>
+                  <div style={{fontSize:26, fontWeight:600, letterSpacing:-0.6, color:"var(--text)", lineHeight:1.1}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
+                  <div style={{fontSize:12, color:"var(--muted)", fontWeight:500, marginTop:3}}>{t.focusedLabel}</div>
+                  <div style={{display:"flex", marginTop:16}}>
                     {statItems.map((it, i) => (
-                      <div key={i} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:5, textAlign:"center", position:"relative", padding:"0 2px"}}>
-                        {i > 0 && <span style={{position:"absolute", left:0, top:2, bottom:10, width:1, background:cardBorder}}/>}
-                        <div style={{width:30, height:30, borderRadius:"50%", background:`${it.color}22`, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                          <it.Icon size={14} color={it.color} strokeWidth={2.2}/>
-                        </div>
-                        <div style={{fontSize:13.5, fontWeight:800, color:textMain, letterSpacing:-0.2, lineHeight:1.1}}>{it.value}</div>
-                        <div style={{fontSize:9, color:textMuted2, fontWeight:700, lineHeight:1.2}}>{it.label}</div>
+                      <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4, textAlign:"center"}}>
+                        <div style={{fontSize:15, fontWeight:600, color:"var(--text)", letterSpacing:-0.2, lineHeight:1.1}}>{it.value}</div>
+                        <div style={{fontSize:9.5, color:"var(--muted)", fontWeight:500, lineHeight:1.2}}>{it.label}</div>
                       </div>
                     ))}
                   </div>
@@ -7226,15 +7187,10 @@ export default function FocusGo() {
             })()}
 
             {/* Subject Progress — right after the merged stats card */}
-            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginTop:6, marginBottom:16}}>
-              <div style={{display:"flex", alignItems:"center", gap:10, minWidth:0}}>
-                <div style={{width:36,height:36, borderRadius:12, background: dark?"#242229":"#F0EEF5", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                  <GraduationCap size={18} color={dark ? "#B0ABC2" : "#6E6B7A"}/>
-                </div>
-                <div style={{minWidth:0}}>
-                  <div style={{fontSize:16.5, fontWeight:800, letterSpacing:-0.2, color:textMain}}>{t.syllabusProgress}</div>
-                  <div style={{fontSize:11.5, color:textMuted2, fontWeight:500, opacity:0.75}}>{t.subjectProgressSubtitle}</div>
-                </div>
+            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginTop:6, marginBottom:14}}>
+              <div style={{minWidth:0}}>
+                <div className="fg-section-header" style={{fontSize:16.5}}>{t.syllabusProgress}</div>
+                <div style={{fontSize:11.5, color:"var(--muted)", fontWeight:500, marginTop:2}}>{t.subjectProgressSubtitle}</div>
               </div>
               {/* সাবজেক্ট ম্যানেজ করার শর্টকাট — আগে টেক্সট বাটন হিসেবে নিচে আলাদা লাইনে ছিল, এখন হেডিং-এর পাশেই ছোট + আইকন হিসেবে হাইলাইট করা */}
               <button onClick={()=>{vibrate(); setShowSubjects(true);}} title={t.manageSubjects} style={{width:32, height:32, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", border:"none", background:"transparent", color:accent, cursor:"pointer"}}>
@@ -7250,7 +7206,7 @@ export default function FocusGo() {
                 const visible = (isLong && !showAllSubjectsProgress) ? sorted.slice(0, COLLAPSE_AT) : sorted;
                 return (
                   <>
-                    <div style={{display:"flex", flexDirection:"column", gap:10}}>
+                    <div style={{display:"flex", flexDirection:"column", gap:0}}>
                       {sorted.length === 0 && (
                         <div style={{fontSize:13.5, color:textMuted2, padding:"14px 0"}}>—</div>
                       )}
@@ -7259,7 +7215,7 @@ export default function FocusGo() {
                         const c = colorForSubject(subj, allSubjects);
                         const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
                         return (
-                          <button key={subj} onClick={()=>{vibrate(); setShowManageTopicsFor(subj); setShowSubjects(true);}} style={{display:"flex", alignItems:"center", gap:12, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 14px", cursor:"pointer", textAlign:"left", boxShadow: dark ? "none" : "0 2px 8px rgba(0,0,0,0.04)", width:"100%"}}>
+                          <button key={subj} className="fg-task-row" onClick={()=>{vibrate(); setShowManageTopicsFor(subj); setShowSubjects(true);}} style={{display:"flex", alignItems:"center", gap:12, background:"transparent", borderRadius:0, padding:"13px 2px", cursor:"pointer", textAlign:"left", width:"100%"}}>
                             <span style={{width:10, height:10, borderRadius:"50%", background:c.bg, flexShrink:0}}/>
                             <div style={{flex:1, minWidth:0}}>
                               <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:c.bg, textTransform:"uppercase", marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{v.total ? `${nf(pct)}%` : t.noTopicsSubjectShort}</div>
@@ -7307,7 +7263,7 @@ export default function FocusGo() {
                 })()}
               </span>
             </div>
-            <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"18px 12px 12px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:118, marginBottom:20}}>
+            <div style={{background:"transparent", borderRadius:14, padding:"18px 2px 12px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:118, marginBottom:20}}>
               {(() => {
                 const maxMin = Math.max(1, ...weeklyActivity.map(w=>w.min));
                 return weeklyActivity.map((w,i) => {
@@ -7340,7 +7296,7 @@ export default function FocusGo() {
                 })()}
               </span>
             </div>
-            <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"18px 12px 12px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:118, marginBottom:20}}>
+            <div style={{background:"transparent", borderRadius:14, padding:"18px 2px 12px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:118, marginBottom:20}}>
               {(() => {
                 const maxMin = Math.max(1, ...monthlyActivity.map(w=>w.min));
                 const currentWeekNum = (() => {
@@ -10444,15 +10400,11 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         .fg-hide-scrollbar::-webkit-scrollbar{display:none;}
         .fg-hide-scrollbar{scrollbar-width:none;}
       `}</style>
-      <div style={{ fontSize:20.5, fontWeight:800, letterSpacing:-0.3, color:textMain, marginBottom:9 }}>{t.notesTitle}</div>
+      <div style={{ fontSize:21, fontWeight:600, letterSpacing:-0.7, color:"var(--text)", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", marginBottom:14 }}>{t.notesTitle}</div>
 
-      <div style={{fontSize:11.5, fontWeight:800, letterSpacing: lang==="bn"?0:0.6, color:textMuted2, opacity:0.75, marginBottom:8, textTransform:"uppercase"}}>
-        {lang==="bn" ? "সব নোট" : "All Notes"}
-      </div>
-
-      {/* সার্চ রো — squircle আইকন বাটন, তারপর সবসময়-দৃশ্যমান সার্চ পিল, Grid/List টগল, আর সর্ট/তারিখ */}
-      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:9,position:"relative"}}>
-        <div onClick={e=>e.stopPropagation()} style={{flex:1,minWidth:0,display:"flex",alignItems:"center",gap:8,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:"7px 14px"}}>
+      {/* সার্চ রো — border ছাড়া হালকা ফিল, Grid/List টগল + সর্ট আইকন এখন circular ফোকাসগো টোকেন বাটন */}
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12,position:"relative"}}>
+        <div onClick={e=>e.stopPropagation()} style={{flex:1,minWidth:0,display:"flex",alignItems:"center",gap:8,background: dark ? "#211E19" : "#F0EEE8",borderRadius:14,padding:"9px 14px"}}>
           <Search size={15} color={textMuted2} style={{flexShrink:0}}/>
           <input
             ref={searchRef}
@@ -10467,19 +10419,20 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
         {/* Grid/List ভিউ টগল */}
         <button
           onClick={(e)=>{e.stopPropagation();vibrate();setViewMode(v=>v==="grid"?"list":"grid");}}
-          style={{ width:38,height:38,display:"flex",alignItems:"center",justifyContent:"center",background:cardBg,color:textMain,border:`1px solid ${cardBorder}`,borderRadius:12,cursor:"pointer",flexShrink:0 }}
+          className="fg-btn-circle fg-btn-circle--sm"
           title={viewMode==="grid" ? (lang==="bn"?"লিস্ট ভিউ":"List view") : (lang==="bn"?"গ্রিড ভিউ":"Grid view")}
         >
-          {viewMode==="grid" ? <List size={15}/> : <LayoutGrid size={15}/>}
+          {viewMode==="grid" ? <List size={14}/> : <LayoutGrid size={14}/>}
         </button>
         {/* Sort + Date filter — একটা "more" মেনুতে একসাথে */}
         <div style={{position:"relative",flexShrink:0}}>
           <button
             onClick={(e)=>{e.stopPropagation();setShowSortMenu(v=>!v);}}
-            style={{ width:38,height:38,display:"flex",alignItems:"center",justifyContent:"center",background:(showSortMenu||filterDate)?accent:cardBg,color:(showSortMenu||filterDate)?"#fff":textMain,border:`1px solid ${(showSortMenu||filterDate)?accent:cardBorder}`,borderRadius:12,cursor:"pointer",flexShrink:0 }}
+            className="fg-btn-circle fg-btn-circle--sm"
+            style={{background:(showSortMenu||filterDate)?accent:undefined,color:(showSortMenu||filterDate)?"#fff":undefined}}
             title={lang==="bn"?"সর্ট ও তারিখ":"Sort & date"}
           >
-            <MoreVertical size={15}/>
+            <MoreVertical size={14}/>
           </button>
           {showSortMenu && (
             <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:4,boxShadow:"0 6px 16px rgba(0,0,0,0.11)",zIndex:30,display:"flex",flexDirection:"column",minWidth:190}}>
@@ -10515,7 +10468,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
           {key:"Trash", label: (lang==="bn"?"ট্র্যাশ":"Trash")+(trashCount>0?` (${nf(trashCount)})`:""), icon:<Trash2 size={11}/>},
         ].map(f => (
           <button key={f.key} onClick={()=>setActiveFolder(f.key)}
-            style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,border:`1px solid ${activeFolder===f.key?textMain:cardBorder}`,background:activeFolder===f.key?textMain:cardBg,color:activeFolder===f.key?(dark?"#0A0A0A":"#fff"):textMain,fontSize:12.5,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
+            style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,border:"none",background:activeFolder===f.key?textMain:(dark?"#211E19":"#F0EEE8"),color:activeFolder===f.key?(dark?"#0A0A0A":"#fff"):textMain,fontSize:12.5,fontWeight:600,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
             {f.icon}{f.label}
           </button>
         ))}
@@ -10529,7 +10482,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               onClick={()=>{ if (justDraggedRef.current) return; setActiveFolder(cat); }}
               onMouseDown={()=>startCatPress(cat)} onMouseUp={cancelCatPress} onMouseLeave={cancelCatPress}
               onTouchStart={()=>startCatPress(cat)} onTouchEnd={cancelCatPress} onTouchMove={cancelCatPress}
-              style={{display:"flex",alignItems:"center",gap:6,border:`1px solid ${activeFolder===cat?textMain:cardBorder}`,background:activeFolder===cat?textMain:cardBg,color:activeFolder===cat?(dark?"#0A0A0A":"#fff"):textMain,fontSize:12.5,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
+              style={{display:"flex",alignItems:"center",gap:6,border:"none",background:activeFolder===cat?textMain:(dark?"#211E19":"#F0EEE8"),color:activeFolder===cat?(dark?"#0A0A0A":"#fff"):textMain,fontSize:12.5,fontWeight:600,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
               <span style={{width:7,height:7,borderRadius:"50%",background:chipDot,flexShrink:0}}/>
               {cat}
             </button>
@@ -10646,10 +10599,8 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
               onPointerUp={handleCardPointerUp}
               onPointerCancel={handleCardPointerUp}
               className="fg-card"
-              style={{position:"relative",background:coverBg,border:isDropTarget?`2px dashed ${accent}`:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(33,29,24,0.06)"}`,borderRadius:"4px 14px 14px 14px",padding: isList ? "10px 14px 9px" : "12px 14px 10px",cursor:"pointer",display:"flex",flexDirection:"column",boxShadow:isDragging?"0 6px 16px rgba(0,0,0,.22)":"0 1px 2px rgba(33,29,24,.08)",opacity:isDragging?0.55:1,transform:isDragging?"scale(1.03)":"scale(1)",transition:"transform .12s, box-shadow .12s",touchAction:draggingId?"none":"pan-y",zIndex:isDragging?2:1}}
+              style={{position:"relative",background:coverBg,border:isDropTarget?`2px dashed ${accent}`:"none",borderRadius:14,padding: isList ? "10px 14px 9px" : "12px 14px 10px",cursor:"pointer",display:"flex",flexDirection:"column",boxShadow:isDragging?"0 6px 16px rgba(0,0,0,.18)":"0 1px 2px rgba(33,29,24,.05)",opacity:isDragging?0.55:1,transform:isDragging?"scale(1.03)":"scale(1)",transition:"transform .12s, box-shadow .12s",touchAction:draggingId?"none":"pan-y",zIndex:isDragging?2:1}}
             >
-              {/* সিগনেচার এলিমেন্ট: ক্যাটাগরির রঙে ছোট্ট "ভাঁজ করা" ট্যাব — পুরো কার্ড রঙ না করে শুধু একটা কোণায় ইঙ্গিত */}
-              <div style={{position:"absolute",top:-1,right:12,width:22,height:11,borderRadius:"0 0 4px 4px",background:colText,opacity:dark?0.85:1}}/>
               {/* পিন করা নোটের বাম কিনারায় একটা পাতলা accent স্ট্রিপ */}
               {note.pinned && <div style={{position:"absolute",top:8,left:-1,width:3,height:20,background:accent,borderRadius:"0 3px 3px 0"}}/>}
               <div style={{display:"flex",justifyContent:"space-between",gap:6,alignItems:"flex-start"}}>
