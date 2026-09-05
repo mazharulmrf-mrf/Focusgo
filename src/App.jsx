@@ -1452,7 +1452,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
           {!isGuest && user && (
             <button onClick={()=>{ vibrate(); setLogoutConfirming(v=>!v); }} title={isBn ? "লগ-আউট" : "Log out"} style={{
                 border:"none", background:"transparent", color:"#C0553F", cursor:"pointer", flexShrink:0,
-                display:"flex", alignItems:"center", justifyContent:"center", padding:6, margin:-6, borderRadius:8,
+                display:"flex", alignItems:"center", justifyContent:"center", padding:4, borderRadius:8,
               }}>
               <LogOut size={17}/>
             </button>
