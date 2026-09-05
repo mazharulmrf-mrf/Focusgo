@@ -1430,33 +1430,38 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
           </span>
         </div>
 
-        {/* ---- প্রোফাইল রো — ডানপাশে এখন ছোট্ট LogOut আইকনও আছে, ট্যাপ করলে কনফার্ম করে সরাসরি সাইন-আউট হয় ---- */}
-        <div style={{...groupCardStyle, padding:"12px 14px", width:"100%", display:"flex", alignItems:"center", gap:10, marginBottom:20, position:"relative"}}>
-          <button onClick={() => { vibrate(); onOpenProfile && onOpenProfile(); }} style={{
-              flex:1, minWidth:0, display:"flex", alignItems:"center", gap:14, border:"none", background:"transparent",
-              padding:0, cursor:"pointer", textAlign:"left",
-            }}>
-            <span style={{width:44, height:44, borderRadius:"50%", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden"}}>
-              {user && user.photoURL ? (
-                <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
-              ) : (
-                <User size={18} color={dark ? "#B0ABC2" : "#6E6B7A"}/>
-              )}
-            </span>
-            <div style={{flex:1, minWidth:0}}>
-              <div style={{fontSize:15, fontWeight:800, color:textMain, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayName}</div>
-              <div style={{fontSize:12, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayEmail}</div>
-            </div>
-          </button>
-          <ChevronRight size={17} color={textMuted2} style={{flexShrink:0}}/>
-          {!isGuest && user && (
-            <button onClick={()=>{ vibrate(); setLogoutConfirming(v=>!v); }} title={isBn ? "লগ-আউট" : "Log out"} style={{
-                border:"none", background:"transparent", color:"#C0553F", cursor:"pointer", flexShrink:0,
-                display:"flex", alignItems:"center", justifyContent:"center", padding:4, borderRadius:8,
+        {/* ---- প্রোফাইল রো — ডানপাশে এখন ছোট্ট LogOut আইকনও আছে, ট্যাপ করলে কনফার্ম করে সরাসরি সাইন-আউট হয়।
+             বাইরের div-টা শুধু রাউন্ডেড কার্ড + পপ-ওভারের জন্য position:relative রাখে (overflow:visible, নাহলে
+             নিচের কনফার্ম পপ-ওভার কেটে যেত); ভেতরের flex row-টায় আলাদাভাবে overflow:hidden দেওয়া আছে,
+             যাতে LogOut আইকন কোনোভাবেই কার্ডের রাউন্ডেড বর্ডার ছাড়িয়ে বাইরে দেখা না যায় ---- */}
+        <div style={{...groupCardStyle, padding:0, width:"100%", marginBottom:20, position:"relative", overflow:"visible"}}>
+          <div style={{display:"flex", alignItems:"center", gap:10, padding:"12px 14px", overflow:"hidden"}}>
+            <button onClick={() => { vibrate(); onOpenProfile && onOpenProfile(); }} style={{
+                flex:1, minWidth:0, display:"flex", alignItems:"center", gap:14, border:"none", background:"transparent",
+                padding:0, cursor:"pointer", textAlign:"left",
               }}>
-              <LogOut size={17}/>
+              <span style={{width:44, height:44, borderRadius:"50%", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden"}}>
+                {user && user.photoURL ? (
+                  <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
+                ) : (
+                  <User size={18} color={dark ? "#B0ABC2" : "#6E6B7A"}/>
+                )}
+              </span>
+              <div style={{flex:1, minWidth:0}}>
+                <div style={{fontSize:15, fontWeight:800, color:textMain, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayName}</div>
+                <div style={{fontSize:12, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayEmail}</div>
+              </div>
             </button>
-          )}
+            <ChevronRight size={17} color={textMuted2} style={{flexShrink:0}}/>
+            {!isGuest && user && (
+              <button onClick={()=>{ vibrate(); setLogoutConfirming(v=>!v); }} title={isBn ? "লগ-আউট" : "Log out"} style={{
+                  border:"none", background:"transparent", color:"#C0553F", cursor:"pointer", flexShrink:0,
+                  display:"flex", alignItems:"center", justifyContent:"center", padding:4, borderRadius:8,
+                }}>
+                <LogOut size={17}/>
+              </button>
+            )}
+          </div>
           {logoutConfirming && (
             <>
               <div onClick={()=>setLogoutConfirming(false)} style={{position:"fixed", inset:0, zIndex:59}}/>
@@ -6379,96 +6384,66 @@ function FocusGoInner() {
             </div>
           </div>
 
-          <div style={{marginTop:16, display:"flex", flexDirection:"column", alignItems:"center"}}>
-            {focusMode === "timer" ? (
-              editingDuration ? (
-                <div style={{display:"flex", alignItems:"baseline", gap:4}}>
-                  <input
-                    type="number"
-                    autoFocus
-                    value={durationInput}
-                    onChange={(e)=>setDurationInput(e.target.value)}
-                    onBlur={commitDurationEdit}
-                    onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
-                    min={1}
-                    max={180}
-                    style={{width:72, fontSize:34, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:-0.5, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${accent}`, outline:"none", textAlign:"center"}}
-                  />
-                  <span style={{fontSize:12.5, fontWeight:500, color:textMuted2}}>{t.minutes}</span>
-                </div>
-              ) : (
-                <span onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined}
-                  style={{fontSize:42, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:-0.8, color:textMain, cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
-                  <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
-                </span>
-              )
-            ) : (
-              <span className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:42, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:-0.8, color: textMain, lineHeight:1}}>
-                <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
-              </span>
-            )}
-
-            {focusMode === "timer" && (
-              <div style={{width:"100%", maxWidth:180, height:3, borderRadius:2, background:"var(--track)", marginTop:10, overflow:"hidden"}}>
-                <div style={{width:`${Math.min(100, Math.max(0, (1 - timerSeconds/timerTotal)*100))}%`, height:"100%", background:accent, borderRadius:2, transition:"width .3s linear"}}/>
-              </div>
-            )}
-
-            {focusMode === "timer" && (
-              <div style={{fontSize:11, fontWeight:500, color:"var(--muted)", marginTop:8}}>
-                <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num> {lang==="bn" ? "সেশন" : "sessions"}
-              </div>
-            )}
-            {focusMode === "timer" && timerTargetMinutes && (
-              <div style={{fontSize:10.5, color:textMuted2, fontWeight:500, opacity:0.75, marginTop:2}}>
-                <Num>{nf(timerElapsedMinutes)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
-              </div>
-            )}
-
-            {/* উইউটিলিটি আইকন — Strict Mode / White Noise / Fullscreen — সেশন-কাউন্টের ঠিক নিচে, ছোট, মিউটেড */}
-            <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:16, marginTop:10}}>
-              <button
-                onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setStrictModeEnabled(s=>!s); }}
-                disabled={timerRunning || stopwatchRunning}
-                title={lang==="bn" ? "স্ট্রিক্ট মোড (মাঝপথে অ্যাপ ছাড়লে সেশন ফেইল হবে)" : "Strict Mode (leaving mid-session fails it)"}
-                style={{border:"none", background:"transparent", cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", color: strictModeEnabled ? "#C0392B" : "var(--muted)", opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1, display:"flex", alignItems:"center", padding:4}}>
-                {strictModeEnabled ? <ShieldAlert size={15}/> : <Shield size={15}/>}
-              </button>
-              <div style={{position:"relative"}}>
-                <button onClick={()=>{vibrate(); setShowWhiteNoisePicker(s=>!s);}} title={lang==="bn" ? "হোয়াইট নয়েজ" : "White Noise"} style={{border:"none", background:"transparent", cursor:"pointer", color: whiteNoiseSound!=="none" ? accent : "var(--muted)", display:"flex", alignItems:"center", padding:4}}>
-                  <Music size={15}/>
-                </button>
-                {showWhiteNoisePicker && (
-                  <>
-                  <div onClick={()=>setShowWhiteNoisePicker(false)} style={{position:"fixed", inset:0, zIndex:19}}/>
-                  <div onClick={e=>e.stopPropagation()} style={{position:"absolute", top:"calc(100% + 6px)", left:"50%", transform:"translateX(-50%)", zIndex:20, width:220, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:12, boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.35)" : "0 10px 24px rgba(0,0,0,0.14)", textAlign:"left"}}>
-                    <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:6}}>
-                      {WHITE_NOISE_TYPES.map(opt => {
-                        const active = whiteNoiseSound === opt.id;
-                        const OptIcon = opt.Icon;
-                        return (
-                          <button key={opt.id} onClick={()=>{ vibrate(); setWhiteNoiseSound(opt.id); }} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, border:`1px solid ${active ? accent : cardBorder}`, background: active ? `${accent}14` : "transparent", borderRadius:12, padding:"8px 4px", cursor:"pointer", color: active ? accent : textMain}}>
-                            <OptIcon size={16}/>
-                            <span style={{fontSize:10.5, fontWeight:500, textAlign:"center"}}>{lang==="bn" ? opt.labelBn : opt.labelEn}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {whiteNoiseSound !== "none" && (
-                      <div style={{display:"flex", alignItems:"center", gap:8, marginTop:10}}>
-                        <VolumeX size={13} color={textMuted2}/>
-                        <input type="range" min={0} max={1} step={0.01} value={whiteNoiseVolume}
-                          onChange={e=>setWhiteNoiseVolume(Number(e.target.value))}
-                          style={{flex:1}}/>
-                        <Volume2 size={13} color={textMuted2}/>
-                      </div>
-                    )}
+          {/* সময় + Play/Reset — এখন সময়ের ডানপাশে দুটো ছোট আইকন-বাটন (রিসেট উপরে, প্লে/পজ নিচে,
+              ফুলস্ক্রিন মোডের স্টাইলের মতো) — আগের বড় "Start" টেক্সট পিল বাদ দেওয়া হয়েছে */}
+          <div style={{marginTop:16, display:"flex", alignItems:"center", justifyContent:"center", gap:18}}>
+            <div style={{display:"flex", flexDirection:"column", alignItems:"center", minWidth:0}}>
+              {focusMode === "timer" ? (
+                editingDuration ? (
+                  <div style={{display:"flex", alignItems:"baseline", gap:4}}>
+                    <input
+                      type="number"
+                      autoFocus
+                      value={durationInput}
+                      onChange={(e)=>setDurationInput(e.target.value)}
+                      onBlur={commitDurationEdit}
+                      onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
+                      min={1}
+                      max={180}
+                      style={{width:72, fontSize:34, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:-0.5, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${accent}`, outline:"none", textAlign:"center"}}
+                    />
+                    <span style={{fontSize:12.5, fontWeight:500, color:textMuted2}}>{t.minutes}</span>
                   </div>
-                  </>
-                )}
-              </div>
-              <button onClick={()=>{vibrate(); setFocusFullscreen(true);}} style={{border:"none", background:"transparent", cursor:"pointer", color:"var(--muted)", display:"flex", alignItems:"center", padding:4}}>
-                <Maximize2 size={15}/>
+                ) : (
+                  <span onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined}
+                    style={{fontSize:42, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:-0.8, color:textMain, cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
+                    <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
+                  </span>
+                )
+              ) : (
+                <span className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:42, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:-0.8, color: textMain, lineHeight:1}}>
+                  <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
+                </span>
+              )}
+
+              {focusMode === "timer" && (
+                <div style={{width:"100%", maxWidth:180, height:3, borderRadius:2, background:"var(--track)", marginTop:10, overflow:"hidden"}}>
+                  <div style={{width:`${Math.min(100, Math.max(0, (1 - timerSeconds/timerTotal)*100))}%`, height:"100%", background:accent, borderRadius:2, transition:"width .3s linear"}}/>
+                </div>
+              )}
+
+              {focusMode === "timer" && (
+                <div style={{fontSize:11, fontWeight:500, color:"var(--muted)", marginTop:8}}>
+                  <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num> {lang==="bn" ? "সেশন" : "sessions"}
+                </div>
+              )}
+              {focusMode === "timer" && timerTargetMinutes && (
+                <div style={{fontSize:10.5, color:textMuted2, fontWeight:500, opacity:0.75, marginTop:2}}>
+                  <Num>{nf(timerElapsedMinutes)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
+                </div>
+              )}
+            </div>
+
+            <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:8, flexShrink:0}}>
+              <button onClick={()=>{ if (focusMode==="timer") { setTimerRunning(false); setTimerSeconds(timerTotal); } else { setStopwatchRunning(false); setStopwatchSeconds(0); } }} title={t.reset}
+                style={{background: dark ? "rgba(255,255,255,0.06)" : "rgba(20,17,24,0.045)", border:"none", width:34, height:34, borderRadius:"50%", flexShrink:0, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", color:"var(--muted)"}}>
+                <RotateCcw size={14}/>
+              </button>
+              <button
+                onClick={focusMode==="timer" ? toggleTimerRunning : toggleStopwatchRunning}
+                title={(focusMode==="timer" ? timerRunning : stopwatchRunning) ? t.pause : t.start}
+                style={{display:"flex", alignItems:"center", justifyContent:"center", background: accent, border:"none", borderRadius:"50%", width:52, height:52, color:"#fff", cursor:"pointer", boxShadow:`0 10px 22px ${accent}45`}}>
+                {(focusMode==="timer" ? timerRunning : stopwatchRunning) ? <Pause size={18} fill="#fff"/> : <Play size={18} fill="#fff" style={{marginLeft:2}}/>}
               </button>
             </div>
           </div>
@@ -6493,16 +6468,51 @@ function FocusGoInner() {
             )}
           </div>
 
-          {/* Start + Reset — কেন্দ্রে, ফিক্সড-উইথ পিল */}
-          <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:16}}>
+          {/* উটিলিটি আইকন — Strict Mode / White Noise / Fullscreen — আগে সেশন-কাউন্টের নিচে বড় করে
+              দেখানো হতো, এখন কার্ডের একদম নিচে ডানপাশের কোণায়, ছোট ও মিউটেড করে রাখা হয়েছে */}
+          <div style={{display:"flex", alignItems:"center", justifyContent:"flex-end", gap:10, marginTop:14, paddingTop:10, borderTop:`1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(20,17,24,0.05)"}`}}>
             <button
-              onClick={focusMode==="timer" ? toggleTimerRunning : toggleStopwatchRunning}
-              style={{display:"flex", alignItems:"center", justifyContent:"center", gap:6, background: accent, border:"none", borderRadius:26, padding:"11px 28px", color:"#fff", fontWeight:600, fontSize:13.5, cursor:"pointer", boxShadow:`0 10px 22px ${accent}45`}}>
-              {(focusMode==="timer" ? timerRunning : stopwatchRunning) ? <Pause size={14} fill="#fff"/> : <Play size={14} fill="#fff"/>} {(focusMode==="timer" ? timerRunning : stopwatchRunning) ? t.pause : t.start}
+              onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setStrictModeEnabled(s=>!s); }}
+              disabled={timerRunning || stopwatchRunning}
+              title={lang==="bn" ? "স্ট্রিক্ট মোড (মাঝপথে অ্যাপ ছাড়লে সেশন ফেইল হবে)" : "Strict Mode (leaving mid-session fails it)"}
+              style={{border:"none", background:"transparent", cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", color: strictModeEnabled ? "#C0392B" : "var(--muted)", opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1, display:"flex", alignItems:"center", padding:4}}>
+              {strictModeEnabled ? <ShieldAlert size={13}/> : <Shield size={13}/>}
             </button>
-            <button onClick={()=>{ if (focusMode==="timer") { setTimerRunning(false); setTimerSeconds(timerTotal); } else { setStopwatchRunning(false); setStopwatchSeconds(0); } }} title={t.reset}
-              style={{background:"transparent", border:"none", width:38, height:38, flexShrink:0, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", color:"var(--muted)"}}>
-              <RotateCcw size={15}/>
+            <div style={{position:"relative"}}>
+              <button onClick={()=>{vibrate(); setShowWhiteNoisePicker(s=>!s);}} title={lang==="bn" ? "হোয়াইট নয়েজ" : "White Noise"} style={{border:"none", background:"transparent", cursor:"pointer", color: whiteNoiseSound!=="none" ? accent : "var(--muted)", display:"flex", alignItems:"center", padding:4}}>
+                <Music size={13}/>
+              </button>
+              {showWhiteNoisePicker && (
+                <>
+                <div onClick={()=>setShowWhiteNoisePicker(false)} style={{position:"fixed", inset:0, zIndex:19}}/>
+                <div onClick={e=>e.stopPropagation()} style={{position:"absolute", bottom:"calc(100% + 6px)", right:0, zIndex:20, width:220, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:12, boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.35)" : "0 10px 24px rgba(0,0,0,0.14)", textAlign:"left"}}>
+                  <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:6}}>
+                    {WHITE_NOISE_TYPES.map(opt => {
+                      const active = whiteNoiseSound === opt.id;
+                      const OptIcon = opt.Icon;
+                      return (
+                        <button key={opt.id} onClick={()=>{ vibrate(); setWhiteNoiseSound(opt.id); }} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, border:`1px solid ${active ? accent : cardBorder}`, background: active ? `${accent}14` : "transparent", borderRadius:12, padding:"8px 4px", cursor:"pointer", color: active ? accent : textMain}}>
+                          <OptIcon size={16}/>
+                          <span style={{fontSize:10.5, fontWeight:500, textAlign:"center"}}>{lang==="bn" ? opt.labelBn : opt.labelEn}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {whiteNoiseSound !== "none" && (
+                    <div style={{display:"flex", alignItems:"center", gap:8, marginTop:10}}>
+                      <VolumeX size={13} color={textMuted2}/>
+                      <input type="range" min={0} max={1} step={0.01} value={whiteNoiseVolume}
+                        onChange={e=>setWhiteNoiseVolume(Number(e.target.value))}
+                        style={{flex:1}}/>
+                      <Volume2 size={13} color={textMuted2}/>
+                    </div>
+                  )}
+                </div>
+                </>
+              )}
+            </div>
+            <button onClick={()=>{vibrate(); setFocusFullscreen(true);}} title={lang==="bn" ? "ফুলস্ক্রিন" : "Fullscreen"} style={{border:"none", background:"transparent", cursor:"pointer", color:"var(--muted)", display:"flex", alignItems:"center", padding:4}}>
+              <Maximize2 size={13}/>
             </button>
           </div>
         </div>
@@ -6538,39 +6548,39 @@ function FocusGoInner() {
 
             return (
               <div className="fg-tab-panel" style={{
-                marginTop:10, background: dark ? cardBg : "#FFFFFF", borderRadius:20,
-                padding:"18px 18px 16px", position:"relative", overflow:"hidden",
+                marginTop:10, background: dark ? cardBg : "#FFFFFF", borderRadius:16,
+                padding:"14px 16px 12px", position:"relative", overflow:"hidden",
                 border:`1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(20,17,24,0.045)"}`,
                 boxShadow: dark ? "0 2px 12px rgba(0,0,0,0.32)" : "0 4px 18px rgba(32,34,43,0.06)",
               }}>
-                <div style={{display:"flex", alignItems:"center", gap:14}}>
+                <div style={{display:"flex", alignItems:"center", gap:12}}>
                   <div style={{flex:1, minWidth:0}}>
-                    <div style={{fontSize:13, fontWeight:600, color:textMuted2, marginBottom:4}}>{lang === "bn" ? "আজ" : "Today"}</div>
-                    <div style={{fontSize:19, fontWeight:800, color:textMain, letterSpacing:-0.3, fontVariantNumeric:"tabular-nums"}}>
+                    <div style={{fontSize:12, fontWeight:600, color:textMuted2, marginBottom:3}}>{lang === "bn" ? "আজ" : "Today"}</div>
+                    <div style={{fontSize:17, fontWeight:800, color:textMain, letterSpacing:-0.3, fontVariantNumeric:"tabular-nums"}}>
                       {lang === "bn"
                         ? <><Num>{nf(doneToday)}</Num>/<Num>{nf(totalToday)}</Num> {t.doneCount}</>
                         : <><Num>{nf(doneToday)}</Num> of <Num>{nf(totalToday)}</Num> {t.doneCount.toLowerCase()}</>}
                     </div>
                   </div>
                   <div style={{width:1, alignSelf:"stretch", background: dark ? "rgba(255,255,255,0.08)" : "rgba(20,17,24,0.08)", flexShrink:0}}/>
-                  <div style={{display:"flex", alignItems:"center", gap:8, flexShrink:0}}>
-                    <Flame size={20} color={accent} fill={`${accent}55`}/>
-                    <div style={{display:"flex", alignItems:"baseline", gap:5, whiteSpace:"nowrap"}}>
-                      <span style={{fontSize:19, fontWeight:800, color:textMain, fontVariantNumeric:"tabular-nums"}}><Num>{nf(studyOverview.streak)}</Num></span>
-                      <span style={{fontSize:13, fontWeight:600, color:textMuted2}}>{t.streakLabel}</span>
+                  <div style={{display:"flex", alignItems:"center", gap:7, flexShrink:0}}>
+                    <Flame size={17} color={accent} fill={`${accent}55`}/>
+                    <div style={{display:"flex", alignItems:"baseline", gap:4, whiteSpace:"nowrap"}}>
+                      <span style={{fontSize:17, fontWeight:800, color:textMain, fontVariantNumeric:"tabular-nums"}}><Num>{nf(studyOverview.streak)}</Num></span>
+                      <span style={{fontSize:12, fontWeight:600, color:textMuted2}}>{t.streakLabel}</span>
                     </div>
                   </div>
                 </div>
 
                 {tasksFeatureEnabled && (
-                  <div style={{marginTop:16, paddingTop:13, borderTop:`1px solid ${dark ? "rgba(255,255,255,0.07)" : "rgba(20,17,24,0.06)"}`}}>
-                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:7}}>
-                      <div style={{fontSize:13, fontWeight:600, color:textMain}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
-                      <div style={{fontSize:11.5, fontWeight:600, color: allTasksDone ? "#6E8B5E" : textMuted2, whiteSpace:"nowrap"}}>
+                  <div style={{marginTop:12, paddingTop:10, borderTop:`1px solid ${dark ? "rgba(255,255,255,0.07)" : "rgba(20,17,24,0.06)"}`}}>
+                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
+                      <div style={{fontSize:12, fontWeight:600, color:textMain}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
+                      <div style={{fontSize:11, fontWeight:600, color: allTasksDone ? "#6E8B5E" : textMuted2, whiteSpace:"nowrap"}}>
                         {!hasTasks ? (lang==="bn" ? "কোনো টাস্ক নেই" : "No tasks today") : allTasksDone ? t.taskAllDoneLabel : (lang==="bn" ? `${nf(cardDone)}/${nf(cardTodayTasks.length)} সম্পন্ন` : `${cardDone}/${cardTodayTasks.length} completed`)}
                       </div>
                     </div>
-                    <div style={{height:5, borderRadius:8, background: dark ? "#242229" : "#F0EEF5", overflow:"hidden"}}>
+                    <div style={{height:4, borderRadius:8, background: dark ? "#242229" : "#F0EEF5", overflow:"hidden"}}>
                       <div style={{width: hasTasks ? `${cardPct}%` : "0%", height:"100%", borderRadius:8, background: allTasksDone ? "#6E8B5E" : accent, transition:"width .3s ease"}}/>
                     </div>
                   </div>
