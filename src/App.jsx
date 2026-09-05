@@ -10,7 +10,7 @@ import { NativeSettings, AndroidSettings, IOSSettings } from "capacitor-native-s
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert, BookOpen, Hourglass, Flag, Lightbulb, Cloud, UploadCloud, Globe, HelpCircle, AlarmClock } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert, BookOpen, Hourglass, Flag, Lightbulb, Cloud, UploadCloud, Globe, HelpCircle, AlarmClock, Menu } from "lucide-react";
 
 // lucide-react-এর এই ভার্সনে Mars/Venus নেই, তাই নিজে ছোট SVG icon বানানো হলো
 const Mars = ({ size = 18, color = "currentColor" }) => (
@@ -9687,74 +9687,37 @@ function compressImageToDataUrl(file, maxDim = 800, quality = 0.6) {
   });
 }
 
-function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg, cardBorder, textMain, textMuted2, accent, dark, isDesktop, bg }) {
-  const [editing, setEditing] = useState(null);
+function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBorder, textMain, textMuted2, accent, dark, isDesktop }) {
+  const isBn = lang === "bn";
+  const nf = (n) => (isBn ? toBn(n) : n);
+  const TRASH_RETENTION_DAYS = 30;
+
+  const [editing, setEditing] = useState(null); // {} নতুন নোটের জন্য, নাহলে আসল নোট অবজেক্ট
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [category, setCategory] = useState("General");
+  const [color, setColor] = useState(null);
+  const [pinned, setPinned] = useState(false);
   const [checklist, setChecklist] = useState([]);
-  const [images, setImages] = useState([]); // নোটে যোগ করা ছবি — কম্প্রেসড base64 JPEG স্ট্রিং-এর অ্যারে (Firestore-এই সেভ হয়, তাই ছোট রাখা জরুরি)
-  const [imageBusy, setImageBusy] = useState(false); // ছবি কম্প্রেস হওয়ার সময় বাটনে ছোট লোডিং দেখানোর জন্য
-  const noteFileInputRef = useRef(null); // লুকানো <input type="file"> — Image আইকনে ট্যাপ করলে এটাই ক্লিক হয়
-  const MAX_NOTE_IMAGES = 4; // একটা নোটে সর্বোচ্চ কয়টা ছবি — Firestore ডকুমেন্টের সাইজ লিমিটের মধ্যে রাখতে
-  const checklistInputRefs = useRef({}); // চেকলিস্টের প্রতিটা আইটেমের input DOM এলিমেন্ট — Enter/Backspace চাপার পর ঠিক জায়গায় ফোকাস আনতে ব্যবহার হয়
-  const [focusChecklistId, setFocusChecklistId] = useState(null); // নতুন/মার্জ হওয়া আইটেমে অটো-ফোকাস করতে
-  const focusCaretPosRef = useRef(null); // ফোকাস করার সময় কার্সার ঠিক কোন জায়গায় বসবে (null মানে টেক্সটের শেষে)
-  const [fontSize, setFontSize] = useState(14.5); // নোটের ডিফল্ট/বেস ফন্ট সাইজ — নতুন লেখা (যেখানে আলাদা সাইজ সেট করা হয়নি) এই সাইজেই দেখা যায়
-  const [activeFontSize, setActiveFontSize] = useState(14.5); // কার্সার/সিলেকশনে এখন যে ফন্ট সাইজ আছে — A-/A+ বাটনের disable অবস্থা ও পরের সাইজ হিসাব করতে ব্যবহার হয়
-  const [noteColor, setNoteColor] = useState(null); // নোট কার্ডের ব্যাকগ্রাউন্ড রঙ — null মানে ডিফল্ট বেইজ রঙ, প্রতি নোটে আলাদাভাবে সেভ থাকে
+  const [checklistDraft, setChecklistDraft] = useState("");
   const [activeFolder, setActiveFolder] = useState("All Notes");
-  const [openMenu, setOpenMenu] = useState(null);
-  const [showCatMenu, setShowCatMenu] = useState(false); // হ্যামবার্গার আইকনে ট্যাপ করলে ক্যাটাগরি/ফোল্ডার ড্রপডাউন দেখা যায় (Google Keep-এর সাইড মেনুর মতো)
-  const [fabOpen, setFabOpen] = useState(false); // নিচের ফ্লোটিং + বাটনে ট্যাপ করলে Note/Checklist অপশন দেখা যায়
-  const [pinnedDraft, setPinnedDraft] = useState(false); // এডিটরের ভেতরের pin টগল (এখনো সেভ না হওয়া নোটের জন্যও কাজ করে)
-  const [sensitiveDraft, setSensitiveDraft] = useState(false); // "sensitive" মার্ক করা নোটের প্রিভিউ কার্ডে body ব্লার হয়ে দেখাবে
-  const [showChecklist, setShowChecklist] = useState(false); // বটম টুলবারের checklist আইকন দিয়ে টগল হয়
-  const [showColorPicker, setShowColorPicker] = useState(false); // বটম টুলবারের palette আইকন দিয়ে টগল হয়
-  const [showBgColorPicker, setShowBgColorPicker] = useState(false); // বটম টুলবারের নতুন রঙ (Palette) আইকন দিয়ে টগল হয় — নোট কার্ডের ব্যাকগ্রাউন্ড রঙ বাছাই
-  const [showMoreMenu, setShowMoreMenu] = useState(false); // এডিটর হেডারের ⋮ মেনু
-  const [showFormatBar, setShowFormatBar] = useState(false); // বটম টুলবারের "Aa" আইকন দিয়ে টগল হয় — Bold/Italic/Underline/H1/H2 রো
-  const [categoryMenuFor, setCategoryMenuFor] = useState(null); // কোন ক্যাটাগরি চিপ লং-প্রেস করা হয়েছে — Rename/Delete মেনু দেখানোর জন্য
-  const catPressTimerRef = useRef(null); // ক্যাটাগরি চিপ লং-প্রেস ডিটেক্ট করার টাইমার
-  const [filterDate, setFilterDate] = useState(null); // নির্দিষ্ট তারিখে ফিল্টার — ক্যালেন্ডার আইকন দিয়ে সিলেক্ট করলে সেট হয়
-  const [showDatePicker, setShowDatePicker] = useState(false); // সার্চের পাশের ক্যালেন্ডার আইকনে ট্যাপ করলে ছোট ডেট-পিকার দেখা যায়
-  // Grid/List ভিউ টগল ও সর্ট অপশন (Google Keep-এর মতো) — ডিভাইসে সেভ থাকে, পরের বার অ্যাপ খুললেও মনে থাকে
-  const [viewMode, setViewMode] = useState(() => {
-    try { return window.localStorage.getItem("focusgo_notes_view_v1") || "grid"; } catch (e) { return "grid"; }
+  const [trashConfirm, setTrashConfirm] = useState(null); // { type:"one"|"all", id?, fromEditor? }
+  const [showDrawer, setShowDrawer] = useState(false); // হ্যামবার্গার আইকনে ট্যাপ করলে বাম দিক থেকে ক্যাটাগরি ড্রয়ার খোলে (Google Keep-এর মতো)
+  const [editCategoriesMode, setEditCategoriesMode] = useState(false); // ড্রয়ারের "Edit" — চাপলে প্রতিটা ক্যাটাগরির পাশে rename/delete আইকন দেখা যায়
+
+  const [categories, setCategories] = useState(() => {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem("focusgo_note_categories_v1") || "[]");
+      return Array.isArray(saved) && saved.length ? saved : ["General", "Study", "Personal", "Ideas"];
+    } catch (e) {
+      return ["General", "Study", "Personal", "Ideas"];
+    }
   });
   useEffect(() => {
-    try { window.localStorage.setItem("focusgo_notes_view_v1", viewMode); } catch (e) {}
-  }, [viewMode]);
-  const [sortMode, setSortMode] = useState(() => {
-    try { return window.localStorage.getItem("focusgo_notes_sort_v1") || "updated"; } catch (e) { return "updated"; }
-  }); // "updated" | "created" | "title" | "manual"
-  useEffect(() => {
-    try { window.localStorage.setItem("focusgo_notes_sort_v1", sortMode); } catch (e) {}
-  }, [sortMode]);
-  const [showSortMenu, setShowSortMenu] = useState(false); // সর্ট আইকনে ট্যাপ করলে ড্রপডাউন দেখা যায়
-  const [calMonth, setCalMonth] = useState(new Date()); // ডেট-পিকারে বর্তমানে কোন মাস দেখানো হচ্ছে
-  const [draggingId, setDraggingId] = useState(null); // লং-প্রেস করে যে নোটটা এখন ড্র্যাগ হচ্ছে
-  const [overId, setOverId] = useState(null); // ড্র্যাগ করা নোটটা এখন কোন নোটের উপর আছে (drop target)
-  const [undo, setUndo] = useState(null); // { id, title } — সর্বশেষ ট্র্যাশে পাঠানো নোট, Undo স্ন্যাকবার দেখানোর জন্য
-  const trashTimersRef = useRef({}); // প্রতিটা ডিলিটের জন্য Undo স্ন্যাকবার লুকানোর টাইমার (id ধরে ধরে)
-  const TRASH_RETENTION_DAYS = 30; // ট্র্যাশে কতদিন থাকার পর নোট auto-permanent-delete হয়ে যাবে
-  const [trashConfirm, setTrashConfirm] = useState(null); // { type: "one"|"all", id? } — window.confirm() এর বদলে নিজস্ব modal (Capacitor WebView-তে window.confirm অনির্ভরযোগ্য)
-  const dragRef = useRef({ id: null, startX: 0, startY: 0, dragging: false, timeout: null }); // ড্র্যাগের রানটাইম তথ্য (রি-রেন্ডার ছাড়াই দরকার)
-  const justDraggedRef = useRef(false); // ড্র্যাগ শেষ হওয়ার পর একই ট্যাপে যেন নোট এডিটর খুলে না যায়
-  const nf = (n) => (lang === "bn" ? toBn(n) : n); // সংখ্যা — বাংলা হলে বাংলা অংক
-  const bodyRef = useRef(null); // contentEditable বডি — রিচ টেক্সট ফরম্যাটিং প্রয়োগ করতে ব্যবহার হয়
-  const searchRef = useRef(null); // সার্চ আইকনে ট্যাপ করলে ইনপুটে অটো-ফোকাস করতে
-  const vh = useVisualViewportHeight(); // কীবোর্ড খোলা অবস্থায় দৃশ্যমান উচ্চতা — মোডাল সবসময় এর মধ্যেই থাকবে, কীবোর্ডের নিচে চাপা পড়বে না
-  const pushedHistoryRef = useRef(false); // নোট এডিটর খোলার সময় history-তে state push করেছি কিনা (ব্যাক বাটন হ্যান্ডল করতে)
-  const editingActiveRef = useRef(false); // popstate হ্যান্ডলারের ভেতর থেকে সবসময় সবশেষ editing অবস্থা জানার জন্য
-  // উপরের ব্যাক অ্যারোতে ট্যাপ করলে save() নিজেই history.back() ডাকে, যেটা popstate ইভেন্ট ট্রিগার করে —
-  // আর popstate হ্যান্ডলারও save() ডাকে (হার্ডওয়্যার ব্যাক হ্যান্ডল করতে)। savedRef ছাড়া এই দুটো মিলে একই নোট
-  // দুইবার সেভ হয়ে ডুপ্লিকেট নোট তৈরি করছিল — এই ফ্ল্যাগ নিশ্চিত করে একটা এডিটর সেশনে নোট একবারই সেভ হয়
-  const savedRef = useRef(false);
+    try { window.localStorage.setItem("focusgo_note_categories_v1", JSON.stringify(categories)); } catch (e) {}
+  }, [categories]);
 
-  useEffect(() => { editingActiveRef.current = !!editing; }, [editing]);
-
-  // অ্যাপ খোলার সময় একবার — ৩০ দিনের বেশি ট্র্যাশে পড়ে থাকা নোট চুপচাপ পার্মানেন্টলি মুছে ফেলা হয় (Google Keep-এর মতো)
+  // অ্যাপ খোলার সময় একবার — ৩০ দিনের বেশি ট্র্যাশে পড়ে থাকা নোট চুপচাপ পার্মানেন্টলি মুছে ফেলা হয়
   useEffect(() => {
     const cutoff = Date.now() - TRASH_RETENTION_DAYS * 24 * 60 * 60 * 1000;
     setNotes(prev => {
@@ -9764,533 +9727,101 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // popstate লিসেনার একবারই বসে (মাউন্টে), তাই ওর ভেতরের ক্লোজার সবসময় পুরনো/স্টেল title-body-ইত্যাদি ধরে রাখতো —
-  // saveRef প্রতি রেন্ডারে সবশেষ save() ফাংশনটা ধরে রাখে, যাতে popstate সবসময় সবশেষ লেখাটাই সেভ করে
-  const saveRef = useRef(() => {});
-
-  // হার্ডওয়্যার/ব্রাউজার ব্যাক বাটন (বা ফোনের "ব্যাক" জেসচার) চাপলে নোট এডিটর বন্ধ হওয়ার আগে এখন পর্যন্ত যা লেখা হয়েছে
-  // সেটা সেভ করে তারপর নোটস ট্যাবে ফিরে আসবে — আগে এখানে সেভ ছাড়াই বন্ধ হয়ে যেত, শুধু উপরের ব্যাক অ্যারো চাপলে সেভ হতো
-  useEffect(() => {
-    const onPop = () => {
-      // history ইতিমধ্যে পপ হয়ে গেছে, তাই pushedHistoryRef আগেই false করে দিচ্ছি — নাহলে save()-এর ভেতরের
-      // closeEditor() আরেকবার history.back() ডাকতে চাইবে
-      pushedHistoryRef.current = false;
-      if (editingActiveRef.current) {
-        saveRef.current();
-        setEditing(null); // খালি নোট হলে save() কিছু না করেই রিটার্ন করে, তাও এডিটর যেন বন্ধ হয় সেটা নিশ্চিত করা
-      }
-    };
-    window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
-  }, []);
-
-  const closeEditor = () => {
-    if (pushedHistoryRef.current) {
-      pushedHistoryRef.current = false;
-      window.history.back();
-    } else {
-      setEditing(null);
-    }
+  const openNew = () => {
+    setEditing({});
+    setTitle(""); setBody("");
+    setCategory(activeFolder !== "All Notes" && activeFolder !== "Pinned" && activeFolder !== "Trash" ? activeFolder : "General");
+    setColor(null); setPinned(false); setChecklist([]); setChecklistDraft("");
   };
-
-  // মোবাইলে টুলবারের বাটনে ট্যাপ করলেই প্রায়ই সিলেকশন হারিয়ে যায় (touch/blur এর কারণে) — তাই সিলেকশন করার সাথে সাথেই
-  // সেটা এখানে সেভ করে রাখি, আর প্রতিটা ফরম্যাটিং অ্যাকশনের ঠিক আগে সেটা আবার বসিয়ে দিই। এতে Bold/Italic/Color/ফন্ট সাইজ —
-  // সবগুলো বাটনই আসলে যে টেক্সট সিলেক্ট করা হয়েছিল, ঠিক সেটার উপরেই কাজ করে, বারবার নতুন করে সিলেক্ট করা লাগে না
-  const savedRangeRef = useRef(null);
-  const saveBodySelection = () => {
-    const el = bodyRef.current;
-    const sel = window.getSelection();
-    if (el && sel && sel.rangeCount > 0 && el.contains(sel.anchorNode)) {
-      savedRangeRef.current = sel.getRangeAt(0).cloneRange();
-    }
-  };
-  const restoreBodySelection = () => {
-    const el = bodyRef.current;
-    if (!el) return;
-    el.focus();
-    const sel = window.getSelection();
-    if (!sel) return;
-    if (savedRangeRef.current) {
-      sel.removeAllRanges();
-      sel.addRange(savedRangeRef.current);
-    } else if (sel.rangeCount === 0 || !el.contains(sel.anchorNode)) {
-      const r = document.createRange();
-      r.selectNodeContents(el);
-      r.collapse(false);
-      sel.removeAllRanges();
-      sel.addRange(r);
-    }
-  };
-  // টুলবার বাটনে ট্যাপ করার পর ফরম্যাটিং প্রয়োগ করা হয়ে গেলে, নতুন সিলেকশনটাই (যা এখন এডিট হলো) আবার সেভ করে রাখা —
-  // যাতে পরপর কয়েকবার ক্লিক করলে (যেমন ফন্ট আরও বড় করা) প্রতিবারই ঠিক একই অংশের উপর কাজ করে
-  const applyBodyCommand = (fn) => {
-    const el = bodyRef.current;
-    if (!el) return;
-    restoreBodySelection();
-    fn();
-    setBody(el.innerHTML);
-    saveBodySelection();
-    syncActiveFontSize();
-  };
-
-  // নোট বডিতে "1. " দিয়ে লাইন শুরু করে Enter চাপলে পরের লাইনে অটো ২, ৩, ৪... বসে —
-  // আর খালি নাম্বারড লাইনে (মানে ডাবল Enter) আবার Enter চাপলে নাম্বারিং থেমে গিয়ে লাইনটা প্লেইন খালি লাইন হয়ে যায়
-  const handleBodyEnterKey = (e) => {
-    if (e.key !== "Enter" || e.shiftKey) return;
-    const el = bodyRef.current;
-    if (!el) return;
-    const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return;
-    const anchor = sel.anchorNode;
-    if (!anchor || !el.contains(anchor)) return;
-
-    // কার্সার যে লাইনে আছে, সেই লাইনের ব্লক-লেভেল এলিমেন্ট খুঁজে বের করা (bodyRef-এর সরাসরি চাইল্ড)
-    let block = anchor;
-    while (block && block !== el && block.parentNode !== el) block = block.parentNode;
-    if (!block) return;
-    if (block === el) return; // bodyRef একদম খালি — স্বাভাবিক Enter চলবে
-
-    // নোটে যতক্ষণ একবারও Enter চাপা হয়নি, ততক্ষণ প্রথম লাইনের কনটেন্ট কোনো wrapping <div>-এর
-    // ভেতরে থাকে না — সরাসরি bodyRef-এর চাইল্ড (টেক্সট নোড/ইনলাইন এলিমেন্ট) হিসেবে থাকে। আগে এই
-    // অবস্থায় ফাংশনটা কিছু না করেই থেমে যেত (block===el ধরে নিয়ে), তাই ঠিক প্রথম লাইনেই "1." লিখে
-    // Enter চাপলে অটো-নাম্বারিং কাজ করত না। এখন সেটাকেও একটা "লাইন" হিসেবে ধরে হ্যান্ডেল করা হচ্ছে —
-    // লাইনের সীমানা হলো bodyRef-এর প্রথম <div> চাইল্ড (যেটা থাকলে বোঝায় দ্বিতীয় লাইন শুরু হয়ে গেছে),
-    // নাহলে bodyRef-এর একদম শেষ পর্যন্ত।
-    const isWrappedLine = block.nodeType === 1 && block.tagName === "DIV";
-    let lineEndNode = null;
-    if (!isWrappedLine) {
-      for (let n = el.firstChild; n; n = n.nextSibling) {
-        if (n.nodeType === 1 && n.tagName === "DIV") { lineEndNode = n; break; }
-      }
-    }
-
-    const lineText = isWrappedLine
-      ? (block.textContent || "")
-      : (() => {
-          let txt = "";
-          for (let n = el.firstChild; n && n !== lineEndNode; n = n.nextSibling) txt += n.textContent || "";
-          return txt;
-        })();
-
-    const m = /^([0-9০-৯]+)([.।)])[ \u00A0]?(.*)$/.exec(lineText);
-    if (!m) return; // নাম্বারড লাইন না হলে স্বাভাবিক Enter আচরণই চলবে
-
-    e.preventDefault();
-    const isBn = /[০-৯]/.test(m[1]);
-    const currentNum = parseInt(fromBn(m[1]), 10);
-    const punct = m[2];
-    const restText = m[3];
-
-    if (restText.trim() === "") {
-      // ডাবল এন্টার — নাম্বার মুছে লাইনটা প্লেইন খালি লাইন করে দেওয়া, নতুন লাইন তৈরি না করে এখানেই থামা
-      if (isWrappedLine) {
-        block.innerHTML = "<br>";
-        const r = document.createRange();
-        r.setStart(block, 0);
-        r.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(r);
-      } else {
-        const range = document.createRange();
-        range.setStart(el, 0);
-        if (lineEndNode) range.setEndBefore(lineEndNode); else range.setEndAfter(el.lastChild || el);
-        range.deleteContents();
-        const br = document.createElement("br");
-        el.insertBefore(br, el.firstChild);
-        const r = document.createRange();
-        r.setStartBefore(br);
-        r.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(r);
-      }
-    } else {
-      // execCommand("insertHTML")-এ নতুন <div> insert করা মোবাইল WebView-তে অনির্ভরযোগ্য — মাঝেমধ্যে
-      // নতুন ব্লক তৈরি না করে ইনলাইন টেক্সট হিসেবে বসিয়ে দেয় (যেমন "1. Maruf2." একই লাইনে)।
-      // তাই সরাসরি DOM/Range API দিয়ে কার্সারের পরের অংশ কেটে একটা আসল নতুন <div> বানিয়ে বসানো হচ্ছে —
-      // এতে সবসময় নতুন লাইনেই নাম্বারিং শুরু হবে।
-      const nextNum = currentNum + 1;
-      const nextNumStr = isBn ? toBn(nextNum) : String(nextNum);
-      const range = sel.getRangeAt(0);
-      const afterRange = document.createRange();
-      afterRange.setStart(range.endContainer, range.endOffset);
-      if (isWrappedLine) {
-        afterRange.setEnd(block, block.childNodes.length);
-      } else {
-        if (lineEndNode) afterRange.setEndBefore(lineEndNode); else afterRange.setEndAfter(el.lastChild);
-      }
-      const afterFragment = afterRange.extractContents();
-
-      const newDiv = document.createElement("div");
-      const prefix = document.createTextNode(`${nextNumStr}${punct}\u00A0`);
-      newDiv.appendChild(prefix);
-      newDiv.appendChild(afterFragment);
-
-      if (isWrappedLine) {
-        block.parentNode.insertBefore(newDiv, block.nextSibling);
-      } else if (lineEndNode) {
-        el.insertBefore(newDiv, lineEndNode);
-      } else {
-        el.appendChild(newDiv);
-      }
-
-      const newRange = document.createRange();
-      newRange.setStart(newDiv, 1);
-      newRange.collapse(true);
-      sel.removeAllRanges();
-      sel.addRange(newRange);
-    }
-    if (bodyRef.current) setBody(bodyRef.current.innerHTML);
-  };
-
-  // ---- ফন্ট সাইজ: পুরো বক্স না, শুধু সিলেক্ট করা অংশ বা কার্সার থেকে যা টাইপ হবে তার সাইজ বদলায় ----
-  const FONT_MIN = 12, FONT_MAX = 26, FONT_STEP = 1.5;
-
-  // কার্সার/সিলেকশনের জায়গায় এখন আসলে কত পিক্সেল ফন্ট সাইজ আছে, সেটা বের করা (নাহলে fallback)
-  const getCaretFontSizePx = (el, fallback) => {
-    const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0 || !el) return fallback;
-    let node = sel.anchorNode;
-    if (!node || !el.contains(node)) return fallback;
-    if (node.nodeType === 3) node = node.parentElement;
-    if (!node) return fallback;
-    const px = parseFloat(window.getComputedStyle(node).fontSize);
-    return isNaN(px) ? fallback : px;
-  };
-
-  // সিলেকশন/কার্সার বদলালে A-/A+ বাটনের অবস্থা (disable ও পরের ধাপের হিসাব) আপডেট রাখা
-  const syncActiveFontSize = () => {
-    if (!bodyRef.current) return;
-    const px = getCaretFontSizePx(bodyRef.current, fontSize);
-    setActiveFontSize(Math.round(px * 10) / 10);
-    saveBodySelection();
-  };
-
-  // A-/A+: কিছু সিলেক্ট করা থাকলে শুধু সিলেকশনের সাইজ বদলায়; কিছু সিলেক্ট না থাকলে কার্সার থেকে
-  // এরপর যা টাইপ হবে সেটাই নতুন সাইজে আসতে থাকে — পুরো নোটের সাইজ আর বদলায় না
-  const applyFontSizeDelta = (delta) => {
-    const el = bodyRef.current;
-    if (!el) return;
-    // বাটনে ট্যাপ করার সময় সিলেকশন হারিয়ে যেতে পারে — যা সিলেক্ট করা ছিল সেটাই ফিরিয়ে আনা
-    restoreBodySelection();
-    const sel = window.getSelection();
-    if (!sel) return;
-    const current = getCaretFontSizePx(el, activeFontSize);
-    const next = Math.max(FONT_MIN, Math.min(FONT_MAX, Math.round((current + delta) * 10) / 10));
-
-    // পুরনো ট্রিক: execCommand("fontSize") দিয়ে সিলেকশন/কার্সারে <font size="7"> বসিয়ে সেটাকে
-    // নির্দিষ্ট px সাইজের <span>-এ বদলে দেওয়া — এভাবে যেকোনো px সাইজ প্রয়োগ করা যায়
-    document.execCommand("styleWithCSS", false, false);
-    document.execCommand("fontSize", false, "7");
-    el.querySelectorAll('font[size="7"]').forEach((f) => {
-      const span = document.createElement("span");
-      span.style.fontSize = next + "px";
-      while (f.firstChild) span.appendChild(f.firstChild);
-      f.replaceWith(span);
-      // span-টা বসানোর পর পুরনো নোড ডিটাচড হয়ে যায়, তাই ব্রাউজারের সিলেকশন এমনিতেই হারিয়ে যায় — টেক্সট
-      // সিলেক্ট করা ছিল বা না ছিল, দুই ক্ষেত্রেই span-এর কনটেন্টের উপর সিলেকশন আবার বসিয়ে দেওয়া হচ্ছে,
-      // যাতে বারবার A+/A- চাপলে প্রতিবার আবার সিলেক্ট করা না লাগে
-      const r2 = document.createRange();
-      if (span.firstChild) {
-        r2.selectNodeContents(span);
-      } else {
-        r2.setStart(span, 0);
-        r2.collapse(true);
-      }
-      sel.removeAllRanges();
-      sel.addRange(r2);
-    });
-    setBody(el.innerHTML);
-    setActiveFontSize(next);
-    saveBodySelection();
-  };
-  const [categories, setCategories] = useState(() => {
-    try {
-      const saved = JSON.parse(window.localStorage.getItem("focusgo_note_categories_v1") || "[]");
-      return Array.isArray(saved) && saved.length ? saved : ["General", "Study", "Personal", "Ideas"];
-    } catch (e) {
-      return ["General", "Study", "Personal", "Ideas"];
-    }
-  });
-
-  useEffect(() => {
-    try { window.localStorage.setItem("focusgo_note_categories_v1", JSON.stringify(categories)); } catch (e) {}
-  }, [categories]);
-
-  // ক্যাটাগরি চিপে চেপে ধরে রাখলে (long-press) Rename/Delete মেনু দেখানোর জন্য টাইমার শুরু/বাতিল
-  const startCatPress = (cat) => {
-    cancelCatPress();
-    catPressTimerRef.current = setTimeout(() => { vibrate(); setCategoryMenuFor(cat); }, 480);
-  };
-  const cancelCatPress = () => {
-    if (catPressTimerRef.current) { clearTimeout(catPressTimerRef.current); catPressTimerRef.current = null; }
-  };
-
-  const openNew = (startWithChecklist) => {
-    savedRef.current = false;
-    setEditing({ id: null });
-    setTitle("");
-    setBody("");
-    setCategory(activeFolder !== "All Notes" && activeFolder !== "Pinned" ? activeFolder : "General");
-    if (startWithChecklist) {
-      const firstId = `${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
-      setChecklist([{ id: firstId, text: "", done: false }]);
-      focusCaretPosRef.current = 0;
-      setFocusChecklistId(firstId);
-    } else {
-      setChecklist([]);
-    }
-    setFontSize(14.5);
-    setActiveFontSize(14.5);
-    setNoteColor(null);
-    setImages([]);
-    setOpenMenu(null);
-    setFabOpen(false);
-    setPinnedDraft(false);
-    setSensitiveDraft(false);
-    setShowChecklist(!!startWithChecklist);
-    setShowColorPicker(false);
-    setShowBgColorPicker(false);
-    setShowMoreMenu(false);
-    setShowFormatBar(false);
-    window.history.pushState({ fgNoteEditor: true }, "");
-    pushedHistoryRef.current = true;
-  };
-
   const openEdit = (note) => {
-    savedRef.current = false;
     setEditing(note);
     setTitle(note.title || "");
-    setBody(note.body || "");
+    setBody(looksLikeHtml(note.body) ? stripHtmlToText(note.body) : (note.body || ""));
     setCategory(note.category || "General");
+    setColor(note.color || null);
+    setPinned(!!note.pinned);
     setChecklist(Array.isArray(note.checklist) ? note.checklist : []);
-    setFontSize(note.fontSize || 14.5);
-    setActiveFontSize(note.fontSize || 14.5);
-    setNoteColor(note.color || null);
-    setImages(Array.isArray(note.images) ? note.images : []);
-    setOpenMenu(null);
-    setPinnedDraft(!!note.pinned);
-    setSensitiveDraft(!!note.sensitive);
-    setShowChecklist(Array.isArray(note.checklist) && note.checklist.length > 0);
-    setShowColorPicker(false);
-    setShowBgColorPicker(false);
-    setShowMoreMenu(false);
-    setShowFormatBar(false);
-    window.history.pushState({ fgNoteEditor: true }, "");
-    pushedHistoryRef.current = true;
+    setChecklistDraft("");
   };
+  const closeEditor = () => setEditing(null);
 
   const save = () => {
-    // এই এডিটর সেশনে ইতিমধ্যে সেভ হয়ে গেছে — ব্যাক অ্যারো ক্লিকের পর history.back() যে popstate ট্রিগার করে,
-    // সেটা আবার save() ডাকলেও যেন দ্বিতীয় একটা ডুপ্লিকেট নোট তৈরি না হয়
-    if (savedRef.current) { closeEditor(); return; }
-    const bodyIsEmpty = !stripHtmlToText(body);
-    if (!title.trim() && bodyIsEmpty && checklist.length === 0 && images.length === 0) { closeEditor(); return; }
-    const now = new Date().toISOString();
     const cleanChecklist = checklist
-      .map(x => ({
-        id: x.id || `${Date.now()}_${Math.random().toString(36).slice(2,6)}`,
-        text: (x.text || "").trim(),
-        done: !!x.done
-      }))
+      .map(x => ({ id: x.id || `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`, text: (x.text || "").trim(), done: !!x.done }))
       .filter(x => x.text);
-
-    const cleanBody = bodyIsEmpty ? "" : body;
-    if (editing?.id) {
+    if (!title.trim() && !body.trim() && cleanChecklist.length === 0) { closeEditor(); return; }
+    const now = new Date().toISOString();
+    if (editing && editing.id) {
       setNotes(prev => prev.map(n => n.id === editing.id
-        ? { ...n, title: title.trim() || "Untitled", body: cleanBody, category, checklist: cleanChecklist, pinned: pinnedDraft, sensitive: sensitiveDraft, fontSize, color: noteColor, images, updatedAt: now }
-        : n
-      ));
+        ? { ...n, title: title.trim() || (isBn ? "শিরোনামহীন" : "Untitled"), body: body.trim(), category, color, pinned, checklist: cleanChecklist, updatedAt: now }
+        : n));
     } else {
       setNotes(prev => [{
-        id: `${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
-        title: title.trim() || "Untitled",
-        body: cleanBody,
-        category,
-        checklist: cleanChecklist,
-        pinned: pinnedDraft,
-        sensitive: sensitiveDraft,
-        fontSize,
-        color: noteColor,
-        images,
-        createdAt: now,
-        updatedAt: now,
-        order: Date.now()
+        id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        title: title.trim() || (isBn ? "শিরোনামহীন" : "Untitled"),
+        body: body.trim(), category, color, pinned, checklist: cleanChecklist,
+        deletedAt: null, createdAt: now, updatedAt: now,
       }, ...prev]);
     }
-    savedRef.current = true;
     closeEditor();
   };
-  useEffect(() => { saveRef.current = save; });
 
-  // ডিলিট করলে নোট সাথে সাথে হারিয়ে যায় না — ট্র্যাশে চলে যায় (soft delete), আর কয়েক সেকেন্ডের জন্য
-  // নিচে "Undo" স্ন্যাকবার দেখা যায়। Undo না চাপলেও নোট ট্র্যাশ ফোল্ডারে থেকে যায়, ৩০ দিন পর auto-purge হয়।
-  const remove = (id) => {
-    const note = notes.find(n => n.id === id);
+  const softDelete = (id) => {
     setNotes(prev => prev.map(n => n.id === id ? { ...n, deletedAt: Date.now() } : n));
-    setOpenMenu(null);
-    if (editing) closeEditor(); else setEditing(null);
-
-    setUndo({ id, title: (note && note.title) || (lang === "bn" ? "নোট" : "Note") });
-    clearTimeout(trashTimersRef.current[id]);
-    trashTimersRef.current[id] = setTimeout(() => {
-      setUndo(u => (u && u.id === id) ? null : u);
-    }, 5000);
+    if (editing && editing.id === id) closeEditor();
   };
-
-  const undoRemove = () => {
-    if (!undo) return;
-    setNotes(prev => prev.map(n => n.id === undo.id ? { ...n, deletedAt: null } : n));
-    clearTimeout(trashTimersRef.current[undo.id]);
-    setUndo(null);
-  };
-
-  // ট্র্যাশ থেকে নোট ফিরিয়ে আনা
-  const restoreNote = (id) => {
-    setNotes(prev => prev.map(n => n.id === id ? { ...n, deletedAt: null } : n));
-  };
-
-  // ট্র্যাশ থেকে একটা নোট চিরতরে মুছে ফেলা — window.confirm() না দেখিয়ে নিজস্ব modal-এ confirm চাওয়া হয়
-  // (Capacitor/Android WebView-তে window.confirm() প্রায়ই dialog না দেখিয়েই false রিটার্ন করে, ফলে ডিলিট কাজ করে না বলে মনে হয়)
-  const deleteForever = (id) => setTrashConfirm({ type: "one", id });
-
-  // পুরো ট্র্যাশ একসাথে খালি করা — একই কারণে নিজস্ব modal ব্যবহার করা হচ্ছে
-  const emptyTrash = () => setTrashConfirm({ type: "all" });
-
-  // Modal-এ "নিশ্চিত" চাপলে আসল ডিলিট এখানে হয়
+  const restoreNote = (id) => setNotes(prev => prev.map(n => n.id === id ? { ...n, deletedAt: null } : n));
+  const togglePinNote = (id) => setNotes(prev => prev.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
   const confirmTrashAction = () => {
     if (!trashConfirm) return;
-    if (trashConfirm.type === "one") {
-      setNotes(prev => prev.filter(n => n.id !== trashConfirm.id));
-    } else {
-      setNotes(prev => prev.filter(n => !n.deletedAt));
-    }
+    if (trashConfirm.type === "one") setNotes(prev => prev.filter(n => n.id !== trashConfirm.id));
+    else setNotes(prev => prev.filter(n => !n.deletedAt));
     setTrashConfirm(null);
   };
 
-  const togglePin = (id) => {
-    setNotes(prev => prev.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
-    setOpenMenu(null);
-  };
-
-  // Image আইকনে ট্যাপ করলে লুকানো file input-টা ক্লিক হয় (গ্যালারি/ক্যামেরা খোলে)
-  const handlePickNoteImage = () => {
-    if (images.length >= MAX_NOTE_IMAGES) {
-      window.alert(lang === "bn" ? `একটা নোটে সর্বোচ্চ ${MAX_NOTE_IMAGES}টা ছবি রাখা যায়।` : `You can add up to ${MAX_NOTE_IMAGES} images per note.`);
-      return;
-    }
-    noteFileInputRef.current && noteFileInputRef.current.click();
-  };
-
-  // ফাইল বাছাই হওয়ার পর ছবিটা কম্প্রেস করে (ছোট size + কমানো quality) base64 হিসেবে images-এ যোগ করা
-  const handleNoteImageChange = async (e) => {
-    const file = e.target.files && e.target.files[0];
-    e.target.value = ""; // একই ফাইল আবার বাছাই করলেও onChange যেন ঠিকমতো ট্রিগার হয়
-    if (!file) return;
-    setImageBusy(true);
-    try {
-      const dataUrl = await compressImageToDataUrl(file, 800, 0.6);
-      setImages(prev => [...prev, dataUrl]);
-    } catch (err) {
-      window.alert(lang === "bn" ? "ছবি যোগ করা গেল না।" : "Couldn't add the image.");
-    } finally {
-      setImageBusy(false);
-    }
-  };
-
-  const removeNoteImage = (index) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
-  };
-
   const addCategory = () => {
-    const name = window.prompt("Category name");
+    const name = window.prompt(isBn ? "ক্যাটাগরির নাম" : "Category name");
     const clean = (name || "").trim();
     if (!clean) return;
-    if (!categories.some(c => c.toLowerCase() === clean.toLowerCase())) {
-      setCategories(prev => [...prev, clean]);
-    }
+    if (!categories.some(c => c.toLowerCase() === clean.toLowerCase())) setCategories(prev => [...prev, clean]);
     setCategory(clean);
   };
 
-  const deleteCategory = (name) => {
-    if (name === "General") return; // "General" সবসময় থাকবে, কারণ ডিলিট হওয়া ক্যাটাগরির নোট এখানেই আসে
-    if (!window.confirm(`Delete category "${name}"? Notes will move to General.`)) return;
-    setCategories(prev => prev.filter(c => c !== name));
-    setNotes(prev => prev.map(n => n.category === name ? { ...n, category: "General" } : n));
-    if (activeFolder === name) setActiveFolder("All Notes");
-  };
-
-  // যেকোনো ফোল্ডার/ক্যাটাগরির নাম পরিবর্তন — tap-and-hold বা "..." মেনু থেকে কল হয়
   const renameCategory = (name) => {
-    const next = window.prompt(lang === "bn" ? "নতুন নাম" : "New name", name);
+    const next = window.prompt(isBn ? "নতুন নাম" : "New name", name);
     const clean = (next || "").trim();
     if (!clean || clean === name) return;
     if (categories.some(c => c.toLowerCase() === clean.toLowerCase())) {
-      window.alert(lang === "bn" ? "এই নামে আগে থেকেই একটা ক্যাটাগরি আছে।" : "A category with this name already exists.");
+      window.alert(isBn ? "এই নামে আগে থেকেই একটা ক্যাটাগরি আছে।" : "A category with this name already exists.");
       return;
     }
     setCategories(prev => prev.map(c => c === name ? clean : c));
     setNotes(prev => prev.map(n => (n.category || "General") === name ? { ...n, category: clean } : n));
     if (activeFolder === name) setActiveFolder(clean);
-    if (category === name) setCategory(clean);
   };
 
-  // চেকলিস্ট আইটেম এখন নিজেই এডিটেবল — Google Keep-এর মতো Enter চাপলে কার্সারের জায়গা থেকে টেক্সট ভেঙে
-  // একটা নতুন আইটেম তৈরি হয় (নিচের অংশটা নতুন আইটেমে যায়), আর খালি আইটেমের শুরুতে Backspace চাপলে
-  // আগের আইটেমের সাথে জুড়ে যায় — ঠিক যেভাবে Keep-এ কাজ করে
-  const updateChecklistText = (id, text) => {
-    setChecklist(prev => prev.map(x => x.id === id ? { ...x, text } : x));
+  const deleteCategory = (name) => {
+    if (name === "General") return;
+    if (!window.confirm(isBn ? `"${name}" ক্যাটাগরিটি ডিলিট করবেন? নোটগুলো General-এ চলে যাবে।` : `Delete category "${name}"? Notes will move to General.`)) return;
+    setCategories(prev => prev.filter(c => c !== name));
+    setNotes(prev => prev.map(n => n.category === name ? { ...n, category: "General" } : n));
+    if (activeFolder === name) setActiveFolder("All Notes");
   };
 
-  const splitChecklistItem = (index, before, after) => {
-    const newId = `${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
-    setChecklist(prev => {
-      const next = prev.map((x, i) => i === index ? { ...x, text: before } : x);
-      next.splice(index + 1, 0, { id: newId, text: after, done: false });
-      return next;
-    });
-    focusCaretPosRef.current = 0;
-    setFocusChecklistId(newId);
+  const toggleCheck = (id) => setChecklist(c => c.map(x => x.id === id ? { ...x, done: !x.done } : x));
+  const removeCheck = (id) => setChecklist(c => c.filter(x => x.id !== id));
+  const addCheckItem = () => {
+    const text = checklistDraft.trim();
+    if (!text) return;
+    setChecklist(c => [...c, { id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`, text, done: false }]);
+    setChecklistDraft("");
   };
 
-  const mergeChecklistItemWithPrev = (index) => {
-    if (index <= 0) return;
-    const prevItem = checklist[index - 1];
-    const curItem = checklist[index];
-    if (!prevItem || !curItem) return;
-    const boundary = (prevItem.text || "").length;
-    setChecklist(prev => {
-      const next = prev.filter((_, i) => i !== index);
-      next[index - 1] = { ...next[index - 1], text: (prevItem.text || "") + (curItem.text || "") };
-      return next;
-    });
-    focusCaretPosRef.current = boundary;
-    setFocusChecklistId(prevItem.id);
-  };
-
-  const appendChecklistItem = () => {
-    const newId = `${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
-    setChecklist(prev => [...prev, { id: newId, text: "", done: false }]);
-    focusCaretPosRef.current = null;
-    setFocusChecklistId(newId);
-  };
-
-  // নতুন/মার্জ হওয়া আইটেম রেন্ডার হওয়ার পর ঠিক জায়গায় (কার্সার-সহ) ফোকাস বসানো
-  useEffect(() => {
-    if (!focusChecklistId) return;
-    const el = checklistInputRefs.current[focusChecklistId];
-    if (el) {
-      el.focus();
-      const pos = focusCaretPosRef.current != null ? focusCaretPosRef.current : el.value.length;
-      try { el.setSelectionRange(pos, pos); } catch (err) {}
-    }
-    focusCaretPosRef.current = null;
-    setFocusChecklistId(null);
-  }, [focusChecklistId, checklist]);
-
+  const trashCount = notes.filter(n => n.deletedAt).length;
   const filtered = notes
     .filter(n => {
       if (activeFolder === "Trash") return !!n.deletedAt;
-      if (n.deletedAt) return false; // ট্র্যাশে থাকা নোট অন্য কোনো ফোল্ডারে দেখা যাবে না
+      if (n.deletedAt) return false;
       if (activeFolder === "Pinned") return !!n.pinned;
       if (activeFolder !== "All Notes") return (n.category || "General") === activeFolder;
       return true;
@@ -10301,756 +9832,287 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, onNew, cardBg,
       const checklistText = Array.isArray(n.checklist) ? n.checklist.map(x => x.text).join(" ") : "";
       return `${n.title} ${n.body} ${n.category || ""} ${checklistText}`.toLowerCase().includes(q);
     })
-    .filter(n => {
-      // ক্যালেন্ডার আইকন দিয়ে কোনো তারিখ সিলেক্ট করা থাকলে শুধু সেদিনের নোটগুলোই দেখাবে
-      if (!filterDate) return true;
-      const created = n.createdAt ? new Date(n.createdAt) : null;
-      return created && dateKey(created) === dateKey(filterDate);
-    })
     .sort((a, b) => {
       if (activeFolder === "Trash") return (b.deletedAt || 0) - (a.deletedAt || 0);
       const pinDiff = Number(!!b.pinned) - Number(!!a.pinned);
-      if (pinDiff !== 0) return pinDiff; // পিন করা নোট সবসময় সবার উপরে — সর্ট মোড যাই হোক না কেন (Keep-এর মতো)
-      if (sortMode === "title") {
-        return (a.title || "").localeCompare(b.title || "", undefined, { sensitivity: "base" });
-      }
-      if (sortMode === "created") {
-        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-      }
-      if (sortMode === "manual") {
-        return (b.order ?? new Date(b.updatedAt || 0).getTime()) - (a.order ?? new Date(a.updatedAt || 0).getTime());
-      }
-      // ডিফল্ট: সবশেষ এডিট করা নোট সবার উপরে
+      if (pinDiff !== 0) return pinDiff;
       return new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime();
     });
 
-  const trashCount = notes.filter(n => n.deletedAt).length;
+  const pinnedList = activeFolder === "Trash" ? [] : filtered.filter(n => n.pinned);
+  const othersList = activeFolder === "Trash" ? filtered : filtered.filter(n => !n.pinned);
 
-  // লং-প্রেস করে ড্র্যাগ করে নোটের অবস্থান বদলানো — draggedId-কে targetId-এর জায়গায় নিয়ে বাকিদের নতুন করে সাজানো হয়
-  const reorderNotes = (draggedId, targetId) => {
-    const list = [...filtered];
-    const fromIdx = list.findIndex(n => n.id === draggedId);
-    const toIdx = list.findIndex(n => n.id === targetId);
-    if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return;
-    const [moved] = list.splice(fromIdx, 1);
-    list.splice(toIdx, 0, moved);
-    const base = Date.now();
-    const orderMap = {};
-    list.forEach((n, i) => { orderMap[n.id] = base - i; });
-    setNotes(prev => prev.map(n => (orderMap[n.id] !== undefined ? { ...n, order: orderMap[n.id] } : n)));
-  };
+  const sw = (colorKey) => ({ bg: noteBgFor(colorKey, dark), text: noteTextFor(colorKey, dark) });
+  const editorSw = sw(color);
 
-  // পয়েন্টার (মাউস/টাচ দুটোতেই কাজ করে) দিয়ে ড্র্যাগ শুরু — কার্ডে অল্প সময় চেপে ধরে রাখলে (long-press) ড্র্যাগ মোড চালু হয়, তার আগ পর্যন্ত সাধারণ ট্যাপ/স্ক্রল হিসেবেই কাজ করে
-  const handleCardPointerDown = (e, note) => {
-    if (sortMode !== "manual" || activeFolder === "Trash") return; // অন্য সর্ট মোডে ড্র্যাগ করে সাজানো বন্ধ — নাহলে সাজানো সাথে সাথেই আবার সর্ট হয়ে যাবে
-    if (e.pointerType === "mouse" && e.button !== 0) return;
-    const { clientX, clientY } = e;
-    dragRef.current.id = note.id;
-    dragRef.current.startX = clientX;
-    dragRef.current.startY = clientY;
-    dragRef.current.dragging = false;
-    clearTimeout(dragRef.current.timeout);
-    dragRef.current.timeout = setTimeout(() => {
-      if (dragRef.current.id !== note.id) return;
-      dragRef.current.dragging = true;
-      setDraggingId(note.id);
-      vibrate(12);
-    }, 350);
-  };
-  const handleCardPointerMove = (e) => {
-    if (!dragRef.current.id) return;
-    const dx = Math.abs(e.clientX - dragRef.current.startX);
-    const dy = Math.abs(e.clientY - dragRef.current.startY);
-    if (!dragRef.current.dragging) {
-      if (dx > 10 || dy > 10) { clearTimeout(dragRef.current.timeout); dragRef.current.id = null; }
-      return;
-    }
-    const el = document.elementFromPoint(e.clientX, e.clientY);
-    const cardEl = el && el.closest && el.closest("[data-note-id]");
-    if (cardEl) {
-      const id = cardEl.getAttribute("data-note-id");
-      if (id !== dragRef.current.id) setOverId(id); else setOverId(null);
-    }
-  };
-  const handleCardPointerUp = () => {
-    clearTimeout(dragRef.current.timeout);
-    if (dragRef.current.dragging && overId && overId !== dragRef.current.id) {
-      reorderNotes(dragRef.current.id, overId);
-      justDraggedRef.current = true;
-    }
-    dragRef.current.id = null;
-    dragRef.current.dragging = false;
-    setDraggingId(null);
-    setOverId(null);
+  const renderCard = (note) => {
+    const csw = sw(note.color);
+    const doneCount = (note.checklist || []).filter(c => c.done).length;
+    return (
+      <div key={note.id} onClick={() => { if (!note.deletedAt) openEdit(note); }}
+        style={{ position: "relative", background: csw.bg, color: csw.text, borderRadius: 12, padding: "11px 12px 9px", cursor: note.deletedAt ? "default" : "pointer", marginBottom: 9, breakInside: "avoid", border: `1px solid ${cardBorder}`, display: "flex", flexDirection: "column" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 6, marginBottom: 3 }}>
+          <div style={{ fontWeight: 700, fontSize: 14, lineHeight: 1.25 }}>{note.title || (isBn ? "শিরোনামহীন" : "Untitled")}</div>
+          {note.pinned && !note.deletedAt && <Pin size={11} fill={csw.text} color={csw.text} style={{ flexShrink: 0, marginTop: 2 }} />}
+        </div>
+        {note.body && (
+          <div style={{ fontSize: 12, opacity: 0.78, lineHeight: 1.4, marginBottom: (note.checklist || []).length ? 5 : 2, display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{note.body}</div>
+        )}
+        {(note.checklist || []).length > 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 3, marginBottom: 2 }}>
+            {note.checklist.slice(0, 4).map(item => (
+              <div key={item.id} style={{ display: "flex", alignItems: "flex-start", gap: 6, fontSize: 11.5 }}>
+                <span style={{ width: 11, height: 11, borderRadius: 3, border: `1.3px solid ${csw.text}`, marginTop: 1.5, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: item.done ? csw.text : "transparent" }}>
+                  {item.done && <Check size={7} color={dark ? "#0A0A0A" : "#FFF"} strokeWidth={3.5} />}
+                </span>
+                <span style={{ textDecoration: item.done ? "line-through" : "none", opacity: item.done ? 0.6 : 0.9, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.text}</span>
+              </div>
+            ))}
+            {(doneCount > 0 || note.checklist.length > 4) && (
+              <span style={{ fontSize: 10, opacity: 0.65, marginTop: 1 }}>{nf(doneCount)}/{nf(note.checklist.length)} {isBn ? "সম্পন্ন" : "done"}</span>
+            )}
+          </div>
+        )}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto", paddingTop: 5, borderTop: `1px solid ${csw.text}22` }}>
+          <span style={{ fontSize: 10.5, fontWeight: 700, opacity: 0.75 }}>{note.category || "General"}</span>
+          <div style={{ display: "flex", gap: 9 }}>
+            {!note.deletedAt ? (
+              <>
+                <button onClick={(e) => { e.stopPropagation(); togglePinNote(note.id); }} style={{ border: "none", background: "transparent", cursor: "pointer", color: csw.text, opacity: note.pinned ? 1 : 0.55, display: "flex" }}><Pin size={11} fill={note.pinned ? csw.text : "none"} /></button>
+                <button onClick={(e) => { e.stopPropagation(); softDelete(note.id); }} style={{ border: "none", background: "transparent", cursor: "pointer", color: csw.text, opacity: 0.55, display: "flex" }}><Trash2 size={11} /></button>
+              </>
+            ) : (
+              <>
+                <button onClick={(e) => { e.stopPropagation(); restoreNote(note.id); }} title={isBn ? "ফিরিয়ে আনুন" : "Restore"} style={{ border: "none", background: "transparent", cursor: "pointer", color: csw.text, display: "flex" }}><RotateCcw size={11} /></button>
+                <button onClick={(e) => { e.stopPropagation(); setTrashConfirm({ type: "one", id: note.id }); }} title={isBn ? "চিরতরে ডিলিট" : "Delete forever"} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#C0392B", display: "flex" }}><X size={12} /></button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
     <>
-    <div className="fg-tab-panel" style={{ marginTop: 12, paddingBottom: 30 }} onClick={() => { openMenu && setOpenMenu(null); fabOpen && setFabOpen(false); categoryMenuFor && setCategoryMenuFor(null); showSortMenu && setShowSortMenu(false); showCatMenu && setShowCatMenu(false); }}>
-      {/* Bold/Italic/Underline/H1/H2 রিচ টেক্সট স্টাইল — নোট এডিটর ও নোট কার্ড প্রিভিউ, দুই জায়গাতেই কাজ করার জন্য একবারই বসানো */}
-      <style>{`
-        .fg-note-body h1{font-size:1.5em;font-weight:800;margin:0.5em 0 0.25em;line-height:1.25;}
-        .fg-note-body h2{font-size:1.22em;font-weight:800;margin:0.5em 0 0.25em;line-height:1.3;}
-        .fg-note-body b, .fg-note-body strong{font-weight:800;}
-        .fg-note-body u{text-decoration:underline;}
-        .fg-note-body:focus{outline:none;}
-        /* Enter চাপলে ব্রাউজার নতুন <p>/<div> বসায়, যেগুলোর নিজস্ব ডিফল্ট মার্জিন থাকে — সেটাই দুই লাইনের মাঝে
-           বাড়তি ফাঁকা জায়গা তৈরি করছিল; এখানে সেই মার্জিন শূন্য করে দেওয়া হলো যাতে লাইন স্পেসিং শুধু line-height অনুযায়ী হয় */
-        .fg-note-body p, .fg-note-body div{margin:0;}
-        .fg-hide-scrollbar::-webkit-scrollbar{display:none;}
-        .fg-hide-scrollbar{scrollbar-width:none;}
-      `}</style>
-      <div style={{ fontSize:21, fontWeight:600, letterSpacing:-0.7, color:"var(--text)", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", marginBottom:14 }}>{t.notesTitle}</div>
+      <div className="fg-tab-panel" style={{ marginTop: 12, paddingBottom: 30 }}>
+        <style>{`.fg-hide-scrollbar::-webkit-scrollbar{display:none;} .fg-hide-scrollbar{scrollbar-width:none;}`}</style>
 
-      {/* সার্চ রো — border ছাড়া হালকা ফিল, Grid/List টগল + সর্ট আইকন এখন circular ফোকাসগো টোকেন বাটন */}
-      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12,position:"relative"}}>
-        <div onClick={e=>e.stopPropagation()} style={{flex:1,minWidth:0,display:"flex",alignItems:"center",gap:8,background: dark ? "#211E19" : "#F0EEE8",borderRadius:14,padding:"9px 14px"}}>
-          <Search size={15} color={textMuted2} style={{flexShrink:0}}/>
-          <input
-            ref={searchRef}
-            value={search}
-            onChange={e=>setSearch(e.target.value)}
-            placeholder={t.notesSearch}
-            style={{flex:1,minWidth:0,border:"none",outline:"none",background:"transparent",color:textMain,fontFamily:"inherit",fontSize:13.5}}
-          />
-          {search && <button onClick={()=>setSearch("")} style={{border:"none",background:"transparent",color:textMuted2,cursor:"pointer",padding:0,display:"flex",flexShrink:0}}><X size={14}/></button>}
-        </div>
-
-        {/* Grid/List ভিউ টগল */}
-        <button
-          onClick={(e)=>{e.stopPropagation();vibrate();setViewMode(v=>v==="grid"?"list":"grid");}}
-          className="fg-btn-circle fg-btn-circle--sm"
-          title={viewMode==="grid" ? (lang==="bn"?"লিস্ট ভিউ":"List view") : (lang==="bn"?"গ্রিড ভিউ":"Grid view")}
-        >
-          {viewMode==="grid" ? <List size={14}/> : <LayoutGrid size={14}/>}
-        </button>
-        {/* Sort + Date filter — একটা "more" মেনুতে একসাথে */}
-        <div style={{position:"relative",flexShrink:0}}>
-          <button
-            onClick={(e)=>{e.stopPropagation();setShowSortMenu(v=>!v);}}
-            className="fg-btn-circle fg-btn-circle--sm"
-            style={{background:(showSortMenu||filterDate)?accent:undefined,color:(showSortMenu||filterDate)?"#fff":undefined}}
-            title={lang==="bn"?"সর্ট ও তারিখ":"Sort & date"}
-          >
-            <MoreVertical size={14}/>
-          </button>
-          {showSortMenu && (
-            <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:4,boxShadow:"0 6px 16px rgba(0,0,0,0.11)",zIndex:30,display:"flex",flexDirection:"column",minWidth:190}}>
-              <div style={{fontSize:10.5,fontWeight:800,letterSpacing:0.4,color:textMuted2,padding:"6px 9px 2px",opacity:0.8}}>{lang==="bn"?"সাজানোর ধরন":"Sort by"}</div>
-              {[
-                ["updated", lang==="bn"?"সর্বশেষ এডিট":"Last edited"],
-                ["created", lang==="bn"?"তৈরির তারিখ":"Date created"],
-                ["title", lang==="bn"?"শিরোনাম (A-Z)":"Title (A-Z)"],
-                ["manual", lang==="bn"?"নিজে সাজান (ড্র্যাগ)":"Custom order (drag)"],
-              ].map(([key,label]) => (
-                <button key={key} onClick={()=>{setSortMode(key);setShowSortMenu(false);}}
-                  style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12.5,fontWeight:700,color:sortMode===key?accent:textMain,cursor:"pointer",borderRadius:8}}>
-                  {label}{sortMode===key && <Check size={13}/>}
-                </button>
-              ))}
-              <div style={{height:1,background:cardBorder,margin:"4px 2px"}}/>
-              <button onClick={()=>{setShowSortMenu(false);setCalMonth(filterDate || new Date());setShowDatePicker(true);}}
-                style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12.5,fontWeight:700,color: filterDate ? accent : textMain,cursor:"pointer",borderRadius:8}}>
-                <Calendar size={13}/> {lang==="bn"?"তারিখ দিয়ে দেখুন":"View by date"}
-                {filterDate && <Check size={13} style={{marginLeft:"auto"}}/>}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ক্যাটাগরি/ফোল্ডার চিপ — এখন সরাসরি স্ক্রল করা যায়, হ্যামবার্গার মেনুর ভেতর ঢুকতে হয় না।
-          কোনো ক্যাটাগরি চিপ চেপে ধরে রাখলে (long-press) Rename/Delete মেনু দেখা যায়। */}
-      <div onClick={e=>e.stopPropagation()} style={{display:"flex",gap:7,overflowX:"auto",paddingBottom:4,marginBottom:10,WebkitOverflowScrolling:"touch", WebkitMaskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)", maskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)"}} className="fg-hide-scrollbar">
-        {[
-          {key:"All Notes", label: lang==="bn"?"সব নোট":"All Notes"},
-          {key:"Pinned", label: lang==="bn"?"পিন":"Pinned", icon:<Pin size={11}/>},
-          {key:"Trash", label: (lang==="bn"?"ট্র্যাশ":"Trash")+(trashCount>0?` (${nf(trashCount)})`:""), icon:<Trash2 size={11}/>},
-        ].map(f => (
-          <button key={f.key} onClick={()=>setActiveFolder(f.key)}
-            style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,border:"none",background:activeFolder===f.key?textMain:(dark?"#211E19":"#F0EEE8"),color:activeFolder===f.key?(dark?"#0A0A0A":"#fff"):textMain,fontSize:12.5,fontWeight:600,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
-            {f.icon}{f.label}
-          </button>
-        ))}
-        <div style={{width:1,alignSelf:"stretch",background:cardBorder,margin:"2px 1px",flexShrink:0}}/>
-        {categories.map(cat => {
-          const chipCol = noteColorFor(cat, categories);
-          const chipDot = noteAccentTextFor(chipCol, dark); // dark mode-এ হালকা টোন, নাহলে ডটটা cardBg-এর সাথে মিশে অস্পষ্ট দেখাত
-          return (
-          <div key={cat} style={{position:"relative",flexShrink:0}}>
-            <button
-              onClick={()=>{ if (justDraggedRef.current) return; setActiveFolder(cat); }}
-              onMouseDown={()=>startCatPress(cat)} onMouseUp={cancelCatPress} onMouseLeave={cancelCatPress}
-              onTouchStart={()=>startCatPress(cat)} onTouchEnd={cancelCatPress} onTouchMove={cancelCatPress}
-              style={{display:"flex",alignItems:"center",gap:6,border:"none",background:activeFolder===cat?textMain:(dark?"#211E19":"#F0EEE8"),color:activeFolder===cat?(dark?"#0A0A0A":"#fff"):textMain,fontSize:12.5,fontWeight:600,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
-              <span style={{width:7,height:7,borderRadius:"50%",background:chipDot,flexShrink:0}}/>
-              {cat}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button onClick={() => setShowDrawer(true)} aria-label={isBn ? "ক্যাটাগরি" : "Categories"}
+              style={{ border: "none", background: "transparent", cursor: "pointer", color: textMain, display: "flex", padding: 2 }}>
+              <Menu size={21} />
             </button>
-            {categoryMenuFor === cat && (
-              <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:"calc(100% + 6px)",left:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:4,boxShadow:"0 6px 16px rgba(0,0,0,0.13)",zIndex:31,display:"flex",flexDirection:"column",minWidth:150}}>
-                <button onClick={()=>{renameCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12.5,fontWeight:700,color:textMain,cursor:"pointer",borderRadius:8}}>
-                  <Pencil size={13}/> {lang==="bn"?"নাম পরিবর্তন":"Rename"}
-                </button>
-                {cat !== "General" && (
-                  <button onClick={()=>{deleteCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12.5,fontWeight:700,color:"#C54B4B",cursor:"pointer",borderRadius:8}}>
-                    <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        );})}
-        <button onClick={addCategory}
-          style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,border:`1.5px dashed ${cardBorder}`,background:"transparent",color:textMuted2,fontSize:12.5,fontWeight:700,padding:"7px 13px",borderRadius:999,cursor:"pointer",whiteSpace:"nowrap"}}>
-          + {lang==="bn"?"নতুন":"New"}
-        </button>
-      </div>
-
-      {/* কোনো নির্দিষ্ট তারিখ সিলেক্ট করা থাকলে তার একটা ছোট ব্যানার — সহজে ক্লিয়ার করা যায় */}
-      {filterDate && (
-        <div onClick={e=>e.stopPropagation()} style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,background:dark?"#2B281F":"#FFF4DF",border:`1px solid ${accent}`,borderRadius:12,padding:"9px 12px",marginBottom:10}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,fontSize:13.5,fontWeight:700,color:accent}}>
-            <Calendar size={14}/>
-            {lang==="bn" ? `${nf(filterDate.getDate())} ${MONTHS_BN[filterDate.getMonth()]}, ${nf(filterDate.getFullYear())}` : `${MONTHS_EN[filterDate.getMonth()]} ${filterDate.getDate()}, ${filterDate.getFullYear()}`}
-          </div>
-          <button onClick={()=>setFilterDate(null)} style={{border:"none",background:"transparent",color:accent,cursor:"pointer",padding:2,display:"flex"}}><X size={15}/></button>
-        </div>
-      )}
-
-      {/* তারিখ পিক করার ছোট ক্যালেন্ডার — দিনে ট্যাপ করলে সেদিনের নোট দেখা যাবে */}
-      {showDatePicker && (
-        <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:60, padding:16}} onClick={()=>setShowDatePicker(false)}>
-          <div onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:380, borderRadius:14, padding:16, color:textMain}}>
-            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
-              <div style={{fontSize:14.5, fontWeight:800}}>{lang==="bn"?"তারিখ বাছাই করুন":"Pick a date"}</div>
-              <button onClick={()=>setShowDatePicker(false)} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={18}/></button>
-            </div>
-            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", margin:"6px 0 12px"}}>
-              <button onClick={()=>setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth()-1, 1))} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, width:30,height:30, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", color:textMain}}><ChevronLeft size={15}/></button>
-              <div style={{fontWeight:700, fontSize:14.5}}>{lang==="bn"?MONTHS_BN[calMonth.getMonth()]:MONTHS_EN[calMonth.getMonth()]} {nf(calMonth.getFullYear())}</div>
-              <button onClick={()=>setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 1))} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, width:30,height:30, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", color:textMain}}><ChevronRight size={15}/></button>
-            </div>
-            <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4, marginBottom:5}}>
-              {weekdayShortLabels(lang).map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:10.5, fontWeight:700, color:textMuted2}}>{d}</div>))}
-            </div>
-            <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4}}>
-              {(() => {
-                const y = calMonth.getFullYear(), m = calMonth.getMonth();
-                const startOffset = weekStartOffset(new Date(y,m,1).getDay());
-                const daysInMonth = new Date(y,m+1,0).getDate();
-                const cells = [];
-                for (let i=0;i<startOffset;i++) cells.push(null);
-                for (let d=1; d<=daysInMonth; d++) cells.push(new Date(y,m,d));
-                const todayKey = dateKey(new Date());
-                const hasNoteKeys = new Set(notes.filter(n=>n.createdAt && !n.deletedAt).map(n=>dateKey(new Date(n.createdAt))));
-                return cells.map((d,i) => {
-                  if (!d) return <div key={i}/>;
-                  const dk = dateKey(d);
-                  const isToday = dk === todayKey;
-                  const isSelected = filterDate && dk === dateKey(filterDate);
-                  const hasNotes = hasNoteKeys.has(dk);
-                  return (
-                    <button key={i} onClick={()=>{setFilterDate(d);setShowDatePicker(false);}}
-                      style={{position:"relative", aspectRatio:"1", border: isSelected ? `1.5px solid ${accent}` : isToday ? `1px solid ${accent}` : "1px solid transparent", borderRadius:10, background: isSelected ? (dark?"#2B281F":"#FFF4DF") : (dark?"#0A0A0A":"#F8F5EE"), cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2, color:textMain}}>
-                      <span style={{fontSize:12.5, fontWeight:600}}>{nf(d.getDate())}</span>
-                      <span style={{width:4,height:4,borderRadius:"50%", background: hasNotes ? accent : "transparent"}}/>
-                    </button>
-                  );
-                });
-              })()}
+            <div style={{ fontSize: 21, fontWeight: 600, letterSpacing: -0.7, color: textMain, fontFamily: "'Inter Tight','Inter','Helvetica Neue',sans-serif" }}>
+              {activeFolder === "All Notes" ? t.notesTitle : activeFolder === "Pinned" ? (isBn ? "পিন" : "Pinned") : activeFolder === "Trash" ? (isBn ? "ট্র্যাশ" : "Trash") : activeFolder}
             </div>
           </div>
+          <span style={{ fontSize: 11, color: textMuted2 }}>{nf(notes.filter(n => !n.deletedAt).length)} {isBn ? "নোট" : "notes"}</span>
         </div>
-      )}
 
-      {activeFolder === "Trash" && filtered.length > 0 && (
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-          <div style={{fontSize:11.5,color:textMuted2,fontWeight:600}}>{lang==="bn"?`নোট এখানে ${TRASH_RETENTION_DAYS} দিন থাকার পর নিজে থেকেই চিরতরে মুছে যাবে।`:`Notes here are permanently deleted automatically after ${TRASH_RETENTION_DAYS} days.`}</div>
-          <button onClick={(e)=>{e.stopPropagation();emptyTrash();}} style={{flexShrink:0,border:"none",background:"transparent",color:"#C54B4B",cursor:"pointer",fontSize:12.5,fontWeight:800,padding:"4px 6px"}}>{lang==="bn"?"ট্র্যাশ খালি করুন":"Empty Trash"}</button>
-        </div>
-      )}
-
-      {filtered.length === 0 ? (
-        <div style={{textAlign:"center",padding:"40px 20px",background:cardBg,border:`1px dashed ${cardBorder}`,borderRadius:14}}>
-          <div style={{width:52,height:52,borderRadius:14,background:dark?"#242229":"#F0EEF5",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}>
-            {activeFolder === "Trash" ? <Trash2 size={23} color={dark?"#B0ABC2":"#6E6B7A"}/> : <FileText size={23} color={dark?"#B0ABC2":"#6E6B7A"}/>}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+          <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 8, background: dark ? "#211E19" : "#F0EEE8", borderRadius: 14, padding: "9px 14px" }}>
+            <Search size={15} color={textMuted2} style={{ flexShrink: 0 }} />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t.notesSearch}
+              style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", color: textMain, fontFamily: "inherit", fontSize: 13.5 }} />
+            {search && <button onClick={() => setSearch("")} style={{ border: "none", background: "transparent", color: textMuted2, cursor: "pointer", padding: 0, display: "flex", flexShrink: 0 }}><X size={14} /></button>}
           </div>
-          <div style={{fontSize:14.5,fontWeight:800,color:textMain}}>{activeFolder === "Trash" ? (lang==="bn"?"ট্র্যাশ খালি":"Trash is empty") : t.notesEmpty}</div>
-          <div style={{fontSize:12.5,color:textMuted2,marginTop:5}}>{activeFolder === "Trash" ? (lang==="bn"?"ডিলিট করা নোট এখানে দেখা যাবে।":"Deleted notes will show up here.") : (lang==="bn"?"নিচের + বাটনে ট্যাপ করে একটা নোট বা লিস্ট শুরু করুন।":"Tap the + button below to start a note or list.")}</div>
         </div>
-      ) : (
-        <div style={ viewMode==="list" ? {display:"flex",flexDirection:"column",gap:7} : {display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:8} }>
-          {filtered.map(note => {
-            const isList = viewMode === "list";
-            const col = noteColorFor(note.category || "General", categories);
-            const colText = noteAccentTextFor(col, dark); // dark mode-এ হালকা টোনের accent টেক্সট/আইকন রঙ
-            // নোটের কভার (ছোট কার্ড অবস্থায়) — ইউজার নিজে রঙ বাছাই করে থাকলে সেটাই, নাহলে ডিফল্ট বেইজ/ডার্ক
-            const coverBg = noteBgFor(note.color, dark);
-            const coverText = noteTextFor(note.color, dark);
-            const isDragging = draggingId === note.id;
-            const isDropTarget = overId === note.id && draggingId && draggingId !== note.id;
-            return (
-            <div
-              key={note.id}
-              data-note-id={note.id}
-              onClick={()=>{ if (justDraggedRef.current) { justDraggedRef.current = false; return; } if (note.deletedAt) return; openEdit(note); }}
-              onPointerDown={(e)=>handleCardPointerDown(e, note)}
-              onPointerMove={handleCardPointerMove}
-              onPointerUp={handleCardPointerUp}
-              onPointerCancel={handleCardPointerUp}
-              className="fg-card"
-              style={{position:"relative",background:coverBg,border:isDropTarget?`2px dashed ${accent}`:"none",borderRadius:14,padding: isList ? "10px 14px 9px" : "12px 14px 10px",cursor:"pointer",display:"flex",flexDirection:"column",boxShadow:isDragging?"0 6px 16px rgba(0,0,0,.18)":"0 1px 2px rgba(33,29,24,.05)",opacity:isDragging?0.55:1,transform:isDragging?"scale(1.03)":"scale(1)",transition:"transform .12s, box-shadow .12s",touchAction:draggingId?"none":"pan-y",zIndex:isDragging?2:1}}
-            >
-              {/* পিন করা নোটের বাম কিনারায় একটা পাতলা accent স্ট্রিপ */}
-              {note.pinned && <div style={{position:"absolute",top:8,left:-1,width:3,height:20,background:accent,borderRadius:"0 3px 3px 0"}}/>}
-              <div style={{display:"flex",justifyContent:"space-between",gap:6,alignItems:"flex-start"}}>
-                <div style={{minWidth:0,flex:1}}>
-                  <div style={{display:"flex",alignItems:"center",gap:4}}>
-                    {note.sensitive && <EyeOff size={12} color={colText}/>}
-                    <div style={{fontSize:14.5,fontWeight:800,color:coverText,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{note.title}</div>
-                  </div>
-                </div>
-                <div style={{display:"flex",alignItems:"center",gap:2,flexShrink:0}}>
-                  {activeFolder === "Trash" ? (
-                    <>
-                      {/* ট্র্যাশে থাকা নোটে ট্যাপ করলে এডিটর খোলে না — শুধু ফিরিয়ে আনা বা চিরতরে ডিলিট করা যাবে */}
-                      <button
-                        onClick={(e)=>{e.stopPropagation();restoreNote(note.id);}}
-                        style={{border:"none",background:"transparent",color:colText,cursor:"pointer",padding:4,borderRadius:8,display:"flex"}}
-                        title={lang==="bn"?"ফিরিয়ে আনুন":"Restore"}
-                      >
-                        <RotateCcw size={15}/>
-                      </button>
-                      <button
-                        onClick={(e)=>{e.stopPropagation();deleteForever(note.id);}}
-                        style={{border:"none",background:"transparent",color:colText,cursor:"pointer",padding:4,borderRadius:8,display:"flex"}}
-                        title={lang==="bn"?"চিরতরে ডিলিট":"Delete forever"}
-                      >
-                        <Trash2 size={15}/>
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      {/* কার্ডে ট্যাপ করলেই এডিট খোলে, তাই আলাদা এডিট বাটন রাখা হয়নি — শুধু Pin ও Delete, ছোট আইকন হিসেবে, ৩-ডট মেনু ছাড়াই */}
-                      <button
-                        onClick={(e)=>{e.stopPropagation();togglePin(note.id);}}
-                        style={{border:"none",background:"transparent",color:colText,cursor:"pointer",padding:4,borderRadius:8,display:"flex"}}
-                        title={note.pinned ? (lang==="bn"?"আনপিন":"Unpin") : (lang==="bn"?"পিন":"Pin")}
-                      >
-                        {note.pinned ? <PinOff size={15}/> : <Pin size={15}/>}
-                      </button>
-                      <button
-                        onClick={(e)=>{e.stopPropagation();remove(note.id);}}
-                        style={{border:"none",background:"transparent",color:colText,cursor:"pointer",padding:4,borderRadius:8,display:"flex"}}
-                        title={lang==="bn"?"ডিলিট":"Delete"}
-                      >
-                        <Trash2 size={15}/>
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
 
-              {activeFolder === "Trash" && note.deletedAt && (() => {
-                const daysLeft = Math.max(0, TRASH_RETENTION_DAYS - Math.floor((Date.now() - note.deletedAt) / (24*60*60*1000)));
-                return (
-                  <div style={{fontSize:11.5,color:coverText,opacity:0.65,fontWeight:700,marginTop:5}}>
-                    {lang==="bn" ? `${nf(daysLeft)} দিন পর চিরতরে মুছে যাবে` : `Deletes forever in ${daysLeft} day${daysLeft===1?"":"s"}`}
-                  </div>
-                );
-              })()}
-
-              {Array.isArray(note.images) && note.images.length > 0 && (
-                <div style={{position:"relative",marginTop:6,width: isList?44:"100%",height: isList?44:88, ...(note.sensitive ? {filter:"blur(6px)", userSelect:"none"} : {})}}>
-                  <img src={note.images[0]} alt="" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:10,display:"block"}}/>
-                  {note.images.length > 1 && (
-                    <span style={{position:"absolute",top:4,right:4,fontSize:10.5,fontWeight:800,color:"#fff",background:"rgba(0,0,0,0.6)",borderRadius:8,padding:"1px 6px"}}>+{note.images.length - 1}</span>
-                  )}
-                </div>
-              )}
-
-              {looksLikeHtml(note.body) ? (
-                <div className="fg-note-body" style={{fontSize:12.5,color:coverText,opacity:0.85,lineHeight:1.5,marginTop:6,display:"-webkit-box",WebkitLineClamp:isList?2:5,WebkitBoxOrient:"vertical",overflow:"hidden", ...(note.sensitive ? {filter:"blur(5px)", userSelect:"none"} : {})}} dangerouslySetInnerHTML={{__html: note.body || "—"}}/>
-              ) : (
-                <div style={{fontSize:12.5,color:coverText,opacity:0.85,lineHeight:1.5,marginTop:6,display:"-webkit-box",WebkitLineClamp:isList?2:5,WebkitBoxOrient:"vertical",overflow:"hidden",whiteSpace:"pre-wrap", ...(note.sensitive ? {filter:"blur(5px)", userSelect:"none"} : {})}}>{renderFormattedText(note.body) || "—"}</div>
-              )}
-
-              {Array.isArray(note.checklist) && note.checklist.length > 0 && (
-                <div style={{marginTop:8,display:"flex",flexDirection:"column",gap:4, ...(note.sensitive ? {filter:"blur(5px)", userSelect:"none"} : {})}}>
-                  {note.checklist.slice(0,isList?2:3).map(item => (
-                    <div key={item.id} style={{display:"flex",alignItems:"center",gap:6,fontSize:11.5,color:coverText,opacity:0.85}}>
-                      <span style={{width:12,height:12,borderRadius:4,border:`1px solid ${colText}`,background:item.done?colText:"transparent",display:"inline-flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:10.5,flexShrink:0}}>{item.done?"✓":""}</span>
-                      <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.text}</span>
-                    </div>
-                  ))}
-                  {note.checklist.length > (isList?2:3) && <span style={{fontSize:10.5,color:colText,fontWeight:700}}>+{note.checklist.length - (isList?2:3)} more</span>}
-                </div>
-              )}
-
-              <div style={{marginTop: isList ? 7 : "auto",paddingTop: isList ? 6 : 9,borderTop: isList ? "none" : `1px dashed ${dark?"rgba(255,255,255,0.14)":"rgba(33,29,24,0.14)"}`,display:"flex",alignItems:"center",justifyContent:"space-between",gap:6}}>
-                <span style={{fontSize:10,fontWeight:700,letterSpacing:0.3,textTransform:"uppercase",color:colText,opacity:0.9}}>{note.category || "General"}</span>
-                <span style={{fontSize:10.5,color:colText,opacity:0.6,fontWeight:600}} title={fullDateTimeLabel(note.updatedAt, lang)}>{timeAgoLabel(note.updatedAt || note.createdAt, lang)}</span>
-              </div>
-            </div>
-          );})}
-        </div>
-      )}
-      </div>
-
-      {/* ফ্লোটিং + বাটন — ".fg-tab-panel"-এর বাইরে (sibling হিসেবে) রাখা হয়েছে যাতে পেজ-লোড অ্যানিমেশনের transform এটাকে
-          উপর থেকে নিচে স্লাইড করিয়ে না আনে — সবসময় বটম-ন্যাভের ঠিক উপরে স্থির থাকবে; ট্যাপ করলে Note/Checklist অপশন দেখায় */}
-      <div style={{position:"fixed", right:20, bottom: isDesktop ? 28 : 96, zIndex:41, display:"flex", flexDirection:"column", alignItems:"flex-end", gap:10}}>
-        {fabOpen && (
-          <div onClick={e=>e.stopPropagation()} style={{display:"flex", flexDirection:"column", gap:8, alignItems:"flex-end"}}>
-            <button onClick={()=>{vibrate(); openNew(true);}} style={{display:"flex",alignItems:"center",gap:8,border:`1px solid ${cardBorder}`,background:cardBg,color:textMain,borderRadius:999,padding:"9px 14px 9px 12px",fontSize:13.5,fontWeight:700,cursor:"pointer",boxShadow: dark ? "0 4px 12px rgba(0,0,0,0.25)" : "0 4px 12px rgba(0,0,0,0.10)"}}>
-              <ListChecks size={16} color={accent}/> {lang==="bn"?"লিস্ট":"List"}
-            </button>
-            <button onClick={()=>{vibrate(); openNew(false);}} style={{display:"flex",alignItems:"center",gap:8,border:`1px solid ${cardBorder}`,background:cardBg,color:textMain,borderRadius:999,padding:"9px 14px 9px 12px",fontSize:13.5,fontWeight:700,cursor:"pointer",boxShadow: dark ? "0 4px 12px rgba(0,0,0,0.25)" : "0 4px 12px rgba(0,0,0,0.10)"}}>
-              <FileText size={16} color={accent}/> {lang==="bn"?"নোট":"Note"}
-            </button>
+        {activeFolder === "Trash" && filtered.length > 0 && (
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={{ fontSize: 11.5, color: textMuted2, fontWeight: 600 }}>{isBn ? `নোট এখানে ${TRASH_RETENTION_DAYS} দিন থাকার পর নিজে থেকেই চিরতরে মুছে যাবে।` : `Notes here are permanently deleted automatically after ${TRASH_RETENTION_DAYS} days.`}</div>
+            <button onClick={() => setTrashConfirm({ type: "all" })} style={{ flexShrink: 0, border: "none", background: "transparent", color: "#C54B4B", cursor: "pointer", fontSize: 12.5, fontWeight: 800, padding: "4px 6px" }}>{isBn ? "ট্র্যাশ খালি করুন" : "Empty Trash"}</button>
           </div>
         )}
-        <button onClick={(e)=>{e.stopPropagation();vibrate();setFabOpen(v=>!v);}} title={t.notesNew} style={{
-          width:40, height:40, borderRadius:12, border:"none", background:accent, color:"#fff",
-          display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
-          boxShadow: dark ? "0 2px 6px rgba(0,0,0,0.2)" : "0 2px 6px rgba(217,119,87,0.2)",
-          transform: fabOpen ? "rotate(45deg)" : "none", transition:"transform .15s",
-        }}>
-          <Plus size={17} strokeWidth={2.4}/>
-        </button>
+
+        {filtered.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "40px 20px", background: cardBg, border: `1px dashed ${cardBorder}`, borderRadius: 14 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 14, background: dark ? "#242229" : "#F0EEF5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
+              {activeFolder === "Trash" ? <Trash2 size={23} color={dark ? "#B0ABC2" : "#6E6B7A"} /> : <FileText size={23} color={dark ? "#B0ABC2" : "#6E6B7A"} />}
+            </div>
+            <div style={{ fontSize: 14.5, fontWeight: 800, color: textMain }}>
+              {activeFolder === "Trash" ? (isBn ? "ট্র্যাশ খালি" : "Trash is empty") : (search ? (isBn ? "কিছু পাওয়া যায়নি" : "No notes match") : t.notesEmpty)}
+            </div>
+            <div style={{ fontSize: 12.5, color: textMuted2, marginTop: 5 }}>
+              {activeFolder === "Trash" ? (isBn ? "ডিলিট করা নোট এখানে দেখা যাবে।" : "Deleted notes will show up here.") : t.notesEmptySub}
+            </div>
+          </div>
+        ) : (
+          <>
+            {pinnedList.length > 0 && (
+              <>
+                <div style={{ fontSize: 10, fontWeight: 700, color: textMuted2, letterSpacing: 0.6, marginBottom: 7 }}>{isBn ? "পিন করা" : "PINNED"}</div>
+                <div style={{ columnCount: 2, columnGap: 9, marginBottom: 14 }}>{pinnedList.map(renderCard)}</div>
+              </>
+            )}
+            {othersList.length > 0 && (
+              <>
+                {pinnedList.length > 0 && activeFolder !== "Trash" && <div style={{ fontSize: 10, fontWeight: 700, color: textMuted2, letterSpacing: 0.6, marginBottom: 7 }}>{isBn ? "অন্যান্য" : "OTHERS"}</div>}
+                <div style={{ columnCount: 2, columnGap: 9 }}>{othersList.map(renderCard)}</div>
+              </>
+            )}
+          </>
+        )}
       </div>
 
-      {/* "নোট ট্র্যাশে গেছে" স্ন্যাকবার — Undo চাপলে সাথে সাথে ফিরে আসবে, নাহলে ৫ সেকেন্ড পর নিজে থেকেই লুকিয়ে যায় (নোটটা তখনও Trash-এই থাকে) */}
-      {undo && (
-        <div onClick={e=>e.stopPropagation()} style={{position:"fixed", left:16, right:16, bottom: isDesktop ? 28 : 96, maxWidth:420, margin:"0 auto", zIndex:42, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, background: dark ? "#2B281F" : "#1A1814", color:"#fff", borderRadius:14, padding:"12px 14px", boxShadow:"0 6px 16px rgba(0,0,0,0.16)"}}>
-          <span style={{fontSize:13.5, fontWeight:700, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-            {lang==="bn" ? `"${undo.title}" ট্র্যাশে গেছে` : `"${undo.title}" moved to trash`}
-          </span>
-          <button onClick={undoRemove} style={{flexShrink:0, border:"none", background:"transparent", color:accent, cursor:"pointer", fontSize:13.5, fontWeight:800, padding:"4px 6px"}}>
-            {lang==="bn" ? "Undo" : "Undo"}
-          </button>
-        </div>
-      )}
+      {showDrawer && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 55, display: "flex" }} onClick={() => { setShowDrawer(false); setEditCategoriesMode(false); }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: "min(300px, 82vw)", height: "100%", background: cardBg, overflowY: "auto", padding: "18px 0 24px", boxShadow: "2px 0 16px rgba(0,0,0,0.18)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 18px", marginBottom: 16 }}>
+              <span style={{ fontSize: 15, fontWeight: 800, color: textMain }}>{isBn ? "নোটস" : "Notes"}</span>
+              <button onClick={() => { setShowDrawer(false); setEditCategoriesMode(false); }} style={{ border: "none", background: "transparent", cursor: "pointer", color: textMuted2, display: "flex" }}><X size={19} /></button>
+            </div>
 
-      {/* ট্র্যাশ থেকে "চিরতরে ডিলিট" বা "ট্র্যাশ খালি করুন" — window.confirm() এর বদলে নিজস্ব confirm modal,
-          কারণ Capacitor/Android WebView-তে window.confirm() নির্ভরযোগ্যভাবে কাজ করে না */}
-      {trashConfirm && (
-        <div onClick={()=>setTrashConfirm(null)} style={{position:"fixed", inset:0, zIndex:60, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", padding:20}}>
-          <div onClick={e=>e.stopPropagation()} style={{width:"100%", maxWidth:340, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:18, boxShadow:"0 10px 30px rgba(0,0,0,0.25)"}}>
-            <div style={{fontSize:14.5, fontWeight:800, color:textMain, marginBottom:6}}>
-              {lang==="bn" ? "নিশ্চিত করুন" : "Are you sure?"}
+            <div style={{ padding: "0 10px", marginBottom: 8 }}>
+              {[
+                { key: "All Notes", label: isBn ? "সব নোট" : "All Notes", icon: Lightbulb },
+                { key: "Pinned", label: isBn ? "পিন" : "Pinned", icon: Pin },
+                { key: "Trash", label: (isBn ? "ট্র্যাশ" : "Trash") + (trashCount > 0 ? ` (${nf(trashCount)})` : ""), icon: Trash2 },
+              ].map(f => {
+                const Icon = f.icon;
+                const active = activeFolder === f.key;
+                return (
+                  <button key={f.key} onClick={() => { setActiveFolder(f.key); setShowDrawer(false); setEditCategoriesMode(false); }}
+                    style={{ width: "100%", display: "flex", alignItems: "center", gap: 14, border: "none", cursor: "pointer", borderRadius: 24, padding: "11px 14px", textAlign: "left", background: active ? `${accent}22` : "transparent", color: textMain, fontSize: 14.5, marginBottom: 2 }}>
+                    <Icon size={17} color={active ? accent : textMuted2} />{f.label}
+                  </button>
+                );
+              })}
             </div>
-            <div style={{fontSize:13, color:textMuted2, lineHeight:1.5, marginBottom:16}}>
-              {trashConfirm.type === "one"
-                ? (lang==="bn" ? "এই নোটটা চিরতরে ডিলিট হবে। এটা আর ফেরত আনা যাবে না।" : "This note will be permanently deleted. This cannot be undone.")
-                : (lang==="bn" ? "ট্র্যাশের সব নোট চিরতরে ডিলিট হবে। এটা আর ফেরত আনা যাবে না।" : "All notes in Trash will be permanently deleted. This cannot be undone.")}
-            </div>
-            <div style={{display:"flex", gap:8, justifyContent:"flex-end"}}>
-              <button onClick={()=>setTrashConfirm(null)} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, borderRadius:10, padding:"8px 14px", fontSize:13, fontWeight:700, cursor:"pointer"}}>
-                {lang==="bn" ? "বাতিল" : "Cancel"}
+
+            <div style={{ height: 1, background: cardBorder, margin: "8px 18px 12px" }} />
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 18px", marginBottom: 6 }}>
+              <span style={{ fontSize: 12, color: textMuted2, fontWeight: 700 }}>{isBn ? "ক্যাটাগরি" : "Categories"}</span>
+              <button onClick={() => setEditCategoriesMode(v => !v)} style={{ border: "none", background: "transparent", cursor: "pointer", color: editCategoriesMode ? accent : textMuted2, fontSize: 12.5, fontWeight: 700 }}>
+                {editCategoriesMode ? (isBn ? "সম্পন্ন" : "Done") : (isBn ? "এডিট" : "Edit")}
               </button>
-              <button onClick={confirmTrashAction} style={{border:"none", background:"#C54B4B", color:"#fff", borderRadius:10, padding:"8px 14px", fontSize:13, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", gap:6}}>
-                <Trash2 size={13}/> {lang==="bn" ? "ডিলিট" : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {editing && (() => {
-        const noteCol = noteColorFor(category, categories);
-        const editorBg = bg; // পুরো স্ক্রিনের নিরপেক্ষ পেজ ব্যাকগ্রাউন্ড — থিম অনুযায়ী বদলায়
-        const paperBg = noteBgFor(noteColor, dark); // লেখার জায়গাটা এখন আলাদা "কাগজ" কার্ড হিসেবে ভাসবে — ইউজারের বাছাই করা রঙ থাকলে সেটাই দেখাবে
-        const paperBorder = dark ? "#3A342B" : "#E9DCC5";
-        const paperText = noteTextFor(noteColor, dark);
-        const iconColor = textMain; // হেডার ও বটম টুলবারের আইকন/টেক্সট — পেজ ব্যাকগ্রাউন্ডের সাথে ঠিকমতো কনট্রাস্ট থাকার জন্য
-        const toolbarActiveBg = dark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.07)";
-        return (
-        <div style={{position:"fixed",left:0,top:0,width:"100%",height:vh,transition:"height .18s ease",background:editorBg,display:"flex",flexDirection:"column",zIndex:60}} onClick={()=>{setShowMoreMenu(false);setShowColorPicker(false);categoryMenuFor && setCategoryMenuFor(null);}}>
-
-          {/* Top bar */}
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 14px",flexShrink:0}}>
-            <button onClick={(e)=>{e.stopPropagation();save();}} style={{border:"none",background:"transparent",color:iconColor,cursor:"pointer",padding:8,display:"flex"}}>
-              <ChevronLeft size={22}/>
-            </button>
-            <div style={{display:"flex",alignItems:"center",gap:2,position:"relative"}}>
-              <button onClick={(e)=>{e.stopPropagation();setPinnedDraft(v=>!v);}} title={lang==="bn"?"পিন":"Pin"}
-                style={{border:"none",background:pinnedDraft?toolbarActiveBg:"transparent",color:pinnedDraft?accent:iconColor,cursor:"pointer",padding:8,borderRadius:"50%",display:"flex"}}>
-                <Pin size={18} fill={pinnedDraft?accent:"none"}/>
-              </button>
-              <button onClick={(e)=>{e.stopPropagation();setSensitiveDraft(v=>!v);}} title={lang==="bn"?"সংবেদনশীল — প্রিভিউতে ব্লার থাকবে":"Sensitive — blurred in preview"}
-                style={{border:"none",background:sensitiveDraft?toolbarActiveBg:"transparent",color:sensitiveDraft?accent:iconColor,cursor:"pointer",padding:8,borderRadius:"50%",display:"flex"}}>
-                {sensitiveDraft ? <EyeOff size={18}/> : <Eye size={18}/>}
-              </button>
-              <button onClick={(e)=>{e.stopPropagation();setShowMoreMenu(v=>!v);setShowColorPicker(false);}} style={{border:"none",background:showMoreMenu?toolbarActiveBg:"transparent",color:iconColor,cursor:"pointer",padding:8,borderRadius:"50%",display:"flex"}}>
-                <MoreVertical size={19}/>
-              </button>
-              {showMoreMenu && (
-                <div onClick={e=>e.stopPropagation()} style={{position:"absolute",right:0,top:40,width:150,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:4,boxShadow:"0 6px 16px rgba(0,0,0,0.11)",zIndex:20}}>
-                  {editing.id && (
-                    <button onClick={()=>remove(editing.id)} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:"#C54B4B",padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:12.5}}>{lang==="bn"?"ডিলিট":"Delete"}</button>
-                  )}
-                  <button onClick={closeEditor} style={{width:"100%",textAlign:"left",border:"none",background:"transparent",color:textMain,padding:"9px 10px",borderRadius:8,cursor:"pointer",fontSize:12.5}}>{lang==="bn"?"বাতিল (সেভ ছাড়া)":"Discard"}</button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Created / edited date */}
-          {editing.id && (
-            <div style={{fontSize:11.5,color:textMuted2,padding:"0 20px",marginBottom:8,flexShrink:0}}>
-              {lang==="bn" ? "তৈরি" : "Created"}: {fullDateTimeLabel(editing.createdAt, lang)} · {lang==="bn" ? "সম্পাদিত" : "Edited"}: {fullDateTimeLabel(editing.updatedAt, lang)}
-            </div>
-          )}
-
-          {/* Paper card — লেখার আসল জায়গা, পেজ ব্যাকগ্রাউন্ড থেকে স্পষ্ট আলাদা করে দেখানোর জন্য বর্ডার + shadow সহ কার্ড */}
-          <div style={{flex:1,minHeight:0,margin:"2px 14px 14px",background:paperBg,border:`1px solid ${paperBorder}`,borderRadius:"6px 18px 18px 18px",boxShadow: dark ? "0 5px 16px rgba(0,0,0,0.20)" : "0 4px 12px rgba(60,40,20,0.06)",display:"flex",flexDirection:"column",overflow:"hidden"}}>
-          {/* Scrollable content: title + checklist + body */}
-          <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"14px 18px 16px"}} onClick={e=>e.stopPropagation()}>
-            <input
-              autoFocus
-              value={title}
-              onChange={e=>setTitle(e.target.value)}
-              onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
-              placeholder={t.notesTitlePlaceholder}
-              style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",padding:"8px 0",fontSize:20.5,fontWeight:800,color:paperText,outline:"none",fontFamily:"inherit",marginBottom:2}}
-            />
-
-            {/* Checklist — টাইটেলের ঠিক পরেই আসে, বটম টুলবারের checklist আইকন দিয়ে দেখানো/লুকানো যায়; Google Keep-এর মতো
-                প্রতিটা আইটেম নিজেই এডিটেবল — Enter চাপলে নতুন আইটেম, খালি আইটেমের শুরুতে Backspace চাপলে আগেরটার সাথে জোড়া লাগে */}
-            {showChecklist && (
-              <div style={{marginTop:2,marginBottom:6}}>
-                {checklist.length > 0 && (
-                  <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:9}}>
-                    {checklist.map((item, index) => (
-                      <div key={item.id} style={{display:"flex",alignItems:"center",gap:8}}>
-                        <button
-                          onClick={()=>setChecklist(prev=>prev.map((x,i)=>i===index?{...x,done:!x.done}:x))}
-                          style={{width:19,height:19,borderRadius:4,border:`1.5px solid ${item.done?accent:paperText}`,background:item.done?accent:"transparent",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",padding:0,cursor:"pointer",fontSize:12.5,flex:"0 0 auto"}}
-                        >
-                          {item.done?"✓":""}
-                        </button>
-                        <input
-                          ref={(el)=>{ if (el) checklistInputRefs.current[item.id] = el; else delete checklistInputRefs.current[item.id]; }}
-                          value={item.text}
-                          onChange={e=>updateChecklistText(item.id, e.target.value)}
-                          onKeyDown={(e)=>{
-                            const el = e.target;
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              const caret = el.selectionStart ?? el.value.length;
-                              splitChecklistItem(index, el.value.slice(0, caret), el.value.slice(caret));
-                            } else if (e.key === "Backspace" && el.selectionStart === 0 && el.selectionEnd === 0 && index > 0) {
-                              e.preventDefault();
-                              mergeChecklistItemWithPrev(index);
-                            }
-                          }}
-                          onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
-                          placeholder={lang==="bn"?"লিস্টে যোগ করুন":"List item"}
-                          style={{flex:1,minWidth:0,background:"transparent",border:"none",padding:"3px 0",fontSize:13.5,color:paperText,opacity:item.done?0.6:1,outline:"none",fontFamily:"inherit"}}
-                        />
-                        <button onClick={()=>setChecklist(prev=>prev.filter((_,i)=>i!==index))} style={{border:"none",background:"transparent",color:paperText,opacity:0.6,cursor:"pointer",padding:2}}><X size={14}/></button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <button onClick={appendChecklistItem} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",padding:"3px 0",cursor:"pointer",width:"100%",textAlign:"left"}}>
-                  <div style={{width:19,height:19,borderRadius:4,border:`1.5px solid ${paperText}`,opacity:0.4,flex:"0 0 auto",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                    <Plus size={12} color={paperText} style={{opacity:0.7}}/>
-                  </div>
-                  <span style={{fontSize:13.5,color:paperText,opacity:0.55}}>{lang==="bn"?"লিস্টে যোগ করুন":"List item"}</span>
-                </button>
-              </div>
-            )}
-
-            {/* রিচ টেক্সট বডি — contentEditable, তাই Bold/Italic/Underline/H1/H2 সরাসরি এখানে দেখা যায় (Keep-এর মতো) */}
-            <div style={{position:"relative"}}>
-              {!stripHtmlToText(body) && (
-                <div style={{position:"absolute",top:6,left:0,right:0,fontSize:fontSize,lineHeight:1.65,color:paperText,opacity:0.4,pointerEvents:"none"}}>{t.notesBodyPlaceholder}</div>
-              )}
-              <div
-                ref={(el)=>{
-                  bodyRef.current = el;
-                  if (el && el.dataset.init !== "1") {
-                    el.innerHTML = body || "";
-                    el.dataset.init = "1";
-                  }
-                }}
-                contentEditable
-                suppressContentEditableWarning
-                className="fg-note-body"
-                onInput={()=>{ if (bodyRef.current) setBody(bodyRef.current.innerHTML); }}
-                onKeyDown={handleBodyEnterKey}
-                onSelect={syncActiveFontSize}
-                onKeyUp={syncActiveFontSize}
-                onMouseUp={syncActiveFontSize}
-                onFocus={(e)=>{ try { document.execCommand("defaultParagraphSeparator", false, "div"); } catch(err){} syncActiveFontSize(); setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
-                style={{width:"100%",boxSizing:"border-box",minHeight: showChecklist ? 60 : 180,background:"transparent",border:"none",padding:"6px 0",fontSize:fontSize,lineHeight:1.65,color:paperText,outline:"none",fontFamily:"inherit",marginBottom:8,transition:"font-size .15s ease",wordBreak:"break-word"}}
-              />
             </div>
 
-            {/* ছবি — কম্প্রেসড thumbnail হিসেবে দেখানো, প্রতিটার উপরে ছোট X বাটনে ট্যাপ করলে বাদ যায় */}
-            <input ref={noteFileInputRef} type="file" accept="image/*" onChange={handleNoteImageChange} style={{display:"none"}}/>
-            {images.length > 0 && (
-              <div onClick={e=>e.stopPropagation()} style={{display:"flex",flexWrap:"wrap",gap:8,paddingBottom:8}}>
-                {images.map((src, idx) => (
-                  <div key={idx} style={{position:"relative",width:78,height:78,borderRadius:10,overflow:"hidden",border:`1px solid ${paperBorder}`,flexShrink:0}}>
-                    <img src={src} alt="" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
-                    <button onClick={()=>removeNoteImage(idx)} title={lang==="bn"?"ছবি বাদ দিন":"Remove image"}
-                      style={{position:"absolute",top:3,right:3,width:18,height:18,borderRadius:"50%",border:"none",background:"rgba(0,0,0,0.55)",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
-                      <X size={11}/>
+            <div style={{ padding: "0 10px" }}>
+              {categories.map(cat => {
+                const active = activeFolder === cat;
+                return (
+                  <div key={cat} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <button onClick={() => { if (editCategoriesMode) return; setActiveFolder(cat); setShowDrawer(false); }}
+                      style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 14, border: "none", cursor: editCategoriesMode ? "default" : "pointer", borderRadius: 24, padding: "11px 14px", textAlign: "left", background: active ? `${accent}22` : "transparent", color: textMain, fontSize: 14.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <Tag size={16} color={active ? accent : textMuted2} style={{ flexShrink: 0 }} />{cat}
                     </button>
+                    {editCategoriesMode && (
+                      <>
+                        <button onClick={() => renameCategory(cat)} style={{ border: "none", background: "transparent", cursor: "pointer", color: textMuted2, display: "flex", padding: 8, flexShrink: 0 }}><Pencil size={14} /></button>
+                        {cat !== "General" && <button onClick={() => deleteCategory(cat)} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#C0392B", display: "flex", padding: 8, flexShrink: 0 }}><Trash2 size={14} /></button>}
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+              <button onClick={addCategory} style={{ width: "100%", display: "flex", alignItems: "center", gap: 14, border: "none", cursor: "pointer", borderRadius: 24, padding: "11px 14px", textAlign: "left", background: "transparent", color: textMuted2, fontSize: 14.5 }}>
+                <Plus size={16} />{isBn ? "নতুন ক্যাটাগরি" : "New category"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <button onClick={openNew} title={t.notesNew} style={{ position: "fixed", right: 20, bottom: isDesktop ? 28 : 96, zIndex: 41, width: 52, height: 52, borderRadius: "50%", background: accent, color: "#fff", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: dark ? "0 10px 24px -8px rgba(0,0,0,0.5)" : "0 10px 24px -8px rgba(217,119,87,0.45)" }}>
+        <Plus size={23} />
+      </button>
+
+      {editing && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(20,17,13,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 18 }} onClick={save}>
+          <div onClick={e => e.stopPropagation()} style={{ background: editorSw.bg, width: "100%", maxWidth: 400, borderRadius: 16, padding: "18px 18px 16px", color: editorSw.text, maxHeight: "85vh", overflowY: "auto", boxShadow: "0 24px 48px -16px rgba(0,0,0,0.35)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, opacity: 0.7 }}>{(editing.id ? t.notesEdit : t.notesNew).toUpperCase()}</span>
+              <div style={{ display: "flex", gap: 6 }}>
+                <button onClick={() => setPinned(p => !p)} title={isBn ? "পিন" : "Pin"} style={{ border: "none", background: pinned ? `${editorSw.text}22` : "rgba(0,0,0,0.06)", borderRadius: 8, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: editorSw.text }}><Pin size={13} fill={pinned ? editorSw.text : "none"} /></button>
+                <button onClick={save} style={{ border: "none", background: "rgba(0,0,0,0.06)", borderRadius: 8, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: editorSw.text }}><X size={14} /></button>
+              </div>
+            </div>
+
+            <input value={title} onChange={e => setTitle(e.target.value)} placeholder={t.notesTitlePlaceholder}
+              style={{ width: "100%", border: "none", background: "transparent", outline: "none", fontSize: 19, fontWeight: 700, color: editorSw.text, marginBottom: 6, fontFamily: "inherit" }} />
+            <textarea value={body} onChange={e => setBody(e.target.value)} placeholder={t.notesBodyPlaceholder} rows={4}
+              style={{ width: "100%", border: "none", background: "transparent", outline: "none", fontSize: 14, color: editorSw.text, opacity: 0.9, resize: "none", fontFamily: "inherit", lineHeight: 1.55, marginBottom: 10 }} />
+
+            {checklist.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 8 }}>
+                {checklist.map(item => (
+                  <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <button onClick={() => toggleCheck(item.id)} style={{ width: 16, height: 16, borderRadius: 5, border: `1.5px solid ${editorSw.text}`, flexShrink: 0, background: item.done ? editorSw.text : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {item.done && <Check size={10} color={dark ? "#0A0A0A" : "#FFF"} strokeWidth={3.5} />}
+                    </button>
+                    <input value={item.text} onChange={e => setChecklist(c => c.map(x => x.id === item.id ? { ...x, text: e.target.value } : x))}
+                      style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: 13.5, color: editorSw.text, textDecoration: item.done ? "line-through" : "none", opacity: item.done ? 0.6 : 1, fontFamily: "inherit" }} />
+                    <button onClick={() => removeCheck(item.id)} style={{ border: "none", background: "transparent", cursor: "pointer", color: editorSw.text, opacity: 0.5, display: "flex" }}><X size={13} /></button>
                   </div>
                 ))}
               </div>
             )}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+              <Plus size={14} color={editorSw.text} style={{ opacity: 0.6 }} />
+              <input value={checklistDraft} onChange={e => setChecklistDraft(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addCheckItem(); } }} placeholder={isBn ? "তালিকায় যোগ করুন" : "Add item"}
+                style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: 13, color: editorSw.text, opacity: 0.85, fontFamily: "inherit" }} />
+              {checklistDraft.trim() && <button onClick={addCheckItem} style={{ border: "none", background: "transparent", cursor: "pointer", color: editorSw.text, fontSize: 12, fontWeight: 700 }}>{isBn ? "যোগ" : "Add"}</button>}
+            </div>
 
-            {/* Category পিকার এখন নিচের "General" পিল-এ ট্যাপ করলে ভাসমান প্যানেল হিসেবে খোলে (দেখুন নিচে bottom toolbar-এর কাছে) */}
-
-            {/* নোট কার্ডের ব্যাকগ্রাউন্ড রঙ পিকার — বটম টুলবারের নতুন Palette আইকন দিয়ে টগল হয়; নিজের ইচ্ছামতো রঙ করে রাখলে পরে চোখের দেখায় দ্রুত খুঁজে পাওয়া যায় */}
-            {showBgColorPicker && (
-              <div onClick={e=>e.stopPropagation()} style={{display:"flex",flexWrap:"wrap",gap:10,paddingTop:6,paddingBottom:2}}>
-                {NOTE_BG_PALETTE.map((c) => {
-                  const selected = (noteColor || null) === c.key;
-                  const swatchBg = (dark ? c.bgDark : c.bg) || (dark ? "#221E19" : NOTE_PAPER_BG);
-                  return (
-                    <button key={c.key || "default"} onClick={()=>setNoteColor(c.key)}
-                      title={lang==="bn" ? c.labelBn : c.labelEn}
-                      style={{
-                        width:30, height:30, borderRadius:"50%", cursor:"pointer",
-                        background:swatchBg,
-                        border: c.key===null ? `1.5px dashed ${paperText}` : `1.5px solid ${selected ? paperText : "rgba(0,0,0,0.12)"}`,
-                        display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
-                      }}>
-                      {selected && <Check size={13} color={paperText}/>}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* ফরম্যাটিং রো — বটম টুলবারের "Aa" আইকনে টগল হয়: H1, H2, Bold, Italic, Underline, Clear, Color।
-              আগে এটা স্ক্রলযোগ্য কনটেন্টের ভেতরে (body-র ঠিক পরে) ছিল, তাই বড় নোটে অনেক লেখার নিচে হারিয়ে যেত —
-              এখন paper card-এর নিজস্ব ফ্লোটিং ফুটার হিসেবে বসানো, তাই স্ক্রল যতই করা হোক, এটা সবসময় নিচে
-              স্থির দেখা যাবে, খুঁজে বের করার দরকার হবে না */}
-          {showFormatBar && (
-            <div onMouseDown={e=>e.preventDefault()} onClick={e=>e.stopPropagation()} style={{display:"flex",alignItems:"center",gap:2,padding:"8px 14px",borderTop:`1px solid ${paperBorder}`,background:paperBg,flexShrink:0,overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
-              {[
-                { icon: Heading1, title: lang==="bn"?"হেডিং ১":"Heading 1", action: ()=>applyBodyCommand(()=>document.execCommand("formatBlock", false, "H1")) },
-                { icon: Heading2, title: lang==="bn"?"হেডিং ২":"Heading 2", action: ()=>applyBodyCommand(()=>document.execCommand("formatBlock", false, "H2")) },
-                { icon: Bold, title: lang==="bn"?"বোল্ড":"Bold", action: ()=>applyBodyCommand(()=>document.execCommand("bold")) },
-                { icon: Italic, title: lang==="bn"?"ইটালিক":"Italic", action: ()=>applyBodyCommand(()=>document.execCommand("italic")) },
-                { icon: Underline, title: lang==="bn"?"আন্ডারলাইন":"Underline", action: ()=>applyBodyCommand(()=>document.execCommand("underline")) },
-                { icon: RemoveFormatting, title: lang==="bn"?"ফরম্যাট মুছুন":"Clear formatting", action: ()=>applyBodyCommand(()=>{ document.execCommand("removeFormat"); document.execCommand("formatBlock", false, "P"); }) },
-              ].map(({icon:Icon, title, action}, i) => (
-                <button key={i} onMouseDown={e=>e.preventDefault()} onClick={action} title={title}
-                  style={{border:"none",background:"transparent",color:paperText,cursor:"pointer",padding:8,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                  <Icon size={17}/>
+            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4, opacity: 0.6, marginBottom: 6 }}>{isBn ? "ক্যাটাগরি" : "CATEGORY"}</div>
+            <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2, marginBottom: 12 }} className="fg-hide-scrollbar">
+              {categories.map(cat => (
+                <button key={cat} onClick={() => setCategory(cat)}
+                  style={{ flexShrink: 0, border: "none", borderRadius: 999, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", background: category === cat ? editorSw.text : "rgba(0,0,0,0.06)", color: category === cat ? editorSw.bg : editorSw.text, whiteSpace: "nowrap" }}>
+                  {cat}
                 </button>
               ))}
-              {/* টেক্সট রঙ — সিলেক্ট করা লেখার রঙ বদলাতে, কিছু সাধারণ রঙ */}
-              <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:4,paddingLeft:8,borderLeft:`1px solid ${paperBorder}`,flexShrink:0}}>
-                {[{key:"default",hex:paperText},...NOTE_TEXT_COLORS].map(c => (
-                  <button key={c.key} onMouseDown={e=>e.preventDefault()}
-                    onClick={()=>applyBodyCommand(()=>{ document.execCommand("styleWithCSS", false, false); document.execCommand("foreColor", false, c.hex); })}
-                    title={c.key==="default" ? (lang==="bn"?"ডিফল্ট":"Default") : c.key}
-                    style={{width:19,height:19,borderRadius:"50%",padding:0,cursor:"pointer",background:c.hex,border: c.key==="default" ? `1.5px dashed ${paperText}` : "1.5px solid rgba(0,0,0,0.15)",flexShrink:0}}>
-                  </button>
-                ))}
-              </div>
             </div>
-          )}
-          </div>
 
-          {/* Bottom icon toolbar — পেজ ব্যাকগ্রাউন্ডের উপর, উপরের বর্ডার দিয়ে paper card থেকে আলাদা করা */}
-          <div onClick={e=>e.stopPropagation()} style={{display:"flex",alignItems:"center",gap:2,padding:"10px 14px",borderTop:"1px solid var(--track)",flexShrink:0}}>
-            <button onClick={()=>{setShowChecklist(v=>!v);setShowColorPicker(false);setShowBgColorPicker(false);}} title={lang==="bn"?"লিস্ট":"List"}
-              style={{border:"none",background:showChecklist?toolbarActiveBg:"transparent",color:iconColor,cursor:"pointer",padding:8,borderRadius:"50%",display:"flex"}}>
-              <ListChecks size={19}/>
-            </button>
-            <button onClick={()=>{setShowFormatBar(v=>!v);setShowBgColorPicker(false);}} title={lang==="bn"?"টেক্সট ফরম্যাটিং":"Text formatting"}
-              style={{border:"none",background:showFormatBar?toolbarActiveBg:"transparent",color:showFormatBar?accent:iconColor,cursor:"pointer",padding:"9px 10px",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:13.5,fontFamily:"inherit"}}>
-              Aa
-            </button>
-            <button onClick={()=>{setShowBgColorPicker(v=>!v);setShowChecklist(false);setShowColorPicker(false);}} title={lang==="bn"?"নোটের রঙ":"Note color"}
-              style={{border:"none",background:showBgColorPicker?toolbarActiveBg:"transparent",color:iconColor,cursor:"pointer",padding:8,borderRadius:"50%",display:"flex"}}>
-              <Palette size={19}/>
-            </button>
-            <button onClick={handlePickNoteImage} disabled={imageBusy} title={lang==="bn"?"ছবি যোগ করুন":"Add image"}
-              style={{border:"none",background:"transparent",color:iconColor,opacity:imageBusy?0.5:1,cursor:imageBusy?"default":"pointer",padding:8,borderRadius:"50%",display:"flex"}}>
-              <ImageIcon size={19}/>
-            </button>
-            <div style={{display:"flex",alignItems:"center",gap:2,marginLeft:2}}>
-              <button onMouseDown={e=>e.preventDefault()} onClick={()=>applyFontSizeDelta(-FONT_STEP)} disabled={activeFontSize<=FONT_MIN}
-                title={lang==="bn"?"ছোট ফন্ট":"Smaller text"}
-                style={{border:"none",background:"transparent",color:iconColor,opacity:activeFontSize<=FONT_MIN?0.35:1,cursor:activeFontSize<=FONT_MIN?"default":"pointer",padding:"9px 7px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:12.5,lineHeight:1}}>
-                A
-              </button>
-              <button onMouseDown={e=>e.preventDefault()} onClick={()=>applyFontSizeDelta(FONT_STEP)} disabled={activeFontSize>=FONT_MAX}
-                title={lang==="bn"?"বড় ফন্ট":"Larger text"}
-                style={{border:"none",background:"transparent",color:iconColor,opacity:activeFontSize>=FONT_MAX?0.35:1,cursor:activeFontSize>=FONT_MAX?"default":"pointer",padding:"9px 7px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:18.5,lineHeight:1}}>
-                A
-              </button>
+            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4, opacity: 0.6, marginBottom: 6 }}>{isBn ? "রঙ" : "COLOR"}</div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+              {NOTE_BG_PALETTE.map(c => {
+                const cbg = (dark ? (c.bgDark || c.bg) : c.bg) || (dark ? "#221E19" : NOTE_PAPER_BG);
+                const isSel = (color || null) === c.key;
+                return (
+                  <button key={c.key || "default"} onClick={() => setColor(c.key)} title={isBn ? c.labelBn : c.labelEn}
+                    style={{ width: 22, height: 22, borderRadius: "50%", border: isSel ? `2px solid ${editorSw.text}` : `1px solid ${cardBorder}`, background: cbg, cursor: "pointer", padding: 0 }} />
+                );
+              })}
             </div>
-            <div style={{flex:1}}/>
-            <div style={{position:"relative"}}>
-              <button onClick={()=>{setShowColorPicker(v=>!v);setShowChecklist(false);setShowBgColorPicker(false);}}
-                style={{border:"none",fontSize:11.5,fontWeight:800,color:noteCol.text,background:noteCol.bg,padding:"4px 11px",borderRadius:14,cursor:"pointer"}}>
-                {category}
-              </button>
-              {/* ক্যাটাগরি লিস্ট — "General" পিলে ট্যাপ করলে ভাসমান প্যানেল হিসেবে উপরে খোলে; চেপে ধরলে Rename/Delete */}
-              {showColorPicker && (
-                <>
-                  <div onClick={(e)=>{e.stopPropagation();setShowColorPicker(false);}} style={{position:"fixed",inset:0,zIndex:29}}/>
-                  <div onClick={e=>e.stopPropagation()} style={{position:"absolute",bottom:"calc(100% + 8px)",right:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:8,boxShadow:"0 8px 22px rgba(0,0,0,0.18)",zIndex:30,display:"flex",flexWrap:"wrap",gap:8,maxWidth:240}}>
-                    {categories.map(cat => {
-                      const c = noteColorFor(cat, categories);
-                      const selected = category === cat;
-                      return (
-                        <div key={cat} style={{position:"relative"}}>
-                          <button
-                            onClick={()=>{setCategory(cat);setShowColorPicker(false);}}
-                            onMouseDown={()=>startCatPress(cat)}
-                            onMouseUp={cancelCatPress}
-                            onMouseLeave={cancelCatPress}
-                            onTouchStart={()=>startCatPress(cat)}
-                            onTouchEnd={cancelCatPress}
-                            onTouchMove={cancelCatPress}
-                            style={{
-                            display:"flex",alignItems:"center",gap:4,
-                            background:c.bg, color:c.text,
-                            border: selected ? `1.5px solid ${paperText}` : "1px solid transparent",
-                            borderRadius:999,padding:"6px 12px",fontSize:12.5,fontWeight:800,cursor:"pointer",whiteSpace:"nowrap"
-                          }}>
-                            {selected && <Check size={12}/>}
-                            {cat}
-                          </button>
-                          {categoryMenuFor === cat && (
-                            <div onClick={e=>e.stopPropagation()} style={{position:"absolute",bottom:"calc(100% + 4px)",left:0,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:12,padding:4,boxShadow:"0 6px 16px rgba(0,0,0,0.11)",zIndex:31,display:"flex",flexDirection:"column",minWidth:128}}>
-                              <button onClick={()=>{renameCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12.5,fontWeight:700,color:textMain,cursor:"pointer",borderRadius:8}}>
-                                <Pencil size={13}/> {lang==="bn"?"নাম পরিবর্তন":"Rename"}
-                              </button>
-                              {cat !== "General" && (
-                                <button onClick={()=>{deleteCategory(cat);setCategoryMenuFor(null);}} style={{display:"flex",alignItems:"center",gap:8,border:"none",background:"transparent",textAlign:"left",padding:"8px 9px",fontSize:12.5,fontWeight:700,color:"#C54B4B",cursor:"pointer",borderRadius:8}}>
-                                  <Trash2 size={13}/> {lang==="bn"?"ডিলিট":"Delete"}
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                    <button onClick={addCategory} style={{flex:"0 0 auto",border:`1.5px dashed ${paperText}`,background:"transparent",color:paperText,borderRadius:999,padding:"6px 12px",fontSize:12.5,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",gap:4,whiteSpace:"nowrap"}}>
-                      <Plus size={12}/> {lang==="bn"?"নতুন":"New"}
-                    </button>
-                  </div>
-                </>
-              )}
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 10, borderTop: `1px solid ${editorSw.text}22` }}>
+              {editing.id ? (
+                <button onClick={() => setTrashConfirm({ type: "one", id: editing.id, fromEditor: true })} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#C0392B", display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 700 }}><Trash2 size={13} />{t.notesDelete}</button>
+              ) : <span />}
+              <button onClick={save} style={{ border: "none", background: editorSw.text, color: editorSw.bg, borderRadius: 10, padding: "8px 18px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>{t.notesSave}</button>
             </div>
           </div>
         </div>
-      );})()}
+      )}
+
+      {trashConfirm && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 60, padding: 16 }} onClick={() => setTrashConfirm(null)}>
+          <div onClick={e => e.stopPropagation()} style={{ background: cardBg, width: "100%", maxWidth: 340, borderRadius: 14, padding: 18, color: textMain }}>
+            <div style={{ fontSize: 14.5, fontWeight: 800, marginBottom: 8 }}>
+              {trashConfirm.type === "all" ? (isBn ? "ট্র্যাশ খালি করবেন?" : "Empty trash?") : trashConfirm.fromEditor ? (isBn ? "নোটটি ডিলিট করবেন?" : "Delete this note?") : (isBn ? "চিরতরে ডিলিট করবেন?" : "Delete forever?")}
+            </div>
+            <div style={{ fontSize: 12.5, color: textMuted2, marginBottom: 16 }}>
+              {trashConfirm.type === "all"
+                ? (isBn ? "ট্র্যাশের সব নোট চিরতরে মুছে যাবে। এটা আর ফেরানো যাবে না।" : "All notes in trash will be permanently deleted. This can't be undone.")
+                : trashConfirm.fromEditor
+                  ? (isBn ? "নোটটি ট্র্যাশে চলে যাবে।" : "This note will be moved to trash.")
+                  : (isBn ? "নোটটি চিরতরে মুছে যাবে। এটা আর ফেরানো যাবে না।" : "This note will be permanently deleted. This can't be undone.")}
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+              <button onClick={() => setTrashConfirm(null)} style={{ border: "none", background: "transparent", color: textMuted2, cursor: "pointer", fontSize: 13, fontWeight: 700, padding: "8px 10px" }}>{isBn ? "বাতিল" : "Cancel"}</button>
+              <button onClick={() => { if (trashConfirm.fromEditor) { softDelete(trashConfirm.id); setTrashConfirm(null); } else confirmTrashAction(); }}
+                style={{ border: "none", background: "#C0392B", color: "#fff", borderRadius: 10, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                {isBn ? "ডিলিট" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
