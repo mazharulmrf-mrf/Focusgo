@@ -615,7 +615,7 @@ function NotificationBell({ t, lang, notifications, onMarkAllRead, onClear, card
         style={{ position: "relative" }}
         title={t.notifications}
       >
-        <Bell size={15} strokeWidth={1.8} />
+        <Bell size={13} strokeWidth={1.8} />
         {unreadCount > 0 && (
           <span style={{ position: "absolute", top: 1, right: 2, width: 8, height: 8, borderRadius: "50%", background: "#F0651E", border: `1.5px solid ${cardBg}` }} />
         )}
@@ -821,7 +821,6 @@ function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, t
     ...(studyFeatureEnabled ? [{ k: "study", Icon: GraduationCap }] : []),
     ...(tasksFeatureEnabled ? [{ k: "task", Icon: ListChecks }] : []),
     ...(notesFeatureEnabled ? [{ k: "notes", Icon: FileText }] : []),
-    { k: "settings", Icon: Settings },
   ];
   return (
     <div style={{
@@ -982,10 +981,21 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
   salahFeatureEnabled, setSalahFeatureEnabled,
   studyFeatureEnabled, setStudyFeatureEnabled, tasksFeatureEnabled, setTasksFeatureEnabled, notesFeatureEnabled, setNotesFeatureEnabled,
   focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes, weekStartDay, setWeekStartDay,
-  onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage,
+  onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage, onBack,
   user, isGuest, onOpenProfile, notes, tasks, subjects, setNotes, setTasks, setSubjects,
   textScale, setTextScale, TEXT_SCALE_OPTIONS }) {
   const [showAbout, setShowAbout] = useState(false);
+  // প্রোফাইল কার্ডের পাশে ছোট্ট লগ-আউট আইকন — ট্যাপ করলে আগে একটা কনফার্মেশন পপ-ওভার দেখায়,
+  // তারপর "হ্যাঁ" চাপলেই সরাসরি সাইন-আউট হয়ে যায় (আলাদা Account পেজে না গিয়েই)
+  const [logoutConfirming, setLogoutConfirming] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const handleQuickSignOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try { await signOut(auth); } catch (err) { console.error("Sign out error:", err); }
+    setSigningOut(false);
+    setLogoutConfirming(false);
+  };
   const [legalDoc, setLegalDoc] = useState(null); // null | "privacy" | "terms"
   const isBn = lang === "bn";
   // সপ্তাহ শুরুর দিনের লেবেল — 0=রবি...6=শনি, ট্রান্সলেশনের weekStart* কী থেকে বসানো হয়
@@ -1397,31 +1407,69 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
         {/* ---- হেডার — ছোট, একরঙা, বাড়তি সাবটেক্সট ছাড়া; ডানপাশে ভাষা পিল — Preferences লিস্ট থেকে
              আলাদা রো সরিয়ে এখানে আনা হলো, যাতে লিস্টে একটা আইটেম কমে আর ভাষা সবসময় এক ট্যাপে বদলানো যায় ---- */}
-        <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18}}>
-          <div className="fg-title">{t.settings}</div>
+        <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18, gap:10}}>
+          <div style={{display:"flex", alignItems:"center", gap:10, minWidth:0}}>
+            {onBack && (
+              <button onClick={()=>{vibrate(); onBack();}} aria-label={isBn ? "ফিরে যান" : "Back"} style={{
+                  border:`1px solid ${cardBorder}`, background: dark?"#0A0A0A":"#fff", color:textMain, borderRadius:"50%",
+                  width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0,
+                }}>
+                {isBn ? <ChevronRight size={17}/> : <ChevronLeft size={17}/>}
+              </button>
+            )}
+            <div className="fg-title">{onBack ? t.profile : t.settings}</div>
+          </div>
           <span onClick={()=>{vibrate(); setLang(l=>l==="bn"?"en":"bn");}} style={{border:`1px solid ${cardBorder}`, background: dark?"#0A0A0A":"#fff", color:textMain, borderRadius:999, padding:"6px 14px", fontSize:13, fontWeight:800, cursor:"pointer", flexShrink:0}}>
             {lang==="bn" ? "বাং" : "EN"}
           </span>
         </div>
 
-        {/* ---- প্রোফাইল রো ---- */}
-        <button onClick={() => { vibrate(); onOpenProfile && onOpenProfile(); }} style={{
-            ...groupCardStyle, padding:"12px 14px", width:"100%", display:"flex", alignItems:"center", gap:14,
-            marginBottom:20, cursor:"pointer", textAlign:"left",
-          }}>
-          <span style={{width:44, height:44, borderRadius:"50%", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden"}}>
-            {user && user.photoURL ? (
-              <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
-            ) : (
-              <User size={18} color={dark ? "#B0ABC2" : "#6E6B7A"}/>
-            )}
-          </span>
-          <div style={{flex:1, minWidth:0}}>
-            <div style={{fontSize:15, fontWeight:800, color:textMain, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayName}</div>
-            <div style={{fontSize:12, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayEmail}</div>
-          </div>
+        {/* ---- প্রোফাইল রো — ডানপাশে এখন ছোট্ট LogOut আইকনও আছে, ট্যাপ করলে কনফার্ম করে সরাসরি সাইন-আউট হয় ---- */}
+        <div style={{...groupCardStyle, padding:"12px 14px", width:"100%", display:"flex", alignItems:"center", gap:10, marginBottom:20, position:"relative"}}>
+          <button onClick={() => { vibrate(); onOpenProfile && onOpenProfile(); }} style={{
+              flex:1, minWidth:0, display:"flex", alignItems:"center", gap:14, border:"none", background:"transparent",
+              padding:0, cursor:"pointer", textAlign:"left",
+            }}>
+            <span style={{width:44, height:44, borderRadius:"50%", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden"}}>
+              {user && user.photoURL ? (
+                <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
+              ) : (
+                <User size={18} color={dark ? "#B0ABC2" : "#6E6B7A"}/>
+              )}
+            </span>
+            <div style={{flex:1, minWidth:0}}>
+              <div style={{fontSize:15, fontWeight:800, color:textMain, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayName}</div>
+              <div style={{fontSize:12, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayEmail}</div>
+            </div>
+          </button>
           <ChevronRight size={17} color={textMuted2} style={{flexShrink:0}}/>
-        </button>
+          {!isGuest && user && (
+            <button onClick={()=>{ vibrate(); setLogoutConfirming(v=>!v); }} title={isBn ? "লগ-আউট" : "Log out"} style={{
+                border:"none", background:"transparent", color:"#C0553F", cursor:"pointer", flexShrink:0,
+                display:"flex", alignItems:"center", justifyContent:"center", padding:6, margin:-6, borderRadius:8,
+              }}>
+              <LogOut size={17}/>
+            </button>
+          )}
+          {logoutConfirming && (
+            <>
+              <div onClick={()=>setLogoutConfirming(false)} style={{position:"fixed", inset:0, zIndex:59}}/>
+              <div style={{position:"absolute", right:10, top:"100%", marginTop:6, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, boxShadow:"0 4px 14px rgba(0,0,0,0.14)", zIndex:60, minWidth:210, padding:12}}>
+                <div style={{fontSize:12.5, fontWeight:700, color:textMain, marginBottom:10}}>
+                  {isBn ? "সত্যিই লগ-আউট করবেন?" : "Really log out?"}
+                </div>
+                <div style={{display:"flex", gap:8}}>
+                  <button onClick={()=>{vibrate(); setLogoutConfirming(false);}} style={{flex:1, border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, borderRadius:9, padding:"8px 0", fontWeight:700, fontSize:12.5, cursor:"pointer"}}>
+                    {isBn ? "বাতিল" : "Cancel"}
+                  </button>
+                  <button onClick={()=>{vibrate(); handleQuickSignOut();}} disabled={signingOut} style={{flex:1, border:"none", background:"#C0553F", color:"#fff", borderRadius:9, padding:"8px 0", fontWeight:700, fontSize:12.5, cursor: signingOut ? "default" : "pointer", opacity: signingOut ? 0.7 : 1}}>
+                    {isBn ? "লগ-আউট" : "Log out"}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
 
         {/* ---- Preferences — একটাই কার্ডে সব প্রেফারেন্স, প্রতিটা রো accordion হিসেবে খোলে ---- */}
         <div style={{...sectionHeadingStyle, marginTop:0}}>{isBn ? "পছন্দসমূহ" : "Preferences"}</div>
@@ -3536,6 +3584,9 @@ export default function FocusGo() {
     } catch (e) {}
   };
   const [showProfile, setShowProfile] = useState(false);
+  // হেডারের প্রোফাইল আইকনে ক্লিক করলে এখন সরাসরি Settings-পেজের মতোই ডিজাইন (প্রোফাইল কার্ড + Preferences)
+  // একটা আলাদা ফুল-পেজ হিসেবে খোলে — কিন্তু নিচে ৫-ট্যাব বার ছাড়া, উপরে একটা ব্যাক বাটন সহ
+  const [showProfilePage, setShowProfilePage] = useState(false);
   // ডেস্কটপ সাইডবার collapse/expand করা যায় কিনা — চাইলে ইউজার লুকিয়ে রাখতে পারবে,
   // পছন্দটা localStorage-এ থেকে যায় (রিফ্রেশ করলেও মনে থাকবে)।
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -3710,6 +3761,7 @@ export default function FocusGo() {
       if (showAllSubjectsProgress) { setShowAllSubjectsProgress(false); return; }
       if (showCalendar) { setShowCalendar(false); return; }
       if (showProfile) { setShowProfile(false); return; }
+      if (showProfilePage) { setShowProfilePage(false); return; }
       if (showTopicPicker) { setShowTopicPicker(false); return; }
       if (showBreakPrompt) { setShowBreakPrompt(false); return; }
       if (tab !== "today") { setTab("today"); return; }
@@ -3731,7 +3783,7 @@ export default function FocusGo() {
     tab, focusFullscreen, taskDetailId, showAddTask, editingTask, selectedDay,
     showCombinedExamEditor, showNextExamEditor, showManageTopicsFor, showExamSchedule,
     showExams, showAdd, showSubjects, showAllSubjectsProgress, showCalendar,
-    showProfile, showTopicPicker, showBreakPrompt, showSearch, strictActive, lang,
+    showProfile, showProfilePage, showTopicPicker, showBreakPrompt, showSearch, strictActive, lang,
   ]);
 
   const timerRef = useRef(null);
@@ -5647,7 +5699,7 @@ export default function FocusGo() {
           transition: transform .16s cubic-bezier(0.16,1,0.3,1), box-shadow .2s ease;
         }
         .fg-btn-circle:active:not(:disabled) { transform: scale(0.94); }
-        .fg-btn-circle--sm { width: 33px; height: 33px; }
+        .fg-btn-circle--sm { width: 29px; height: 29px; }
         .fg-btn-circle--lg { width: 46px; height: 46px; }
 
         .fg-card-flat {
@@ -5724,7 +5776,7 @@ export default function FocusGo() {
             <button onClick={()=>{vibrate(); setShowSearch(true);}}
               title={lang==="bn" ? "খুঁজুন" : "Search"}
               className="fg-btn-circle fg-btn-circle--sm">
-              <Search size={15} strokeWidth={1.8}/>
+              <Search size={13} strokeWidth={1.8}/>
             </button>
             <NotificationBell
               t={t} lang={lang} notifications={notifications}
@@ -5732,18 +5784,18 @@ export default function FocusGo() {
               onClear={()=>setNotifications([])}
               cardBorder={cardBorder} cardBg={cardBg} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}
             />
-            <button onClick={()=>{vibrate(); setShowProfile(true);}}
+            <button onClick={()=>{vibrate(); setShowProfilePage(true);}}
               title={t.profile}
               className="fg-btn-circle fg-btn-circle--sm"
               style={{overflow:"hidden"}}>
               {user && user.photoURL ? (
                 <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
               ) : user && user.gender === "female" ? (
-                <Venus size={13}/>
+                <Venus size={12}/>
               ) : user && user.gender === "male" ? (
-                <Mars size={13}/>
+                <Mars size={12}/>
               ) : (
-                <User size={13}/>
+                <User size={12}/>
               )}
             </button>
           </div>
@@ -5793,9 +5845,15 @@ export default function FocusGo() {
                 night:     { grad: dark ? "rgba(75,90,150,0.12)" : "#4B5A960F", Icon: Moon, iconColor: dark ? "#8FA0E0" : "#4B5A96" },
               }[greetKey];
 
+              const GreetIcon = greetTheme.Icon;
               return (
                 <>
-                  <div style={{padding:"2px 2px 4px", marginBottom:0, position:"relative"}} ref={salahMenuRef}>
+                  <div style={{
+                    padding:"14px 14px 12px", marginBottom:0, position:"relative", borderRadius:18,
+                    background: dark
+                      ? `linear-gradient(135deg, ${greetTheme.grad}, transparent 70%)`
+                      : `linear-gradient(135deg, ${greetTheme.grad}, #FFFFFF 75%)`,
+                  }} ref={salahMenuRef}>
                     <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8}}>
                       <div style={{minWidth:0, flex:1}}>
                         <div
@@ -5803,6 +5861,7 @@ export default function FocusGo() {
                           style={{fontSize:12.5, fontWeight:500, color:"var(--muted)", letterSpacing:0.2, marginBottom:3, display:"flex", alignItems:"center", gap:6, cursor:"pointer"}}
                           title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
                         >
+                          <GreetIcon size={13} color={greetTheme.iconColor} strokeWidth={2.2}/>
                           {lang === "bn" ? greetingBn : greetingEn}
                           {weatherData && weatherData.temp != null && (
                             <span
@@ -5835,7 +5894,7 @@ export default function FocusGo() {
                     </div>
                   </div>
 
-                  <div style={{height:16}}/>
+                  <div style={{height:14}}/>
 
 
                   <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"2px 2px 0", position:"relative"}}>
@@ -6288,15 +6347,34 @@ export default function FocusGo() {
           </div>
         )}
 
-        {/* Focus timer - center-aligned minimal layout: title, big time, controls — all centered as one calm block */}
-        {tab === "study" && studySection === "plan" && (
+        {/* Focus timer - center-aligned minimal layout: title, big time, controls — all centered as one calm block.
+            studySection চেক তুলে দেওয়া হয়েছে যাতে Study ট্যাবে Plan/Stats যেটাতেই থাকুন না কেন, টাইমার কার্ডটা সবসময় সবার উপরে থাকে */}
+        {tab === "study" && (
         <div className="fg-tab-panel" style={{marginTop:8, background: dark ? cardBg : "#FFFFFF", borderRadius:14, padding:"16px 14px 14px", color:textMain, boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)", position:"relative", overflow:"hidden", textAlign:"center"}}>
 
-          <div style={{fontSize:12, fontWeight:600, color:"var(--muted)", letterSpacing:0.4}}>
-            {lang==="bn" ? "ফোকাস টাইমার" : "Focus Timer"}
+          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
+            <div style={{fontSize:12, fontWeight:600, color:"var(--muted)", letterSpacing:0.4}}>
+              {lang==="bn" ? "ফোকাস টাইমার" : "Focus Timer"}
+            </div>
+            <div style={{display:"flex", alignItems:"center", gap:6}}>
+              <button
+                onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setFocusMode(focusMode==="timer" ? "stopwatch" : "timer"); }}
+                disabled={timerRunning || stopwatchRunning}
+                style={{display:"flex", alignItems:"center", gap:3, border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:999, padding:"5px 9px", color:"var(--muted)", fontSize:11, fontWeight:500, cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1}}>
+                <Hourglass size={12}/>{focusMode==="timer" ? t.timerMode : t.stopwatchMode}
+              </button>
+              {focusMode === "timer" && (
+                <button
+                  onClick={()=>{ if (timerRunning) return; vibrate(); changeSessionType(sessionType==="focus" ? "break" : "focus"); }}
+                  disabled={timerRunning}
+                  style={{display:"flex", alignItems:"center", gap:3, border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:999, padding:"5px 9px", color:"var(--muted)", fontSize:11, fontWeight:500, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
+                  {sessionType==="focus" ? t.focusOption : t.breakOption}<ChevronDown size={12}/>
+                </button>
+              )}
+            </div>
           </div>
 
-          <div style={{marginTop:12, display:"flex", flexDirection:"column", alignItems:"center"}}>
+          <div style={{marginTop:16, display:"flex", flexDirection:"column", alignItems:"center"}}>
             {focusMode === "timer" ? (
               editingDuration ? (
                 <div style={{display:"flex", alignItems:"baseline", gap:4}}>
@@ -6315,31 +6393,78 @@ export default function FocusGo() {
                 </div>
               ) : (
                 <span onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined}
-                  style={{fontSize:38, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:-0.7, color:textMain, cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
+                  style={{fontSize:42, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:-0.8, color:textMain, cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
                   <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
                 </span>
               )
             ) : (
-              <span className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:38, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:-0.7, color: textMain, lineHeight:1}}>
+              <span className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:42, fontWeight:600, fontVariantNumeric:"tabular-nums", letterSpacing:-0.8, color: textMain, lineHeight:1}}>
                 <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
               </span>
             )}
 
-            <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:12, marginTop:8}}>
+            {focusMode === "timer" && (
+              <div style={{width:"100%", maxWidth:180, height:3, borderRadius:2, background:"var(--track)", marginTop:10, overflow:"hidden"}}>
+                <div style={{width:`${Math.min(100, Math.max(0, (1 - timerSeconds/timerTotal)*100))}%`, height:"100%", background:accent, borderRadius:2, transition:"width .3s linear"}}/>
+              </div>
+            )}
+
+            {focusMode === "timer" && (
+              <div style={{fontSize:11, fontWeight:500, color:"var(--muted)", marginTop:8}}>
+                <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num> {lang==="bn" ? "সেশন" : "sessions"}
+              </div>
+            )}
+            {focusMode === "timer" && timerTargetMinutes && (
+              <div style={{fontSize:10.5, color:textMuted2, fontWeight:500, opacity:0.75, marginTop:2}}>
+                <Num>{nf(timerElapsedMinutes)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
+              </div>
+            )}
+
+            {/* উইউটিলিটি আইকন — Strict Mode / White Noise / Fullscreen — সেশন-কাউন্টের ঠিক নিচে, ছোট, মিউটেড */}
+            <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:16, marginTop:10}}>
               <button
-                onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setFocusMode(focusMode==="timer" ? "stopwatch" : "timer"); }}
+                onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setStrictModeEnabled(s=>!s); }}
                 disabled={timerRunning || stopwatchRunning}
-                style={{display:"flex", alignItems:"center", gap:2, border:"none", background:"transparent", color:"var(--muted)", fontSize:11.5, fontWeight:600, cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", padding:0, opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1}}>
-                {focusMode==="timer" ? t.timerMode : t.stopwatchMode} <ChevronDown size={12}/>
+                title={lang==="bn" ? "স্ট্রিক্ট মোড (মাঝপথে অ্যাপ ছাড়লে সেশন ফেইল হবে)" : "Strict Mode (leaving mid-session fails it)"}
+                style={{border:"none", background:"transparent", cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", color: strictModeEnabled ? "#C0392B" : "var(--muted)", opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1, display:"flex", alignItems:"center", padding:4}}>
+                {strictModeEnabled ? <ShieldAlert size={15}/> : <Shield size={15}/>}
               </button>
-              {focusMode === "timer" && (
-                <button
-                  onClick={()=>{ if (timerRunning) return; vibrate(); changeSessionType(sessionType==="focus" ? "break" : "focus"); }}
-                  disabled={timerRunning}
-                  style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:"var(--muted)", padding:0, fontSize:11.5, fontWeight:600, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.6 : 1}}>
-                  {sessionType==="focus" ? t.focusOption : t.breakOption} <ChevronDown size={12}/>
+              <div style={{position:"relative"}}>
+                <button onClick={()=>{vibrate(); setShowWhiteNoisePicker(s=>!s);}} title={lang==="bn" ? "হোয়াইট নয়েজ" : "White Noise"} style={{border:"none", background:"transparent", cursor:"pointer", color: whiteNoiseSound!=="none" ? accent : "var(--muted)", display:"flex", alignItems:"center", padding:4}}>
+                  <Music size={15}/>
                 </button>
-              )}
+                {showWhiteNoisePicker && (
+                  <>
+                  <div onClick={()=>setShowWhiteNoisePicker(false)} style={{position:"fixed", inset:0, zIndex:19}}/>
+                  <div onClick={e=>e.stopPropagation()} style={{position:"absolute", top:"calc(100% + 6px)", left:"50%", transform:"translateX(-50%)", zIndex:20, width:220, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:12, boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.35)" : "0 10px 24px rgba(0,0,0,0.14)", textAlign:"left"}}>
+                    <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:6}}>
+                      {WHITE_NOISE_TYPES.map(opt => {
+                        const active = whiteNoiseSound === opt.id;
+                        const OptIcon = opt.Icon;
+                        return (
+                          <button key={opt.id} onClick={()=>{ vibrate(); setWhiteNoiseSound(opt.id); }} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, border:`1px solid ${active ? accent : cardBorder}`, background: active ? `${accent}14` : "transparent", borderRadius:12, padding:"8px 4px", cursor:"pointer", color: active ? accent : textMain}}>
+                            <OptIcon size={16}/>
+                            <span style={{fontSize:10.5, fontWeight:500, textAlign:"center"}}>{lang==="bn" ? opt.labelBn : opt.labelEn}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {whiteNoiseSound !== "none" && (
+                      <div style={{display:"flex", alignItems:"center", gap:8, marginTop:10}}>
+                        <VolumeX size={13} color={textMuted2}/>
+                        <input type="range" min={0} max={1} step={0.01} value={whiteNoiseVolume}
+                          onChange={e=>setWhiteNoiseVolume(Number(e.target.value))}
+                          style={{flex:1}}/>
+                        <Volume2 size={13} color={textMuted2}/>
+                      </div>
+                    )}
+                  </div>
+                  </>
+                )}
+              </div>
+              <button onClick={()=>{vibrate(); setFocusFullscreen(true);}} style={{border:"none", background:"transparent", cursor:"pointer", color:"var(--muted)", display:"flex", alignItems:"center", padding:4}}>
+                <Maximize2 size={15}/>
+              </button>
             </div>
           </div>
 
@@ -6363,7 +6488,7 @@ export default function FocusGo() {
             )}
           </div>
 
-          {/* Start + Reset + session count — কেন্দ্রে, Start বাটন আর ফুল-উইথ না, ফিক্সড-উইথ পিল */}
+          {/* Start + Reset — কেন্দ্রে, ফিক্সড-উইথ পিল */}
           <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:16}}>
             <button
               onClick={focusMode==="timer" ? toggleTimerRunning : toggleStopwatchRunning}
@@ -6373,63 +6498,6 @@ export default function FocusGo() {
             <button onClick={()=>{ if (focusMode==="timer") { setTimerRunning(false); setTimerSeconds(timerTotal); } else { setStopwatchRunning(false); setStopwatchSeconds(0); } }} title={t.reset}
               style={{background:"transparent", border:"none", width:38, height:38, flexShrink:0, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", color:"var(--muted)"}}>
               <RotateCcw size={15}/>
-            </button>
-          </div>
-          {focusMode === "timer" && (
-            <div style={{fontSize:11, fontWeight:500, color:"var(--muted)", marginTop:8}}>
-              <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num> {lang==="bn" ? "সেশন" : "sessions"}
-            </div>
-          )}
-          {focusMode === "timer" && timerTargetMinutes && (
-            <div style={{fontSize:10.5, color:textMuted2, fontWeight:500, opacity:0.75, marginTop:2}}>
-              <Num>{nf(timerElapsedMinutes)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
-            </div>
-          )}
-
-          {/* উইউটিলিটি আইকন — Strict Mode / White Noise / Fullscreen — সবচেয়ে নিচে, ছোট, মিউটেড, কেন্দ্রে */}
-          <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:16, marginTop:16, paddingTop:12, borderTop:"1px solid var(--track)"}}>
-            <button
-              onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setStrictModeEnabled(s=>!s); }}
-              disabled={timerRunning || stopwatchRunning}
-              title={lang==="bn" ? "স্ট্রিক্ট মোড (মাঝপথে অ্যাপ ছাড়লে সেশন ফেইল হবে)" : "Strict Mode (leaving mid-session fails it)"}
-              style={{border:"none", background:"transparent", cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", color: strictModeEnabled ? "#C0392B" : "var(--muted)", opacity:(timerRunning||stopwatchRunning) ? 0.6 : 1, display:"flex", alignItems:"center", padding:4}}>
-              {strictModeEnabled ? <ShieldAlert size={15}/> : <Shield size={15}/>}
-            </button>
-            <div style={{position:"relative"}}>
-              <button onClick={()=>{vibrate(); setShowWhiteNoisePicker(s=>!s);}} title={lang==="bn" ? "হোয়াইট নয়েজ" : "White Noise"} style={{border:"none", background:"transparent", cursor:"pointer", color: whiteNoiseSound!=="none" ? accent : "var(--muted)", display:"flex", alignItems:"center", padding:4}}>
-                <Music size={15}/>
-              </button>
-              {showWhiteNoisePicker && (
-                <>
-                <div onClick={()=>setShowWhiteNoisePicker(false)} style={{position:"fixed", inset:0, zIndex:19}}/>
-                <div onClick={e=>e.stopPropagation()} style={{position:"absolute", top:"calc(100% + 6px)", left:"50%", transform:"translateX(-50%)", zIndex:20, width:220, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:12, boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.35)" : "0 10px 24px rgba(0,0,0,0.14)", textAlign:"left"}}>
-                  <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:6}}>
-                    {WHITE_NOISE_TYPES.map(opt => {
-                      const active = whiteNoiseSound === opt.id;
-                      const OptIcon = opt.Icon;
-                      return (
-                        <button key={opt.id} onClick={()=>{ vibrate(); setWhiteNoiseSound(opt.id); }} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, border:`1px solid ${active ? accent : cardBorder}`, background: active ? `${accent}14` : "transparent", borderRadius:12, padding:"8px 4px", cursor:"pointer", color: active ? accent : textMain}}>
-                          <OptIcon size={16}/>
-                          <span style={{fontSize:10.5, fontWeight:500, textAlign:"center"}}>{lang==="bn" ? opt.labelBn : opt.labelEn}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {whiteNoiseSound !== "none" && (
-                    <div style={{display:"flex", alignItems:"center", gap:8, marginTop:10}}>
-                      <VolumeX size={13} color={textMuted2}/>
-                      <input type="range" min={0} max={1} step={0.01} value={whiteNoiseVolume}
-                        onChange={e=>setWhiteNoiseVolume(Number(e.target.value))}
-                        style={{flex:1}}/>
-                      <Volume2 size={13} color={textMuted2}/>
-                    </div>
-                  )}
-                </div>
-                </>
-              )}
-            </div>
-            <button onClick={()=>{vibrate(); setFocusFullscreen(true);}} style={{border:"none", background:"transparent", cursor:"pointer", color:"var(--muted)", display:"flex", alignItems:"center", padding:4}}>
-              <Maximize2 size={15}/>
             </button>
           </div>
         </div>
@@ -6451,61 +6519,100 @@ export default function FocusGo() {
         {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — Option 2: circular progress, premium look
             এখন accent color ব্যবহার হচ্ছে (আগে dark teal ছিল, সেই রঙ Next Exam কার্ডে সরানো হয়েছে) */}
         {((tab === "today" && studyFeatureEnabled) || (tab === "study" && studySection === "plan")) && (() => {
-          return (
-        <div className="fg-tab-panel" style={{
-            marginTop: tab === "today" ? 8 : 16,
-            background: tab === "today" ? "transparent" : (dark ? cardBg : "#FFFFFF"),
-            borderRadius: 14,
-            padding: tab === "today" ? "4px 2px 10px" : "10px 14px 11px",
-            position:"relative", overflow:"hidden",
-            boxShadow: tab === "today" ? "none" : (dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)")
-          }}>
-          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}>
-            <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
-              <PercentRing pct={todayTopics.length ? Math.round((todayTopics.filter(x=>x.done).length/todayTopics.length)*100) : 0}
-                size={38} stroke={4} accent={accent} trackColor={`${accent}40`} textMain={inkColor} nf={nf}/>
-              <div style={{minWidth:0}}>
-                <div style={{fontSize:13.5, fontWeight:600, color:inkColor, marginBottom:2}}>{t.todaysProgress}</div>
-                <div style={{display:"flex", alignItems:"center", gap:6, fontSize:12.5, fontWeight:500, whiteSpace:"nowrap"}}>
-                  <span style={{display:"inline-flex", alignItems:"center", gap:3, color:inkA(0.82)}}>
-                    <Check size={12} strokeWidth={3}/> <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {t.progressCompletedLabel}
-                  </span>
-                  <span style={{color:inkA(0.3), fontWeight:400}}>|</span>
-                  <span style={{display:"inline-flex", alignItems:"center", gap:3, color:inkA(0.82)}}>
-                    <Clock size={12}/> <Num>{nf(todayTopics.length - todayTopics.filter(x=>x.done).length)}</Num> {t.remaining}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, gap:1, paddingLeft:10, borderLeft: `1px solid ${accent}25`}}>
-              <div style={{width:22, height:22, borderRadius:"50%", background: `${accent}22`, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                <Flame size={13} color={accent} fill={`${accent}55`}/>
-              </div>
-              <div style={{fontSize:14.5, fontWeight:600, color:inkColor, lineHeight:1}}><Num>{nf(studyOverview.streak)}</Num></div>
-              <div style={{fontSize:10, color:inkA(0.75), fontWeight:500, whiteSpace:"nowrap"}}>{t.streakLabel}</div>
-            </div>
-          </div>
-          {/* Today's Tasks mini-summary — merged into the progress card so the card previews task progress at a glance, matching the home page mockup */}
-          {tab === "today" && tasksFeatureEnabled && (() => {
-            const cardTodayTasks = tasks.filter(x => x.dueDate === todayKey);
+          if (tab === "today") {
+            // Today tab hero: a single calm, focus-oriented card — a ring for the day's study
+            // completion, the streak as a quiet badge, and the task progress as a slim bar below.
+            const doneToday = todayTopics.filter(x => x.done).length;
+            const totalToday = todayTopics.length;
+            const dayPct = totalToday > 0 ? doneToday / totalToday : 0;
+            const ringSize = 72, ringStroke = 7, ringR = (ringSize - ringStroke) / 2, ringC = 2 * Math.PI * ringR;
+
+            const cardTodayTasks = tasksFeatureEnabled ? tasks.filter(x => x.dueDate === todayKey) : [];
             const hasTasks = cardTodayTasks.length > 0;
             const cardDone = cardTodayTasks.filter(x => x.done).length;
             const cardPct = hasTasks ? Math.round((cardDone / cardTodayTasks.length) * 100) : 0;
-            const cardLeft = cardTodayTasks.length - cardDone;
+            const allTasksDone = hasTasks && cardDone === cardTodayTasks.length;
+
             return (
-              <div style={{marginTop:6, paddingTop:6, borderTop:`1px solid ${accent}25`}}>
-                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4}}>
-                  <div style={{fontSize:13, fontWeight:600, color:inkColor}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
-                  <div style={{fontSize:11, fontWeight:500, color:inkA(0.75), whiteSpace:"nowrap"}}>
-                    {!hasTasks ? (lang==="bn" ? "কোনো টাস্ক নেই" : "No tasks today") : cardLeft > 0 ? (lang==="bn" ? `${nf(cardDone)}/${nf(cardTodayTasks.length)} সম্পন্ন` : `${cardDone}/${cardTodayTasks.length} completed`) : t.taskAllDoneLabel}
+              <div className="fg-tab-panel" style={{
+                marginTop:10, background: dark ? cardBg : "#FFFFFF", borderRadius:20,
+                padding:"18px 18px 16px", position:"relative", overflow:"hidden",
+                border:`1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(20,17,24,0.045)"}`,
+                boxShadow: dark ? "0 2px 12px rgba(0,0,0,0.32)" : "0 4px 18px rgba(32,34,43,0.06)",
+              }}>
+                <div style={{display:"flex", alignItems:"center", gap:16}}>
+                  <div style={{position:"relative", width:ringSize, height:ringSize, flexShrink:0}}>
+                    <svg width={ringSize} height={ringSize} viewBox={`0 0 ${ringSize} ${ringSize}`} style={{transform:"rotate(-90deg)"}}>
+                      <circle cx={ringSize/2} cy={ringSize/2} r={ringR} fill="none" stroke={dark ? "#242229" : "#F0EEF5"} strokeWidth={ringStroke}/>
+                      {dayPct > 0 && (
+                        <circle cx={ringSize/2} cy={ringSize/2} r={ringR} fill="none" stroke={accent} strokeWidth={ringStroke}
+                          strokeLinecap="round" strokeDasharray={ringC} strokeDashoffset={ringC * (1 - dayPct)}
+                          style={{transition:"stroke-dashoffset .5s cubic-bezier(0.34,1.2,0.64,1)"}}/>
+                      )}
+                    </svg>
+                    <div style={{position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                      <span style={{fontSize:16.5, fontWeight:800, color:textMain, letterSpacing:-0.3, fontVariantNumeric:"tabular-nums"}}>
+                        <Num>{nf(Math.round(dayPct * 100))}</Num>%
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{flex:1, minWidth:0}}>
+                    <div style={{fontSize:12.5, fontWeight:600, color:textMuted2, letterSpacing:0.1, marginBottom:4}}>{t.todaysProgress}</div>
+                    <div style={{display:"flex", alignItems:"center", gap:6, flexWrap:"wrap"}}>
+                      <span style={{display:"flex", alignItems:"center", gap:5, fontSize:14, fontWeight:700, color:textMain}}>
+                        <Check size={14} strokeWidth={3} color="#6E8B5E"/><Num>{nf(doneToday)}</Num> {t.doneCount}
+                      </span>
+                      <span style={{width:3, height:3, borderRadius:"50%", background:textMuted2, flexShrink:0}}/>
+                      <span style={{display:"flex", alignItems:"center", gap:5, fontSize:14, fontWeight:700, color:textMain}}>
+                        <Clock size={13} color={textMuted2}/><Num>{nf(Math.max(0, totalToday - doneToday))}</Num> {t.remaining}
+                      </span>
+                    </div>
+                    <div style={{display:"inline-flex", alignItems:"center", gap:6, marginTop:10, background: `${accent}14`, borderRadius:999, padding:"4px 10px 4px 8px"}}>
+                      <Flame size={13} color={accent} fill={`${accent}55`}/>
+                      <span style={{fontSize:12.5, fontWeight:700, color:accent}}><Num>{nf(studyOverview.streak)}</Num> {t.streakLabel}</span>
+                    </div>
                   </div>
                 </div>
-                <div style={{height:4, borderRadius:8, background: `${accent}33`, overflow:"hidden"}}>
-                  <div style={{width: hasTasks ? `${cardPct}%` : "0%", height:"100%", borderRadius:8, background:accent, transition:"width .25s ease"}}/>
-                </div>
+
+                {tasksFeatureEnabled && (
+                  <div style={{marginTop:16, paddingTop:13, borderTop:`1px solid ${dark ? "rgba(255,255,255,0.07)" : "rgba(20,17,24,0.06)"}`}}>
+                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:7}}>
+                      <div style={{fontSize:13, fontWeight:600, color:textMain}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
+                      <div style={{fontSize:11.5, fontWeight:600, color: allTasksDone ? "#6E8B5E" : textMuted2, whiteSpace:"nowrap"}}>
+                        {!hasTasks ? (lang==="bn" ? "কোনো টাস্ক নেই" : "No tasks today") : allTasksDone ? t.taskAllDoneLabel : (lang==="bn" ? `${nf(cardDone)}/${nf(cardTodayTasks.length)} সম্পন্ন` : `${cardDone}/${cardTodayTasks.length} completed`)}
+                      </div>
+                    </div>
+                    <div style={{height:5, borderRadius:8, background: dark ? "#242229" : "#F0EEF5", overflow:"hidden"}}>
+                      <div style={{width: hasTasks ? `${cardPct}%` : "0%", height:"100%", borderRadius:8, background: allTasksDone ? "#6E8B5E" : accent, transition:"width .3s ease"}}/>
+                    </div>
+                  </div>
+                )}
               </div>
             );
-          })()}
+          }
+          return (
+        <div className="fg-tab-panel" style={{
+            marginTop: 16,
+            background: dark ? cardBg : "#FFFFFF",
+            borderRadius: 14,
+            padding: "10px 14px 11px",
+            position:"relative", overflow:"hidden",
+            boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)"
+          }}>
+          <div style={{display:"flex", alignItems:"center", gap:14}}>
+            <div style={{flex:1, minWidth:0}}>
+              <div style={{fontSize:12, fontWeight:600, color:inkA(0.6), marginBottom:3}}>{lang==="bn" ? "আজ" : "Today"}</div>
+              <div style={{fontSize:17, fontWeight:700, color:inkColor, letterSpacing:-0.2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
+                <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {lang==="bn" ? "এর মধ্যে" : "of"} <Num>{nf(todayTopics.length)}</Num> {lang==="bn" ? "সম্পন্ন" : "done"}
+              </div>
+            </div>
+            <div style={{width:1, alignSelf:"stretch", background:`${accent}30`, flexShrink:0}}/>
+            <div style={{display:"flex", alignItems:"center", gap:6, flexShrink:0}}>
+              <Flame size={16} color={accent} fill={`${accent}55`}/>
+              <span style={{fontSize:17, fontWeight:700, color:inkColor, letterSpacing:-0.2}}><Num>{nf(studyOverview.streak)}</Num></span>
+              <span style={{fontSize:12, fontWeight:500, color:inkA(0.6), whiteSpace:"nowrap"}}>{t.streakLabel}</span>
+            </div>
+          </div>
         </div>
           );
         })()}
@@ -6558,12 +6665,14 @@ export default function FocusGo() {
         })()}
 
 
-        {/* Today's study list - Today tab + Study tab (shown above Study Plan/Exam) */}
+        {/* Today's study list - Today tab + Study tab (shown above Study Plan/Exam)
+            Today ট্যাবে এখন এটা নিজের একটা আলাদা কার্ডে বসানো, যাতে নিচের Today's Tasks সেকশনের
+            সাথে মিশে না গিয়ে স্পষ্টভাবে আলাদা একটা ব্লক মনে হয় */}
         {((tab === "today" && studyFeatureEnabled) || (tab === "study" && studySection === "plan")) && (
-        <div className="fg-tab-panel" style={{marginTop:12}}>
+        <div className="fg-tab-panel" style={{marginTop: tab === "today" ? 14 : 12}}>
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
             <div style={{display:"flex", alignItems:"center", gap:8}}>
-              <span style={{width:26, height:26, borderRadius:9, background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+              <span style={{width:26, height:26, borderRadius:10, background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                 <GraduationCap size={14} color={accent} strokeWidth={2.2}/>
               </span>
               <div style={{fontSize:16.5, fontWeight:600, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
@@ -6573,13 +6682,30 @@ export default function FocusGo() {
             </button>
           </div>
 
-          <TopicsList items={todayTopics} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
-            cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} textMain={textMain} accent={accent}
-            onToggle={(id)=>toggleDoneFor(todayKey, id)} onStartTimer={startTimerFor}
-            activeTimerId={timerTopicId} timerRunning={timerRunning} timerSeconds={timerSeconds} onToggleRun={toggleTimerRunning}
-            onEdit={(item)=>setEditTopic({...item, _dk: todayKey})} onDelete={(id)=>deleteTopicFor(todayKey, id)}
-            onRename={(item, newTopic)=>saveEditFor(todayKey, {...item, topic:newTopic})}
-            emptyText={t.noTopicsToday} emptySubtext={t.noTopicsTodaySub} emptyIcon={Sparkles} useAccentColor/>
+          {tab === "today" ? (
+            <div style={{
+              background: dark ? cardBg : "#FFFFFF", borderRadius:16, padding: todayTopics.length ? "4px 13px" : "13px",
+              border:`1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(20,17,24,0.045)"}`,
+              boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 2px 10px rgba(32,34,43,0.05)",
+            }}>
+              <TopicsList items={todayTopics} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
+                cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} textMain={textMain} accent={accent}
+                onToggle={(id)=>toggleDoneFor(todayKey, id)} onStartTimer={startTimerFor}
+                activeTimerId={timerTopicId} timerRunning={timerRunning} timerSeconds={timerSeconds} onToggleRun={toggleTimerRunning}
+                onEdit={(item)=>setEditTopic({...item, _dk: todayKey})} onDelete={(id)=>deleteTopicFor(todayKey, id)}
+                onRename={(item, newTopic)=>saveEditFor(todayKey, {...item, topic:newTopic})}
+                emptyText={t.noTopicsToday} emptySubtext={t.noTopicsTodaySub} emptyIcon={Sparkles} useAccentColor
+                rowDividerColor={dark ? "rgba(255,255,255,0.07)" : "rgba(20,17,24,0.06)"}/>
+            </div>
+          ) : (
+            <TopicsList items={todayTopics} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
+              cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} textMain={textMain} accent={accent}
+              onToggle={(id)=>toggleDoneFor(todayKey, id)} onStartTimer={startTimerFor}
+              activeTimerId={timerTopicId} timerRunning={timerRunning} timerSeconds={timerSeconds} onToggleRun={toggleTimerRunning}
+              onEdit={(item)=>setEditTopic({...item, _dk: todayKey})} onDelete={(id)=>deleteTopicFor(todayKey, id)}
+              onRename={(item, newTopic)=>saveEditFor(todayKey, {...item, topic:newTopic})}
+              emptyText={t.noTopicsToday} emptySubtext={t.noTopicsTodaySub} emptyIcon={Sparkles} useAccentColor/>
+          )}
         </div>
         )}
 
@@ -6588,14 +6714,15 @@ export default function FocusGo() {
         <div className="fg-tab-panel" style={{marginTop:14}}/>
         )}
 
-        {/* Today's Tasks — after Today's Study */}
+        {/* Today's Tasks — after Today's Study; extra top margin keeps it visually separate from the
+            Today's Study card above so the two sections never read as one merged block */}
         {tab === "today" && tasksFeatureEnabled && (() => {
           const homeTodayTasks = tasks.filter(x => x.dueDate === todayKey);
           return (
-          <div className="fg-tab-panel" style={{marginTop:12}}>
+          <div className="fg-tab-panel" style={{marginTop:20}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
               <div style={{display:"flex", alignItems:"center", gap:8}}>
-                <span style={{width:26, height:26, borderRadius:9, background: inkA(dark ? 0.2 : 0.12), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                <span style={{width:26, height:26, borderRadius:10, background: inkA(dark ? 0.2 : 0.12), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                   <ListChecks size={14} color={inkColor} strokeWidth={2.2}/>
                 </span>
                 <div style={{fontSize:16.5,fontWeight:600,letterSpacing:-0.3,color:textMain}}>
@@ -6901,6 +7028,9 @@ export default function FocusGo() {
 
             return (
               <div>
+                <button onClick={()=>{vibrate(); setTaskViewMode("list");}} style={{display:"flex", alignItems:"center", gap:5, border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:"0 0 12px", fontSize:13, fontWeight:600}}>
+                  <ChevronLeft size={15}/> {t.taskViewList}
+                </button>
                 <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12}}>
                   <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m-1,1));}} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", display:"flex", padding:4}}><ChevronLeft size={18}/></button>
                   <span style={{fontSize:14.5, fontWeight:600, color:textMain}}>{monthName(m)} <Num>{nf(y)}</Num></span>
@@ -6994,29 +7124,10 @@ export default function FocusGo() {
                 <div style={{fontSize:12.5, color:"var(--muted)", marginTop:3, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden", lineHeight:1.3}}>{t.taskSubtitle}</div>
               </div>
 
-              {/* List / Calendar ভিউ টগল — Study Plan/Stats-এর মতো একই underline-tab স্টাইল */}
-              <div style={{display:"flex", gap:24, marginBottom:10, borderBottom:"1px solid var(--track)"}}>
-                {[["list", t.taskViewList, List], ["calendar", t.taskViewCalendar, CalendarRange]].map(([key,label,Icon]) => {
-                  const active = taskViewMode === key;
-                  return (
-                    <button key={key} onClick={()=>{vibrate(); setTaskViewMode(key);}} style={{
-                      display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", cursor:"pointer",
-                      padding:"0 0 8px", fontSize:14.5, fontWeight:600,
-                      color: active ? textMain : textMuted2,
-                      borderBottom: active ? `2px solid ${accent}` : "2px solid transparent",
-                      marginBottom:-1, transition:"color .18s ease, border-color .18s ease",
-                    }}>
-                      <Icon size={14} color={active ? accent : textMuted2}/>
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-
               {taskViewMode === "list" ? (
                 <>
-                  <div style={{position:"relative", marginBottom:12, borderBottom:"1px solid var(--track)"}}>
-                    <div className="fg-chip-row" style={{display:"flex", gap:18, overflowX:"auto", WebkitMaskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)", maskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)"}}>
+                  <div style={{position:"relative", marginBottom:12, borderBottom:"1px solid var(--track)", display:"flex", alignItems:"center", gap:10}}>
+                    <div className="fg-chip-row" style={{display:"flex", gap:18, overflowX:"auto", flex:1, minWidth:0, WebkitMaskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)", maskImage:"linear-gradient(to right, black 0, black calc(100% - 20px), transparent 100%)"}}>
                       {filterChips.map(([key,label,Icon,count]) => (
                         <button key={key} onClick={()=>{vibrate(); setTaskFilter(key);}} style={{
                           display:"flex", alignItems:"center", gap:5, padding:"0 0 8px", cursor:"pointer", flexShrink:0,
@@ -7029,6 +7140,12 @@ export default function FocusGo() {
                       ))}
                       <div style={{width:1, flexShrink:0}}/>
                     </div>
+                    <button onClick={()=>{vibrate(); setTaskViewMode("calendar");}} title={t.taskViewCalendar} style={{
+                      display:"flex", alignItems:"center", justifyContent:"center", border:"none", background:"transparent", cursor:"pointer",
+                      padding:"0 2px 9px", color:textMuted2, flexShrink:0,
+                    }}>
+                      <CalendarRange size={18}/>
+                    </button>
                   </div>
 
                   {filteredTasks.length === 0 && (
@@ -7171,14 +7288,17 @@ export default function FocusGo() {
                 { Icon: Flame, color:"#C08A2E", value: nf(studyOverview.streak), label: t.streakLabel },
               ];
               return (
-                <div style={{background:"transparent", borderRadius:14, padding:"4px 2px 14px", marginBottom:8, textAlign:"center"}}>
-                  <div style={{fontSize:26, fontWeight:600, letterSpacing:-0.6, color:"var(--text)", lineHeight:1.1}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
-                  <div style={{fontSize:12, color:"var(--muted)", fontWeight:500, marginTop:3}}>{t.focusedLabel}</div>
-                  <div style={{display:"flex", marginTop:16}}>
+                <div style={{background: dark ? cardBg : "#FFFFFF", borderRadius:14, padding:"18px 16px 16px", marginBottom:16, textAlign:"center", boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)"}}>
+                  <div style={{fontSize:28, fontWeight:700, letterSpacing:-0.6, color:textMain, lineHeight:1.1}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
+                  <div style={{fontSize:12, color:textMuted2, fontWeight:500, marginTop:3}}>{t.focusedLabel}</div>
+                  <div style={{display:"flex", marginTop:18, paddingTop:16, borderTop:`1px solid ${cardBorder}`}}>
                     {statItems.map((it, i) => (
-                      <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4, textAlign:"center"}}>
-                        <div style={{fontSize:15, fontWeight:600, color:"var(--text)", letterSpacing:-0.2, lineHeight:1.1}}>{it.value}</div>
-                        <div style={{fontSize:9.5, color:"var(--muted)", fontWeight:500, lineHeight:1.2}}>{it.label}</div>
+                      <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6, textAlign:"center"}}>
+                        <div style={{width:30, height:30, borderRadius:"50%", background:`${it.color}1E`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                          <it.Icon size={14} color={it.color}/>
+                        </div>
+                        <div style={{fontSize:14.5, fontWeight:700, color:textMain, letterSpacing:-0.2, lineHeight:1.1}}>{it.value}</div>
+                        <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, lineHeight:1.2}}>{it.label}</div>
                       </div>
                     ))}
                   </div>
@@ -7198,7 +7318,7 @@ export default function FocusGo() {
               </button>
             </div>
 
-            <div style={{marginBottom:20}}>
+            <div style={{marginBottom:20, background: dark ? cardBg : "#FFFFFF", borderRadius:14, padding: "4px 14px", boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)"}}>
               {(() => {
                 const sorted = [...allSubjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"}));
                 const COLLAPSE_AT = 4; // max 4 subjects shown in the grid — rest via "See more"
@@ -7215,7 +7335,7 @@ export default function FocusGo() {
                         const c = colorForSubject(subj, allSubjects);
                         const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
                         return (
-                          <button key={subj} className="fg-task-row" onClick={()=>{vibrate(); setShowManageTopicsFor(subj); setShowSubjects(true);}} style={{display:"flex", alignItems:"center", gap:12, background:"transparent", borderRadius:0, padding:"13px 2px", cursor:"pointer", textAlign:"left", width:"100%"}}>
+                          <button key={subj} className="fg-task-row" onClick={()=>{vibrate(); setShowManageTopicsFor(subj); setShowSubjects(true);}} style={{display:"flex", alignItems:"center", gap:12, background:"transparent", borderRadius:0, padding:"13px 0", cursor:"pointer", textAlign:"left", width:"100%"}}>
                             <span style={{width:10, height:10, borderRadius:"50%", background:c.bg, flexShrink:0}}/>
                             <div style={{flex:1, minWidth:0}}>
                               <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:c.bg, textTransform:"uppercase", marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{v.total ? `${nf(pct)}%` : t.noTopicsSubjectShort}</div>
@@ -7243,7 +7363,7 @@ export default function FocusGo() {
                       })}
                     </div>
                     {isLong && (
-                      <button onClick={()=>{vibrate(); setShowAllSubjectsProgress(v=>!v);}} style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:10, padding:"10px 0 2px", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
+                      <button onClick={()=>{vibrate(); setShowAllSubjectsProgress(v=>!v);}} style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:10, padding:"10px 0 12px", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
                         {showAllSubjectsProgress ? t.showLess : t.seeAll} <ChevronDown size={14} style={{transform: showAllSubjectsProgress ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
                       </button>
                     )}
@@ -7253,7 +7373,8 @@ export default function FocusGo() {
             </div>
 
             {/* Weekly Activity — bar chart with value labels and accent-weighted bars */}
-            <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:10}}>
+            <div style={{background: dark ? cardBg : "#FFFFFF", borderRadius:14, padding:"14px 14px 6px", marginBottom:20, boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)"}}>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:4}}>
               <span style={{fontSize:10.5, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.weeklyActivity}</span>
               <span style={{fontSize:11.5, fontWeight:700, color:textMuted2}}>
                 {(() => {
@@ -7263,7 +7384,7 @@ export default function FocusGo() {
                 })()}
               </span>
             </div>
-            <div style={{background:"transparent", borderRadius:14, padding:"18px 2px 12px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:118, marginBottom:20}}>
+            <div style={{background:"transparent", borderRadius:14, padding:"14px 0 12px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:118}}>
               {(() => {
                 const maxMin = Math.max(1, ...weeklyActivity.map(w=>w.min));
                 return weeklyActivity.map((w,i) => {
@@ -7284,9 +7405,11 @@ export default function FocusGo() {
                 });
               })()}
             </div>
+            </div>
 
             {/* Monthly Activity — same bar-chart style as Weekly Activity, grouped by week-of-month */}
-            <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:10}}>
+            <div style={{background: dark ? cardBg : "#FFFFFF", borderRadius:14, padding:"14px 14px 6px", marginBottom:20, boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)"}}>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:4}}>
               <span style={{fontSize:10.5, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.monthlyActivity}</span>
               <span style={{fontSize:11.5, fontWeight:700, color:textMuted2}}>
                 {(() => {
@@ -7296,7 +7419,7 @@ export default function FocusGo() {
                 })()}
               </span>
             </div>
-            <div style={{background:"transparent", borderRadius:14, padding:"18px 2px 12px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:118, marginBottom:20}}>
+            <div style={{background:"transparent", borderRadius:14, padding:"14px 0 12px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:118}}>
               {(() => {
                 const maxMin = Math.max(1, ...monthlyActivity.map(w=>w.min));
                 const currentWeekNum = (() => {
@@ -7322,6 +7445,7 @@ export default function FocusGo() {
                   );
                 });
               })()}
+            </div>
             </div>
 
             <div style={{display:"flex", alignItems:"center", gap:10, margin:"4px 0 16px"}}>
@@ -7398,7 +7522,6 @@ export default function FocusGo() {
             ...(studyFeatureEnabled ? [{k:"study", Icon: GraduationCap}] : []),
             ...(tasksFeatureEnabled ? [{k:"task", Icon: ListChecks}] : []),
             ...(notesFeatureEnabled ? [{k:"notes", Icon: FileText}] : []),
-            {k:"settings", Icon: Settings},
           ].map(({k, Icon}) => (
             <button key={k} onClick={()=>{vibrate(); setTab(k);}} style={{
               flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:2, border:"none", borderRadius:12, padding:"7px 4px", fontSize:10.5, fontWeight:700, cursor:"pointer",
@@ -7554,6 +7677,36 @@ export default function FocusGo() {
           onExitGuest={() => { clearGuestData(); setIsGuest(false); setShowProfile(false); }}
           onUserUpdate={(patch)=>setUser(u=>({...u, ...patch}))}
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
+      )}
+
+      {/* Profile full-page — হেডারের প্রোফাইল আইকনে ক্লিক করলে খোলে। Settings ট্যাবের মতোই ডিজাইন
+          (প্রোফাইল কার্ড + Preferences), কিন্তু পুরো স্ক্রিন ঢেকে রাখে বলে নিচের ৫-ট্যাব বার দেখা যায় না,
+          আর উপরে "Settings" এর বদলে একটা ব্যাক বাটন থাকে (onBack প্রপ দেওয়া থাকলে) */}
+      {showProfilePage && (
+        <div style={{position:"fixed", inset:0, zIndex:70, background:bg, overflowY:"auto"}}>
+          <div style={{...styles.container, minHeight:"100%", boxSizing:"border-box"}}>
+            <SettingsModal t={t} lang={lang} setLang={setLang} themeMode={themeMode} setThemeMode={setThemeMode}
+              accentKey={accentKey} setAccentKey={setAccentKey}
+              notificationsEnabled={notificationsEnabled} setNotificationsEnabled={setNotificationsEnabled} asPage
+              onBack={()=>setShowProfilePage(false)}
+              examNotifEnabled={examNotifEnabled} setExamNotifEnabled={setExamNotifEnabled}
+              taskNotifEnabled={taskNotifEnabled} setTaskNotifEnabled={setTaskNotifEnabled}
+              salahNotifEnabled={salahNotifEnabled} setSalahNotifEnabled={setSalahNotifEnabled}
+              timerNotifEnabled={timerNotifEnabled} setTimerNotifEnabled={setTimerNotifEnabled}
+              alarmNotifEnabled={alarmNotifEnabled} setAlarmNotifEnabled={setAlarmNotifEnabled}
+              salahFeatureEnabled={salahFeatureEnabled} setSalahFeatureEnabled={setSalahFeatureEnabled}
+              studyFeatureEnabled={studyFeatureEnabled} setStudyFeatureEnabled={setStudyFeatureEnabled}
+              tasksFeatureEnabled={tasksFeatureEnabled} setTasksFeatureEnabled={setTasksFeatureEnabled}
+              notesFeatureEnabled={notesFeatureEnabled} setNotesFeatureEnabled={setNotesFeatureEnabled}
+              focusMinutes={focusMinutes} setFocusMinutes={setFocusMinutes}
+              breakMinutes={breakMinutes} setBreakMinutes={setBreakMinutes}
+              weekStartDay={weekStartDay} setWeekStartDay={changeWeekStartDay}
+              user={user} isGuest={isGuest} onOpenProfile={() => { setShowProfilePage(false); setShowProfile(true); }}
+              notes={notes} tasks={tasks} subjects={subjects} setNotes={setNotes} setTasks={setTasks} setSubjects={setSubjects}
+              textScale={textScale} setTextScale={setTextScale} TEXT_SCALE_OPTIONS={TEXT_SCALE_OPTIONS}
+              cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
+          </div>
+        </div>
       )}
 
       {/* Undo toast — যেকোনো ডিলিটের পর কয়েক সেকেন্ড দেখা যায়, চাপলে আগের অবস্থায় ফিরে যায় */}
@@ -8939,7 +9092,7 @@ function TopicSummaryPeriodCard({ label, rangeLabel, isComplete, pendingText, co
 }
 
 // Read-only-capable list of topics used by the Today and Plan tabs.
-function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textMuted2, textMain, accent, onToggle, onStartTimer, onEdit, onDelete, onRename, emptyText, emptySubtext, emptyIcon: EmptyIcon, onEmptyAdd, emptyAddLabel, activeTimerId, timerRunning, timerSeconds, onToggleRun, useAccentColor }) {
+function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textMuted2, textMain, accent, onToggle, onStartTimer, onEdit, onDelete, onRename, emptyText, emptySubtext, emptyIcon: EmptyIcon, onEmptyAdd, emptyAddLabel, activeTimerId, timerRunning, timerSeconds, onToggleRun, useAccentColor, rowDividerColor }) {
   const ls = (px) => (lang === "bn" ? 0 : px);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
@@ -8961,13 +9114,14 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
   }
   return (
     <div style={{display:"flex", flexDirection:"column", gap:0}}>
-      {items.map(item => {
+      {items.map((item, idx) => {
         const c = useAccentColor ? { bg: accent, bgSoft: `${accent}1A` } : colorForSubject(item.subject, allSubjects);
         const isActiveTimer = activeTimerId && activeTimerId === item.id;
         return (
           <div key={item.id} className="fg-task-row" style={{
             background: isActiveTimer ? `${c.bg}0F` : "transparent",
             borderRadius: isActiveTimer ? 14 : 0, padding: isActiveTimer ? "12px 13px" : "13px 2px", position:"relative",
+            borderBottom: (!isActiveTimer && rowDividerColor && idx < items.length - 1) ? `1px solid ${rowDividerColor}` : "none",
             transition:"background .15s ease",
           }}>
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
@@ -9695,6 +9849,13 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
   const [editing, setEditing] = useState(null); // {} নতুন নোটের জন্য, নাহলে আসল নোট অবজেক্ট
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const bodyRef = useRef(null);
+  useLayoutEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  }, [body, editing]);
   const [category, setCategory] = useState("General");
   const [color, setColor] = useState(null);
   const [pinned, setPinned] = useState(false);
@@ -10034,8 +10195,8 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
 
             <input value={title} onChange={e => setTitle(e.target.value)} placeholder={t.notesTitlePlaceholder}
               style={{ width: "100%", border: "none", background: "transparent", outline: "none", fontSize: 19, fontWeight: 700, color: editorSw.text, marginBottom: 6, fontFamily: "inherit" }} />
-            <textarea value={body} onChange={e => setBody(e.target.value)} placeholder={t.notesBodyPlaceholder} rows={4}
-              style={{ width: "100%", border: "none", background: "transparent", outline: "none", fontSize: 14, color: editorSw.text, opacity: 0.9, resize: "none", fontFamily: "inherit", lineHeight: 1.55, marginBottom: 10 }} />
+            <textarea ref={bodyRef} value={body} onChange={e => setBody(e.target.value)} placeholder={t.notesBodyPlaceholder} rows={4}
+              style={{ width: "100%", border: "none", background: "transparent", outline: "none", fontSize: 14, color: editorSw.text, opacity: 0.9, resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.55, marginBottom: 10, minHeight: 90 }} />
 
             {checklist.length > 0 && (
               <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 8 }}>
@@ -10248,35 +10409,39 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
           <button onClick={onClose} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:2}}><X size={18}/></button>
         </div>
 
-        <input ref={titleInputRef} value={title} onChange={e=>setTitle(e.target.value)} placeholder={t.taskTitlePlaceholder}
+        <textarea ref={titleInputRef} value={title} onChange={e=>setTitle(e.target.value)} placeholder={t.taskTitlePlaceholder} rows={2}
           onFocus={(e)=>{ setTimeout(()=>{ try { e.target.scrollIntoView({block:"center"}); } catch(err){} }, 250); }}
-          style={{width:"100%", boxSizing:"border-box", background:bg, border:`1px solid ${cardBorder}`, borderRadius:11, padding:"9px 12px", fontSize:14, color:textMain, outline:"none", fontFamily:"inherit", marginBottom:9}}/>
+          style={{width:"100%", boxSizing:"border-box", background:bg, border:"none", borderRadius:16, padding:"16px 16px", fontSize:16, color:textMain, outline:"none", fontFamily:"inherit", resize:"none", lineHeight:1.4, marginBottom:12}}/>
 
-        <div style={{display:"flex", alignItems:"center", gap:6, marginBottom:9}}>
-          <div style={{flex:1, minWidth:0, display:"flex", alignItems:"center", gap:5, background:bg, border:`1px solid ${cardBorder}`, borderRadius:11, padding:"7px 9px"}}>
-            <CalendarDays size={13} color={textMuted2} style={{flexShrink:0}}/>
+        <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:16}}>
+          <div style={{flex:1, minWidth:0, display:"flex", alignItems:"center", gap:6, background:bg, border:"none", borderRadius:12, padding:"10px 12px"}}>
+            <CalendarDays size={14} color={textMuted2} style={{flexShrink:0}}/>
             <input type="date" value={dueDate} onChange={e=>setDueDate(e.target.value)}
-              style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit"}}/>
+              style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:13.5, color:textMain, outline:"none", fontFamily:"inherit"}}/>
           </div>
 
           {/* রিমাইন্ডার — ডেট ফিল্ডের ঠিক পাশে, "More options" খোলার দরকার নেই। ডেট সিলেক্ট না থাকলে নিষ্ক্রিয়/ঘোলা দেখাবে। */}
           <div title={!dueDate ? (lang==="bn" ? "আগে তারিখ সিলেক্ট করুন" : "Select a date first") : undefined}
-            style={{flex:1, minWidth:0, display:"flex", alignItems:"center", gap:5, background:bg, border:`1px solid ${cardBorder}`, borderRadius:11, padding:"7px 9px", opacity: dueDate ? 1 : 0.45}}>
-            <Bell size={13} color={textMuted2} style={{flexShrink:0}}/>
+            style={{flex:1, minWidth:0, display:"flex", alignItems:"center", gap:6, background:bg, border:"none", borderRadius:12, padding:"10px 12px", opacity: dueDate ? 1 : 0.55}}>
+            <Bell size={14} color={textMuted2} style={{flexShrink:0}}/>
             <input type="time" value={reminderTime} disabled={!dueDate} onChange={e=>setReminderTime(e.target.value)}
-              style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit"}}/>
+              style={{flex:1, minWidth:0, width:"100%", border:"none", background:"transparent", fontSize:13.5, color:textMain, outline:"none", fontFamily:"inherit"}}/>
           </div>
 
           {(dueDate || reminderTime) && (
-            <button onClick={()=>{setDueDate(""); setReminderTime("");}} style={{border:`1px solid ${cardBorder}`, background:"transparent", color:textMuted2, cursor:"pointer", borderRadius:9, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+            <button onClick={()=>{setDueDate(""); setReminderTime("");}} style={{border:"none", background:bg, color:textMuted2, cursor:"pointer", borderRadius:9, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
               <X size={12}/>
             </button>
           )}
         </div>
 
-        <button onClick={()=>setShowMore(v=>!v)} style={{display:"flex", alignItems:"center", gap:5, border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:"2px 0", fontSize:12, fontWeight:800, marginBottom: showMore ? 10 : 12}}>
-          <ChevronDown size={13} style={{transform: showMore ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+        <button onClick={submit} disabled={!isEditing && !title.trim()} style={{width:"100%", padding:"14px 0", borderRadius:14, border:"none", background:accent, color:"#fff", fontWeight:700, fontSize:14.5, cursor: (isEditing || title.trim()) ? "pointer" : "not-allowed", opacity: (isEditing || title.trim()) ? 1 : 0.45, marginBottom:14}}>
+          {isEditing ? (lang==="bn" ? "সেভ করুন" : "Save Changes") : t.taskAddBtn}
+        </button>
+
+        <button onClick={()=>setShowMore(v=>!v)} style={{display:"flex", alignItems:"center", justifyContent:"center", gap:5, width:"100%", border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:"2px 0", fontSize:12, fontWeight:800, marginBottom: showMore ? 10 : 0}}>
           {showMore ? (lang==="bn" ? "কম দেখাও" : "Fewer options") : (lang==="bn" ? "আরও অপশন" : "More options")}
+          <ChevronDown size={13} style={{transform: showMore ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
         </button>
 
         {showMore && (
@@ -10317,10 +10482,6 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
               style={{width:"100%", boxSizing:"border-box", minHeight:46, background:bg, border:`1px solid ${cardBorder}`, borderRadius:10, padding:"7px 10px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit", resize:"none", marginBottom:12}}/>
           </>
         )}
-
-        <button onClick={submit} disabled={!isEditing && !title.trim()} style={{width:"100%", padding:"10px 0", borderRadius:12, border:"none", background:accent, color:"#fff", fontWeight:700, fontSize:13.5, cursor: (isEditing || title.trim()) ? "pointer" : "not-allowed", opacity: (isEditing || title.trim()) ? 1 : 0.45}}>
-          {isEditing ? (lang==="bn" ? "সেভ করুন" : "Save Changes") : t.taskAddBtn}
-        </button>
       </div>
     </div>
   );
