@@ -2362,6 +2362,30 @@ const dhakaNowParts = (d = new Date()) => {
 };
 // একটা এক্সাম-শিডিউল এন্ট্রি বাস্তবে সময় পার হয়ে গেছে কি না — শুধু তারিখ না, endTime (না থাকলে startTime) ধরেও হিসাব করে,
 // যাতে আজকের যে এক্সাম ইতিমধ্যে শেষ হয়ে গেছে সেটা "Upcoming" এ আটকে না থেকে "Past"-এ চলে যায়
+// ফোনের ফিজিক্যাল ব্যাক বাটন / ব্রাউজার ব্যাক জেসচার দিয়ে ফুল-স্ক্রিন ওভারলে (Settings/Profile পেজ ইত্যাদি) বন্ধ করার হুক।
+// ওয়েব/PWA কনটেক্সটে (যেমন Chrome ট্যাবে চালানো হলে) Capacitor-এর backButton লিসেনার কাজ করে না, কারণ সেটা শুধু
+// নেটিভ অ্যাপ শেলের জন্য। তাই ওভারলে খোলার সময় একটা history entry পুশ করা হয়, আর popstate ধরে ওভারলে বন্ধ করে দেওয়া হয় —
+// এতে ফিজিক্যাল ব্যাক বাটন এবং উপরের অন-স্ক্রিন ব্যাক অ্যারো, দুটোই ঠিকভাবে কাজ করে।
+const useBackableOverlay = (isOpen, onClose) => {
+  const suppressPopRef = useRef(false);
+  useEffect(() => {
+    if (!isOpen) return;
+    window.history.pushState({ fgOverlay: true }, "");
+    const onPopState = () => {
+      suppressPopRef.current = true;
+      onClose();
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+      if (!suppressPopRef.current) {
+        window.history.back();
+      }
+      suppressPopRef.current = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+};
 const isExamPast = (ex, nowParts) => {
   if (!ex?.date) return false;
   const { dateKey: nowKey, hhmm: nowHHMM } = nowParts || dhakaNowParts();
@@ -3607,6 +3631,8 @@ function FocusGoInner() {
   // হেডারের প্রোফাইল আইকনে ক্লিক করলে এখন সরাসরি Settings-পেজের মতোই ডিজাইন (প্রোফাইল কার্ড + Preferences)
   // একটা আলাদা ফুল-পেজ হিসেবে খোলে — কিন্তু নিচে ৫-ট্যাব বার ছাড়া, উপরে একটা ব্যাক বাটন সহ
   const [showProfilePage, setShowProfilePage] = useState(false);
+  // ফোনের ব্যাক বাটন/জেসচার দিয়ে এই ফুল-স্ক্রিন ওভারলে বন্ধ করা যাবে (ব্রাউজার/PWA কনটেক্সটেও)
+  useBackableOverlay(showProfilePage, () => setShowProfilePage(false));
   // ডেস্কটপ সাইডবার collapse/expand করা যায় কিনা — চাইলে ইউজার লুকিয়ে রাখতে পারবে,
   // পছন্দটা localStorage-এ থেকে যায় (রিফ্রেশ করলেও মনে থাকবে)।
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -5806,18 +5832,9 @@ function FocusGoInner() {
               cardBorder={cardBorder} cardBg={cardBg} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}
             />
             <button onClick={()=>{vibrate(); setShowProfilePage(true);}}
-              title={t.profile}
-              className="fg-btn-circle fg-btn-circle--sm"
-              style={{overflow:"hidden"}}>
-              {user && user.photoURL ? (
-                <img src={user.photoURL} alt="" style={{width:"100%", height:"100%", objectFit:"cover"}}/>
-              ) : user && user.gender === "female" ? (
-                <Venus size={12}/>
-              ) : user && user.gender === "male" ? (
-                <Mars size={12}/>
-              ) : (
-                <User size={12}/>
-              )}
+              title={t.settings}
+              className="fg-btn-circle fg-btn-circle--sm">
+              <Settings size={14}/>
             </button>
           </div>
         </div>
@@ -8565,13 +8582,23 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
     setFormOpen(true);
   };
 
-  const toggleMissed = (ex) => onUpdate(ex.id, { missed: !ex.missed });
+  // exam.status ম্যানুয়ালি সেট করার জন্য — এখন থেকে তারিখ না পেরুলেও "Given" বা "Missed" হিসেবে চিহ্নিত করা যাবে
+  const setExamStatus = (ex, status) => {
+    if (status === "completed") onUpdate(ex.id, { given: true, missed: false });
+    else if (status === "missed") onUpdate(ex.id, { missed: true, given: false });
+    else onUpdate(ex.id, { given: false, missed: false });
+  };
+  const examStatus = (ex) => {
+    if (ex.missed) return "missed";
+    if (ex.given || isExamPast(ex, nowParts)) return "completed";
+    return "upcoming";
+  };
 
   const sorted = [...examSchedule].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
-  const upcoming = sorted.filter(ex => !isExamPast(ex, nowParts));
-  const pastAll = sorted.filter(ex => isExamPast(ex, nowParts)).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-  const completed = pastAll.filter(ex => !ex.missed);
-  const missed = pastAll.filter(ex => ex.missed);
+  const upcoming = sorted.filter(ex => examStatus(ex) === "upcoming");
+  const pastAll = [...sorted].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  const completed = pastAll.filter(ex => examStatus(ex) === "completed");
+  const missed = pastAll.filter(ex => examStatus(ex) === "missed");
   const total = examSchedule.length;
 
   const dateLabel = (dk) => {
@@ -8601,8 +8628,20 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
             {lang==="bn"?"আজ":"Today"}
           </div>
         )}
+        {kind === "upcoming" && (
+          <div style={{display:"flex", alignItems:"center", gap:2, flexShrink:0}}>
+            <button onClick={()=>setExamStatus(ex, "completed")} title={lang==="bn"?"দেওয়া হয়েছে হিসেবে চিহ্নিত করুন":"Mark as given"}
+              style={{border:"none", background:"transparent", cursor:"pointer", color:"#6E8B5E", display:"flex", padding:4}}>
+              <Check size={14}/>
+            </button>
+            <button onClick={()=>setExamStatus(ex, "missed")} title={lang==="bn"?"মিস হিসেবে চিহ্নিত করুন":"Mark as missed"}
+              style={{border:"none", background:"transparent", cursor:"pointer", color:"#C0392B", display:"flex", padding:4}}>
+              <X size={14}/>
+            </button>
+          </div>
+        )}
         {kind !== "upcoming" && (
-          <button onClick={()=>toggleMissed(ex)} title={kind === "missed" ? (lang==="bn"?"সম্পন্ন হিসেবে চিহ্নিত করুন":"Mark as completed") : (lang==="bn"?"মিস হিসেবে চিহ্নিত করুন":"Mark as missed")}
+          <button onClick={()=>setExamStatus(ex, kind === "missed" ? "completed" : "missed")} title={kind === "missed" ? (lang==="bn"?"সম্পন্ন হিসেবে চিহ্নিত করুন":"Mark as completed") : (lang==="bn"?"মিস হিসেবে চিহ্নিত করুন":"Mark as missed")}
             style={{border:"none", background:"transparent", cursor:"pointer", color: kind === "missed" ? "#6E8B5E" : "#C0392B", display:"flex", padding:4, flexShrink:0}}>
             {kind === "missed" ? <Check size={14}/> : <X size={14}/>}
           </button>
@@ -8617,12 +8656,12 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
     );
   };
 
-  const StatCard = ({ icon: Icon, value, label, color }) => (
-    <div style={{flex:1, background: dark ? `${color}1E` : `${color}12`, borderRadius:14, padding:"10px 6px", display:"flex", flexDirection:"column", alignItems:"center", gap:4}}>
+  const StatCard = ({ icon: Icon, value, label, color, onClick, active }) => (
+    <button onClick={onClick} disabled={!onClick} style={{flex:1, border: active ? `1.5px solid ${color}` : "1.5px solid transparent", background: dark ? `${color}1E` : `${color}12`, borderRadius:14, padding:"10px 6px", display:"flex", flexDirection:"column", alignItems:"center", gap:4, cursor: onClick ? "pointer" : "default", WebkitTapHighlightColor:"transparent"}}>
       <Icon size={15} color={color}/>
       <div style={{fontSize:16.5, fontWeight:800, color:textMain}}><Num>{nf(value)}</Num></div>
       <div style={{fontSize:10.5, fontWeight:600, color:textMuted2, whiteSpace:"nowrap"}}>{label}</div>
-    </div>
+    </button>
   );
 
   const activeList = statusTab === "upcoming" ? upcoming : statusTab === "completed" ? completed : missed;
@@ -8693,9 +8732,9 @@ function ExamScheduleModal({ t, lang, nf, allSubjects, examSchedule, onAdd, onUp
             </div>
             <div style={{display:"flex", gap:8}}>
               <StatCard icon={Calendar} value={total} label={lang==="bn"?"মোট":"Total"} color={accent}/>
-              <StatCard icon={Clock} value={upcoming.length} label={lang==="bn"?"আসন্ন":"Upcoming"} color={(dark ? "#F3F1F8" : "#1A1814")}/>
-              <StatCard icon={Check} value={completed.length} label={lang==="bn"?"সম্পন্ন":"Completed"} color="#6E8B5E"/>
-              <StatCard icon={TrendingUp} value={missed.length} label={lang==="bn"?"মিস":"Missed"} color="#C0392B"/>
+              <StatCard icon={Clock} value={upcoming.length} label={lang==="bn"?"আসন্ন":"Upcoming"} color={(dark ? "#F3F1F8" : "#1A1814")} onClick={()=>setStatusTab("upcoming")} active={statusTab==="upcoming"}/>
+              <StatCard icon={Check} value={completed.length} label={lang==="bn"?"সম্পন্ন":"Completed"} color="#6E8B5E" onClick={()=>setStatusTab("completed")} active={statusTab==="completed"}/>
+              <StatCard icon={TrendingUp} value={missed.length} label={lang==="bn"?"মিস":"Missed"} color="#C0392B" onClick={()=>setStatusTab("missed")} active={statusTab==="missed"}/>
             </div>
           </div>
 
