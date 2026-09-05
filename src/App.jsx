@@ -6270,28 +6270,18 @@ export default function FocusGo() {
         )}
 
         {tab === "study" && (
-          <div className="fg-tab-panel" style={{marginTop:12, marginBottom:-2}}>
+          <div className="fg-tab-panel" style={{marginTop:16, marginBottom:2}}>
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}>
-              <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
-                <div style={{width:44, height:44, borderRadius:14, background: dark ? `${accent}30` : `${accent}1c`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                  <GraduationCap size={22} color={accent} strokeWidth={2.2}/>
-                </div>
-                <div style={{minWidth:0}}>
-                  <div style={{fontSize:20.5, fontWeight:600, letterSpacing:-0.4, color:textMain}}>{lang==="bn" ? "স্টাডি" : "Study"}</div>
-                  <div style={{fontSize:12.5, color:textMuted2, marginTop:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
-                    {lang==="bn" ? "তোমার পড়াশোনার যাত্রা ট্র্যাক করো" : "Track your learning journey"}
-                  </div>
+              <div style={{minWidth:0}}>
+                <div className="fg-title" style={{fontSize:21}}>{lang==="bn" ? "স্টাডি" : "Study"}</div>
+                <div style={{fontSize:12.5, color:"var(--muted)", marginTop:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
+                  {lang==="bn" ? "তোমার পড়াশোনার যাত্রা ট্র্যাক করো" : "Track your learning journey"}
                 </div>
               </div>
-              <button onClick={()=>{vibrate(); setShowExamSchedule(true);}} style={{
-                display:"flex", alignItems:"center", gap:6, whiteSpace:"nowrap",
-                border:`1px solid ${accent}55`, background: dark ? `${accent}22` : `${accent}14`,
-                color:accent, borderRadius:14, padding:"9px 14px", fontSize:13, fontWeight:600,
-                cursor:"pointer", flexShrink:0, position:"relative"
-              }}>
-                <Calendar size={15} strokeWidth={2.3}/> {lang==="bn" ? "এক্সাম" : "Exam"}
+              <button onClick={()=>{vibrate(); setShowExamSchedule(true);}} className="fg-btn-circle fg-btn-circle--sm" style={{position:"relative"}} title={lang==="bn" ? "এক্সাম" : "Exam"}>
+                <Calendar size={15} strokeWidth={2.1}/>
                 {nearestUpcomingExam && (
-                  <span style={{position:"absolute", top:-3, right:-3, width:8, height:8, borderRadius:"50%", background:"#C0392B", border:`1.5px solid ${cardBg}`}}/>
+                  <span style={{position:"absolute", top:2, right:3, width:6, height:6, borderRadius:"50%", background:"#C0392B", border:`1.5px solid ${cardBg}`}}/>
                 )}
               </button>
             </div>
@@ -6301,7 +6291,7 @@ export default function FocusGo() {
         {/* Focus timer - main home of Study tab (Study Plan sub-section only) — redesigned to match the two-column
             mockup: title/subtitle + controls on the left, a decorative progress ring with an hourglass on the right */}
         {tab === "study" && studySection === "plan" && (
-        <div className="fg-tab-panel" style={{marginTop:10, background: dark ? cardBg : "#FFFFFF", border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderRadius:14, padding:"12px 14px 12px", color:textMain, boxShadow: dark ? "0 10px 24px rgba(0,0,0,0.24)" : "0 14px 34px rgba(32,34,43,0.08)", position:"relative", overflow:"hidden"}}>
+        <div className="fg-tab-panel" style={{marginTop:8, background: dark ? cardBg : "#FFFFFF", borderRadius:14, padding:"12px 14px 12px", color:textMain, boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)", position:"relative", overflow:"hidden"}}>
 
           {/* কমপ্যাক্ট হেডার: আইকন + টাইটেল এক লাইনে, subtitle বাদ (redundant ছিল) */}
           <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", position:"relative", gap:8}}>
@@ -9014,16 +9004,15 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
     );
   }
   return (
-    <div style={{display:"flex", flexDirection:"column", gap:8}}>
+    <div style={{display:"flex", flexDirection:"column", gap:0}}>
       {items.map(item => {
         const c = useAccentColor ? { bg: accent, bgSoft: `${accent}1A` } : colorForSubject(item.subject, allSubjects);
         const isActiveTimer = activeTimerId && activeTimerId === item.id;
         return (
-          <div key={item.id} style={{
-            background: isActiveTimer ? `${c.bg}0F` : cardBg,
-            border: `1px solid ${isActiveTimer ? c.bg : cardBorder}`,
-            borderRadius:14, padding:"10px 13px", position:"relative",
-            transition:"background .15s ease, border-color .15s ease",
+          <div key={item.id} className="fg-task-row" style={{
+            background: isActiveTimer ? `${c.bg}0F` : "transparent",
+            borderRadius: isActiveTimer ? 14 : 0, padding: isActiveTimer ? "12px 13px" : "13px 2px", position:"relative",
+            transition:"background .15s ease",
           }}>
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
               <div style={{display:"flex", alignItems:"center", gap:9, minWidth:0, flex:1}}>
