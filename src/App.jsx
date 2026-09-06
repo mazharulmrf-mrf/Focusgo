@@ -6560,7 +6560,7 @@ function FocusGoInner() {
                 {showWhiteNoisePicker && (
                   <>
                   <div onClick={()=>setShowWhiteNoisePicker(false)} style={{position:"fixed", inset:0, zIndex:19}}/>
-                  <div onClick={e=>e.stopPropagation()} style={{position:"absolute", bottom:"calc(100% + 6px)", right:-40, zIndex:20, width:220, background:"#161616", border:"1px solid rgba(255,255,255,0.1)", borderRadius:14, padding:12, boxShadow:"0 14px 30px rgba(0,0,0,0.5)", textAlign:"left"}}>
+                  <div onClick={e=>e.stopPropagation()} style={{position:"absolute", bottom:"calc(100% + 6px)", right:0, zIndex:20, width:220, maxWidth:"calc(100vw - 40px)", background:"#161616", border:"1px solid rgba(255,255,255,0.1)", borderRadius:14, padding:12, boxShadow:"0 14px 30px rgba(0,0,0,0.5)", textAlign:"left"}}>
                     <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:6}}>
                       {WHITE_NOISE_TYPES.map(opt => {
                         const active = whiteNoiseSound === opt.id;
@@ -10040,6 +10040,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
   const [category, setCategory] = useState("General");
   const [color, setColor] = useState(null);
   const [paperStyle, setPaperStyle] = useState("plain"); // "plain" | "lined" — নোট বডিতে খাতার মতো লাইন দেখাবে কিনা, প্রতিটা নোটে আলাদাভাবে সেভ থাকে
+  const [checklistOpen, setChecklistOpen] = useState(false); // false হলে একদম প্লেইন নোট — checklist আর "Add item" কিছুই দেখাবে না, ফুটারের list আইকনে ট্যাপ করলে চালু হয়
   const [pinned, setPinned] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(null); // null | "category" | "color" — কম্প্যাক্ট রো-তে ট্যাপ করলে ফ্লোটিং পিকার খোলে
   const [checklist, setChecklist] = useState([]);
@@ -10075,7 +10076,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
     setEditing({});
     setTitle(""); setBody(""); setBodyEmpty(true);
     setCategory(activeFolder !== "All Notes" && activeFolder !== "Pinned" && activeFolder !== "Trash" ? activeFolder : "General");
-    setColor(null); setPinned(false); setChecklist([]); setChecklistDraft(""); setPickerOpen(null); setPaperStyle("plain");
+    setColor(null); setPinned(false); setChecklist([]); setChecklistDraft(""); setPickerOpen(null); setPaperStyle("plain"); setChecklistOpen(false);
   };
   const openEdit = (note) => {
     setEditing(note);
@@ -10088,6 +10089,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
     setChecklistDraft("");
     setPickerOpen(null);
     setPaperStyle(note.paperStyle || "plain");
+    setChecklistOpen(Array.isArray(note.checklist) && note.checklist.length > 0); // আগে থেকে আইটেম থাকলে খোলা অবস্থায় দেখাবে, না থাকলে বন্ধ
   };
   const closeEditor = () => setEditing(null);
 
@@ -10238,6 +10240,11 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
 
   const sw = (colorKey) => ({ bg: noteBgFor(colorKey, dark), text: noteTextFor(colorKey, dark) });
   const editorSw = sw(color);
+  const noteDateLabel = (ts) => { // ছোট করে "06-09-26" ফরম্যাটে দেখানোর জন্য, বাংলা হলে বাংলা সংখ্যায়
+    if (!ts) return "";
+    const d = new Date(ts);
+    return `${nf(pad2(d.getDate()))}-${nf(pad2(d.getMonth() + 1))}-${nf(pad2(d.getFullYear() % 100))}`;
+  };
   // ফরম্যাটিং টুলবারের ছোট আইকন বাটন — mousedown-এ preventDefault করে যাতে ক্লিক করার সময় টেক্সট সিলেকশন হারিয়ে না যায়
   const ToolbarBtn = ({ onClick, title: btnTitle, children }) => (
     <button type="button" onMouseDown={e => e.preventDefault()} onClick={onClick} title={btnTitle}
@@ -10502,42 +10509,51 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
                 )}
                 <div ref={bodyRef} contentEditable suppressContentEditableWarning onInput={handleBodyInput}
                   style={{
-                    width: "100%", minHeight: 220, outline: "none", fontSize: 14, color: editorSw.text, opacity: 0.95, wordBreak: "break-word", fontFamily: "inherit",
+                    width: "100%", minHeight: 24, outline: "none", fontSize: 14, color: editorSw.text, opacity: 0.95, wordBreak: "break-word", fontFamily: "inherit",
                     lineHeight: paperStyle === "lined" ? "22px" : 1.55,
                     backgroundImage: paperStyle === "lined" ? `repeating-linear-gradient(to bottom, transparent, transparent 21px, ${editorSw.text}2E 21px, ${editorSw.text}2E 22px)` : "none",
                     backgroundPositionY: paperStyle === "lined" ? "1px" : undefined,
                   }} />
               </div>
 
-              {checklist.length > 0 && (
-                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 6 }}>
-                  {checklist.map(item => (
-                    <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <button onClick={() => toggleCheck(item.id)} style={{ width: 15, height: 15, borderRadius: 5, border: `1.5px solid ${editorSw.text}`, flexShrink: 0, background: item.done ? editorSw.text : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        {item.done && <Check size={9} color={dark ? "#0A0A0A" : "#FFF"} strokeWidth={3.5} />}
-                      </button>
-                      <input value={item.text} onChange={e => setChecklist(c => c.map(x => x.id === item.id ? { ...x, text: e.target.value } : x))}
-                        style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: 13, color: editorSw.text, textDecoration: item.done ? "line-through" : "none", opacity: item.done ? 0.6 : 1, fontFamily: "inherit" }} />
-                      <button onClick={() => removeCheck(item.id)} style={{ border: "none", background: "transparent", cursor: "pointer", color: editorSw.text, opacity: 0.5, display: "flex" }}><X size={12} /></button>
+              {checklistOpen && (
+                <>
+                  {checklist.length > 0 && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 6 }}>
+                      {checklist.map(item => (
+                        <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <button onClick={() => toggleCheck(item.id)} style={{ width: 15, height: 15, borderRadius: 5, border: `1.5px solid ${editorSw.text}`, flexShrink: 0, background: item.done ? editorSw.text : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {item.done && <Check size={9} color={dark ? "#0A0A0A" : "#FFF"} strokeWidth={3.5} />}
+                          </button>
+                          <input value={item.text} onChange={e => setChecklist(c => c.map(x => x.id === item.id ? { ...x, text: e.target.value } : x))}
+                            style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: 13, color: editorSw.text, textDecoration: item.done ? "line-through" : "none", opacity: item.done ? 0.6 : 1, fontFamily: "inherit" }} />
+                          <button onClick={() => removeCheck(item.id)} style={{ border: "none", background: "transparent", cursor: "pointer", color: editorSw.text, opacity: 0.5, display: "flex" }}><X size={12} /></button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  )}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                    <Plus size={13} color={editorSw.text} style={{ opacity: 0.6 }} />
+                    <input value={checklistDraft} onChange={e => setChecklistDraft(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addCheckItem(); } }} placeholder={isBn ? "তালিকায় যোগ করুন" : "Add item"} autoFocus
+                      style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: 12.5, color: editorSw.text, opacity: 0.85, fontFamily: "inherit" }} />
+                    {checklistDraft.trim() && <button onClick={addCheckItem} style={{ border: "none", background: "transparent", cursor: "pointer", color: editorSw.text, fontSize: 11.5, fontWeight: 700 }}>{isBn ? "যোগ" : "Add"}</button>}
+                  </div>
+                </>
               )}
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <Plus size={13} color={editorSw.text} style={{ opacity: 0.6 }} />
-                <input value={checklistDraft} onChange={e => setChecklistDraft(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addCheckItem(); } }} placeholder={isBn ? "তালিকায় যোগ করুন" : "Add item"}
-                  style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: 12.5, color: editorSw.text, opacity: 0.85, fontFamily: "inherit" }} />
-                {checklistDraft.trim() && <button onClick={addCheckItem} style={{ border: "none", background: "transparent", cursor: "pointer", color: editorSw.text, fontSize: 11.5, fontWeight: 700 }}>{isBn ? "যোগ" : "Add"}</button>}
-              </div>
             </div>
 
             {/* ---- ফিক্সড ফুটার: ক্যাটাগরি + রঙ একই কম্প্যাক্ট লাইনে — শুধু বর্তমান সিলেকশন দেখায়, ট্যাপ করলে ফ্লোটিং পিকার খোলে ---- */}
             <div style={{ flexShrink: 0, padding: "8px 14px 12px", borderTop: `1px solid ${editorSw.text}1A`, position: "relative" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <button onClick={() => setChecklistOpen(o => !o)} title={isBn ? "চেকলিস্ট" : "Checklist"}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", border: "none", borderRadius: 7, width: 24, height: 24, cursor: "pointer", background: checklistOpen ? `${editorSw.text}22` : "transparent", color: editorSw.text, flexShrink: 0 }}>
+                  <ListChecks size={14} />
+                </button>
                 <button onClick={() => setPickerOpen(p => p === "category" ? null : "category")}
                   style={{ display: "flex", alignItems: "center", gap: 5, border: "none", borderRadius: 999, padding: "5px 10px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", background: `${editorSw.text}14`, color: editorSw.text }}>
                   <Tag size={11} />{category}<ChevronDown size={11} style={{ opacity: 0.7 }} />
                 </button>
+                <span style={{ fontSize: 10.5, color: editorSw.text, opacity: 0.5 }}>{noteDateLabel(editing.createdAt || Date.now())}</span>
                 <button onClick={() => setPickerOpen(p => p === "color" ? null : "color")}
                   style={{ display: "flex", alignItems: "center", gap: 5, border: "none", background: "transparent", cursor: "pointer", padding: 2 }}>
                   <Palette size={11} color={editorSw.text} style={{ opacity: 0.7 }} />
