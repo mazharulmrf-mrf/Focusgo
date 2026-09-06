@@ -10496,7 +10496,7 @@ function NotesView({ t, lang, notes, setNotes, search, setSearch, cardBg, cardBo
 
             {/* ---- স্ক্রলযোগ্য অংশ: টেক্সট লেখার জন্য এখন সবচেয়ে বেশি জায়গা এখানেই ---- */}
             <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "8px 14px 0" }}>
-              <div style={{ position: "relative", marginBottom: 8, minHeight: "100%" }}>
+              <div style={{ position: "relative", marginBottom: 8 }}>
                 {bodyEmpty && (
                   <div style={{ position: "absolute", top: 0, left: 0, right: 0, fontSize: 14, color: editorSw.text, opacity: 0.45, pointerEvents: "none" }}>{t.notesBodyPlaceholder}</div>
                 )}
