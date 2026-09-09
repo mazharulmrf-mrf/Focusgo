@@ -979,6 +979,51 @@ function SettingsRow({ Icon, title, subtitle, right, onClick, href, expandKey, c
   );
 }
 
+// ---------- Settings quick menu — উপরের gear আইকনে ক্লিক করলে খুলে যাওয়া ছোট popup কার্ড, বর্তমান
+// Settings পেজের সবগুলো সেকশনের শর্টকাট এক লিস্টে (আপাতত সবকিছু রাখা হয়েছে, পরে দরকার হলে কমানো যাবে) ----------
+function SettingsQuickMenu({ isBn, dark, cardBg, cardBorder, textMain, textMuted2, accent, onSelect, onClose }) {
+  const items = [
+    { key: "profile", Icon: User, label: isBn ? "প্রোফাইল" : "Profile" },
+    { key: "appearance", Icon: Palette, label: isBn ? "অ্যাপিয়ারেন্স" : "Appearance" },
+    { key: "textScale", Icon: Heading1, label: isBn ? "ফন্ট ও ডিসপ্লে সাইজ" : "Font & display size" },
+    { key: "weekStart", Icon: CalendarRange, label: isBn ? "সপ্তাহ শুরু" : "Week starts on" },
+    { key: "timer", Icon: Hourglass, label: isBn ? "ফোকাস টাইমার" : "Focus Timer" },
+    { key: "reminders", Icon: CalendarDays, label: isBn ? "স্টাডি রিমাইন্ডার" : "Study Reminders" },
+    { key: "salah", Icon: MosqueIcon, label: isBn ? "সালাতের সময়" : "Salah Timer" },
+    { key: "visibleTabs", Icon: LayoutGrid, label: isBn ? "ভিজিবল ট্যাব" : "Visible Tabs" },
+    { key: "notifications", Icon: Bell, label: isBn ? "নোটিফিকেশন" : "Notifications" },
+    { key: "sound", Icon: Volume2, label: isBn ? "সাউন্ড ও ভাইব্রেশন" : "Sound & Haptics" },
+    { key: "backup", Icon: Cloud, label: isBn ? "ব্যাকআপ ও সিঙ্ক" : "Backup & Sync" },
+    { key: "export", Icon: UploadCloud, label: isBn ? "এক্সপোর্ট ডেটা" : "Export Data" },
+    { key: "import", Icon: UploadCloud, label: isBn ? "ইমপোর্ট ডেটা" : "Import Data" },
+    { key: "help", Icon: HelpCircle, label: isBn ? "সাহায্য ও সাপোর্ট" : "Help & Support" },
+    { key: "about", Icon: Info, label: isBn ? "FocusGo সম্পর্কে" : "About FocusGo" },
+  ];
+  return (
+    <>
+      <div onClick={onClose} style={{position:"fixed", inset:0, zIndex:64}}/>
+      <div style={{
+        position:"absolute", top:"calc(100% + 8px)", right:0, zIndex:65,
+        background: dark ? "#1A1814" : "#FFFFFF", border:`1px solid ${cardBorder}`, borderRadius:16,
+        boxShadow:"0 10px 30px rgba(0,0,0,0.22)", width:230, maxHeight:"70vh", overflowY:"auto",
+        padding:6,
+      }}>
+        {items.map(({ key, Icon, label }) => (
+          <button key={key} onClick={() => { vibrate(); onSelect(key); }} style={{
+              width:"100%", display:"flex", alignItems:"center", gap:11, border:"none", background:"transparent",
+              padding:"9px 10px", borderRadius:10, cursor:"pointer", textAlign:"left",
+            }}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <Icon size={16} color={textMuted2} style={{flexShrink:0}}/>
+            <span style={{fontSize:13.5, fontWeight:600, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{label}</span>
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
 // ---------- Settings modal: Language, Theme, About Us ----------
 function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, setAccentKey, notificationsEnabled, setNotificationsEnabled,
   examNotifEnabled, setExamNotifEnabled, taskNotifEnabled, setTaskNotifEnabled, salahNotifEnabled, setSalahNotifEnabled, timerNotifEnabled, setTimerNotifEnabled,
@@ -988,7 +1033,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
   focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes, weekStartDay, setWeekStartDay,
   onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage, onBack,
   user, isGuest, onOpenProfile, notes, tasks, subjects, setNotes, setTasks, setSubjects,
-  textScale, setTextScale, TEXT_SCALE_OPTIONS }) {
+  textScale, setTextScale, TEXT_SCALE_OPTIONS, initialOpenCard, initialAction }) {
   const [showAbout, setShowAbout] = useState(false);
   // প্রোফাইল কার্ডের পাশে ছোট্ট লগ-আউট আইকন — ট্যাপ করলে আগে একটা কনফার্মেশন পপ-ওভার দেখায়,
   // তারপর "হ্যাঁ" চাপলেই সরাসরি সাইন-আউট হয়ে যায় (আলাদা Account পেজে না গিয়েই)
@@ -1024,7 +1069,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
   // ---- নতুন Settings পেজের (কার্ড-গ্রিড ডিজাইন) জন্য এক্সট্রা state ----
   // কোন Preference কার্ড খোলা আছে — একসাথে একটাই খোলা থাকবে (accordion)
-  const [openCard, setOpenCard] = useState(null); // null | "appearance" | "timer" | "notifications" | "reminders" | "sound"
+  const [openCard, setOpenCard] = useState(initialOpenCard || null); // null | "appearance" | "timer" | "notifications" | "reminders" | "sound"
   const toggleCard = (key) => { vibrate(); setOpenCard(v => v === key ? null : key); };
 
   // সাউন্ড এফেক্ট অন/অফ — হ্যাপটিকের মতোই localStorage-এ সেভ থাকে
@@ -1087,6 +1132,16 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
   const [importState, setImportState] = useState("idle"); // idle | done | error
   const [importConfirm, setImportConfirm] = useState(null); // পার্স হওয়া ডেটা — কনফার্ম মোডাল দেখানোর জন্য অপেক্ষায়
   const triggerImport = () => { vibrate(); importFileInputRef.current && importFileInputRef.current.click(); };
+  // Settings-এর উপরের কুইক মেনু (gear আইকনে ক্লিক করলে যে popup খোলে) থেকে সরাসরি
+  // Export/Import/Help/About-এ ক্লিক করলে এই পেজটা খুলে সেই একশনটা নিজে থেকেই একবার চালিয়ে দেয়
+  useEffect(() => {
+    if (!initialAction) return;
+    if (initialAction === "export") exportData();
+    else if (initialAction === "import") triggerImport();
+    else if (initialAction === "about") setShowAbout(true);
+    else if (initialAction === "help") { try { window.location.href = `mailto:mazharul.mrf@gmail.com?subject=${encodeURIComponent(t.feedbackSubject)}`; } catch (e) {} }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const onImportFileChosen = (e) => {
     const file = e.target.files && e.target.files[0];
     if (e.target) e.target.value = ""; // একই ফাইল আবার সিলেক্ট করলেও যেন change ইভেন্ট আসে
@@ -3627,6 +3682,24 @@ function FocusGoInner() {
   const [showProfilePage, setShowProfilePage] = useState(false);
   // ফোনের ব্যাক বাটন/জেসচার দিয়ে এই ফুল-স্ক্রিন ওভারলে বন্ধ করা যাবে (ব্রাউজার/PWA কনটেক্সটেও)
   useBackableOverlay(showProfilePage, () => setShowProfilePage(false));
+  // উপরের gear আইকনে ক্লিক করলে এখন সরাসরি Settings পেজে না গিয়ে একটা ছোট quick-menu popup খোলে,
+  // সেখান থেকে যে আইটেমে ক্লিক করা হয় সেই অনুযায়ী Settings পেজ নির্দিষ্ট সেকশন expand করে খোলে
+  // (initialOpenCard), অথবা Export/Import/About/Help এর ক্ষেত্রে সেই একশনটা সরাসরি ট্রিগার হয়
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  // বটম নেভের পাশে ভাসমান "+" বাটনের quick-add popup (Study/Task সরাসরি Add করার শর্টকাট)
+  const [showQuickAddMenu, setShowQuickAddMenu] = useState(false);
+  const [settingsInitialOpenCard, setSettingsInitialOpenCard] = useState(null);
+  const [settingsInitialAction, setSettingsInitialAction] = useState(null);
+  const handleSettingsMenuSelect = (key) => {
+    setShowSettingsMenu(false);
+    if (key === "profile" || key === "backup") { setShowProfile(true); return; }
+    if (key === "help") { try { window.location.href = `mailto:mazharul.mrf@gmail.com?subject=${encodeURIComponent(t.feedbackSubject)}`; } catch (e) {} return; }
+    const cardMap = { weekStart: "weekStart", timer: "timer", reminders: "reminders", visibleTabs: "visibleTabs", notifications: "notifications", sound: "sound" };
+    const actionMap = { export: "export", import: "import", about: "about" };
+    setSettingsInitialOpenCard(cardMap[key] || null);
+    setSettingsInitialAction(actionMap[key] || null);
+    setShowProfilePage(true);
+  };
   // ডেস্কটপ সাইডবার collapse/expand করা যায় কিনা — চাইলে ইউজার লুকিয়ে রাখতে পারবে,
   // পছন্দটা localStorage-এ থেকে যায় (রিফ্রেশ করলেও মনে থাকবে)।
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -5825,11 +5898,20 @@ function FocusGoInner() {
               onClear={()=>setNotifications([])}
               cardBorder={cardBorder} cardBg={cardBg} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}
             />
-            <button onClick={()=>{vibrate(); setShowProfilePage(true);}}
-              title={t.settings}
-              className="fg-btn-circle fg-btn-circle--sm">
-              <Settings size={14}/>
-            </button>
+            <div style={{position:"relative", flexShrink:0}}>
+              <button onClick={()=>{vibrate(); setShowSettingsMenu(v=>!v);}}
+                title={t.settings}
+                className="fg-btn-circle fg-btn-circle--sm">
+                <Settings size={14}/>
+              </button>
+              {showSettingsMenu && (
+                <SettingsQuickMenu
+                  isBn={lang==="bn"} dark={dark} cardBg={cardBg} cardBorder={cardBorder}
+                  textMain={textMain} textMuted2={textMuted2} accent={accent}
+                  onSelect={handleSettingsMenuSelect} onClose={()=>setShowSettingsMenu(false)}
+                />
+              )}
+            </div>
           </div>
         </div>
 
@@ -7246,8 +7328,9 @@ function FocusGoInner() {
           অ্যাক্টিভ ট্যাবে হালকা রাউন্ডেড হাইলাইট ব্যাকগ্রাউন্ড + ছোট রঙিন ডট ইন্ডিকেটর */}
       {!isDesktop && (
       <div style={{position:"sticky", left:0, right:0, bottom:0, display:"flex", justifyContent:"center", padding:"10px 16px 12px", paddingBottom:"calc(12px + env(safe-area-inset-bottom))", zIndex:40, background: bg}}>
+        <div style={{width:"100%", maxWidth:480, display:"flex", alignItems:"center", gap:8}}>
         <div style={{
-          width:"100%", maxWidth:480, display:"flex", gap:2,
+          flex:1, display:"flex", gap:2,
           background: dark ? "#1C1A20" : "#FFFFFF",
           border:`1px solid ${cardBorder}`,
           borderRadius:16, padding:"5px",
@@ -7276,6 +7359,51 @@ function FocusGoInner() {
               </button>
             );
           })}
+        </div>
+
+        {/* Quick-add "+" — বটম নেভের পাশে আলাদা ভাসমান বাটন, ট্যাপ করলে Study/Task সরাসরি Add করার
+            popup খোলে (যেই ফিচার বন্ধ আছে তার Add অপশনও এখানে দেখানো হয় না) */}
+        {(studyFeatureEnabled || tasksFeatureEnabled) && (
+          <div style={{position:"relative", flexShrink:0}}>
+            {showQuickAddMenu && (
+              <>
+                <div onClick={()=>setShowQuickAddMenu(false)} style={{position:"fixed", inset:0, zIndex:44}}/>
+                <div style={{
+                  position:"absolute", bottom:"calc(100% + 10px)", right:0, zIndex:45,
+                  background: dark ? "#1C1A20" : "#FFFFFF", border:`1px solid ${cardBorder}`, borderRadius:14,
+                  boxShadow: dark ? "0 8px 22px rgba(0,0,0,0.35)" : "0 8px 22px rgba(0,0,0,0.14)",
+                  minWidth:168, padding:6,
+                }}>
+                  {studyFeatureEnabled && (
+                    <button onClick={()=>{ vibrate(); setShowQuickAddMenu(false); setAddTargetKey(todayKey); setShowAdd(true); }} style={{
+                        width:"100%", display:"flex", alignItems:"center", gap:10, border:"none", background:"transparent",
+                        padding:"9px 10px", borderRadius:10, cursor:"pointer", textAlign:"left",
+                      }}>
+                      <GraduationCap size={16} color={textMuted2}/>
+                      <span style={{fontSize:13.5, fontWeight:600, color:textMain}}>{lang==="bn" ? "স্টাডি যোগ করো" : "Add Study"}</span>
+                    </button>
+                  )}
+                  {tasksFeatureEnabled && (
+                    <button onClick={()=>{ vibrate(); setShowQuickAddMenu(false); setTaskAddDefaultDate(todayKey); setShowAddTask(true); }} style={{
+                        width:"100%", display:"flex", alignItems:"center", gap:10, border:"none", background:"transparent",
+                        padding:"9px 10px", borderRadius:10, cursor:"pointer", textAlign:"left",
+                      }}>
+                      <ListChecks size={16} color={textMuted2}/>
+                      <span style={{fontSize:13.5, fontWeight:600, color:textMain}}>{lang==="bn" ? "টাস্ক যোগ করো" : "Add Task"}</span>
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+            <button onClick={()=>{vibrate(); setShowQuickAddMenu(v=>!v);}} title={lang==="bn" ? "যোগ করো" : "Add"} style={{
+                width:46, height:46, borderRadius:"50%", border:"none", background:accent, color:"#fff",
+                display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0,
+                boxShadow: dark ? "0 3px 10px rgba(0,0,0,0.35)" : "0 3px 10px rgba(0,0,0,0.16)",
+              }}>
+              <Plus size={22} strokeWidth={2.4}/>
+            </button>
+          </div>
+        )}
         </div>
       </div>
       )}
@@ -7433,7 +7561,8 @@ function FocusGoInner() {
             <SettingsModal t={t} lang={lang} setLang={setLang} themeMode={themeMode} setThemeMode={setThemeMode}
               accentKey={accentKey} setAccentKey={setAccentKey}
               notificationsEnabled={notificationsEnabled} setNotificationsEnabled={setNotificationsEnabled} asPage
-              onBack={()=>setShowProfilePage(false)}
+              onBack={()=>{ setShowProfilePage(false); setSettingsInitialOpenCard(null); setSettingsInitialAction(null); }}
+              initialOpenCard={settingsInitialOpenCard} initialAction={settingsInitialAction}
               examNotifEnabled={examNotifEnabled} setExamNotifEnabled={setExamNotifEnabled}
               taskNotifEnabled={taskNotifEnabled} setTaskNotifEnabled={setTaskNotifEnabled}
               salahNotifEnabled={salahNotifEnabled} setSalahNotifEnabled={setSalahNotifEnabled}
