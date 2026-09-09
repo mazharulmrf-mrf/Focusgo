@@ -50,7 +50,6 @@ const MosqueIcon = ({ size = 16, color = "currentColor" }) => (
   </svg>
 );
 import TaskTab from "./TaskTab";
-import NotesTab from "./NotesTab";
 import { auth, db, googleProvider } from "./firebase";
 import { setupNotifications } from "./notifications";
 import {
@@ -789,16 +788,6 @@ function UniversalSearchModal({
                   ))}
                 </div>
               )}
-              {results.notes.length > 0 && (
-                <div>
-                  <div style={sectionLabel}>{isBn ? "নোট" : "Notes"}</div>
-                  {results.notes.slice(0, 8).map(n => (
-                    <Row key={n.id} icon={<FileText size={15} />} title={n.title || (isBn ? "শিরোনামহীন" : "Untitled")}
-                      subtitle={stripHtmlToText(n.body || "").slice(0, 60)}
-                      onClick={() => onOpenNote(n)} />
-                  ))}
-                </div>
-              )}
               {results.subjects.length > 0 && (
                 <div>
                   <div style={sectionLabel}>{isBn ? "সাবজেক্ট" : "Subjects"}</div>
@@ -832,12 +821,11 @@ function UniversalSearchModal({
 }
 
 // ডেস্কটপ (≥1024px) এ bottom-nav এর বদলে বাম পাশে সাইডবার — বড় স্ক্রিনে familiar "app" লেআউট
-function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, textMuted2, accent, collapsed, onToggleCollapse, onHideAll, studyFeatureEnabled, tasksFeatureEnabled, notesFeatureEnabled }) {
+function DesktopSidebar({ t, tab, setTab, vibrate, dark, cardBorder, textMain, textMuted2, accent, collapsed, onToggleCollapse, onHideAll, studyFeatureEnabled, tasksFeatureEnabled }) {
   const items = [
     { k: "today", Icon: Home },
     ...(studyFeatureEnabled ? [{ k: "study", Icon: GraduationCap }] : []),
     ...(tasksFeatureEnabled ? [{ k: "task", Icon: ListChecks }] : []),
-    ...(notesFeatureEnabled ? [{ k: "notes", Icon: FileText }] : []),
   ];
   return (
     <div style={{
@@ -996,7 +984,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
   examNotifEnabled, setExamNotifEnabled, taskNotifEnabled, setTaskNotifEnabled, salahNotifEnabled, setSalahNotifEnabled, timerNotifEnabled, setTimerNotifEnabled,
   alarmNotifEnabled, setAlarmNotifEnabled,
   salahFeatureEnabled, setSalahFeatureEnabled,
-  studyFeatureEnabled, setStudyFeatureEnabled, tasksFeatureEnabled, setTasksFeatureEnabled, notesFeatureEnabled, setNotesFeatureEnabled,
+  studyFeatureEnabled, setStudyFeatureEnabled, tasksFeatureEnabled, setTasksFeatureEnabled,
   focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes, weekStartDay, setWeekStartDay,
   onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage, onBack,
   user, isGuest, onOpenProfile, notes, tasks, subjects, setNotes, setTasks, setSubjects,
@@ -1586,9 +1574,9 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             right={<Toggle on={salahFeatureEnabled} onClick={()=>{vibrate(); setSalahFeatureEnabled(v=>!v);}}/>}
             onClick={()=>{vibrate(); setSalahFeatureEnabled(v=>!v);}}/>
 
-          {/* Visible Tabs — Study/Tasks/Notes বটম ন্যাভ থেকে দেখানো/লুকানো; Today ও Settings সবসময় থাকে (তাই এখানে টগল নেই) */}
+          {/* Visible Tabs — Study/Tasks বটম ন্যাভ থেকে দেখানো/লুকানো; Today ও Settings সবসময় থাকে (তাই এখানে টগল নেই) */}
           <SettingsRow {...rowCtx} Icon={LayoutGrid} title={isBn ? "ভিজিবল ট্যাব" : "Visible Tabs"}
-            subtitle={[studyFeatureEnabled && (isBn ? "স্টাডি" : "Study"), tasksFeatureEnabled && (isBn ? "টাস্ক" : "Tasks"), notesFeatureEnabled && (isBn ? "নোটস" : "Notes")].filter(Boolean).join(", ") || (isBn ? "সব বন্ধ" : "All off")}
+            subtitle={[studyFeatureEnabled && (isBn ? "স্টাডি" : "Study"), tasksFeatureEnabled && (isBn ? "টাস্ক" : "Tasks")].filter(Boolean).join(", ") || (isBn ? "সব বন্ধ" : "All off")}
             expandKey="visibleTabs">
             <div style={{display:"flex", flexDirection:"column", gap:12}}>
               <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
@@ -1598,10 +1586,6 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
               <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
                 <span style={{fontSize:13.5, fontWeight:700, color:textMain}}>{isBn ? "টাস্ক" : "Tasks"}</span>
                 <Toggle on={tasksFeatureEnabled} onClick={()=>{vibrate(); setTasksFeatureEnabled(v=>!v);}}/>
-              </div>
-              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-                <span style={{fontSize:13.5, fontWeight:700, color:textMain}}>{isBn ? "নোটস" : "Notes"}</span>
-                <Toggle on={notesFeatureEnabled} onClick={()=>{vibrate(); setNotesFeatureEnabled(v=>!v);}}/>
               </div>
               <div style={{fontSize:11.5, color:textMuted2, lineHeight:1.5, paddingTop:10, borderTop:`1px dashed ${cardBorder}`}}>
                 {isBn
@@ -2591,7 +2575,7 @@ const MONTHS_BN = ["জানুয়ারি","ফেব্রুয়ার
 const T = {
   en: {
     tagline: "Make Every Day Count",
-    tabs: { today: "Today", study: "Study", task: "Tasks", notes: "Notes", settings: "Settings", stats: "Stats", plan: "Plan", exam: "Exam" },
+    tabs: { today: "Today", study: "Study", task: "Tasks", settings: "Settings", stats: "Stats", plan: "Plan", exam: "Exam" },
     planViewStudy: "Study Plan", planViewExam: "Exam",
     taskTitle: "Tasks", taskSubtitle: "All your tasks, in one place", taskAdd: "New task", taskEmpty: "No tasks in this list",
     taskStudy: "Study", taskPersonal: "Personal", taskAll: "All",
@@ -2750,7 +2734,7 @@ const T = {
   },
   bn: {
     tagline: "প্রতিটা দিন অর্থবহ করে তোলো",
-    tabs: { today: "আজ", study: "স্টাডি", task: "টাস্ক", notes: "নোট", settings: "সেটিংস", stats: "স্ট্যাটস", plan: "প্ল্যান", exam: "এক্সাম" },
+    tabs: { today: "আজ", study: "স্টাডি", task: "টাস্ক", settings: "সেটিংস", stats: "স্ট্যাটস", plan: "প্ল্যান", exam: "এক্সাম" },
     planViewStudy: "স্টাডি প্ল্যান", planViewExam: "এক্সাম",
     taskTitle: "টাস্ক", taskSubtitle: "সব কাজ, এক জায়গায়", taskAdd: "নতুন টাস্ক", taskEmpty: "এই তালিকায় কোনো টাস্ক নেই",
     taskStudy: "স্টাডি", taskPersonal: "পার্সোনাল", taskAll: "সব",
@@ -3411,19 +3395,15 @@ function FocusGoInner() {
   const [tasksFeatureEnabled, setTasksFeatureEnabled] = useState(() => {
     try { return window.localStorage.getItem("focusgo_tab_tasks_enabled") !== "0"; } catch (e) { return true; }
   });
-  const [notesFeatureEnabled, setNotesFeatureEnabled] = useState(() => {
-    try { return window.localStorage.getItem("focusgo_tab_notes_enabled") !== "0"; } catch (e) { return true; }
-  });
   useEffect(() => { try { window.localStorage.setItem("focusgo_tab_study_enabled", studyFeatureEnabled ? "1" : "0"); } catch (e) {} }, [studyFeatureEnabled]);
   useEffect(() => { try { window.localStorage.setItem("focusgo_tab_tasks_enabled", tasksFeatureEnabled ? "1" : "0"); } catch (e) {} }, [tasksFeatureEnabled]);
-  useEffect(() => { try { window.localStorage.setItem("focusgo_tab_notes_enabled", notesFeatureEnabled ? "1" : "0"); } catch (e) {} }, [notesFeatureEnabled]);
   // চালু থাকা ট্যাবের ফিচার সেটিংস থেকে বন্ধ হয়ে গেলে (bottom nav-এ আর নেই এমন ট্যাবে আটকে থাকা এড়াতে)
-  // সাথে সাথে "Today"-তে ফিরিয়ে আনা হয়
+  // সাথে সাথে "Today"-তে ফিরিয়ে আনা হয়; Notes ট্যাব সম্পূর্ণ সরিয়ে দেওয়া হয়েছে, তাই পুরনো সেভ করা tab="notes" থাকলেও Today-তে ফেরত পাঠানো হয়
   useEffect(() => {
-    if ((tab === "study" && !studyFeatureEnabled) || (tab === "task" && !tasksFeatureEnabled) || (tab === "notes" && !notesFeatureEnabled)) {
+    if ((tab === "study" && !studyFeatureEnabled) || (tab === "task" && !tasksFeatureEnabled) || tab === "notes") {
       setTab("today");
     }
-  }, [tab, studyFeatureEnabled, tasksFeatureEnabled, notesFeatureEnabled]);
+  }, [tab, studyFeatureEnabled, tasksFeatureEnabled]);
   // ব্যাক বাটন চাপলে "Today" ছাড়া অন্য কোনো ট্যাবে থাকলে অ্যাপ বন্ধ না হয়ে সরাসরি "Today" ট্যাবে ফিরে যাবে
   // দেখাতে এই toast ব্যবহার হয় ("Today" ট্যাবে থেকেও একবার ব্যাক চাপলে অ্যাপ বন্ধ হবে না, দ্বিতীয়বার চাপলে বন্ধ হবে)
   const [showExitToast, setShowExitToast] = useState(false);
@@ -5807,7 +5787,7 @@ function FocusGoInner() {
       `}</style>
       {isDesktop && !sidebarHidden && (
         <DesktopSidebar t={t} tab={tab} setTab={setTab} vibrate={vibrate} dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(v => !v)} onHideAll={() => setSidebarHidden(true)}
-          studyFeatureEnabled={studyFeatureEnabled} tasksFeatureEnabled={tasksFeatureEnabled} notesFeatureEnabled={notesFeatureEnabled} />
+          studyFeatureEnabled={studyFeatureEnabled} tasksFeatureEnabled={tasksFeatureEnabled} />
       )}
       {isDesktop && sidebarHidden && (
         <div style={{ width: 40, flexShrink: 0, borderRight: `1px solid ${cardBorder}`, display: "flex", flexDirection: "column", alignItems: "center", padding: "28px 8px", position: "sticky", top: 0, height: "100dvh", boxSizing: "border-box" }}>
@@ -7005,13 +6985,6 @@ function FocusGoInner() {
           />
         )}
 
-        {/* NOTES tab */}
-        {tab === "notes" && (
-          <NotesTab t={t} lang={lang} notes={notes} setNotes={setNotes} search={noteSearch} setSearch={setNoteSearch}
-            cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} bg={bg}
-            textMuted2={textMuted2} accent={accent} dark={dark} isDesktop={isDesktop}/>
-        )}
-
         {/* SETTINGS tab — অন্য ট্যাবগুলোর মতোই সরাসরি পেজ হিসেবে (আগে বটম-শিট মোডাল ছিল) */}
         {tab === "settings" && (
           <SettingsModal t={t} lang={lang} setLang={setLang} themeMode={themeMode} setThemeMode={setThemeMode}
@@ -7025,7 +6998,6 @@ function FocusGoInner() {
             salahFeatureEnabled={salahFeatureEnabled} setSalahFeatureEnabled={setSalahFeatureEnabled}
             studyFeatureEnabled={studyFeatureEnabled} setStudyFeatureEnabled={setStudyFeatureEnabled}
             tasksFeatureEnabled={tasksFeatureEnabled} setTasksFeatureEnabled={setTasksFeatureEnabled}
-            notesFeatureEnabled={notesFeatureEnabled} setNotesFeatureEnabled={setNotesFeatureEnabled}
             focusMinutes={focusMinutes} setFocusMinutes={setFocusMinutes}
             breakMinutes={breakMinutes} setBreakMinutes={setBreakMinutes}
             weekStartDay={weekStartDay} setWeekStartDay={changeWeekStartDay}
@@ -7285,7 +7257,6 @@ function FocusGoInner() {
             {k:"today", Icon: Home},
             ...(studyFeatureEnabled ? [{k:"study", Icon: GraduationCap}] : []),
             ...(tasksFeatureEnabled ? [{k:"task", Icon: ListChecks}] : []),
-            ...(notesFeatureEnabled ? [{k:"notes", Icon: FileText}] : []),
           ].map(({k, Icon}) => {
             const active = tab === k;
             return (
@@ -7391,7 +7362,7 @@ function FocusGoInner() {
           tasks={tasks} notes={notes} allSubjects={allSubjects} topicBank={topicBank} examSubjects={examSubjects} examSchedule={examSchedule}
           onClose={()=>setShowSearch(false)}
           onOpenTask={(x)=>{ setShowSearch(false); setTab("task"); setTaskDetailId(x.id); }}
-          onOpenNote={(n)=>{ setShowSearch(false); setTab("notes"); setNoteSearch(n.title || ""); }}
+          onOpenNote={()=>{ setShowSearch(false); }}
           onOpenSubject={(s)=>{ setShowSearch(false); setTab("study"); setStudySection("plan"); setShowManageTopicsFor(s); setShowSubjects(true); }}
           onOpenExam={()=>{ setShowSearch(false); setTab("study"); setStudySection("plan"); setShowExamSchedule(true); }}
         />
@@ -7471,7 +7442,6 @@ function FocusGoInner() {
               salahFeatureEnabled={salahFeatureEnabled} setSalahFeatureEnabled={setSalahFeatureEnabled}
               studyFeatureEnabled={studyFeatureEnabled} setStudyFeatureEnabled={setStudyFeatureEnabled}
               tasksFeatureEnabled={tasksFeatureEnabled} setTasksFeatureEnabled={setTasksFeatureEnabled}
-              notesFeatureEnabled={notesFeatureEnabled} setNotesFeatureEnabled={setNotesFeatureEnabled}
               focusMinutes={focusMinutes} setFocusMinutes={setFocusMinutes}
               breakMinutes={breakMinutes} setBreakMinutes={setBreakMinutes}
               weekStartDay={weekStartDay} setWeekStartDay={changeWeekStartDay}
