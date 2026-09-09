@@ -10,7 +10,7 @@ import { NativeSettings, AndroidSettings, IOSSettings } from "capacitor-native-s
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert, BookOpen, Hourglass, Flag, Lightbulb, Cloud, UploadCloud, Globe, HelpCircle, AlarmClock, Menu } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert, BookOpen, Hourglass, Flag, Lightbulb, Cloud, UploadCloud, Globe, HelpCircle, AlarmClock, Menu, Heart, Mic, Square } from "lucide-react";
 
 // lucide-react-এর এই ভার্সনে Mars/Venus নেই, তাই নিজে ছোট SVG icon বানানো হলো
 const Mars = ({ size = 18, color = "currentColor" }) => (
@@ -3510,11 +3510,23 @@ function FocusGoInner() {
     if (target && !target.done && target.repeat) {
       const base = target.dueDate || todayKey;
       const nextDue = nextDueDateFromKey(base, target.repeat);
-      const nextInstance = { ...target, id: `${Date.now()}_${Math.random().toString(36).slice(2,7)}`, dueDate: nextDue, done: false, doneAt: null };
-      return [nextInstance, ...ts.map(x => x.id === id ? { ...x, done: true, doneAt: todayKey } : x)];
+      // repeatGoal সেট থাকলে (যেমন সপ্তাহে ৭ বার) স্ট্রিক কাউন্ট বাড়বে, গোল ছুঁলে পরের সাইকেলে ০ থেকে আবার শুরু হবে
+      const prevCount = target.streakCount || 0;
+      const nextCount = target.repeatGoal ? (prevCount + 1 >= target.repeatGoal ? 0 : prevCount + 1) : prevCount;
+      const nextInstance = { ...target, id: `${Date.now()}_${Math.random().toString(36).slice(2,7)}`, dueDate: nextDue, done: false, doneAt: null, streakCount: nextCount };
+      return [nextInstance, ...ts.map(x => x.id === id ? { ...x, done: true, doneAt: todayKey, streakCount: target.repeatGoal ? Math.min(prevCount + 1, target.repeatGoal) : prevCount } : x)];
     }
     return ts.map(x => x.id === id ? { ...x, done: !x.done, doneAt: !x.done ? todayKey : null } : x);
   });
+  const toggleTaskFavorite = (id) => setTasks(ts => ts.map(x => x.id === id ? { ...x, favorite: !x.favorite } : x));
+  const playingAudioRef = useRef(null);
+  const playTaskAudio = (task) => {
+    if (!task || !task.audioData) return;
+    try { playingAudioRef.current?.pause(); } catch (e) {}
+    const audio = new Audio(task.audioData);
+    playingAudioRef.current = audio;
+    audio.play().catch(() => {});
+  };
   const deleteTask = (id) => {
     const removed = tasks.find(x => x.id === id);
     setTasks(ts => ts.filter(x => x.id !== id));
@@ -6484,7 +6496,12 @@ function FocusGoInner() {
             t={t} lang={lang} dark={dark} accent={accent} nf={nf} isDesktop={isDesktop}
             cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2}
             today={today} todayKey={todayKey}
-            tasks={tasks} taskCategories={taskCategories}
+            tasks={tasks.map(x => ({
+              ...x,
+              repeatProgress: (x.repeat && x.repeatGoal) ? { done: x.streakCount || 0, total: x.repeatGoal } : null,
+              ringProgress: typeof x.progress === "number" ? x.progress / 100 : null,
+            }))}
+            taskCategories={taskCategories}
             taskFilter={taskFilter} setTaskFilter={setTaskFilter}
             taskViewMode={taskViewMode} setTaskViewMode={setTaskViewMode}
             taskCalMonth={taskCalMonth} setTaskCalMonth={setTaskCalMonth}
@@ -6492,6 +6509,7 @@ function FocusGoInner() {
             taskMenuOpenId={taskMenuOpenId} setTaskMenuOpenId={setTaskMenuOpenId}
             taskDeleteConfirmId={taskDeleteConfirmId} setTaskDeleteConfirmId={setTaskDeleteConfirmId}
             closeTaskMenu={closeTaskMenu} deleteTask={deleteTask} toggleTask={toggleTask}
+            toggleTaskFavorite={toggleTaskFavorite} playTaskAudio={playTaskAudio}
             setEditingTask={setEditingTask} setTaskDetailId={setTaskDetailId}
             setTaskAddDefaultDate={setTaskAddDefaultDate} setShowAddTask={setShowAddTask}
           />
@@ -6855,6 +6873,8 @@ function FocusGoInner() {
             lang={lang} nf={nf}
             onClose={()=>setTaskDetailId(null)}
             onToggleDone={()=>{vibrate(); toggleTask(x.id);}}
+            onToggleFavorite={()=>{vibrate(); toggleTaskFavorite(x.id);}}
+            onPlayAudio={()=>playTaskAudio(x)}
             onEdit={()=>{setTaskDetailId(null); setEditingTask(x);}}
             onDelete={()=>{ setTaskDetailId(null); vibrate(); deleteTask(x.id); }}
             cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark} bg={bg}/>
@@ -9193,7 +9213,7 @@ function compressImageToDataUrl(file, maxDim = 800, quality = 0.6) {
 
 
 // টাস্ক রো-তে ট্যাপ করলে খোলা রিড-অনলি ডিটেইল শিট — ফুল টাইটেল, প্রায়োরিটি, ক্যাটাগরি/ডিউ-ডেট, নোট দেখায়; এডিট করতে পেন্সিল আইকনে চাপলে AddTaskModal খোলে
-function TaskDetailSheet({ task, priorityLabel, priorityColor, lang, nf, onClose, onToggleDone, onEdit, onDelete, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
+function TaskDetailSheet({ task, priorityLabel, priorityColor, lang, nf, onClose, onToggleDone, onToggleFavorite, onPlayAudio, onEdit, onDelete, cardBg, cardBorder, textMain, textMuted2, accent, dark, bg }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const closeMenu = () => { setMenuOpen(false); setConfirmDelete(false); };
@@ -9205,6 +9225,9 @@ function TaskDetailSheet({ task, priorityLabel, priorityColor, lang, nf, onClose
           <div style={{flex:1, fontSize:16.5, fontWeight:700, lineHeight:1.35, wordBreak:"break-word", opacity: task.done?0.6:1}}>
             {task.title}
           </div>
+          <button onClick={onToggleFavorite} title={lang==="bn"?"ফেভারিট":"Favorite"} style={{border:"none", background:bg, color: task.favorite ? "#D9445E" : textMuted2, width:34, height:34, borderRadius:"50%", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+            <Heart size={15} fill={task.favorite ? "#D9445E" : "none"}/>
+          </button>
           <div style={{position:"relative", flexShrink:0}}>
             <button onClick={(e)=>{ e.stopPropagation(); setMenuOpen(v=>!v); setConfirmDelete(false); }} title={lang==="bn"?"আরও অপশন":"More options"} style={{border:"none", background:bg, color:textMuted2, width:34, height:34, borderRadius:"50%", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation"}}>
               <MoreVertical size={16}/>
@@ -9268,6 +9291,34 @@ function TaskDetailSheet({ task, priorityLabel, priorityColor, lang, nf, onClose
         <div style={{fontSize:13.5, fontWeight:400, lineHeight:1.55, color: task.note ? textMain : textMuted2, background:bg, borderRadius:12, padding:"10px 12px", minHeight:20, whiteSpace:"pre-wrap", wordBreak:"break-word"}}>
           {task.note || (lang==="bn" ? "কোনো নোট নেই — এডিট করে যোগ করুন।" : "No note yet — tap edit to add one.")}
         </div>
+
+        {task.audioDuration && (
+          <>
+            <div style={{fontSize:10.5, fontWeight:700, letterSpacing:0.5, color:textMuted2, textTransform:"uppercase", marginTop:16, marginBottom:6}}>{lang==="bn"?"ভয়েস নোট":"Voice Note"}</div>
+            <button onClick={onPlayAudio} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:bg, color:textMain, borderRadius:12, padding:"10px 12px", fontSize:13.5, fontWeight:600, cursor:"pointer", width:"100%"}}>
+              <Play size={14} fill={textMain}/> {task.audioDuration}
+            </button>
+          </>
+        )}
+
+        {task.repeatGoal && (
+          <>
+            <div style={{fontSize:10.5, fontWeight:700, letterSpacing:0.5, color:textMuted2, textTransform:"uppercase", marginTop:16, marginBottom:6}}>{lang==="bn"?"স্ট্রিক":"Streak"}</div>
+            <div style={{fontSize:13.5, fontWeight:600, color:textMain}}><Num>{nf(task.streakCount||0)}</Num> / <Num>{nf(task.repeatGoal)}</Num></div>
+          </>
+        )}
+
+        {typeof task.progress === "number" && (
+          <>
+            <div style={{fontSize:10.5, fontWeight:700, letterSpacing:0.5, color:textMuted2, textTransform:"uppercase", marginTop:16, marginBottom:6}}>{lang==="bn"?"প্রোগ্রেস":"Progress"}</div>
+            <div style={{display:"flex", alignItems:"center", gap:10}}>
+              <div style={{flex:1, height:8, borderRadius:4, background:bg, overflow:"hidden"}}>
+                <div style={{width:`${task.progress}%`, height:"100%", background:"#E0607A", borderRadius:4}}/>
+              </div>
+              <span style={{fontSize:12.5, fontWeight:700, color:textMain}}><Num>{nf(task.progress)}</Num>%</span>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -9282,6 +9333,56 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
   const [repeat, setRepeat] = useState(initialTask?.repeat || "none"); // "none" | "daily" | "weekly" | "monthly"
   const [reminderTime, setReminderTime] = useState(initialTask?.reminderTime || "");
   const [note, setNote] = useState(initialTask?.note || "");
+  const [favorite, setFavorite] = useState(initialTask?.favorite || false);
+  const [repeatGoal, setRepeatGoal] = useState(initialTask?.repeatGoal ? String(initialTask.repeatGoal) : "");
+  const [progress, setProgress] = useState(typeof initialTask?.progress === "number" ? initialTask.progress : null);
+  const [audioData, setAudioData] = useState(initialTask?.audioData || null);
+  const [audioDuration, setAudioDuration] = useState(initialTask?.audioDuration || "");
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordElapsed, setRecordElapsed] = useState(0);
+  const mediaRecorderRef = useRef(null);
+  const chunksRef = useRef([]);
+  const recordElapsedRef = useRef(0);
+  const recordTimerRef = useRef(null);
+
+  const fmtDuration = (sec) => `${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`;
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      chunksRef.current = [];
+      recordElapsedRef.current = 0;
+      setRecordElapsed(0);
+      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mr.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType || "audio/webm" });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setAudioData(reader.result);
+          setAudioDuration(fmtDuration(recordElapsedRef.current || 1));
+        };
+        reader.readAsDataURL(blob);
+        stream.getTracks().forEach(tr => tr.stop());
+      };
+      mediaRecorderRef.current = mr;
+      mr.start();
+      setIsRecording(true);
+      recordTimerRef.current = setInterval(() => {
+        recordElapsedRef.current += 1;
+        setRecordElapsed(recordElapsedRef.current);
+      }, 1000);
+    } catch (err) {
+      alert(lang === "bn" ? "মাইক্রোফোন অ্যাক্সেস পাওয়া যায়নি।" : "Couldn't access the microphone.");
+    }
+  };
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
+    clearInterval(recordTimerRef.current);
+  };
+  const deleteRecording = () => { setAudioData(null); setAudioDuration(""); };
+  useEffect(() => () => clearInterval(recordTimerRef.current), []);
   // ডিফল্টে শুধু Title + Date দেখানো হয় (দ্রুত টাস্ক যোগ করার জন্য) — Priority/Repeat/Note "More options"-এর নিচে লুকানো,
   // এডিট করার সময় বা কেউ আগে থেকে এগুলো সেট করে থাকলে খোলাই দেখানো হয়
   const [showMore, setShowMore] = useState(
@@ -9307,6 +9408,12 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
       repeat: repeat === "none" ? null : repeat,
       reminderTime: (dueDate && reminderTime) ? reminderTime : null,
       note: note.trim(),
+      favorite,
+      repeatGoal: (repeat !== "none" && repeatGoal) ? Number(repeatGoal) : null,
+      streakCount: initialTask?.streakCount || 0,
+      progress: (progress === null || progress === "") ? null : Number(progress),
+      audioData: audioData || null,
+      audioDuration: audioData ? audioDuration : null,
       done: initialTask?.done || false
     });
     onClose();
@@ -9320,7 +9427,12 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
       <div ref={sheetRef} className="fg-sheet" onClick={e=>e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:Math.max(320, vh - 24), transition:"max-height .18s ease", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"20px 20px 0 0", padding:"14px 16px 18px", color:textMain}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
           <div style={{fontSize:15.5, fontWeight:800}}>{isEditing ? (lang==="bn" ? "টাস্ক এডিট করুন" : "Edit Task") : t.taskAdd}</div>
-          <button onClick={onClose} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:2}}><X size={18}/></button>
+          <div style={{display:"flex", alignItems:"center", gap:6}}>
+            <button onClick={()=>setFavorite(v=>!v)} title={lang==="bn" ? "ফেভারিট" : "Favorite"} style={{border:"none", background:"transparent", color: favorite ? "#D9445E" : textMuted2, cursor:"pointer", padding:2, display:"flex"}}>
+              <Heart size={18} fill={favorite ? "#D9445E" : "none"}/>
+            </button>
+            <button onClick={onClose} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:2}}><X size={18}/></button>
+          </div>
         </div>
 
         <textarea ref={titleInputRef} value={title} onChange={e=>setTitle(e.target.value)} placeholder={t.taskTitlePlaceholder} rows={2}
@@ -9391,9 +9503,52 @@ function AddTaskModal({ t, lang, onClose, onSubmit, initialTask, defaultDueDate,
               ))}
             </div>
 
+            {repeat !== "none" && (
+              <>
+                <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>
+                  {lang==="bn" ? "স্ট্রিক গোল (ঐচ্ছিক, যেমন সপ্তাহে ৭ বার)" : "Streak goal (optional, e.g. 7 per cycle)"}
+                </div>
+                <input type="number" min="1" value={repeatGoal} onChange={e=>setRepeatGoal(e.target.value)}
+                  placeholder={lang==="bn" ? "যেমনঃ 7" : "e.g. 7"}
+                  style={{width:"100%", boxSizing:"border-box", background:bg, border:`1px solid ${cardBorder}`, borderRadius:10, padding:"8px 10px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit", marginBottom:12}}/>
+              </>
+            )}
+
             <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{lang==="bn" ? "নোট (ঐচ্ছিক)" : "Note (optional)"}</div>
             <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder={lang==="bn" ? "কোনো নোট লিখুন..." : "Add a note..."}
               style={{width:"100%", boxSizing:"border-box", minHeight:46, background:bg, border:`1px solid ${cardBorder}`, borderRadius:10, padding:"7px 10px", fontSize:13, color:textMain, outline:"none", fontFamily:"inherit", resize:"none", marginBottom:12}}/>
+
+            <div style={{fontSize:11, fontWeight:700, color:textMuted2, marginBottom:6}}>{lang==="bn" ? "ভয়েস নোট (ঐচ্ছিক)" : "Voice note (optional)"}</div>
+            <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:12}}>
+              {audioData ? (
+                <>
+                  <audio controls src={audioData} style={{flex:1, minWidth:0, height:34}}/>
+                  <button onClick={deleteRecording} title={lang==="bn"?"মুছে ফেলুন":"Delete"} style={{border:"none", background:bg, color:"#C0392B", width:34, height:34, borderRadius:9, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                    <Trash2 size={14}/>
+                  </button>
+                </>
+              ) : isRecording ? (
+                <button onClick={stopRecording} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"#C0392B", color:"#fff", borderRadius:10, padding:"8px 14px", fontSize:13, fontWeight:700, cursor:"pointer"}}>
+                  <Square size={13} fill="#fff"/> {lang==="bn" ? "রেকর্ডিং থামান" : "Stop recording"} · {fmtDuration(recordElapsed)}
+                </button>
+              ) : (
+                <button onClick={startRecording} style={{display:"flex", alignItems:"center", gap:8, border:`1.5px solid ${cardBorder}`, background:"transparent", color:textMuted2, borderRadius:10, padding:"8px 14px", fontSize:13, fontWeight:700, cursor:"pointer"}}>
+                  <Mic size={14}/> {lang==="bn" ? "রেকর্ড করুন" : "Record a note"}
+                </button>
+              )}
+            </div>
+
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
+              <div style={{fontSize:11, fontWeight:700, color:textMuted2}}>{lang==="bn" ? "প্রোগ্রেস রিং (ঐচ্ছিক)" : "Progress ring (optional)"}</div>
+              {progress !== null && (
+                <button onClick={()=>setProgress(null)} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", fontSize:11, fontWeight:700}}>{lang==="bn"?"মুছুন":"Clear"}</button>
+              )}
+            </div>
+            <div style={{display:"flex", alignItems:"center", gap:10, marginBottom:12}}>
+              <input type="range" min="0" max="100" value={progress ?? 0} onChange={e=>setProgress(Number(e.target.value))}
+                style={{flex:1, accentColor:accent}}/>
+              <span style={{fontSize:12.5, fontWeight:700, color:textMain, width:36, textAlign:"right"}}>{progress ?? 0}%</span>
+            </div>
           </>
         )}
       </div>

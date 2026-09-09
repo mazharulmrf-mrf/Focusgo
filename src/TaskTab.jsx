@@ -27,6 +27,7 @@ export default function TaskTab({
   taskMenuOpenId, setTaskMenuOpenId,
   taskDeleteConfirmId, setTaskDeleteConfirmId,
   closeTaskMenu, deleteTask, toggleTask,
+  toggleTaskFavorite, playTaskAudio,
   setEditingTask, setTaskDetailId,
   setTaskAddDefaultDate, setShowAddTask,
 }) {
@@ -91,16 +92,19 @@ export default function TaskTab({
               }}>
                 <div style={{width:32, flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center"}}>
                   {(() => {
-                    const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec((x.reminderTime||"").trim());
+                    const m = /^(\d{1,2}):(\d{2})$/.exec((x.reminderTime||"").trim());
                     if (!m) return <span style={{fontSize:15, fontWeight:600, color:textMuted2, opacity:0.5}}>—</span>;
-                    const [, hh, mm, ap] = m;
+                    let hh = parseInt(m[1], 10);
+                    const mm = m[2];
+                    const ap = hh >= 12 ? "PM" : "AM";
+                    hh = hh % 12; if (hh === 0) hh = 12;
                     return (
                       <>
                         <div style={{display:"flex", alignItems:"flex-end", lineHeight:1}}>
                           <span style={{fontSize:17, fontWeight:700, color:textMain}}><Num>{nf(hh)}</Num></span>
                           <span style={{fontSize:10.5, fontWeight:600, color:textMuted2, marginLeft:1}}><Num>{nf(mm)}</Num></span>
                         </div>
-                        <span style={{fontSize:9.5, fontWeight:600, color:textMuted2, letterSpacing:0.3, marginTop:1}}>{ap.toUpperCase()}</span>
+                        <span style={{fontSize:9.5, fontWeight:600, color:textMuted2, letterSpacing:0.3, marginTop:1}}>{ap}</span>
                       </>
                     );
                   })()}
@@ -143,7 +147,9 @@ export default function TaskTab({
                     <Heart size={14} color="#D9445E" fill="#D9445E" style={{flexShrink:0}}/>
                   )}
                   {x.audioDuration ? (
-                    <span style={{fontSize:11.5, fontWeight:500, color:textMuted2, whiteSpace:"nowrap"}}>{x.audioDuration}</span>
+                    <button onClick={(e)=>{e.stopPropagation(); playTaskAudio && playTaskAudio(x);}} style={{display:"flex", alignItems:"center", gap:4, border:"none", background:"transparent", padding:0, cursor:"pointer", fontSize:11.5, fontWeight:500, color:textMuted2, whiteSpace:"nowrap"}}>
+                      {x.audioDuration}
+                    </button>
                   ) : cat ? (
                     <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11.5, color:textMuted2, fontWeight:500, whiteSpace:"nowrap"}}>
                       <span style={{width:6, height:6, borderRadius:"50%", background:cat.color, display:"inline-block", flexShrink:0}}/>
@@ -183,6 +189,11 @@ export default function TaskTab({
                             </>
                           ) : (
                             <>
+                              {toggleTaskFavorite && (
+                                <button onClick={()=>{closeTaskMenu(); vibrate(); toggleTaskFavorite(x.id);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:x.favorite ? "#D9445E" : textMuted2, padding:"9px 12px", fontSize:13.5, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
+                                  <Heart size={13} fill={x.favorite ? "#D9445E" : "none"}/> {x.favorite ? (lang==="bn"?"ফেভারিট থেকে সরান":"Remove favorite") : (lang==="bn"?"ফেভারিট করুন":"Add to favorites")}
+                                </button>
+                              )}
                               <button onClick={()=>{closeTaskMenu(); setEditingTask(x);}} style={{display:"flex", alignItems:"center", gap:8, width:"100%", border:"none", background:"transparent", color:textMuted2, padding:"9px 12px", fontSize:13.5, fontWeight:500, cursor:"pointer", textAlign:"left"}}>
                                 <Pencil size={13}/> {lang==="bn"?"এডিট":"Edit"}
                               </button>
