@@ -49,7 +49,6 @@ const MosqueIcon = ({ size = 16, color = "currentColor" }) => (
     <path d="M13.5 2.6a2 2 0 1 0 1.9 3.15A2.4 2.4 0 0 1 13.5 2.6z" fill={color} stroke="none"/>
   </svg>
 );
-import TodayGreetingCard from "./TodayGreetingCard";
 import TaskTab from "./TaskTab";
 import NotesTab from "./NotesTab";
 import { auth, db, googleProvider } from "./firebase";
@@ -5857,6 +5856,10 @@ function FocusGoInner() {
         {/* Date row — Today tab এর নিজস্ব অ্যাঙ্কর (weekday + বড় তারিখ + লাইভ ক্লক), তাই শুধু Today-তেই দেখানো হয়।
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
+        {/* TodayGreetingCard temporarily removed — ./TodayGreetingCard.jsx ছিল না রিপোতে, build fail করছিল।
+            এই ব্লকে salah/qibla/weather/alarm সহ পুরো "Today" হেডার কার্ড ছিল — ফাইলটা ফিরে পেলে/পুনর্নির্মাণ করলে
+            নিচের props-সহ আবার বসিয়ে দিলেই কাজ করবে (uncomment করে <TodayGreetingCard ... /> ফিরিয়ে আনুন):
+
         {tab === "today" && (
           <TodayGreetingCard
             lang={lang} t={t} nf={nf}
@@ -5888,6 +5891,7 @@ function FocusGoInner() {
             vibrate={vibrate} Num={Num}
           />
         )}
+        */}
 
         {tab === "study" && (
           <div className="fg-tab-panel" style={{marginTop:16, marginBottom:2}}>
