@@ -49,6 +49,7 @@ const MosqueIcon = ({ size = 16, color = "currentColor" }) => (
     <path d="M13.5 2.6a2 2 0 1 0 1.9 3.15A2.4 2.4 0 0 1 13.5 2.6z" fill={color} stroke="none"/>
   </svg>
 );
+import TodayGreetingCard from "./TodayGreetingCard";
 import { auth, db, googleProvider } from "./firebase";
 import { setupNotifications } from "./notifications";
 import {
@@ -5843,526 +5844,35 @@ function FocusGoInner() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:18, padding:"6px 0 8px", boxSizing:"border-box", position:"relative"}}>
-          <div style={{marginBottom:2, position:"relative"}}>
-            {(() => {
-              const fullName = (user?.displayName || "").trim();
-              const parts = fullName.split(/\s+/).filter(Boolean);
-              // Md./Mr./Mrs./Miss/Ms./Dr. এই ধরনের honorific প্রথম word হিসেবে থাকলে বাদ দিয়ে তার পরের word-টাকে First Name ধরা হয়
-              const HONORIFIC_RE = /^(md|mr|mrs|miss|ms|dr|mohammad|mohammed)\.?$/i;
-              const firstName = parts.find(p => !HONORIFIC_RE.test(p)) || (lang === "bn" ? "বন্ধু" : "Friend");
-              const dayHash = Math.floor(new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime() / 86400000);
-
-              // আজকের study progress অনুযায়ী motivation-এর টোন ঠিক করা হয় — শুরু/চলমান/সম্পন্ন
-              const doneToday = todayTopics.filter(x => x.done).length;
-              const totalToday = todayTopics.length;
-              const stage = totalToday === 0 ? "start" : (doneToday >= totalToday ? "done" : "progress");
-
-              const pool = FOCUSGO_MOTIVATIONS[lang === "bn" ? "bn" : "en"][stage];
-              // নাম উপরের বড় হেডিং-এই দেখানো হয় (উপরে ছোট করে সময়ভিত্তিক গ্রিটিং), তাই motivation লাইনের ভেতর থেকে {name} বাদ দিয়ে বাক্যটা পরিষ্কার করা হয়
-              const line = pool[dayHash % pool.length]
-                .replace("{name}", "")
-                .replace(/\s*,\s*,/g, ",")
-                .replace(/,\s*([.।])/g, "$1")
-                .replace(/,\s*—/g, " —")
-                .replace(/\s{2,}/g, " ")
-                .trim();
-
-              // সময় অনুযায়ী গ্রিটিং — Good morning / noon / afternoon / evening / night
-              // সবসময় বাংলাদেশের সময় (Asia/Dhaka) অনুযায়ী হিসাব হয়, ইউজারের ডিভাইসের টাইমজোন যাই হোক না কেন
-              const hr = parseInt(new Intl.DateTimeFormat("en-US", { hour: "2-digit", hour12: false, timeZone: "Asia/Dhaka" }).format(now), 10) % 24;
-              const greetKey = hr < 5 ? "night" : hr < 12 ? "morning" : hr < 14 ? "noon" : hr < 17 ? "afternoon" : hr < 21 ? "evening" : "night";
-              const greetingEn = { morning: "Good Morning", noon: "Good Noon", afternoon: "Good Afternoon", evening: "Good Evening", night: "Good Night" }[greetKey];
-              const greetingBn = { morning: "শুভ সকাল", noon: "শুভ দুপুর", afternoon: "শুভ বিকেল", evening: "শুভ সন্ধ্যা", night: "শুভ রাত্রি" }[greetKey];
-              // সময়ভিত্তিক subtle gradient + icon — greeting card-টাকে আরেকটু জীবন্ত করতে
-              const greetTheme = {
-                morning:   { grad: dark ? "rgba(224,168,58,0.10)" : "#E0A83A0F", Icon: Sun,  iconColor: "#E0A83A" },
-                noon:      { grad: dark ? "rgba(237,236,242,0.10)" : "#1A18140F", Icon: Sun,  iconColor: dark ? "#F3F1F8" : "#1A1814" },
-                afternoon: { grad: `${accent}${dark ? "18" : "0F"}`, Icon: Sun,  iconColor: accent },
-                evening:   { grad: dark ? "rgba(155,107,158,0.11)" : "#9B6B9E0F", Icon: Moon, iconColor: "#9B6B9E" },
-                night:     { grad: dark ? "rgba(75,90,150,0.12)" : "#4B5A960F", Icon: Moon, iconColor: dark ? "#8FA0E0" : "#4B5A96" },
-              }[greetKey];
-
-              const GreetIcon = greetTheme.Icon;
-              return (
-                <>
-                  <div style={{
-                    padding:"14px 14px 12px", marginBottom:0, position:"relative", borderRadius:18,
-                    background: dark
-                      ? `linear-gradient(135deg, ${greetTheme.grad}, transparent 70%)`
-                      : `linear-gradient(135deg, ${greetTheme.grad}, #FFFFFF 75%)`,
-                  }} ref={salahMenuRef}>
-                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8}}>
-                      <div style={{minWidth:0, flex:1}}>
-                        <div
-                          onClick={() => { vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                          style={{fontSize:12.5, fontWeight:500, color:"var(--muted)", letterSpacing:0.2, marginBottom:3, display:"flex", alignItems:"center", gap:6, cursor:"pointer"}}
-                          title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
-                        >
-                          <GreetIcon size={13} color={greetTheme.iconColor} strokeWidth={2.2}/>
-                          {lang === "bn" ? greetingBn : greetingEn}
-                          {weatherData && weatherData.temp != null && (
-                            <span
-                              onClick={(e) => { e.stopPropagation(); vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                              style={{display:"inline-flex", alignItems:"center", fontSize:12.5, fontWeight:500, color:"var(--muted)", cursor:"pointer"}}
-                              title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
-                            >
-                              · <Num>{nf(weatherData.temp)}</Num>°C
-                            </span>
-                          )}
-                        </div>
-                        <div style={{fontSize:21,fontWeight:600,letterSpacing:-0.5,color:"var(--text)", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", display:"inline-block"}}>
-                          {firstName}
-                        </div>
-                      </div>
-                      {salahFeatureEnabled && (
-                        <button
-                          onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
-                          style={{
-                            border:"none", background:`${accent}14`, padding:0, flexShrink:0,
-                            width:32, height:32, borderRadius:"50%",
-                            display:"flex", alignItems:"center", justifyContent:"center",
-                            cursor:"pointer", position:"relative",
-                          }}
-                          title={lang === "bn" ? "সালাতের সময়" : "Salah times"}
-                        >
-                          <MosqueIcon size={18} color={accent}/>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div style={{height:14}}/>
-
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"2px 2px 0", position:"relative"}}>
-                    <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
-                      <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative", minWidth:0}}>
-                        <span style={{width:30, height:30, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                          <CalendarDays size={20} color={accent} strokeWidth={2}/>
-                        </span>
-                        <span style={{fontSize:13.5, fontWeight:600, color:textMain, letterSpacing:-0.1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-                          {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
-                        </span>
-                        {examDateKeys.has(todayKey) && (
-                          <span style={{
-                            position:"absolute", top:-2, left:24,
-                            width:7, height:7, borderRadius:"50%",
-                            background:"#C0392B",
-                            border:`1.5px solid ${dark ? cardBg : "#FFFFFF"}`,
-                          }}/>
-                        )}
-                      </button>
-                    </div>
-                    {/* ঘড়ির পাশে ছোট অ্যালার্ম আইকন — ট্যাপ করলে Salah dropdown-এর মতোই একটা bottom-sheet popup খুলে সময় সেট করা যায়।
-                        একটা অ্যালার্ম অ্যাক্টিভ থাকলে এখানে লাইভ ঘড়ির বদলে সেট করা অ্যালার্মের সময়টা সাদা রঙে বোল্ড করে দেখানো হয়,
-                        যাতে ইউজার এক নজরে বুঝতে পারে কোন সময়ে অ্যালার্ম সেট আছে। */}
-                    <button
-                      onClick={()=>{
-                        vibrate();
-                        if (activeAlarm) { setAlarmHour(activeAlarm.hour); setAlarmMinute(activeAlarm.minute); setAlarmAmPm(activeAlarm.ampm); }
-                        else { setAlarmHour(((now.getHours()%12)||12)); setAlarmMinute(now.getMinutes()); setAlarmAmPm(now.getHours()>=12 ? "PM" : "AM"); }
-                        setShowAlarmPicker(true);
-                      }}
-                      style={{display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", padding:0, cursor:"pointer", flexShrink:0}}
-                      title={activeAlarm ? `${t.nextAlarmLabel}: ${pad2(activeAlarm.hour)}:${pad2(activeAlarm.minute)} ${activeAlarm.ampm}` : (lang === "bn" ? "অ্যালার্ম সেট করুন" : "Set alarm")}
-                    >
-                      {activeAlarm ? (
-                        <span style={{fontSize:13.5, color:textMain, fontWeight:800, fontVariantNumeric:"tabular-nums"}}>
-                          <Num>{nf(pad2(activeAlarm.hour))}</Num>:<Num>{nf(pad2(activeAlarm.minute))}</Num> {activeAlarm.ampm === "AM" ? t.amLabel : t.pmLabel}
-                        </span>
-                      ) : (
-                        <span style={{fontSize:13.5, color:textMain, fontWeight:600, fontVariantNumeric:"tabular-nums"}}>
-                          <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
-                        </span>
-                      )}
-                      <AlarmClock size={15} color={accent} strokeWidth={activeAlarm ? 2.6 : 2.1}/>
-                    </button>
-                  </div>
-
-                    {salahFeatureEnabled && showSalahDropdown && (
-                      <div onClick={() => setShowSalahDropdown(false)} style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:70}}>
-                        <div onClick={(e) => e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:"85vh", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"14px 14px 0 0", padding:"8px 16px 18px", color:textMain}}>
-                          <div style={{width:32, height:3.5, borderRadius:4, background:cardBorder, margin:"2px auto 10px"}}/>
-
-                          <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10}}>
-                            <div style={{minWidth:0}}>
-                              <div style={{fontSize:15, fontWeight:800, color:textMain}}>{lang === "bn" ? "সালাতের সময়" : "Salah Times"}</div>
-                              <div style={{display:"flex", alignItems:"center", gap:5, marginTop:2, minHeight:14}}>
-                                <MapPin size={11} color={textMuted2} strokeWidth={2.4}/>
-                                <span style={{fontSize:12.5, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-                                  {salahLocLoading
-                                    ? (lang === "bn" ? "লোকেশন খোঁজা হচ্ছে…" : "Getting location…")
-                                    : salahCoords
-                                      ? [salahLocationName, hijriDateLabel].filter(Boolean).join(" · ")
-                                      : (lang === "bn" ? "লোকেশন সেট করা নেই" : "Location not set")}
-                                </span>
-                              </div>
-                            </div>
-                            {/* লোকেশন আইকন — ক্লিক করলে লাইভ লোকেশন নেয়া/আপডেট হবে; সেট থাকলে accent রঙে দেখাবে */}
-                            <button
-                              onClick={(e) => { e.stopPropagation(); vibrate(); requestSalahLocation(); }}
-                              disabled={salahLocLoading}
-                              title={
-                                salahLocLoading
-                                  ? (lang === "bn" ? "লোকেশন খোঁজা হচ্ছে…" : "Getting location…")
-                                  : salahCoords
-                                    ? (lang === "bn" ? "লোকেশন পরিবর্তন করুন" : "Change location")
-                                    : (lang === "bn" ? "লাইভ লোকেশন নিন" : "Get live location")
-                              }
-                              style={{
-                                width:28, height:28, borderRadius:"50%", flexShrink:0, border:"none", padding:0,
-                                background: salahCoords ? accent : (dark ? "#242229" : "#F0EEF5"),
-                                display:"flex", alignItems:"center", justifyContent:"center",
-                                cursor: salahLocLoading ? "default" : "pointer",
-                                opacity: salahLocLoading ? 0.55 : 1,
-                                transition:"background .18s ease, opacity .18s ease",
-                              }}
-                            >
-                              <MapPin size={13.5} color={salahCoords ? "#fff" : textMuted2} strokeWidth={2.4}/>
-                            </button>
-                          </div>
-
-                          {!salahCoords && !salahLocLoading && (
-                            <div style={{marginTop:10, fontSize:12.5, color:textMuted2, lineHeight:1.5}}>
-                              {salahLocError || (lang === "bn" ? "উপরের লোকেশন আইকনে ট্যাপ করে আপনার এলাকা সেট করুন।" : "Tap the location icon above to set your area.")}
-                            </div>
-                          )}
-                          {salahCoords && salahLocError && (
-                            <div style={{marginTop:10, fontSize:13, color:"#C0392B", lineHeight:1.5}}>{salahLocError}</div>
-                          )}
-                          {/* পারমিশন permanently denied থাকলে সরাসরি অ্যাপের সিস্টেম সেটিংস স্ক্রিনে নিয়ে যাওয়ার বাটন —
-                              ইউজারকে নিজে থেকে অ্যাপ ইনফো > পারমিশন-এ গিয়ে খুঁজে বের করতে হবে না */}
-                          {salahPermDenied && Capacitor.isNativePlatform() && (
-                            <button
-                              onClick={openLocationSettings}
-                              style={{
-                                marginTop:10, width:"100%", border:"none", borderRadius:12, padding:"10px 0",
-                                background: accent, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer",
-                              }}
-                            >
-                              {lang === "bn" ? "সেটিংস থেকে লোকেশন অন করুন" : "Enable location in Settings"}
-                            </button>
-                          )}
-
-                          {salahCoords && salahTimes && (
-                            <>
-                              {/* পরবর্তী নামাজের কাউন্টডাউন */}
-                              {nextSalahCountdown && (
-                                <div style={{marginTop:10, background: accent, borderRadius:14, padding:"9px 13px", display:"flex", alignItems:"center", justifyContent:"space-between", color:"#fff"}}>
-                                  <div>
-                                    <div style={{fontSize:10, fontWeight:700, opacity:0.85, letterSpacing:0.4}}>{lang === "bn" ? "পরবর্তী" : "UP NEXT"}</div>
-                                    <div style={{fontSize:14.5, fontWeight:800, marginTop:1}}>
-                                      {lang === "bn" ? `${nextSalahCountdown.label} — বাকি ${nextSalahCountdown.text}` : `${nextSalahCountdown.label} in ${nextSalahCountdown.text}`}
-                                    </div>
-                                  </div>
-                                  <Bell size={15} strokeWidth={2.2} style={{opacity:0.9, flexShrink:0}}/>
-                                </div>
-                              )}
-
-                              {/* আসরের হিসাব: হানাফি / শাফি */}
-                              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:12, marginBottom:2}}>
-                                <span style={{fontSize:10, fontWeight:800, color:textMuted2, letterSpacing:0.4}}>{lang === "bn" ? "আসরের হিসাব" : "ASR CALCULATION"}</span>
-                                <div style={{display:"flex", background: dark ? "#242229" : "#F0EEF5", borderRadius:999, padding:2}}>
-                                  {["hanafi","shafi"].map(mkey => (
-                                    <button key={mkey} onClick={() => { vibrate(); setSalahMadhab(mkey); }} style={{
-                                      border:"none", padding:"4px 10px", borderRadius:999, fontSize:10.5, fontWeight:800, cursor:"pointer",
-                                      background: salahMadhab === mkey ? accent : "transparent",
-                                      color: salahMadhab === mkey ? "#fff" : textMuted2,
-                                    }}>{mkey === "hanafi" ? (lang === "bn" ? "হানাফি" : "Hanafi") : (lang === "bn" ? "শাফি" : "Shafi")}</button>
-                                  ))}
-                                </div>
-                              </div>
-
-                              <div style={{marginTop:6}}>
-                                {salahTimes.map(w => {
-                                  const isActive = w.key === activeSalahKey;
-                                  const isDone = todaySalahDone.includes(w.key);
-                                  return (
-                                    <div key={w.key} style={{
-                                      display:"flex", justifyContent:"space-between", alignItems:"center", gap:8,
-                                      padding:"7px 9px", borderRadius:12, marginBottom:3, transition:"background .2s ease, border-color .2s ease",
-                                      background: isDone ? (dark ? "rgba(78,144,104,0.14)" : "#EEF4EC") : isActive ? (dark ? "rgba(217,119,87,0.16)" : "#EFEBF7") : "transparent",
-                                      border: `1px solid ${isDone ? (dark ? "rgba(78,144,104,0.35)" : "#D7E6D2") : isActive ? (dark ? "rgba(217,119,87,0.4)" : "#F0CBB8") : "transparent"}`,
-                                    }}>
-                                      <span style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
-                                        {/* সালাত আদায় হয়ে গেলে এখানে ট্যাপ করে টিক দেওয়া যায় — প্রতিদিনের হিসাব আলাদাভাবে সেভ থাকে */}
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); toggleSalahDone(w.key); }}
-                                          title={isDone ? (lang === "bn" ? "আদায় হয়েছে — বাতিল করতে ট্যাপ করুন" : "Marked done — tap to undo") : (lang === "bn" ? "আদায় হলে টিক দিন" : "Tap to mark as prayed")}
-                                          style={{
-                                            width:21, height:21, borderRadius:"50%", flexShrink:0, padding:0, cursor:"pointer",
-                                            border: isDone ? "none" : `2px solid ${isActive ? accent : cardBorder}`,
-                                            background: isDone ? "#4E9068" : "transparent",
-                                            display:"flex", alignItems:"center", justifyContent:"center",
-                                            transition:"background .18s ease, border-color .18s ease",
-                                            boxShadow: isDone ? "0 2px 6px rgba(78,144,104,0.35)" : "none",
-                                          }}
-                                        >
-                                          {isDone && <Check size={11.5} color="#fff" strokeWidth={3.2}/>}
-                                        </button>
-                                        <span style={{
-                                          color: isDone ? "#4E9068" : isActive ? accent : textMain,
-                                          fontWeight: isActive ? 700 : 600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                                          fontSize:13.5,
-                                        }}>{w.label}</span>
-                                      </span>
-                                      <span style={{color: isDone ? "#4E9068" : isActive ? accent : textMuted2, fontWeight: isActive ? 700 : 500, fontSize:12, fontVariantNumeric:"tabular-nums", flexShrink:0, opacity: isDone ? 0.85 : 1}}>
-                                        {fmtSalahTime(w.start)} – {fmtSalahTime(w.end)}
-                                      </span>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-
-                              {/* নিচে: আজকের প্রগ্রেস ডট + কিবলার দিক */}
-                              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10, paddingTop:8, borderTop:"1px solid var(--track)"}}>
-                                <div style={{display:"flex", alignItems:"center", gap:7}}>
-                                  <div style={{display:"flex", gap:3}}>
-                                    {salahTimes.map(w => (
-                                      <div key={w.key} style={{width:6, height:6, borderRadius:"50%", background: todaySalahDone.includes(w.key) ? "#4E9068" : cardBorder}}/>
-                                    ))}
-                                  </div>
-                                  <span style={{fontSize:11.5, fontWeight:700, color:textMuted2}}>{nf(todaySalahDone.length)}/5 {lang === "bn" ? "আজ" : "today"}</span>
-                                </div>
-                                {qiblaBearing != null && (
-                                  <span title={lang === "bn" ? "কিবলার দিক (উত্তর থেকে)" : "Qibla direction (from North)"} style={{display:"flex", alignItems:"center", gap:4, fontSize:12, fontWeight:800, color:accent}}>
-                                    <Compass size={13} strokeWidth={2.3}/> {lang === "bn" ? "কিবলা" : "Qibla"} {nf(qiblaBearing)}°
-                                  </span>
-                                )}
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* ওয়েদার — Salah dropdown-এর মতোই bottom-sheet, একই লোকেশন (salahCoords) ব্যবহার করে */}
-                    {showWeatherModal && (
-                      <div onClick={() => setShowWeatherModal(false)} style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:70}}>
-                        <div onClick={(e) => e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, maxHeight:"85vh", overflowY:"auto", WebkitOverflowScrolling:"touch", borderRadius:"14px 14px 0 0", padding:"8px 16px 18px", color:textMain}}>
-                          <div style={{width:32, height:3.5, borderRadius:4, background:cardBorder, margin:"2px auto 10px"}}/>
-
-                          <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10}}>
-                            <div style={{minWidth:0}}>
-                              <div style={{fontSize:15, fontWeight:800, color:textMain}}>{lang === "bn" ? "আবহাওয়া" : "Weather"}</div>
-                              <div style={{display:"flex", alignItems:"center", gap:5, marginTop:2, minHeight:14}}>
-                                <MapPin size={11} color={textMuted2} strokeWidth={2.4}/>
-                                <span style={{fontSize:12.5, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-                                  {salahLocLoading
-                                    ? (lang === "bn" ? "লোকেশন খোঁজা হচ্ছে…" : "Getting location…")
-                                    : salahCoords
-                                      ? (salahLocationName || (lang === "bn" ? "লোকেশন সেট করা আছে" : "Location set"))
-                                      : (lang === "bn" ? "লোকেশন সেট করা নেই" : "Location not set")}
-                                </span>
-                              </div>
-                            </div>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); vibrate(); requestSalahLocation(); }}
-                              disabled={salahLocLoading}
-                              title={
-                                salahLocLoading
-                                  ? (lang === "bn" ? "লোকেশন খোঁজা হচ্ছে…" : "Getting location…")
-                                  : salahCoords
-                                    ? (lang === "bn" ? "লোকেশন পরিবর্তন করুন" : "Change location")
-                                    : (lang === "bn" ? "লাইভ লোকেশন নিন" : "Get live location")
-                              }
-                              style={{
-                                width:28, height:28, borderRadius:"50%", flexShrink:0, border:"none", padding:0,
-                                background: salahCoords ? accent : (dark ? "#242229" : "#F0EEF5"),
-                                display:"flex", alignItems:"center", justifyContent:"center",
-                                cursor: salahLocLoading ? "default" : "pointer",
-                                opacity: salahLocLoading ? 0.55 : 1,
-                                transition:"background .18s ease, opacity .18s ease",
-                              }}
-                            >
-                              <MapPin size={13.5} color={salahCoords ? "#fff" : textMuted2} strokeWidth={2.4}/>
-                            </button>
-                          </div>
-
-                          {!salahCoords && !salahLocLoading && (
-                            <div style={{marginTop:10, fontSize:12.5, color:textMuted2, lineHeight:1.5}}>
-                              {salahLocError || (lang === "bn" ? "উপরের লোকেশন আইকনে ট্যাপ করে আপনার এলাকা সেট করুন।" : "Tap the location icon above to set your area.")}
-                            </div>
-                          )}
-                          {salahCoords && salahLocError && (
-                            <div style={{marginTop:10, fontSize:13, color:"#C0392B", lineHeight:1.5}}>{salahLocError}</div>
-                          )}
-                          {salahPermDenied && Capacitor.isNativePlatform() && (
-                            <button
-                              onClick={openLocationSettings}
-                              style={{
-                                marginTop:10, width:"100%", border:"none", borderRadius:12, padding:"10px 0",
-                                background: accent, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer",
-                              }}
-                            >
-                              {lang === "bn" ? "সেটিংস থেকে লোকেশন অন করুন" : "Enable location in Settings"}
-                            </button>
-                          )}
-
-                          {salahCoords && weatherLoading && !weatherData && (
-                            <div style={{marginTop:14, fontSize:13, color:textMuted2}}>
-                              {lang === "bn" ? "আবহাওয়ার তথ্য আনা হচ্ছে…" : "Fetching weather…"}
-                            </div>
-                          )}
-                          {weatherError && (
-                            <div style={{marginTop:10, fontSize:13, color:"#C0392B", lineHeight:1.5}}>{weatherError}</div>
-                          )}
-
-                          {salahCoords && weatherData && weatherData.temp != null && (() => {
-                            const info = weatherInfo(weatherData.code);
-                            const WIcon = info.Icon;
-                            const sunriseD = weatherData.sunrise ? new Date(weatherData.sunrise) : null;
-                            const sunsetD = weatherData.sunset ? new Date(weatherData.sunset) : null;
-                            return (
-                              <>
-                                <div style={{marginTop:14, background:`${accent}${dark ? "1E" : "0F"}`, borderRadius:14, padding:"16px 14px", display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-                                  <div>
-                                    <div style={{fontSize:32.5, fontWeight:800, color:textMain, letterSpacing:-1, lineHeight:1}}>
-                                      <Num>{nf(weatherData.temp)}</Num>°C
-                                    </div>
-                                    <div style={{fontSize:13, fontWeight:600, color:textMuted2, marginTop:4}}>
-                                      {lang === "bn" ? info.bn : info.en}
-                                    </div>
-                                  </div>
-                                  <WIcon size={36} color={accent} strokeWidth={1.8}/>
-                                </div>
-
-                                {(sunriseD || sunsetD) && (
-                                  <div style={{display:"flex", gap:8, marginTop:10}}>
-                                    {sunriseD && (
-                                      <div style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 10px", display:"flex", alignItems:"center", gap:8}}>
-                                        <Sun size={16} color="#E0A83A" strokeWidth={2}/>
-                                        <div>
-                                          <div style={{fontSize:10, fontWeight:700, color:textMuted2, letterSpacing:0.3}}>{lang === "bn" ? "সূর্যোদয়" : "SUNRISE"}</div>
-                                          <div style={{fontSize:13, fontWeight:700, color:textMain}}>{fmtSalahTime(sunriseD)}</div>
-                                        </div>
-                                      </div>
-                                    )}
-                                    {sunsetD && (
-                                      <div style={{flex:1, border:`1px solid ${cardBorder}`, borderRadius:12, padding:"9px 10px", display:"flex", alignItems:"center", gap:8}}>
-                                        <Moon size={16} color={dark ? "#8FA0E0" : "#4B5A96"} strokeWidth={2}/>
-                                        <div>
-                                          <div style={{fontSize:10, fontWeight:700, color:textMuted2, letterSpacing:0.3}}>{lang === "bn" ? "সূর্যাস্ত" : "SUNSET"}</div>
-                                          <div style={{fontSize:13, fontWeight:700, color:textMain}}>{fmtSalahTime(sunsetD)}</div>
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </>
-                            );
-                          })()}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Quick alarm popup — Salah dropdown-এর মতোই bottom-sheet স্টাইল */}
-                    {showAlarmPicker && (
-                      <div onClick={() => setShowAlarmPicker(false)} style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:70}}>
-                        <div onClick={(e) => e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, borderRadius:"14px 14px 0 0", padding:"8px 16px 18px", color:textMain}}>
-                          <div style={{width:32, height:3.5, borderRadius:4, background:cardBorder, margin:"2px auto 12px"}}/>
-                          <div style={{fontSize:15, fontWeight:800, color:textMain, marginBottom:12}}>
-                            {lang === "bn" ? "অ্যালার্ম সেট করুন" : "Set alarm"}
-                          </div>
-                          <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:6, marginBottom:16}}>
-                            <input
-                              type="number" min={1} max={12} value={alarmHour}
-                              onChange={(e)=>{ const v = parseInt(e.target.value,10); setAlarmHour(Number.isFinite(v) ? Math.min(12, Math.max(1, v)) : 1); }}
-                              style={{width:52, textAlign:"center", fontSize:26.5, fontWeight:700, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${cardBorder}`, outline:"none", fontVariantNumeric:"tabular-nums"}}
-                            />
-                            <span style={{fontSize:26.5, fontWeight:700, color:textMuted2}}>:</span>
-                            <input
-                              type="number" min={0} max={59} value={pad2(alarmMinute)}
-                              onChange={(e)=>{ const v = parseInt(e.target.value,10); setAlarmMinute(Number.isFinite(v) ? Math.min(59, Math.max(0, v)) : 0); }}
-                              style={{width:52, textAlign:"center", fontSize:26.5, fontWeight:700, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${cardBorder}`, outline:"none", fontVariantNumeric:"tabular-nums"}}
-                            />
-                            <div style={{display:"flex", border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderRadius:8, overflow:"hidden", marginLeft:8}}>
-                              {["AM","PM"].map(ap => (
-                                <button key={ap} onClick={()=>setAlarmAmPm(ap)} style={{border:"none", padding:"6px 10px", fontSize:12, fontWeight:700, cursor:"pointer",
-                                  background: alarmAmPm===ap ? (dark ? `${accent}30` : `${accent}18`) : "transparent",
-                                  color: alarmAmPm===ap ? accent : textMuted2}}>{ap}</button>
-                              ))}
-                            </div>
-                          </div>
-                          {/* মাস্টার নোটিফিকেশন অথবা Alarm ক্যাটাগরি বন্ধ থাকলে এখানেই জানিয়ে দেওয়া হয় —
-                              আগে চুপচাপ কিছু না ঘটায় ইউজার বুঝতে পারত না কেন অ্যালার্ম আসছে না */}
-                          {!(notificationsEnabled && alarmNotifEnabled) && (
-                            <div style={{fontSize:12, color:"#C0392B", fontWeight:600, marginBottom:12, lineHeight:1.5}}>
-                              {lang === "bn"
-                                ? "অ্যালার্ম নোটিফিকেশন সেটিংসে বন্ধ আছে। Settings ▸ Notifications থেকে \"Alarm\" চালু করুন।"
-                                : "Alarm notifications are turned off. Turn on \"Alarm alerts\" under Settings ▸ Notifications."}
-                            </div>
-                          )}
-                          {!Capacitor.isNativePlatform() && (
-                            <div style={{fontSize:11.5, color:textMuted2, fontWeight:500, marginBottom:12, lineHeight:1.5}}>
-                              {t.alarmWebWarning}
-                            </div>
-                          )}
-                          <button
-                            onClick={() => {
-                              vibrate();
-                              const nowD = new Date();
-                              let h24 = alarmHour % 12;
-                              if (alarmAmPm === "PM") h24 += 12;
-                              const target = new Date(nowD.getFullYear(), nowD.getMonth(), nowD.getDate(), h24, alarmMinute, 0, 0);
-                              if (target.getTime() <= nowD.getTime()) target.setDate(target.getDate() + 1);
-                              const canNotify = notificationsEnabled && alarmNotifEnabled;
-                              if (Capacitor.isNativePlatform() && canNotify) {
-                                LocalNotifications.schedule({
-                                  notifications: [{
-                                    id: strToNotifId("focusgo_quick_alarm"),
-                                    title: lang === "bn" ? "⏰ অ্যালার্ম" : "⏰ Alarm",
-                                    body: lang === "bn"
-                                      ? `${pad2(alarmHour)}:${pad2(alarmMinute)} ${alarmAmPm}`
-                                      : `Alarm for ${pad2(alarmHour)}:${pad2(alarmMinute)} ${alarmAmPm}`,
-                                    schedule: { at: target },
-                                    sound: "default",
-                                  }],
-                                }).catch(() => {});
-                              }
-                              // অ্যাক্টিভ অ্যালার্ম localStorage-এ সেভ থাকে, যাতে হেডারে ঘড়ির জায়গায় সেট করা সময়টা দেখা যায়
-                              saveActiveAlarm({ hour: alarmHour, minute: alarmMinute, ampm: alarmAmPm, at: target.toISOString() });
-                              setShowAlarmPicker(false);
-                              const timeLabel = `${pad2(alarmHour)}:${pad2(alarmMinute)} ${alarmAmPm}`;
-                              if (canNotify && Capacitor.isNativePlatform()) {
-                                window.alert(t.alarmSetConfirm.replace("{time}", timeLabel));
-                              } else if (!Capacitor.isNativePlatform()) {
-                                window.alert(`${t.alarmSetConfirm.replace("{time}", timeLabel)}\n\n${t.alarmWebWarning}`);
-                              } else {
-                                window.alert(lang === "bn"
-                                  ? `সময় মনে রাখা হলো (${timeLabel}), কিন্তু নোটিফিকেশন বন্ধ থাকায় কোনো অ্যালার্ট আসবে না।`
-                                  : `Time saved (${timeLabel}), but no alert will fire since notifications are off.`);
-                              }
-                            }}
-                            style={{width:"100%", border:"none", borderRadius:8, padding:"11px 0", background:accent, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer"}}
-                          >
-                            {lang === "bn" ? "অ্যালার্ম সেট করুন" : "Set alarm"}
-                          </button>
-                          {activeAlarm && (
-                            <button
-                              onClick={() => {
-                                vibrate();
-                                if (Capacitor.isNativePlatform()) {
-                                  LocalNotifications.cancel({ notifications: [{ id: strToNotifId("focusgo_quick_alarm") }] }).catch(() => {});
-                                }
-                                saveActiveAlarm(null);
-                                setShowAlarmPicker(false);
-                                window.alert(t.alarmCancelledMsg);
-                              }}
-                              style={{width:"100%", border:"none", borderRadius:8, padding:"10px 0", background:"transparent", color:"#C0392B", fontWeight:700, fontSize:13.5, cursor:"pointer", marginTop:8}}
-                            >
-                              {t.alarmCancelBtn}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                </>
-              );
-            })()}
-          </div>
-
-        </div>
+          <TodayGreetingCard
+            lang={lang} t={t} nf={nf}
+            dark={dark} accent={accent} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2}
+            user={user} today={today} now={now} todayKey={todayKey} examDateKeys={examDateKeys}
+            weekdayName={weekdayName} monthName={monthName}
+            salahMenuRef={salahMenuRef}
+            setShowCalendar={setShowCalendar} setCalMonth={setCalMonth}
+            salahFeatureEnabled={salahFeatureEnabled}
+            showSalahDropdown={showSalahDropdown} setShowSalahDropdown={setShowSalahDropdown}
+            salahCoords={salahCoords} salahLocLoading={salahLocLoading} salahLocError={salahLocError}
+            salahLocationName={salahLocationName} salahPermDenied={salahPermDenied}
+            requestSalahLocation={requestSalahLocation} openLocationSettings={openLocationSettings}
+            hijriDateLabel={hijriDateLabel}
+            salahMadhab={salahMadhab} setSalahMadhab={setSalahMadhab}
+            salahTimes={salahTimes} activeSalahKey={activeSalahKey} todaySalahDone={todaySalahDone} toggleSalahDone={toggleSalahDone}
+            qiblaBearing={qiblaBearing}
+            nextSalahCountdown={nextSalahCountdown}
+            fmtSalahTime={fmtSalahTime}
+            showWeatherModal={showWeatherModal} setShowWeatherModal={setShowWeatherModal}
+            weatherData={weatherData} weatherLoading={weatherLoading} weatherError={weatherError} weatherInfo={weatherInfo}
+            activeAlarm={activeAlarm} saveActiveAlarm={saveActiveAlarm}
+            showAlarmPicker={showAlarmPicker} setShowAlarmPicker={setShowAlarmPicker}
+            alarmHour={alarmHour} setAlarmHour={setAlarmHour}
+            alarmMinute={alarmMinute} setAlarmMinute={setAlarmMinute}
+            alarmAmPm={alarmAmPm} setAlarmAmPm={setAlarmAmPm}
+            notificationsEnabled={notificationsEnabled} alarmNotifEnabled={alarmNotifEnabled}
+            strToNotifId={strToNotifId}
+            vibrate={vibrate} Num={Num}
+          />
         )}
 
         {tab === "study" && (
@@ -7002,43 +6512,59 @@ function FocusGoInner() {
           else if (taskFilter === "overdue") filteredTasks = tasks.filter(x => !x.done && bucketOf(x) === "overdue");
           else filteredTasks = tasks.filter(x => (!x.done && bucketOf(x) !== "overdue") || (x.done && x.doneAt === todayKey));
 
-          // ---- টাস্ক রো: কম্প্যাক্ট, প্রায়োরিটি অনুযায়ী রঙিন (বাঁ পাশের বর্ডার + হালকা টিন্ট) ----
-          // ক্যাটাগরি/প্রায়োরিটি/ডিউ-ডেট ব্যাজ এখানে দেখানো হয় না — রো-এর রংই প্রায়োরিটি বোঝায়, বাকি ডিটেইল ট্যাপ করলে দেখা যায়
+          // ---- টাস্ক রো: "Today" স্ক্রিনশটের রেফারেন্স স্টাইল — সময় কলাম, রাউন্ডেড আইকন-বক্স চেকবক্স,
+          // টাইটেল, আর ডানে ক্যাটাগরি ট্যাগ (রঙিন ডট + নাম) অথবা ডিউ/রিপিট ব্যাজ ----
           const renderTask = (x) => {
             const pr = x.priority || "med";
             const due = dueLabel(x.dueDate);
+            const cat = x.category ? findTaskCategory(taskCategories, x.category) : null;
+            const CatIcon = cat ? taskCategoryIcon(cat.icon) : null;
             return (
               <div key={x.id} className="fg-card fg-task-row" onClick={()=>setTaskDetailId(x.id)} style={{
-                background: "transparent",
-                borderRadius:0, padding:"13px 2px", display:"flex", alignItems:"flex-start", gap:10, position:"relative", cursor:"pointer",
-                transition:"background .15s ease", maxHeight:84,
+                background: dark ? "#1C1A20" : "#FFFFFF",
+                border: `1px solid ${cardBorder}`,
+                borderRadius:14, padding:"11px 12px", marginBottom:8, display:"flex", alignItems:"center", gap:10, position:"relative", cursor:"pointer",
+                transition:"background .15s ease",
               }}>
-                <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{width:19, height:19, marginTop:2, borderRadius:"50%", flexShrink:0, cursor:"pointer", border:`2px solid ${x.done ? "#6E8B5E" : due ? accent : "var(--track)"}`, background: x.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", padding:0}}>
-                  {x.done ? <Check size={11} color="#fff" strokeWidth={3}/> : due ? <span style={{fontSize:8, fontWeight:600, color:accent, lineHeight:1}}>{due.text}</span> : null}
+                <div style={{width:32, flexShrink:0, textAlign:"center", fontSize:11, fontWeight:600, color:textMuted2, lineHeight:1.25}}>
+                  {x.reminderTime || "—"}
+                </div>
+                <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}} style={{
+                  width:26, height:26, borderRadius:8, flexShrink:0, cursor:"pointer", padding:0,
+                  border: x.done ? "none" : `1.5px solid ${due ? accent : cardBorder}`,
+                  background: x.done ? "#C0392B" : "transparent",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                }}>
+                  {x.done ? <Check size={14} color="#fff" strokeWidth={3}/> : x.repeat ? <Repeat size={13} color={textMuted2}/> : (CatIcon ? <CatIcon size={13} color={textMuted2}/> : <Check size={13} color={textMuted2} style={{opacity:0.35}}/>)}
                 </button>
-                <div style={{flex:1, minWidth:0, maxHeight:58, overflow:"hidden"}}>
-                  <div style={{fontSize:13.5, fontWeight:500, color: x.done ? textMuted2 : textMain, opacity: x.done ? 0.7 : 0.85, textDecoration:"none", wordBreak:"break-word", overflowWrap:"break-word", lineHeight:1.3, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden"}}>
+                <div style={{flex:1, minWidth:0}}>
+                  <div style={{
+                    fontSize:13.5, fontWeight:500, color: x.done ? textMuted2 : textMain, opacity: x.done ? 0.7 : 0.9,
+                    textDecoration: x.done ? "line-through" : "none",
+                    overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                  }}>
                     {x.title}
                     {x.note && (
                       <FileText size={12} color={textMuted2} style={{display:"inline", verticalAlign:"middle", marginLeft:5, opacity:0.75}}/>
                     )}
                   </div>
-                  {x.reminderTime && (
-                    <div style={{display:"flex", alignItems:"center", gap:5, marginTop:3, fontSize:10, color:textMuted2, fontWeight:500, flexWrap:"wrap"}}>
-                      <span>{x.reminderTime}</span>
-                    </div>
-                  )}
-                  {x.repeat && !x.done && (
-                    <span title={t.taskRepeatBadge} style={{display:"inline-block", fontSize:10, fontWeight:600, color:accent, background:`${accent}14`, borderRadius:8, padding:"2px 6px", marginTop:4, whiteSpace:"nowrap"}}>
+                </div>
+                <div style={{display:"flex", alignItems:"center", gap:6, flexShrink:0}}>
+                  {cat ? (
+                    <span style={{display:"flex", alignItems:"center", gap:4, fontSize:11.5, color:textMuted2, fontWeight:500, whiteSpace:"nowrap"}}>
+                      <span style={{width:6, height:6, borderRadius:"50%", background:cat.color, display:"inline-block", flexShrink:0}}/>
+                      {lang==="bn" ? cat.labelBn : cat.label}
+                    </span>
+                  ) : x.repeat && !x.done ? (
+                    <span title={t.taskRepeatBadge} style={{fontSize:10, fontWeight:600, color:accent, background:`${accent}14`, borderRadius:8, padding:"2px 6px", whiteSpace:"nowrap"}}>
                       {x.dueDate && (() => {
                         const diffDays = Math.round((new Date(x.dueDate+"T00:00:00") - new Date(todayKey+"T00:00:00")) / 86400000);
-                        const label = diffDays === 0 ? (lang==="bn" ? "আজ" : "Today") : diffDays > 0 ? `D-${diffDays}` : `D+${Math.abs(diffDays)}`;
-                        return <span>{label}</span>;
+                        return diffDays === 0 ? (lang==="bn" ? "আজ" : "Today") : diffDays > 0 ? `D-${diffDays}` : `D+${Math.abs(diffDays)}`;
                       })()}
                     </span>
-                  )}
-                </div>
-                <div style={{display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6, flexShrink:0}}>
+                  ) : due ? (
+                    <span style={{fontSize:11.5, fontWeight:600, color:textMuted2}}>{due.text}</span>
+                  ) : null}
                   <div style={{position:"relative"}} onClick={(e)=>e.stopPropagation()}>
                     <button onClick={(e)=>{ e.stopPropagation(); setTaskMenuOpenId(v => v===x.id ? null : x.id); setTaskDeleteConfirmId(null); }} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:10, margin:-6, display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation"}}>
                       <MoreVertical size={16}/>
@@ -7577,36 +7103,42 @@ function FocusGoInner() {
 
       </div>
 
-      {/* Bottom nav — মোবাইল/ট্যাবলেটে; ডেস্কটপে সাইডবার থাকায় এটা হাইড */}
+      {/* Bottom nav — মোবাইল/ট্যাবলেটে; ডেস্কটপে সাইডবার থাকায় এটা হাইড
+          "Linear style" রিডিজাইন: ভারি গ্লাস-ব্লার বাদ দিয়ে সলিড ফ্ল্যাট সারফেস,
+          অ্যাক্টিভ ট্যাবে হালকা রাউন্ডেড হাইলাইট ব্যাকগ্রাউন্ড + ছোট রঙিন ডট ইন্ডিকেটর */}
       {!isDesktop && (
       <div style={{position:"sticky", left:0, right:0, bottom:0, display:"flex", justifyContent:"center", padding:"10px 16px 12px", paddingBottom:"calc(12px + env(safe-area-inset-bottom))", zIndex:40, background: bg}}>
         <div style={{
-          width:"100%", maxWidth:480, display:"flex",
-          background: dark ? "rgba(18,17,16,0.6)" : "rgba(255,255,255,0.55)",
-          border:`1px solid ${dark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.6)"}`,
-          borderRadius:14, padding:"4px",
-          backdropFilter:"blur(18px) saturate(160%)",
-          WebkitBackdropFilter:"blur(18px) saturate(160%)",
-          boxShadow: dark
-            ? "0 4px 12px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.06)"
-            : "0 4px 12px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.7)"
+          width:"100%", maxWidth:480, display:"flex", gap:2,
+          background: dark ? "#1C1A20" : "#FFFFFF",
+          border:`1px solid ${cardBorder}`,
+          borderRadius:16, padding:"5px",
+          boxShadow: dark ? "0 2px 10px rgba(0,0,0,0.25)" : "0 2px 10px rgba(0,0,0,0.06)",
         }}>
           {[
             {k:"today", Icon: Home},
             ...(studyFeatureEnabled ? [{k:"study", Icon: GraduationCap}] : []),
             ...(tasksFeatureEnabled ? [{k:"task", Icon: ListChecks}] : []),
             ...(notesFeatureEnabled ? [{k:"notes", Icon: FileText}] : []),
-          ].map(({k, Icon}) => (
-            <button key={k} onClick={()=>{vibrate(); setTab(k);}} style={{
-              flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:2, border:"none", borderRadius:12, padding:"7px 4px", fontSize:10.5, fontWeight:700, cursor:"pointer",
-              background: "transparent",
-              color: tab===k ? accent : textMuted2,
-              transition:"color .2s ease"
-            }}>
-              <Icon size={18} strokeWidth={tab===k?2.3:2} style={{transition:"stroke-width .15s ease"}}/>
-              {t.tabs[k]}
-            </button>
-          ))}
+          ].map(({k, Icon}) => {
+            const active = tab === k;
+            return (
+              <button key={k} onClick={()=>{vibrate(); setTab(k);}} style={{
+                flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3, border:"none", borderRadius:12, padding:"8px 4px", fontSize:10.5, fontWeight:600, cursor:"pointer",
+                background: active ? (dark ? "rgba(255,255,255,0.08)" : "#F1EFE8") : "transparent",
+                color: active ? textMain : textMuted2,
+                transition:"background .18s ease, color .18s ease"
+              }}>
+                <span style={{position:"relative", display:"flex"}}>
+                  <Icon size={18} strokeWidth={active?2.3:2} style={{transition:"stroke-width .15s ease"}}/>
+                  {active && (
+                    <span style={{position:"absolute", top:-2, right:-4, width:5, height:5, borderRadius:"50%", background:accent}}/>
+                  )}
+                </span>
+                {t.tabs[k]}
+              </button>
+            );
+          })}
         </div>
       </div>
       )}
