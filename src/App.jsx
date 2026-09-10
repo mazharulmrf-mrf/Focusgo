@@ -10,7 +10,7 @@ import { NativeSettings, AndroidSettings, IOSSettings } from "capacitor-native-s
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert, BookOpen, Hourglass, Flag, Lightbulb, Cloud, UploadCloud, Globe, HelpCircle, AlarmClock, Menu, Heart, Mic, Square } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert, BookOpen, Hourglass, Flag, Lightbulb, Cloud, UploadCloud, Globe, HelpCircle, Menu, Heart, Mic, Square } from "lucide-react";
 
 // lucide-react-এর এই ভার্সনে Mars/Venus নেই, তাই নিজে ছোট SVG icon বানানো হলো
 const Mars = ({ size = 18, color = "currentColor" }) => (
@@ -3682,29 +3682,6 @@ function FocusGoInner() {
     try { window.localStorage.setItem("focusgo_plan_range", String(planRange)); } catch (e) {}
   }, [planRange]);
   const [showCalendar, setShowCalendar] = useState(false);
-  const [showAlarmPicker, setShowAlarmPicker] = useState(false);
-  const [alarmHour, setAlarmHour] = useState(8);
-  const [alarmMinute, setAlarmMinute] = useState(0);
-  const [alarmAmPm, setAlarmAmPm] = useState("AM");
-  // যেই কুইক-অ্যালার্ম সেট করা আছে সেটা localStorage-এ থাকে, যাতে অ্যাপ রিলোড/রিওপেন করলেও
-  // হেডারের ঘড়ির জায়গায় "কোন সময়ে অ্যালার্ম সেট আছে" সেটা স্পষ্ট বোঝা যায় (আগে শুধু লাইভ ঘড়ি দেখাত,
-  // অ্যালার্ম সেট করার পর সেটা কোথাও দেখা যেত না)
-  const [activeAlarm, setActiveAlarm] = useState(() => {
-    try {
-      const raw = window.localStorage.getItem("focusgo_active_alarm");
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.at && new Date(parsed.at).getTime() > Date.now()) return parsed;
-      return null;
-    } catch (e) { return null; }
-  });
-  const saveActiveAlarm = (alarmObj) => {
-    setActiveAlarm(alarmObj);
-    try {
-      if (alarmObj) window.localStorage.setItem("focusgo_active_alarm", JSON.stringify(alarmObj));
-      else window.localStorage.removeItem("focusgo_active_alarm");
-    } catch (e) {}
-  };
   const [showProfile, setShowProfile] = useState(false);
   // হেডারের প্রোফাইল আইকনে ক্লিক করলে এখন সরাসরি Settings-পেজের মতোই ডিজাইন (প্রোফাইল কার্ড + Preferences)
   // একটা আলাদা ফুল-পেজ হিসেবে খোলে — কিন্তু নিচে ৫-ট্যাব বার ছাড়া, উপরে একটা ব্যাক বাটন সহ
@@ -4453,14 +4430,6 @@ function FocusGoInner() {
     scheduleNext();
     return () => clearTimeout(id);
   }, []);
-
-  // প্রতি মিনিটের tick-এ চেক করা হয় সেট করা অ্যালার্মের সময় পার হয়ে গেছে কিনা — পার হয়ে গেলে
-  // হেডার থেকে অ্যালার্মের সময়টা সরিয়ে আবার লাইভ ঘড়ি দেখানো হয়
-  useEffect(() => {
-    if (activeAlarm && new Date(activeAlarm.at).getTime() <= Date.now()) {
-      saveActiveAlarm(null);
-    }
-  }, [now]);
 
   // Focus Timer শেষ হওয়ার exact সময়টা আগে থেকেই OS-এ একটা LocalNotification হিসেবে
   // শিডিউল করে রাখা হয় (ঠিক exam reminder-এর প্যাটার্নে) — তাই timer চলাকালীন অ্যাপ থেকে
@@ -5997,7 +5966,7 @@ function FocusGoInner() {
                       ? `linear-gradient(135deg, ${greetTheme.grad}, transparent 70%)`
                       : `linear-gradient(135deg, ${greetTheme.grad}, #FFFFFF 75%)`,
                   }} ref={salahMenuRef}>
-                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8}}>
+                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8}}>
                       <div style={{minWidth:0, flex:1}}>
                         <div
                           onClick={() => { vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
@@ -6020,68 +5989,40 @@ function FocusGoInner() {
                           {firstName}
                         </div>
                       </div>
-                      {salahFeatureEnabled && (
-                        <button
-                          onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
-                          style={{
-                            border:"none", background:`${accent}14`, padding:0, flexShrink:0,
-                            width:32, height:32, borderRadius:"50%",
-                            display:"flex", alignItems:"center", justifyContent:"center",
-                            cursor:"pointer", position:"relative",
-                          }}
-                          title={lang === "bn" ? "সালাতের সময়" : "Salah times"}
-                        >
-                          <MosqueIcon size={18} color={accent}/>
+                      <div style={{display:"flex", alignItems:"center", gap:10, flexShrink:0, paddingTop:1}}>
+                        {/* তারিখ + লাইভ ঘড়ি — উপরে ছোট করে তারিখ, নিচে সময়। ট্যাপ করলে ফুল ক্যালেন্ডার খোলে (আগের মতোই), আলাদা অ্যালার্ম আইকন/ফিচার আর নেই */}
+                        <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", flexDirection:"column", alignItems:"flex-end", border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
+                          <span style={{fontSize:11.5, fontWeight:600, color:"var(--muted)", letterSpacing:0.1, whiteSpace:"nowrap"}}>
+                            {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
+                          </span>
+                          <span style={{fontSize:13.5, fontWeight:700, color:"var(--text)", fontVariantNumeric:"tabular-nums", marginTop:2, whiteSpace:"nowrap"}}>
+                            <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
+                          </span>
+                          {examDateKeys.has(todayKey) && (
+                            <span style={{
+                              position:"absolute", top:-2, left:-10,
+                              width:7, height:7, borderRadius:"50%",
+                              background:"#C0392B",
+                              border:`1.5px solid ${dark ? cardBg : "#FFFFFF"}`,
+                            }}/>
+                          )}
                         </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div style={{height:14}}/>
-
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"2px 2px 0", position:"relative"}}>
-                    <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
-                      <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", alignItems:"center", gap:8, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative", minWidth:0}}>
-                        <span style={{width:30, height:30, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                          <CalendarDays size={20} color={accent} strokeWidth={2}/>
-                        </span>
-                        <span style={{fontSize:13.5, fontWeight:600, color:textMain, letterSpacing:-0.1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-                          {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
-                        </span>
-                        {examDateKeys.has(todayKey) && (
-                          <span style={{
-                            position:"absolute", top:-2, left:24,
-                            width:7, height:7, borderRadius:"50%",
-                            background:"#C0392B",
-                            border:`1.5px solid ${dark ? cardBg : "#FFFFFF"}`,
-                          }}/>
+                        {salahFeatureEnabled && (
+                          <button
+                            onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
+                            style={{
+                              border:"none", background:`${accent}14`, padding:0, flexShrink:0,
+                              width:32, height:32, borderRadius:"50%",
+                              display:"flex", alignItems:"center", justifyContent:"center",
+                              cursor:"pointer", position:"relative",
+                            }}
+                            title={lang === "bn" ? "সালাতের সময়" : "Salah times"}
+                          >
+                            <MosqueIcon size={18} color={accent}/>
+                          </button>
                         )}
-                      </button>
+                      </div>
                     </div>
-                    {/* ঘড়ির পাশে ছোট অ্যালার্ম আইকন — ট্যাপ করলে Salah dropdown-এর মতোই একটা bottom-sheet popup খুলে সময় সেট করা যায়।
-                        একটা অ্যালার্ম অ্যাক্টিভ থাকলে এখানে লাইভ ঘড়ির বদলে সেট করা অ্যালার্মের সময়টা সাদা রঙে বোল্ড করে দেখানো হয়,
-                        যাতে ইউজার এক নজরে বুঝতে পারে কোন সময়ে অ্যালার্ম সেট আছে। */}
-                    <button
-                      onClick={()=>{
-                        vibrate();
-                        if (activeAlarm) { setAlarmHour(activeAlarm.hour); setAlarmMinute(activeAlarm.minute); setAlarmAmPm(activeAlarm.ampm); }
-                        else { setAlarmHour(((now.getHours()%12)||12)); setAlarmMinute(now.getMinutes()); setAlarmAmPm(now.getHours()>=12 ? "PM" : "AM"); }
-                        setShowAlarmPicker(true);
-                      }}
-                      style={{display:"flex", alignItems:"center", gap:6, border:"none", background:"transparent", padding:0, cursor:"pointer", flexShrink:0}}
-                      title={activeAlarm ? `${t.nextAlarmLabel}: ${pad2(activeAlarm.hour)}:${pad2(activeAlarm.minute)} ${activeAlarm.ampm}` : (lang === "bn" ? "অ্যালার্ম সেট করুন" : "Set alarm")}
-                    >
-                      {activeAlarm ? (
-                        <span style={{fontSize:13.5, color:textMain, fontWeight:800, fontVariantNumeric:"tabular-nums"}}>
-                          <Num>{nf(pad2(activeAlarm.hour))}</Num>:<Num>{nf(pad2(activeAlarm.minute))}</Num> {activeAlarm.ampm === "AM" ? t.amLabel : t.pmLabel}
-                        </span>
-                      ) : (
-                        <span style={{fontSize:13.5, color:textMain, fontWeight:600, fontVariantNumeric:"tabular-nums"}}>
-                          <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
-                        </span>
-                      )}
-                      <AlarmClock size={15} color={accent} strokeWidth={activeAlarm ? 2.6 : 2.1}/>
-                    </button>
                   </div>
 
                     {salahFeatureEnabled && showSalahDropdown && (
@@ -6357,108 +6298,6 @@ function FocusGoInner() {
                               </>
                             );
                           })()}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Quick alarm popup — Salah dropdown-এর মতোই bottom-sheet স্টাইল */}
-                    {showAlarmPicker && (
-                      <div onClick={() => setShowAlarmPicker(false)} style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:70}}>
-                        <div onClick={(e) => e.stopPropagation()} style={{background:cardBg, width:"100%", maxWidth:420, borderRadius:"14px 14px 0 0", padding:"8px 16px 18px", color:textMain}}>
-                          <div style={{width:32, height:3.5, borderRadius:4, background:cardBorder, margin:"2px auto 12px"}}/>
-                          <div style={{fontSize:15, fontWeight:800, color:textMain, marginBottom:12}}>
-                            {lang === "bn" ? "অ্যালার্ম সেট করুন" : "Set alarm"}
-                          </div>
-                          <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:6, marginBottom:16}}>
-                            <input
-                              type="number" min={1} max={12} value={alarmHour}
-                              onChange={(e)=>{ const v = parseInt(e.target.value,10); setAlarmHour(Number.isFinite(v) ? Math.min(12, Math.max(1, v)) : 1); }}
-                              style={{width:52, textAlign:"center", fontSize:26.5, fontWeight:700, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${cardBorder}`, outline:"none", fontVariantNumeric:"tabular-nums"}}
-                            />
-                            <span style={{fontSize:26.5, fontWeight:700, color:textMuted2}}>:</span>
-                            <input
-                              type="number" min={0} max={59} value={pad2(alarmMinute)}
-                              onChange={(e)=>{ const v = parseInt(e.target.value,10); setAlarmMinute(Number.isFinite(v) ? Math.min(59, Math.max(0, v)) : 0); }}
-                              style={{width:52, textAlign:"center", fontSize:26.5, fontWeight:700, color:textMain, background:"transparent", border:"none", borderBottom:`2px solid ${cardBorder}`, outline:"none", fontVariantNumeric:"tabular-nums"}}
-                            />
-                            <div style={{display:"flex", border:`1px solid ${dark ? cardBorder : "#F0EEE8"}`, borderRadius:8, overflow:"hidden", marginLeft:8}}>
-                              {["AM","PM"].map(ap => (
-                                <button key={ap} onClick={()=>setAlarmAmPm(ap)} style={{border:"none", padding:"6px 10px", fontSize:12, fontWeight:700, cursor:"pointer",
-                                  background: alarmAmPm===ap ? (dark ? `${accent}30` : `${accent}18`) : "transparent",
-                                  color: alarmAmPm===ap ? accent : textMuted2}}>{ap}</button>
-                              ))}
-                            </div>
-                          </div>
-                          {/* মাস্টার নোটিফিকেশন অথবা Alarm ক্যাটাগরি বন্ধ থাকলে এখানেই জানিয়ে দেওয়া হয় —
-                              আগে চুপচাপ কিছু না ঘটায় ইউজার বুঝতে পারত না কেন অ্যালার্ম আসছে না */}
-                          {!(notificationsEnabled && alarmNotifEnabled) && (
-                            <div style={{fontSize:12, color:"#C0392B", fontWeight:600, marginBottom:12, lineHeight:1.5}}>
-                              {lang === "bn"
-                                ? "অ্যালার্ম নোটিফিকেশন সেটিংসে বন্ধ আছে। Settings ▸ Notifications থেকে \"Alarm\" চালু করুন।"
-                                : "Alarm notifications are turned off. Turn on \"Alarm alerts\" under Settings ▸ Notifications."}
-                            </div>
-                          )}
-                          {!Capacitor.isNativePlatform() && (
-                            <div style={{fontSize:11.5, color:textMuted2, fontWeight:500, marginBottom:12, lineHeight:1.5}}>
-                              {t.alarmWebWarning}
-                            </div>
-                          )}
-                          <button
-                            onClick={() => {
-                              vibrate();
-                              const nowD = new Date();
-                              let h24 = alarmHour % 12;
-                              if (alarmAmPm === "PM") h24 += 12;
-                              const target = new Date(nowD.getFullYear(), nowD.getMonth(), nowD.getDate(), h24, alarmMinute, 0, 0);
-                              if (target.getTime() <= nowD.getTime()) target.setDate(target.getDate() + 1);
-                              const canNotify = notificationsEnabled && alarmNotifEnabled;
-                              if (Capacitor.isNativePlatform() && canNotify) {
-                                LocalNotifications.schedule({
-                                  notifications: [{
-                                    id: strToNotifId("focusgo_quick_alarm"),
-                                    title: lang === "bn" ? "⏰ অ্যালার্ম" : "⏰ Alarm",
-                                    body: lang === "bn"
-                                      ? `${pad2(alarmHour)}:${pad2(alarmMinute)} ${alarmAmPm}`
-                                      : `Alarm for ${pad2(alarmHour)}:${pad2(alarmMinute)} ${alarmAmPm}`,
-                                    schedule: { at: target },
-                                    sound: "default",
-                                  }],
-                                }).catch(() => {});
-                              }
-                              // অ্যাক্টিভ অ্যালার্ম localStorage-এ সেভ থাকে, যাতে হেডারে ঘড়ির জায়গায় সেট করা সময়টা দেখা যায়
-                              saveActiveAlarm({ hour: alarmHour, minute: alarmMinute, ampm: alarmAmPm, at: target.toISOString() });
-                              setShowAlarmPicker(false);
-                              const timeLabel = `${pad2(alarmHour)}:${pad2(alarmMinute)} ${alarmAmPm}`;
-                              if (canNotify && Capacitor.isNativePlatform()) {
-                                window.alert(t.alarmSetConfirm.replace("{time}", timeLabel));
-                              } else if (!Capacitor.isNativePlatform()) {
-                                window.alert(`${t.alarmSetConfirm.replace("{time}", timeLabel)}\n\n${t.alarmWebWarning}`);
-                              } else {
-                                window.alert(lang === "bn"
-                                  ? `সময় মনে রাখা হলো (${timeLabel}), কিন্তু নোটিফিকেশন বন্ধ থাকায় কোনো অ্যালার্ট আসবে না।`
-                                  : `Time saved (${timeLabel}), but no alert will fire since notifications are off.`);
-                              }
-                            }}
-                            style={{width:"100%", border:"none", borderRadius:8, padding:"11px 0", background:accent, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer"}}
-                          >
-                            {lang === "bn" ? "অ্যালার্ম সেট করুন" : "Set alarm"}
-                          </button>
-                          {activeAlarm && (
-                            <button
-                              onClick={() => {
-                                vibrate();
-                                if (Capacitor.isNativePlatform()) {
-                                  LocalNotifications.cancel({ notifications: [{ id: strToNotifId("focusgo_quick_alarm") }] }).catch(() => {});
-                                }
-                                saveActiveAlarm(null);
-                                setShowAlarmPicker(false);
-                                window.alert(t.alarmCancelledMsg);
-                              }}
-                              style={{width:"100%", border:"none", borderRadius:8, padding:"10px 0", background:"transparent", color:"#C0392B", fontWeight:700, fontSize:13.5, cursor:"pointer", marginTop:8}}
-                            >
-                              {t.alarmCancelBtn}
-                            </button>
-                          )}
                         </div>
                       </div>
                     )}
