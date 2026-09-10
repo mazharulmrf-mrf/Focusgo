@@ -3071,8 +3071,10 @@ const ACCENT_OPTIONS = [
   { key: "moss",  labelBn: "মস",     labelEn: "Moss",  light: "#4C7A52", dark: "#6FA377" },
 ];
 function accentHexFor(key, dark) {
-  const found = ACCENT_OPTIONS.find(a => a.key === key) || ACCENT_OPTIONS[0];
-  return dark ? found.dark : found.light;
+  // পুরো অ্যাপে সবসময় ভায়োলেট রং — ইউজার Settings থেকে অন্য কোনো রং বেছে নিলেও
+  // এখানে জোর করে ভায়োলেট রিটার্ন করা হচ্ছে, যাতে পুরনো localStorage/সেভ করা accentKey
+  // (যেমন "orange") থাকলেও অ্যাপ সবসময় এই একটাই রঙে দেখায়।
+  return dark ? "#A78BFA" : "#7C5CFC";
 }
 // হেক্স রঙকে percent অনুযায়ী গাঢ়/হালকা করে — Next Exam কার্ডের মতো জায়গায় accent থেকে গ্রেডিয়েন্ট/শ্যাডো রং বানাতে ব্যবহার হয়
 function shadeColor(hex, percent) {
