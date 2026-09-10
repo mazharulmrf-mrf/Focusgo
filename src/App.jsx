@@ -3744,7 +3744,6 @@ function FocusGoInner() {
   const [focusMode, setFocusMode] = useState("timer"); // "timer" | "stopwatch"
   const [stopwatchSeconds, setStopwatchSeconds] = useState(0);
   const [stopwatchRunning, setStopwatchRunning] = useState(false);
-  const [stopwatchLaps, setStopwatchLaps] = useState([]);
   const [focusFullscreen, setFocusFullscreen] = useState(false);
   const focusFullscreenActiveRef = useRef(false); // popstate হ্যান্ডলারের ভেতর থেকে সবসময় সবশেষ ফুলস্ক্রিন অবস্থা জানার জন্য
   // ---- White Noise: পছন্দ localStorage-এ থেকে যায়, টাইমার/স্টপওয়াচ চললেই ব্যাকগ্রাউন্ডে বাজে ----
@@ -3774,7 +3773,7 @@ function FocusGoInner() {
     strictAwaySinceRef.current = null;
     vibrate(30);
     if (focusMode === "timer") { setTimerRunning(false); setTimerSeconds(timerTotal); }
-    else { setStopwatchRunning(false); setStopwatchSeconds(0); setStopwatchLaps([]); }
+    else { setStopwatchRunning(false); setStopwatchSeconds(0); }
     setDistractionCount(c => {
       const next = c + 1;
       try { window.localStorage.setItem("focusgo_distractions_" + todayKeyStr(), String(next)); } catch (e) {}
@@ -6378,7 +6377,7 @@ function FocusGoInner() {
             const runningNow = focusMode === "timer" ? timerRunning : stopwatchRunning;
             return (
               <div style={{display:"flex", alignItems:"center", gap:10, marginTop:14}}>
-                <button onClick={()=>{ vibrate(); if (focusMode==="timer") { setTimerRunning(false); setTimerSeconds(timerTotal); } else { setStopwatchRunning(false); setStopwatchSeconds(0); setStopwatchLaps([]); } }} title={t.reset}
+                <button onClick={()=>{ vibrate(); if (focusMode==="timer") { setTimerRunning(false); setTimerSeconds(timerTotal); } else { setStopwatchRunning(false); setStopwatchSeconds(0); } }} title={t.reset}
                   style={{background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.08)", width:38, height:38, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:"rgba(255,255,255,0.8)", flexShrink:0}}>
                   <RotateCcw size={15}/>
                 </button>
@@ -7180,13 +7179,13 @@ function FocusGoInner() {
           অ্যাক্টিভ ট্যাবে হালকা রাউন্ডেড হাইলাইট ব্যাকগ্রাউন্ড + ছোট রঙিন ডট ইন্ডিকেটর */}
       {!isDesktop && (
       <div style={{position:"sticky", left:0, right:0, bottom:0, display:"flex", justifyContent:"center", padding:"10px 16px 12px", paddingBottom:"calc(12px + env(safe-area-inset-bottom))", zIndex:40, background: bg}}>
-        <div style={{width:"100%", maxWidth:480, display:"flex", alignItems:"center", gap:8}}>
+        <div style={{width:"100%", maxWidth:480, display:"flex", alignItems:"center", gap:10}}>
         <div style={{
-          flex:1, display:"flex", gap:2,
+          flex:1, display:"flex", alignItems:"center", justifyContent:"space-evenly",
           background: dark ? "#1C1A20" : "#FFFFFF",
           border:`1px solid ${cardBorder}`,
-          borderRadius:16, padding:"5px",
-          boxShadow: dark ? "0 2px 10px rgba(0,0,0,0.25)" : "0 2px 10px rgba(0,0,0,0.06)",
+          borderRadius:999, padding:"7px 8px", height:56, boxSizing:"border-box",
+          boxShadow: dark ? "0 4px 18px rgba(0,0,0,0.3)" : "0 4px 18px rgba(0,0,0,0.08)",
         }}>
           {[
             {k:"today", Icon: Home},
@@ -7195,26 +7194,21 @@ function FocusGoInner() {
           ].map(({k, Icon}) => {
             const active = tab === k;
             return (
-              <button key={k} onClick={()=>{vibrate(); setTab(k);}} style={{
-                flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3, border:"none", borderRadius:12, padding:"8px 4px", fontSize:10.5, fontWeight:600, cursor:"pointer",
+              <button key={k} onClick={()=>{vibrate(); setTab(k);}} title={t.tabs[k]} style={{
+                display:"flex", alignItems:"center", justifyContent:"center",
+                width:42, height:42, border:"none", borderRadius:"50%", cursor:"pointer",
                 background: active ? (dark ? `${accent}29` : `${accent}1A`) : "transparent",
                 color: active ? accent : textMuted2,
                 transition:"background .18s ease, color .18s ease"
               }}>
-                <span style={{position:"relative", display:"flex"}}>
-                  <Icon size={18} strokeWidth={active?2.3:2} style={{transition:"stroke-width .15s ease"}}/>
-                  {active && (
-                    <span style={{position:"absolute", top:-2, right:-4, width:5, height:5, borderRadius:"50%", background:accent}}/>
-                  )}
-                </span>
-                {t.tabs[k]}
+                <Icon size={21} strokeWidth={active?2.3:2} style={{transition:"stroke-width .15s ease"}}/>
               </button>
             );
           })}
         </div>
 
-        {/* Quick-add "+" — বটম নেভের পাশে আলাদা ভাসমান বাটন, ট্যাপ করলে Study/Task সরাসরি Add করার
-            popup খোলে (যেই ফিচার বন্ধ আছে তার Add অপশনও এখানে দেখানো হয় না) */}
+        {/* Quick-add "+" — বটম নেভের পাশে আলাদা কালো সলিড ভাসমান গোল বাটন (রেফারেন্স ডিজাইনের স্টাইলে),
+            ট্যাপ করলে Study/Task সরাসরি Add করার popup খোলে (যেই ফিচার বন্ধ আছে তার Add অপশনও এখানে দেখানো হয় না) */}
         {(studyFeatureEnabled || tasksFeatureEnabled) && (
           <div style={{position:"relative", flexShrink:0}}>
             {showQuickAddMenu && (
@@ -7248,12 +7242,13 @@ function FocusGoInner() {
               </>
             )}
             <button onClick={()=>{vibrate(); setShowQuickAddMenu(v=>!v);}} title={lang==="bn" ? "যোগ করো" : "Add"} style={{
-                width:52, height:52, borderRadius:"50%", border:`1px solid ${cardBorder}`,
-                background: dark ? "#1C1A20" : "#FFFFFF", color: textMain,
+                width:56, height:56, borderRadius:"50%", border:"none",
+                background: dark ? "#F3F1F8" : "#1A1814",
+                color: dark ? "#1A1814" : "#FFFFFF",
                 display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0,
-                boxShadow: dark ? "0 2px 10px rgba(0,0,0,0.25)" : "0 2px 10px rgba(0,0,0,0.06)",
+                boxShadow: dark ? "0 4px 16px rgba(0,0,0,0.4)" : "0 4px 14px rgba(26,24,20,0.28)",
               }}>
-              <Plus size={21} strokeWidth={2.2}/>
+              <Plus size={24} strokeWidth={2.4}/>
             </button>
           </div>
         )}
