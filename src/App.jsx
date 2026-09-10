@@ -983,44 +983,70 @@ function SettingsRow({ Icon, title, subtitle, right, onClick, href, expandKey, c
 // Settings পেজের সবগুলো সেকশনের শর্টকাট এক লিস্টে (আপাতত সবকিছু রাখা হয়েছে, পরে দরকার হলে কমানো যাবে) ----------
 function SettingsQuickMenu({ isBn, dark, cardBg, cardBorder, textMain, textMuted2, accent, onSelect, onClose }) {
   const items = [
-    { key: "profile", Icon: User, label: isBn ? "প্রোফাইল" : "Profile" },
-    { key: "appearance", Icon: Palette, label: isBn ? "অ্যাপিয়ারেন্স" : "Appearance" },
-    { key: "textScale", Icon: Heading1, label: isBn ? "ফন্ট ও ডিসপ্লে সাইজ" : "Font & display size" },
-    { key: "weekStart", Icon: CalendarRange, label: isBn ? "সপ্তাহ শুরু" : "Week starts on" },
-    { key: "timer", Icon: Hourglass, label: isBn ? "ফোকাস টাইমার" : "Focus Timer" },
-    { key: "reminders", Icon: CalendarDays, label: isBn ? "স্টাডি রিমাইন্ডার" : "Study Reminders" },
-    { key: "salah", Icon: MosqueIcon, label: isBn ? "সালাতের সময়" : "Salah Timer" },
-    { key: "visibleTabs", Icon: LayoutGrid, label: isBn ? "ভিজিবল ট্যাব" : "Visible Tabs" },
-    { key: "notifications", Icon: Bell, label: isBn ? "নোটিফিকেশন" : "Notifications" },
-    { key: "sound", Icon: Volume2, label: isBn ? "সাউন্ড ও ভাইব্রেশন" : "Sound & Haptics" },
-    { key: "backup", Icon: Cloud, label: isBn ? "ব্যাকআপ ও সিঙ্ক" : "Backup & Sync" },
-    { key: "export", Icon: UploadCloud, label: isBn ? "এক্সপোর্ট ডেটা" : "Export Data" },
-    { key: "import", Icon: UploadCloud, label: isBn ? "ইমপোর্ট ডেটা" : "Import Data" },
-    { key: "help", Icon: HelpCircle, label: isBn ? "সাহায্য ও সাপোর্ট" : "Help & Support" },
-    { key: "about", Icon: Info, label: isBn ? "FocusGo সম্পর্কে" : "About FocusGo" },
+    { key: "profile", Icon: User, title: isBn ? "প্রোফাইল" : "Profile", subtitle: isBn ? "অ্যাকাউন্ট ও সিঙ্ক" : "Account and sync" },
+    { key: "appearance", Icon: Palette, title: isBn ? "অ্যাপিয়ারেন্স" : "Appearance", subtitle: isBn ? "থিম ও রং" : "Theme and colors" },
+    { key: "textScale", Icon: Heading1, title: isBn ? "ফন্ট ও ডিসপ্লে সাইজ" : "Font & display size", subtitle: isBn ? "লেখার আকার" : "Text size" },
+    { key: "weekStart", Icon: CalendarRange, title: isBn ? "সপ্তাহ শুরু" : "Week starts on", subtitle: isBn ? "ক্যালেন্ডার সেটিং" : "Calendar setting" },
+    { key: "timer", Icon: Hourglass, title: isBn ? "ফোকাস টাইমার" : "Focus Timer", subtitle: isBn ? "ফোকাস ও বিরতির সময়" : "Focus and break length" },
+    { key: "reminders", Icon: CalendarDays, title: isBn ? "স্টাডি রিমাইন্ডার" : "Study Reminders", subtitle: isBn ? "স্টাডির নোটিফিকেশন" : "Study notifications" },
+    { key: "salah", Icon: MosqueIcon, title: isBn ? "সালাতের সময়" : "Salah Timer", subtitle: isBn ? "চালু/বন্ধ" : "On or off" },
+    { key: "visibleTabs", Icon: LayoutGrid, title: isBn ? "ভিজিবল ট্যাব" : "Visible Tabs", subtitle: isBn ? "কোন ট্যাব দেখাবে" : "Which tabs to show" },
+    { key: "notifications", Icon: Bell, title: isBn ? "নোটিফিকেশন" : "Notifications", subtitle: isBn ? "অ্যাপের নোটিফিকেশন" : "App notifications" },
+    { key: "sound", Icon: Volume2, title: isBn ? "সাউন্ড ও ভাইব্রেশন" : "Sound & Haptics", subtitle: isBn ? "শব্দ ও কম্পন" : "Sound and vibration" },
+    { key: "backup", Icon: Cloud, title: isBn ? "ব্যাকআপ ও সিঙ্ক" : "Backup & Sync", subtitle: isBn ? "ক্লাউডে সংরক্ষণ" : "Save to the cloud" },
+    { key: "export", Icon: UploadCloud, title: isBn ? "এক্সপোর্ট ডেটা" : "Export Data", subtitle: isBn ? "সাথে সাথে ডাউনলোড হবে" : "Downloads right away" },
+    { key: "import", Icon: UploadCloud, title: isBn ? "ইমপোর্ট ডেটা" : "Import Data", subtitle: isBn ? "ফাইল বেছে নিন" : "Choose a file" },
+    { key: "help", Icon: HelpCircle, title: isBn ? "সাহায্য ও সাপোর্ট" : "Help & Support", subtitle: isBn ? "মেইল অ্যাপ খুলবে" : "Opens your mail app" },
+    { key: "about", Icon: Info, title: isBn ? "FocusGo সম্পর্কে" : "About FocusGo", subtitle: isBn ? "ভার্সন ও তথ্য" : "Version and info" },
   ];
   return (
-    <>
-      <div onClick={onClose} style={{position:"fixed", inset:0, zIndex:64}}/>
+    <div style={{position:"fixed", inset:0, zIndex:200, display:"flex", alignItems:"flex-end", justifyContent:"center"}}>
+      <div onClick={onClose} style={{position:"absolute", inset:0, background:"rgba(0,0,0,0.42)"}}/>
       <div style={{
-        position:"absolute", top:"calc(100% + 8px)", right:0, zIndex:65,
-        background: dark ? "#1A1814" : "#FFFFFF", border:`1px solid ${cardBorder}`, borderRadius:16,
-        boxShadow:"0 10px 30px rgba(0,0,0,0.22)", width:230, maxHeight:"70vh", overflowY:"auto",
-        padding:6,
+        position:"relative", width:"100%", maxWidth:480,
+        background: dark ? "#171512" : "#FFFFFF",
+        borderRadius:"22px 22px 0 0",
+        boxShadow:"0 -8px 30px rgba(0,0,0,0.25)",
+        maxHeight:"78vh", display:"flex", flexDirection:"column",
+        paddingBottom:"env(safe-area-inset-bottom)",
       }}>
-        {items.map(({ key, Icon, label }) => (
-          <button key={key} onClick={() => { vibrate(); onSelect(key); }} style={{
-              width:"100%", display:"flex", alignItems:"center", gap:11, border:"none", background:"transparent",
-              padding:"9px 10px", borderRadius:10, cursor:"pointer", textAlign:"left",
-            }}
-            onMouseDown={(e) => e.preventDefault()}
-          >
-            <Icon size={16} color={textMuted2} style={{flexShrink:0}}/>
-            <span style={{fontSize:13.5, fontWeight:600, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{label}</span>
-          </button>
-        ))}
+        <div style={{padding:"16px 18px 4px"}}>
+          <div style={{display:"flex", justifyContent:"flex-end"}}>
+            <button onClick={onClose} style={{
+                width:28, height:28, borderRadius:"50%", border:"none",
+                background: dark ? "rgba(255,255,255,0.08)" : "#F1EFE8",
+                display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
+              }}>
+              <X size={15} color={textMuted2}/>
+            </button>
+          </div>
+          <div style={{fontSize:19, fontWeight:600, color:textMain, marginTop:2}}>{isBn ? "সেটিংস" : "Settings"}</div>
+          <div style={{fontSize:12.5, color:textMuted2, marginBottom:6}}>{isBn ? "যা খুলতে চান বেছে নিন" : "Choose what you'd like to open"}</div>
+        </div>
+        <div style={{overflowY:"auto", padding:"0 12px 10px"}}>
+          {items.map(({ key, Icon, title, subtitle }) => (
+            <button key={key} onClick={() => { vibrate(); onSelect(key); }} style={{
+                width:"100%", display:"flex", alignItems:"center", gap:12, border:"none", background:"transparent",
+                padding:"11px 6px", cursor:"pointer", textAlign:"left",
+                borderTop: dark ? "1px solid rgba(255,255,255,0.06)" : "1px solid #F0EEE8",
+              }}>
+              <div style={{
+                  width:38, height:38, borderRadius:"50%", flexShrink:0,
+                  background: dark ? "rgba(255,255,255,0.08)" : "#F0EEF5",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                }}>
+                <Icon size={17} color={textMuted2}/>
+              </div>
+              <div style={{flex:1, minWidth:0}}>
+                <div style={{fontSize:14.5, fontWeight:600, color:textMain}}>{title}</div>
+                <div style={{fontSize:12, color:textMuted2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subtitle}</div>
+              </div>
+              <ChevronRight size={16} color={textMuted2} style={{flexShrink:0}}/>
+            </button>
+          ))}
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -7396,11 +7422,12 @@ function FocusGoInner() {
               </>
             )}
             <button onClick={()=>{vibrate(); setShowQuickAddMenu(v=>!v);}} title={lang==="bn" ? "যোগ করো" : "Add"} style={{
-                width:46, height:46, borderRadius:"50%", border:"none", background:accent, color:"#fff",
+                width:52, height:52, borderRadius:"50%", border:`1px solid ${cardBorder}`,
+                background: dark ? "#1C1A20" : "#FFFFFF", color: textMain,
                 display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0,
-                boxShadow: dark ? "0 3px 10px rgba(0,0,0,0.35)" : "0 3px 10px rgba(0,0,0,0.16)",
+                boxShadow: dark ? "0 2px 10px rgba(0,0,0,0.25)" : "0 2px 10px rgba(0,0,0,0.06)",
               }}>
-              <Plus size={22} strokeWidth={2.4}/>
+              <Plus size={21} strokeWidth={2.2}/>
             </button>
           </div>
         )}
