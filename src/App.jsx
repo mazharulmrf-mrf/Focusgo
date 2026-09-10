@@ -2652,6 +2652,8 @@ const WEEKDAYS_SHORT_EN = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
 const WEEKDAYS_SHORT_BN = ["রবি","সোম","মঙ্গল","বুধ","বৃহঃ","শুক্র","শনি"];
 const MONTHS_EN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const MONTHS_BN = ["জানুয়ারি","ফেব্রুয়ারি","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টেম্বর","অক্টোবর","নভেম্বর","ডিসেম্বর"];
+const MONTHS_SHORT_EN = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS_SHORT_BN = ["জানু","ফেব্রু","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টে","অক্টো","নভে","ডিসে"];
 
 const T = {
   en: {
@@ -5404,6 +5406,7 @@ function FocusGoInner() {
     });
   };
   const monthName = (i) => lang === "bn" ? MONTHS_BN[i] : MONTHS_EN[i];
+  const monthShort = (i) => lang === "bn" ? MONTHS_SHORT_BN[i] : MONTHS_SHORT_EN[i];
   const weekdayName = (d) => lang === "bn" ? WEEKDAYS_BN[d.getDay()] : WEEKDAYS_EN[d.getDay()];
   const weekdayShort = (d) => lang === "bn" ? WEEKDAYS_SHORT_BN[d.getDay()] : WEEKDAYS_SHORT_EN[d.getDay()];
 
@@ -5962,13 +5965,15 @@ function FocusGoInner() {
                 <>
                   <div style={{
                     padding:"14px 14px 12px", marginBottom:0, position:"relative", borderRadius:18,
-                    background: "#1A1A1E",
+                    background: dark
+                      ? `linear-gradient(135deg, ${greetTheme.grad}, transparent 70%)`
+                      : `linear-gradient(135deg, ${greetTheme.grad}, #FFFFFF 75%)`,
                   }} ref={salahMenuRef}>
                     <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8}}>
                       <div style={{minWidth:0, flex:1}}>
                         <div
                           onClick={() => { vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                          style={{fontSize:12.5, fontWeight:500, color:"rgba(255,255,255,0.62)", letterSpacing:0.2, marginBottom:3, display:"flex", alignItems:"center", gap:6, cursor:"pointer"}}
+                          style={{fontSize:12.5, fontWeight:500, color:"var(--muted)", letterSpacing:0.2, marginBottom:3, display:"flex", alignItems:"center", gap:6, cursor:"pointer"}}
                           title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
                         >
                           <GreetIcon size={13} color={greetTheme.iconColor} strokeWidth={2.2}/>
@@ -5976,32 +5981,32 @@ function FocusGoInner() {
                           {weatherData && weatherData.temp != null && (
                             <span
                               onClick={(e) => { e.stopPropagation(); vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                              style={{display:"inline-flex", alignItems:"center", fontSize:12.5, fontWeight:500, color:"rgba(255,255,255,0.62)", cursor:"pointer"}}
+                              style={{display:"inline-flex", alignItems:"center", fontSize:12.5, fontWeight:500, color:"var(--muted)", cursor:"pointer"}}
                               title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
                             >
                               · <Num>{nf(weatherData.temp)}</Num>°C
                             </span>
                           )}
                         </div>
-                        <div style={{fontSize:21,fontWeight:600,letterSpacing:-0.5,color:"#FFFFFF", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", display:"inline-block"}}>
+                        <div style={{fontSize:21,fontWeight:600,letterSpacing:-0.5,color:"var(--text)", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", display:"inline-block"}}>
                           {firstName}
                         </div>
                       </div>
                       <div style={{display:"flex", alignItems:"center", gap:10, flexShrink:0, paddingTop:1}}>
-                        {/* তারিখ + লাইভ ঘড়ি — উপরে ছোট করে তারিখ, নিচে সময়। ট্যাপ করলে ফুল ক্যালেন্ডার খোলে (আগের মতোই), আলাদা অ্যালার্ম আইকন/ফিচার আর নেই */}
-                        <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", flexDirection:"column", alignItems:"flex-end", border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
-                          <span style={{fontSize:9.5, fontWeight:600, color:"rgba(255,255,255,0.55)", letterSpacing:0.1, whiteSpace:"nowrap"}}>
-                            {weekdayName(today)}, <Num>{nf(today.getDate())}</Num> {monthName(today.getMonth())}
+                        {/* মিনিমাল ডেট ব্যাজ — উপরে ছোট করে দিনের নাম + মাস, নিচে accent রঙের সার্কেলের মধ্যে আজকের তারিখ। ট্যাপ করলে ফুল ক্যালেন্ডার খোলে, সময় আর দেখানো হয় না */}
+                        <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
+                          <span style={{fontSize:9.5, fontWeight:600, color:"var(--muted)", letterSpacing:0.1, whiteSpace:"nowrap"}}>
+                            {weekdayShort(today)}, {monthShort(today.getMonth())}
                           </span>
-                          <span style={{fontSize:13.5, fontWeight:700, color:"#FFFFFF", fontVariantNumeric:"tabular-nums", marginTop:2, whiteSpace:"nowrap"}}>
-                            <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> {now.getHours()>=12 ? t.pmLabel : t.amLabel}
+                          <span style={{width:32, height:32, borderRadius:"50%", background:accent, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:"#FFFFFF"}}>
+                            <Num>{nf(today.getDate())}</Num>
                           </span>
                           {examDateKeys.has(todayKey) && (
                             <span style={{
                               position:"absolute", top:-2, left:-10,
                               width:7, height:7, borderRadius:"50%",
                               background:"#C0392B",
-                              border:"1.5px solid #1A1A1E",
+                              border:`1.5px solid ${dark ? cardBg : "#FFFFFF"}`,
                             }}/>
                           )}
                         </button>
@@ -6009,7 +6014,7 @@ function FocusGoInner() {
                           <button
                             onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
                             style={{
-                              border:"none", background:`${accent}26`, padding:0, flexShrink:0,
+                              border:"none", background:`${accent}14`, padding:0, flexShrink:0,
                               width:32, height:32, borderRadius:"50%",
                               display:"flex", alignItems:"center", justifyContent:"center",
                               cursor:"pointer", position:"relative",
