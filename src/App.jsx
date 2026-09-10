@@ -5438,7 +5438,7 @@ function FocusGoInner() {
   const containerMaxWidth = isDesktop
     ? 1400
     : breakpoint === "tablet" ? 640 : 480;
-  const containerPadding = isDesktop ? "24px 28px 36px" : breakpoint === "tablet" ? "22px 24px 28px" : "18px 16px 24px";
+  const containerPadding = isDesktop ? "24px 28px 36px" : breakpoint === "tablet" ? "22px 24px 28px" : "10px 16px 24px";
 
   const styles = {
     page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column", paddingTop:"var(--fg-safe-top, env(safe-area-inset-top))" },
@@ -5920,7 +5920,7 @@ function FocusGoInner() {
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
             আর Stats/Exam-এ এর কোনো কাজ নেই — শুধু ছোট মোবাইল স্ক্রিনে জায়গা নিত এবং প্রতি সেকেন্ডে অপ্রয়োজনীয় re-render ঘটাত। */}
         {tab === "today" && (
-        <div style={{marginTop:18, padding:"6px 0 8px", boxSizing:"border-box", position:"relative"}}>
+        <div style={{marginTop:10, padding:"3px 0 5px", boxSizing:"border-box", position:"relative"}}>
           <div style={{marginBottom:2, position:"relative"}}>
             {(() => {
               const fullName = (user?.displayName || "").trim();
@@ -5964,7 +5964,7 @@ function FocusGoInner() {
               return (
                 <>
                   <div style={{
-                    padding:"14px 14px 12px", marginBottom:0, position:"relative", borderRadius:18,
+                    padding:"10px 14px 9px", marginBottom:0, position:"relative", borderRadius:18,
                     background: dark
                       ? `linear-gradient(135deg, ${greetTheme.grad}, transparent 70%)`
                       : `linear-gradient(135deg, ${greetTheme.grad}, #FFFFFF 75%)`,
@@ -6563,16 +6563,10 @@ function FocusGoInner() {
             const doneToday = todayTopics.filter(x => x.done).length;
             const totalToday = todayTopics.length;
 
-            const cardTodayTasks = tasksFeatureEnabled ? tasks.filter(x => x.dueDate === todayKey) : [];
-            const hasTasks = cardTodayTasks.length > 0;
-            const cardDone = cardTodayTasks.filter(x => x.done).length;
-            const cardPct = hasTasks ? Math.round((cardDone / cardTodayTasks.length) * 100) : 0;
-            const allTasksDone = hasTasks && cardDone === cardTodayTasks.length;
-
             return (
               <div className="fg-tab-panel" style={{
                 marginTop:10, background: dark ? cardBg : "#FFFFFF", borderRadius:16,
-                padding:"14px 16px 12px", position:"relative", overflow:"hidden",
+                padding:"12px 16px", position:"relative", overflow:"hidden",
                 border:`1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(20,17,24,0.045)"}`,
                 boxShadow: dark ? "0 2px 12px rgba(0,0,0,0.32)" : "0 4px 18px rgba(32,34,43,0.06)",
               }}>
@@ -6594,20 +6588,6 @@ function FocusGoInner() {
                     </div>
                   </div>
                 </div>
-
-                {tasksFeatureEnabled && (
-                  <div style={{marginTop:12, paddingTop:10, borderTop:`1px solid ${dark ? "rgba(255,255,255,0.07)" : "rgba(20,17,24,0.06)"}`}}>
-                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
-                      <div style={{fontSize:12, fontWeight:600, color:textMain}}>{lang==="bn" ? "আজকের টাস্ক" : "Today's Tasks"}</div>
-                      <div style={{fontSize:11, fontWeight:600, color: allTasksDone ? "#6E8B5E" : textMuted2, whiteSpace:"nowrap"}}>
-                        {!hasTasks ? (lang==="bn" ? "কোনো টাস্ক নেই" : "No tasks today") : allTasksDone ? t.taskAllDoneLabel : (lang==="bn" ? `${nf(cardDone)}/${nf(cardTodayTasks.length)} সম্পন্ন` : `${cardDone}/${cardTodayTasks.length} completed`)}
-                      </div>
-                    </div>
-                    <div style={{height:4, borderRadius:8, background: dark ? "#242229" : "#F0EEF5", overflow:"hidden"}}>
-                      <div style={{width: hasTasks ? `${cardPct}%` : "0%", height:"100%", borderRadius:8, background: allTasksDone ? "#6E8B5E" : accent, transition:"width .3s ease"}}/>
-                    </div>
-                  </div>
-                )}
               </div>
             );
           }
@@ -6705,7 +6685,7 @@ function FocusGoInner() {
 
           {tab === "today" ? (
             <div style={{
-              background: dark ? cardBg : "#FFFFFF", borderRadius:16, padding: todayTopics.length ? "4px 13px" : "13px",
+              background: dark ? cardBg : "#FFFFFF", borderRadius:16, padding: todayTopics.length ? "4px 13px" : "8px",
               border:`1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(20,17,24,0.045)"}`,
               boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 2px 10px rgba(32,34,43,0.05)",
             }}>
@@ -6760,13 +6740,13 @@ function FocusGoInner() {
               </button>
             </div>
             {homeTodayTasks.length === 0 ? (
-              <div style={{border:`1px dashed ${inkA(0.35)}`, borderRadius:14, padding:"12px 13px", background:inkA(0.06), display:"flex", alignItems:"flex-start", gap:10}}>
-                <span style={{width:30, height:30, borderRadius:"50%", background:inkA(0.14), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                  <ListChecks size={15} color={inkColor} strokeWidth={2}/>
+              <div style={{border:`1px dashed ${inkA(0.35)}`, borderRadius:12, padding:"9px 11px", background:inkA(0.06), display:"flex", alignItems:"center", gap:8}}>
+                <span style={{width:24, height:24, borderRadius:"50%", background:inkA(0.14), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                  <ListChecks size={13} color={inkColor} strokeWidth={2}/>
                 </span>
                 <div style={{minWidth:0}}>
-                  <div style={{fontWeight:600, color:textMain, fontSize:13.5}}>{t.taskEmptyTodayHome}</div>
-                  <div style={{color:textMuted2, fontSize:12, marginTop:2}}>{lang==="bn" ? "আজকের একটা টাস্ক যোগ করুন।" : "Add a task to plan your day."}</div>
+                  <div style={{fontWeight:600, color:textMain, fontSize:12.5}}>{t.taskEmptyTodayHome}</div>
+                  <div style={{color:textMuted2, fontSize:11, marginTop:1}}>{lang==="bn" ? "আজকের একটা টাস্ক যোগ করুন।" : "Add a task to plan your day."}</div>
                 </div>
               </div>
             ) : (
@@ -7216,8 +7196,8 @@ function FocusGoInner() {
             return (
               <button key={k} onClick={()=>{vibrate(); setTab(k);}} style={{
                 flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3, border:"none", borderRadius:12, padding:"8px 4px", fontSize:10.5, fontWeight:600, cursor:"pointer",
-                background: active ? (dark ? "rgba(255,255,255,0.08)" : "#F1EFE8") : "transparent",
-                color: active ? textMain : textMuted2,
+                background: active ? (dark ? `${accent}29` : `${accent}1A`) : "transparent",
+                color: active ? accent : textMuted2,
                 transition:"background .18s ease, color .18s ease"
               }}>
                 <span style={{position:"relative", display:"flex"}}>
@@ -8924,15 +8904,15 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
   const closeMenu = () => { setOpenMenuId(null); setConfirmDeleteId(null); };
   if (items.length === 0) {
     return (
-      <div style={{border:`1px dashed ${cardBorder}`, borderRadius:14, padding:"12px 13px", textAlign:"left", background: `${accent}08`, display:"flex", alignItems:"flex-start", gap:10}}>
+      <div style={{border:`1px dashed ${cardBorder}`, borderRadius:12, padding:"9px 11px", textAlign:"left", background: `${accent}08`, display:"flex", alignItems:"center", gap:8}}>
         {EmptyIcon && (
-          <span style={{width:30, height:30, borderRadius:"50%", background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-            <EmptyIcon size={15} color={accent} strokeWidth={2}/>
+          <span style={{width:24, height:24, borderRadius:"50%", background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+            <EmptyIcon size={13} color={accent} strokeWidth={2}/>
           </span>
         )}
         <div style={{minWidth:0}}>
-          <div style={{fontWeight:600, color:textMain, fontSize:13.5}}>{emptyText}</div>
-          {emptySubtext && <div style={{fontSize:12, color:textMuted2, marginTop:2, lineHeight:1.4}}>{emptySubtext}</div>}
+          <div style={{fontWeight:600, color:textMain, fontSize:12.5}}>{emptyText}</div>
+          {emptySubtext && <div style={{fontSize:11, color:textMuted2, marginTop:1, lineHeight:1.3}}>{emptySubtext}</div>}
         </div>
       </div>
     );
