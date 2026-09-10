@@ -3744,6 +3744,7 @@ function FocusGoInner() {
   const [focusMode, setFocusMode] = useState("timer"); // "timer" | "stopwatch"
   const [stopwatchSeconds, setStopwatchSeconds] = useState(0);
   const [stopwatchRunning, setStopwatchRunning] = useState(false);
+  const [stopwatchLaps, setStopwatchLaps] = useState([]);
   const [focusFullscreen, setFocusFullscreen] = useState(false);
   const focusFullscreenActiveRef = useRef(false); // popstate হ্যান্ডলারের ভেতর থেকে সবসময় সবশেষ ফুলস্ক্রিন অবস্থা জানার জন্য
   // ---- White Noise: পছন্দ localStorage-এ থেকে যায়, টাইমার/স্টপওয়াচ চললেই ব্যাকগ্রাউন্ডে বাজে ----
@@ -3773,7 +3774,7 @@ function FocusGoInner() {
     strictAwaySinceRef.current = null;
     vibrate(30);
     if (focusMode === "timer") { setTimerRunning(false); setTimerSeconds(timerTotal); }
-    else { setStopwatchRunning(false); setStopwatchSeconds(0); }
+    else { setStopwatchRunning(false); setStopwatchSeconds(0); setStopwatchLaps([]); }
     setDistractionCount(c => {
       const next = c + 1;
       try { window.localStorage.setItem("focusgo_distractions_" + todayKeyStr(), String(next)); } catch (e) {}
@@ -6331,139 +6332,61 @@ function FocusGoInner() {
           </div>
         )}
 
-        {/* Focus timer - center-aligned minimal layout: title, big time, controls — all centered as one calm block.
-            studySection চেক তুলে দেওয়া হয়েছে যাতে Study ট্যাবে Plan/Stats যেটাতেই থাকুন না কেন, টাইমার কার্ডটা সবসময় সবার উপরে থাকে */}
+        {/* Focus Timer — screenshot-inspired compact Study card */}
         {tab === "study" && (
-        <div className="fg-tab-panel" style={{marginTop:8, background:"#0A0A0A", borderRadius:16, padding:"14px 14px 12px", color:"#fff", boxShadow:"0 8px 24px rgba(0,0,0,0.45)", position:"relative", overflow:"hidden", border:"1px solid rgba(255,255,255,0.06)"}}>
-
-          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
+        <div className="fg-tab-panel" style={{marginTop:8, background:"#0A0A0A", borderRadius:16, padding:"14px 14px 12px", color:"#fff", boxShadow:"0 8px 24px rgba(0,0,0,0.45)", position:"relative", overflow:"visible", border:"1px solid rgba(255,255,255,0.06)"}}>
+          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}>
             <div style={{display:"flex", alignItems:"center", gap:8, minWidth:0}}>
               <div style={{width:28, height:28, borderRadius:8, background:`${accent}22`, display:"flex", alignItems:"center", justifyContent:"center", color:accent, flexShrink:0}}>
                 <Hourglass size={14}/>
               </div>
-              <div style={{textAlign:"left", minWidth:0}}>
-                <div style={{fontSize:13, fontWeight:800, color:"#fff", letterSpacing:-0.2, whiteSpace:"nowrap"}}>
-                  {lang==="bn" ? "ফোকাস টাইমার" : "Focus Timer"}
-                </div>
-                <div style={{fontSize:9.5, fontWeight:500, color:"rgba(255,255,255,0.4)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
-                  {lang==="bn" ? "গভীর মনোযোগ। আরও ভালো তুমি।" : "Deep work. A better you."}
-                </div>
+              <div style={{minWidth:0}}>
+                <div style={{fontSize:13, fontWeight:800, color:"#fff", letterSpacing:-0.2}}>{lang==="bn" ? "ফোকাস টাইমার" : "Focus Timer"}</div>
+                <div style={{fontSize:9.5, fontWeight:500, color:"rgba(255,255,255,0.42)", whiteSpace:"nowrap"}}>{lang==="bn" ? "ফোকাস ধরে রাখো" : "Stay focused"}</div>
               </div>
             </div>
-            <div style={{display:"flex", alignItems:"center", gap:5, flexShrink:0}}>
-              <button
-                onClick={()=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setFocusMode(focusMode==="timer" ? "stopwatch" : "timer"); }}
-                disabled={timerRunning || stopwatchRunning}
-                style={{display:"flex", alignItems:"center", gap:3, border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.06)", borderRadius:999, padding:"4px 8px", color:"rgba(255,255,255,0.75)", fontSize:10, fontWeight:600, cursor:(timerRunning||stopwatchRunning) ? "default" : "pointer", opacity:(timerRunning||stopwatchRunning) ? 0.5 : 1}}>
-                <Hourglass size={10}/>{focusMode==="timer" ? t.timerMode : t.stopwatchMode}
-              </button>
-              {focusMode === "timer" && (
-                <button
-                  onClick={()=>{ if (timerRunning) return; vibrate(); changeSessionType(sessionType==="focus" ? "break" : "focus"); }}
-                  disabled={timerRunning}
-                  style={{display:"flex", alignItems:"center", gap:3, border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.06)", borderRadius:999, padding:"4px 8px", color:"rgba(255,255,255,0.75)", fontSize:10, fontWeight:600, cursor: timerRunning ? "default" : "pointer", opacity: timerRunning ? 0.5 : 1}}>
-                  {sessionType==="focus" ? t.focusOption : t.breakOption}<ChevronDown size={10}/>
-                </button>
-              )}
-            </div>
+            <button onClick={()=>{vibrate(); setFocusFullscreen(true);}} title={lang==="bn" ? "ফুলস্ক্রিন" : "Open Focus Timer"} style={{width:32,height:32,borderRadius:10,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.8)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0}}>
+              <Maximize2 size={15}/>
+            </button>
           </div>
 
-          {/* কম্প্যাক্ট কন্ট্রোল রো — সার্কেল ছাড়াই: Reset, সময়+প্রগ্রেস বার, Play, Duration সেটিংস */}
-          {(() => {
-            const rawPct = focusMode === "timer"
-              ? (timerTotal > 0 ? (1 - timerSeconds / timerTotal) * 100 : 0)
-              : ((stopwatchSeconds % 3600) / 3600) * 100;
-            const pct = Math.min(100, Math.max(0, rawPct));
-            const runningNow = focusMode === "timer" ? timerRunning : stopwatchRunning;
-            return (
-              <div style={{display:"flex", alignItems:"center", gap:10, marginTop:14}}>
-                <button onClick={()=>{ vibrate(); if (focusMode==="timer") { setTimerRunning(false); setTimerSeconds(timerTotal); } else { setStopwatchRunning(false); setStopwatchSeconds(0); } }} title={t.reset}
-                  style={{background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.08)", width:38, height:38, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:"rgba(255,255,255,0.8)", flexShrink:0}}>
-                  <RotateCcw size={15}/>
-                </button>
-
-                <div style={{flex:1, minWidth:0, textAlign:"center"}}>
-                  {!runningNow && (
-                    <div style={{fontSize:9, fontWeight:700, letterSpacing:2, color:"rgba(255,255,255,0.4)", marginBottom:3}}>
-                      {lang==="bn" ? "মনোযোগী থাকো" : "STAY FOCUSED"}
-                    </div>
-                  )}
-                  {focusMode === "timer" ? (
-                    editingDuration ? (
-                      <div style={{display:"flex", alignItems:"baseline", gap:3, justifyContent:"center"}}>
-                        <input
-                          type="number"
-                          autoFocus
-                          value={durationInput}
-                          onChange={(e)=>setDurationInput(e.target.value)}
-                          onBlur={commitDurationEdit}
-                          onKeyDown={(e)=>{ if (e.key==="Enter") { e.preventDefault(); commitDurationEdit(); } if (e.key==="Escape") setEditingDuration(false); }}
-                          min={1}
-                          max={180}
-                          style={{width:52, fontSize:22, fontWeight:700, fontVariantNumeric:"tabular-nums", letterSpacing:-0.5, color:"#fff", background:"transparent", border:"none", borderBottom:`2px solid ${accent}`, outline:"none", textAlign:"center"}}
-                        />
-                        <span style={{fontSize:10.5, fontWeight:500, color:"rgba(255,255,255,0.5)"}}>{t.minutes}</span>
-                      </div>
-                    ) : (
-                      <span onClick={!timerRunning ? startEditDuration : undefined} title={!timerRunning ? t.durationLabel : undefined} className={timerRunning ? "fg-timer-running" : undefined}
-                        style={{fontSize:28, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:-0.5, color:"#fff", cursor: timerRunning ? "default" : "pointer", lineHeight:1}}>
-                        <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
-                      </span>
-                    )
-                  ) : (
-                    <span className={stopwatchRunning ? "fg-timer-running" : undefined} style={{fontSize:28, fontWeight:800, fontVariantNumeric:"tabular-nums", letterSpacing:-0.5, color:"#fff", lineHeight:1}}>
-                      <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num>
-                    </span>
-                  )}
-                  <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:6, marginTop:4}}>
-                    <div style={{width:60, height:3, borderRadius:2, background:"rgba(255,255,255,0.1)", overflow:"hidden"}}>
-                      <div style={{width:`${pct}%`, height:"100%", background:accent, borderRadius:2, transition: runningNow ? "width 1s linear" : "width .3s ease"}}/>
-                    </div>
-                    {focusMode === "timer" && (
-                      <span style={{fontSize:10, fontWeight:500, color:"rgba(255,255,255,0.4)", whiteSpace:"nowrap"}}>
-                        <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions)}</Num> {lang==="bn" ? "সেশন" : "sessions"}
-                      </span>
-                    )}
-                  </div>
-                  {focusMode === "timer" && timerTargetMinutes && (
-                    <div style={{fontSize:9, color:"rgba(255,255,255,0.35)", fontWeight:500, marginTop:2}}>
-                      <Num>{nf(timerElapsedMinutes)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
-                    </div>
-                  )}
+          <div style={{display:"flex", alignItems:"center", marginTop:14, minHeight:74}}>
+            <button onClick={()=>{if(timerRunning||stopwatchRunning)return; vibrate(); setFocusMode("timer");}} disabled={timerRunning||stopwatchRunning} style={{flex:1,minWidth:0,border:"none",background:"transparent",color:"#fff",padding:0,textAlign:"left",cursor:(timerRunning||stopwatchRunning)?"default":"pointer"}}>
+              <div style={{fontSize:9.5,fontWeight:700,color:focusMode==="timer"?accent:"rgba(255,255,255,0.4)",marginBottom:4}}>{t.timerMode}</div>
+              {editingDuration && focusMode==="timer" ? (
+                <div style={{display:"flex",alignItems:"baseline",gap:3}}>
+                  <input autoFocus type="number" value={durationInput} onChange={e=>setDurationInput(e.target.value)} onBlur={commitDurationEdit} onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();commitDurationEdit();} if(e.key==="Escape")setEditingDuration(false);}} min={1} max={180} style={{width:62,fontSize:28,fontWeight:800,fontVariantNumeric:"tabular-nums",color:"#fff",background:"transparent",border:"none",borderBottom:`2px solid ${accent}`,outline:"none",textAlign:"left",padding:0}}/>
+                  <span style={{fontSize:10,color:"rgba(255,255,255,0.45)"}}>{t.minutes}</span>
                 </div>
-
-                <button
-                  onClick={focusMode==="timer" ? toggleTimerRunning : toggleStopwatchRunning}
-                  title={runningNow ? t.pause : t.start}
-                  style={{display:"flex", alignItems:"center", justifyContent:"center", background: accent, border:"none", borderRadius:"50%", width:46, height:46, color:"#fff", cursor:"pointer", boxShadow:`0 0 0 6px ${accent}1F, 0 8px 18px ${accent}55`, flexShrink:0}}>
-                  {runningNow ? <Pause size={17} fill="#fff"/> : <Play size={17} fill="#fff" style={{marginLeft:2}}/>}
-                </button>
-
-                <div style={{position:"relative", flexShrink:0}}>
-                  <button
-                    onClick={()=>{ if (timerRunning || stopwatchRunning || focusMode !== "timer") return; vibrate(); setShowFocusQuickSettings(s=>!s); }}
-                    disabled={timerRunning || stopwatchRunning || focusMode !== "timer"}
-                    title={lang==="bn" ? "ডিউরেশন সেটিংস" : "Duration settings"}
-                    style={{background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.08)", width:38, height:38, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", cursor:(timerRunning||stopwatchRunning||focusMode!=="timer") ? "default" : "pointer", color:"rgba(255,255,255,0.8)", opacity:(timerRunning||stopwatchRunning||focusMode!=="timer") ? 0.45 : 1}}>
-                    <SlidersIcon size={15}/>
-                  </button>
-                  {showFocusQuickSettings && (
-                    <>
-                    <div onClick={()=>setShowFocusQuickSettings(false)} style={{position:"fixed", inset:0, zIndex:19}}/>
-                    <div onClick={e=>e.stopPropagation()} style={{position:"absolute", top:"calc(100% + 8px)", right:-6, zIndex:20, width:160, background:"#161616", border:"1px solid rgba(255,255,255,0.1)", borderRadius:14, padding:12, boxShadow:"0 14px 30px rgba(0,0,0,0.5)", textAlign:"left"}}>
-                      <div style={{fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.45)", marginBottom:8, letterSpacing:0.3}}>{lang==="bn" ? "ডিউরেশন" : "DURATION"}</div>
-                      <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:6}}>
-                        <button onClick={()=>adjustTimer(-5)} style={{width:26, height:26, borderRadius:"50%", border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.06)", color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center"}}>−</button>
-                        <span style={{fontSize:13.5, fontWeight:700, color:"#fff", fontVariantNumeric:"tabular-nums"}}><Num>{nf(Math.round(timerTotal/60))}</Num> {t.minutes}</span>
-                        <button onClick={()=>adjustTimer(5)} style={{width:26, height:26, borderRadius:"50%", border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.06)", color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center"}}>+</button>
-                      </div>
-                    </div>
-                    </>
-                  )}
+              ) : (
+                <div onClick={e=>{e.stopPropagation(); if(!timerRunning){setDurationInput(String(Math.round(timerTotal/60)));setEditingDuration(true);}}} style={{fontSize:29,fontWeight:800,fontVariantNumeric:"tabular-nums",letterSpacing:-0.8,lineHeight:1,color:"#fff"}}>
+                  <Num>{nf(pad2(Math.floor(timerSeconds/60)))}:{nf(pad2(timerSeconds%60))}</Num>
                 </div>
+              )}
+            </button>
+
+            <div style={{width:1,height:48,background:"rgba(255,255,255,0.13)",margin:"0 12px",flexShrink:0}}/>
+
+            <button onClick={()=>{if(timerRunning||stopwatchRunning)return; vibrate(); setFocusMode("stopwatch");}} disabled={timerRunning||stopwatchRunning} style={{flex:1,minWidth:0,border:"none",background:"transparent",color:"#fff",padding:0,textAlign:"left",cursor:(timerRunning||stopwatchRunning)?"default":"pointer"}}>
+              <div style={{fontSize:9.5,fontWeight:700,color:focusMode==="stopwatch"?accent:"rgba(255,255,255,0.4)",marginBottom:4}}>{t.stopwatchMode}</div>
+              <div style={{fontSize:29,fontWeight:800,fontVariantNumeric:"tabular-nums",letterSpacing:-0.8,lineHeight:1,color:"#fff"}}>
+                <Num>{nf(pad2(Math.floor(stopwatchSeconds/60)))}:{nf(pad2(stopwatchSeconds%60))}</Num><span style={{fontSize:15,color:"rgba(255,255,255,0.5)",marginLeft:2}}>.00</span>
               </div>
-            );
-          })()}
+            </button>
+
+            <button onClick={()=>{vibrate(); if(focusMode==="timer") toggleTimerRunning(); else toggleStopwatchRunning();}} title={focusMode==="timer"?(timerRunning?t.pause:t.start):(stopwatchRunning?t.pause:t.start)} style={{width:48,height:48,borderRadius:"50%",border:"none",background:accent,color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0,boxShadow:`0 0 0 5px ${accent}1C, 0 6px 16px ${accent}45`,marginLeft:10}}>
+              {(focusMode==="timer"?timerRunning:stopwatchRunning) ? <Pause size={18} fill="#fff"/> : <Play size={18} fill="#fff" style={{marginLeft:2}}/>}
+            </button>
+          </div>
+
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginTop:12,paddingTop:10,borderTop:"1px solid rgba(255,255,255,0.07)"}}>
+            <div style={{fontSize:10.5,color:"rgba(255,255,255,0.45)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>
+              {focusMode==="timer" ? `${lang==="bn"?"ফোকাস":"Focus"} • ${nf(Math.round(timerTotal/60))} ${t.minutes}` : `${lang==="bn"?"স্টপওয়াচ":"Stopwatch"} • ${nf(stopwatchLaps.length)} ${lang==="bn"?"ল্যাপ":"laps"}`}
+            </div>
+            <button onClick={()=>{vibrate();setFocusFullscreen(true);}} style={{border:"none",background:"transparent",color:accent,fontSize:10.5,fontWeight:700,cursor:"pointer",padding:3,flexShrink:0}}>{lang==="bn"?"বিস্তারিত":"Open"}</button>
+          </div>
+        </div>
+        )}
 
           {/* Topic — কম্প্যাক্ট চিপ রো */}
           <div style={{marginTop:12}}>
@@ -7273,11 +7196,14 @@ function FocusGoInner() {
           onToggleRun={focusMode === "timer" ? toggleTimerRunning : toggleStopwatchRunning}
           onReset={()=>{
             if (focusMode === "timer") { setTimerRunning(false); setTimerSeconds(timerTotal); }
-            else { setStopwatchRunning(false); setStopwatchSeconds(0); }
+            else { setStopwatchRunning(false); setStopwatchSeconds(0); setStopwatchLaps([]); }
           }}
           onClose={closeFocusFullscreen}
+          onModeChange={(m)=>{ if (timerRunning || stopwatchRunning) return; setFocusMode(m); }}
           sessionType={sessionType} pomodoroSession={pomodoroSession} pomodoroTotalSessions={pomodoroTotalSessions}
           timerTargetMinutes={timerTargetMinutes} timerElapsedMinutes={timerElapsedMinutes}
+          laps={stopwatchLaps}
+          onLap={()=>{ setStopwatchLaps(l => [...l, stopwatchSeconds]); }}
         />
       )}
 
@@ -7602,158 +7528,115 @@ function BreakPromptModal({ t, nf, breakMinutes, accent, onAccept, onSkip }) {
   );
 }
 
-function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, accent, dark, bg, textMain, textMuted2, onToggleRun, onReset, onClose, now, sessionType, pomodoroSession, pomodoroTotalSessions, timerTargetMinutes, timerElapsedMinutes }) {
-  // মাউন্ট হওয়ার সাথে সাথেই (রেন্ডারের আগেই, browser paint হওয়ার আগে) html/body-এর ব্যাকগ্রাউন্ড
-  // কালো করে দেওয়া হচ্ছে — যাতে উপরের status bar/notch এরিয়াতে আগের (হালকা রঙের) ব্যাকগ্রাউন্ডের
-  // এক ঝলক (flash) দেখা না যায়, যেটা মূল theme-color useEffect (parent-এ) একটু দেরিতে চালু হওয়ায় হতে পারত।
+function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, accent, dark, bg, textMain, textMuted2, onToggleRun, onReset, onClose, now, sessionType, pomodoroSession, pomodoroTotalSessions, timerTargetMinutes, timerElapsedMinutes, laps = [], onLap, onModeChange }) {
   useLayoutEffect(() => {
     const prevHtmlBg = document.documentElement.style.background;
     const prevBodyBg = document.body.style.background;
     document.documentElement.style.background = "#000000";
     document.body.style.background = "#000000";
-    return () => {
-      document.documentElement.style.background = prevHtmlBg;
-      document.body.style.background = prevBodyBg;
-    };
+    return () => { document.documentElement.style.background = prevHtmlBg; document.body.style.background = prevBodyBg; };
   }, []);
+
   const orientation = useOrientation();
-  const stacked = orientation === "portrait"; // portrait -> mm উপরে/ss নিচে (বড় সংখ্যা), landscape -> পাশাপাশি
-  const mm = pad2(Math.floor(Math.max(0,seconds)/60));
-  const ss = pad2(Math.max(0,seconds)%60);
-  const pct = mode === "timer" && total ? Math.min(100, Math.max(0, Math.round(((total-seconds)/total)*100))) : null;
+  const portrait = orientation === "portrait";
+  const mm = pad2(Math.floor(Math.max(0, seconds) / 60));
+  const ss = pad2(Math.max(0, seconds) % 60);
+  const pct = mode === "timer" && total ? Math.min(100, Math.max(0, ((total - seconds) / total) * 100)) : 0;
+  const fg = "#F5F1E8";
+  const muted = "#8A8272";
+  const panel = "#111111";
+  const track = "#29252F";
 
-  // fullscreen-এ সবসময় fixed কালো প্যালেট — app theme (light/dark/system) থেকে independent।
-  const screenBg = "#000000";
-  const fgMain = "#F5F1E8";
-  const fgMuted = "#8A8272";
-  const trackColor = "#2A2A2A";
-  const trackBorder = "rgba(255,255,255,0.08)";
-  const resetBtnBg = "#1E1E1E";
-  const blockWidth = stacked ? "clamp(190px, 70vw, 320px)" : "clamp(120px, 28vw, 240px)";
-  const blockHeight = stacked ? "clamp(110px, 40vw, 200px)" : "clamp(95px, 24vw, 170px)";
+  const toggleOrientation = () => {
+    try { ScreenOrientation.lock({ orientation: portrait ? "landscape" : "portrait" }).catch(() => {}); } catch (e) {}
+  };
 
-  // stacked (portrait) লেআউটে mm বক্স উপরে, ss বক্স নিচে — তাই এখানে সেপারেটর হিসেবে
-  // ভার্টিক্যাল কোলন (দুইটা ডট উপর-নিচ) না দেখিয়ে দুইটা ডট পাশাপাশি (হরাইজন্টাল) দেখানো হচ্ছে,
-  // যাতে দুই বক্সের মাঝের গ্যাপে ঠিকভাবে সেন্টার্ড দেখায়।
-  const separator = stacked ? (
-    <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:"clamp(7px,1.8vw,11px)", margin:"clamp(10px,2.4vw,16px) 0"}}>
-      <span style={{width:"clamp(7px,1.8vw,11px)", height:"clamp(7px,1.8vw,11px)", borderRadius:"50%", background:fgMuted}}/>
-      <span style={{width:"clamp(7px,1.8vw,11px)", height:"clamp(7px,1.8vw,11px)", borderRadius:"50%", background:fgMuted}}/>
-    </div>
-  ) : (
-    <div style={{fontFamily:"'Bebas Neue','Noto Sans Bengali',sans-serif", fontSize:"clamp(55px,11vw,100px)", fontWeight:400, color:fgMuted, marginBottom:6}}>:</div>
-  );
-
-  const clockDigits = (
-    <>
-      <FlipBlock textMain={fgMain} dark={true} running={true} stacked={stacked} blockWidth={blockWidth} blockHeight={blockHeight}>{nf(mm)}</FlipBlock>
-      {separator}
-      <FlipBlock textMain={fgMain} dark={true} running={true} stacked={stacked} blockWidth={blockWidth} blockHeight={blockHeight}>{nf(ss)}</FlipBlock>
-    </>
-  );
-
-  // ছোট আইকন বাটন — reset উপরে, start/pause নিচে (landscape-এ seconds বক্সের ডান পাশে বসবে)
-  const sideButtons = (
-    <div style={{display:"flex", flexDirection:"column", gap:10, marginLeft:"clamp(8px,1.6vw,16px)"}}>
-      <button onClick={onReset} title={t.reset} style={{background:resetBtnBg, border:"none", borderRadius:14, width:48, height:48, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
-        <RotateCcw size={18} color={fgMain}/>
-      </button>
-      <button onClick={onToggleRun} title={running ? t.pause : t.start} style={{background:accent, border:"none", borderRadius:14, width:48, height:48, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
-        {running ? <Pause size={18} fill="#fff" color="#fff"/> : <Play size={18} fill="#fff" color="#fff"/>}
-      </button>
-    </div>
-  );
-
-  const liveClock = now && (
-    <div style={{textAlign:"center", fontSize:12.5, fontWeight:700, color:fgMuted, fontVariantNumeric:"tabular-nums", letterSpacing:0.8, opacity:0.75, marginBottom: stacked ? 14 : 12}}>
-      <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> <span style={{fontSize:10.5}}>{now.getHours()>=12 ? t.pmLabel : t.amLabel}</span>
-    </div>
-  );
-
-  // Pomodoro cycle progress — Timer mode-এই শুধু দেখা যাবে (Stopwatch-এ প্রযোজ্য না)
-  const pomodoroIndicator = mode === "timer" && pomodoroSession ? (
-    <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, marginTop:16}}>
-      <div style={{fontSize:11.5, fontWeight:700, color:fgMuted, letterSpacing:0.6}}>
-        {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions || 4)}</Num>
-      </div>
-      <div style={{display:"flex", gap:6, flexWrap:"wrap", justifyContent:"center", maxWidth:220}}>
-        {Array.from({length:pomodoroTotalSessions || 4}, (_,i)=>i+1).map(i => (
-          <span key={i} style={{fontSize:13.5, lineHeight:1, color: i===pomodoroSession ? accent : fgMuted, opacity: i===pomodoroSession ? 1 : 0.5}}>
-            {i===pomodoroSession ? "●" : "○"}
-          </span>
-        ))}
-      </div>
-      {timerTargetMinutes && (
-        <div style={{fontSize:11.5, color:fgMuted, fontWeight:600, opacity:0.8}}>
-          <Num>{nf(timerElapsedMinutes || 0)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
-        </div>
-      )}
-    </div>
-  ) : null;
+  const formatLap = (v) => `${pad2(Math.floor(v/60))}:${pad2(v%60)}.00`;
 
   return (
-    <div style={{position:"fixed", inset:0, zIndex:100, background:screenBg, color:fgMain, display:"flex", flexDirection:"column", isolation:"isolate", overflow:"hidden", WebkitBackfaceVisibility:"hidden"}}>
-      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"calc(14px + var(--fg-safe-top, env(safe-area-inset-top, 0px))) 20px 0", flexShrink:0}}>
-        <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:fgMuted, display:"flex", alignItems:"center", padding:6}}>
-          <ChevronDown size={22}/>
+    <div style={{position:"fixed",inset:0,zIndex:100,background:"#000",color:fg,display:"flex",flexDirection:"column",overflow:"hidden",isolation:"isolate"}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"calc(10px + var(--fg-safe-top, env(safe-area-inset-top, 0px))) 18px 8px",flexShrink:0}}>
+        <button onClick={onClose} title={langSafe(t,"back")} style={{width:40,height:40,borderRadius:12,border:"none",background:"transparent",color:fg,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>
+          <ChevronLeft size={24}/>
         </button>
-        <div/>
-        <div style={{width:34}}/>
+        <div style={{fontSize:16.5,fontWeight:800,letterSpacing:-0.2}}>Focus Timer</div>
+        <button onClick={toggleOrientation} title="Fullscreen" style={{width:40,height:40,borderRadius:12,border:"none",background:"transparent",color:fg,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>
+          <Maximize2 size={20}/>
+        </button>
       </div>
 
-      {/* মূল কনটেন্ট এরিয়া উলম্বভাবে center করা — real-time ঘড়ি এখন এই ব্লকের অংশ, তাই স্ক্রিনের মাঝামাঝি বসে */}
-      <div style={{flex:1, minHeight:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16, padding:"0 24px", overflow:"hidden"}}>
-        {stacked ? (
-          // ---- vertical/stacked layout: আগের মতোই — mm উপরে, ss নিচে, bar নিচে; শুধু real-time একটু নিচে নেমে এসেছে ----
-          <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:0}}>
-            {liveClock}
-            {clockDigits}
-            {pct !== null && (
-              <div style={{marginTop:16, height:6, width:blockWidth, borderRadius:4, background:trackColor, border:`1px solid ${trackBorder}`, overflow:"hidden"}}>
-                <div style={{height:"100%", width:`${pct}%`, background:accent, borderRadius:4, transition:"width .3s"}}/>
-              </div>
-            )}
-            {pomodoroIndicator}
-          </div>
-        ) : (
-          // ---- horizontal layout: real-time উপরে center-এ, নিচে bar + mm : ss + (reset উপরে/play-pause নিচে) seconds-এর ডান পাশে ----
-          // পুরো গ্রুপটা সামান্য উপরে সরানো হয়েছে, যাতে real-time + digits একসাথে দেখতে সেন্টার্ড লাগে
-          <div style={{display:"flex", flexDirection:"column", alignItems:"center", transform:"translateY(-6vh)"}}>
-            {liveClock}
-            <div style={{display:"flex", alignItems:"stretch", gap:"clamp(10px,2vw,16px)"}}>
-              <div style={{width:48, flexShrink:0, display:"flex", justifyContent:"center", alignItems:"flex-end"}}>
-                {pct !== null && (
-                  <div style={{width:8, borderRadius:4, background:trackColor, border:`1px solid ${trackBorder}`, overflow:"hidden", display:"flex", alignItems:"flex-end", alignSelf:"stretch"}}>
-                    <div style={{width:"100%", height:`${pct}%`, background:accent, borderRadius:4, transition:"height .3s"}}/>
-                  </div>
-                )}
-              </div>
-              <div style={{display:"flex", alignItems:"center", gap:"clamp(4px,1vw,10px)"}}>
-                {clockDigits}
-              </div>
-              <div style={{width:48, flexShrink:0, display:"flex", justifyContent:"center", alignItems:"center"}}>
-                {sideButtons}
-              </div>
+      <div style={{padding:"6px 18px 0",flexShrink:0}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",padding:4,borderRadius:999,background:"#19171D",border:"1px solid rgba(255,255,255,0.08)",boxShadow:"0 5px 18px rgba(0,0,0,0.35)"}}>
+          <button onClick={()=>{if(running)return; onModeChange && onModeChange("timer");}} style={{border:"none",borderRadius:999,padding:"11px 10px",background:mode==="timer"?accent:"transparent",color:mode==="timer"?"#fff":fg,fontSize:13,fontWeight:800,cursor:running?"default":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:7,boxShadow:mode==="timer"?`0 5px 14px ${accent}55`:"none"}}>
+            <Hourglass size={16}/>{t.timerMode}
+          </button>
+          <button onClick={()=>{if(running)return; onModeChange && onModeChange("stopwatch");}} style={{border:"none",borderRadius:999,padding:"11px 10px",background:mode==="stopwatch"?accent:"transparent",color:mode==="stopwatch"?"#fff":fg,fontSize:13,fontWeight:800,cursor:running?"default":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:7,boxShadow:mode==="stopwatch"?`0 5px 14px ${accent}55`:"none"}}>
+            <Clock size={16}/>{t.stopwatchMode}
+          </button>
+        </div>
+      </div>
+
+      {mode === "timer" ? (
+        <div style={{flex:1,minHeight:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"10px 22px 26px",overflow:"hidden"}}>
+          <div style={{fontSize:12,fontWeight:700,color:muted,marginBottom:12}}>{sessionType==="break"?t.breakOption:t.focusOption}</div>
+          <div style={{position:"relative",width:"min(74vw,310px)",aspectRatio:"1",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <svg width="100%" height="100%" viewBox="0 0 220 220" style={{position:"absolute",inset:0,transform:"rotate(-90deg)"}}>
+              <circle cx="110" cy="110" r="92" fill="none" stroke={track} strokeWidth="7"/>
+              <circle cx="110" cy="110" r="92" fill="none" stroke={accent} strokeWidth="7" strokeLinecap="round" strokeDasharray={2*Math.PI*92} strokeDashoffset={(2*Math.PI*92)*(1-pct/100)} style={{transition:"stroke-dashoffset .5s ease"}}/>
+            </svg>
+            <div style={{textAlign:"center",zIndex:1}}>
+              <div style={{fontSize:13,fontWeight:700,color:muted,marginBottom:5}}>{langSafe(t,"focusTime")}</div>
+              <div style={{fontSize:"clamp(48px,14vw,72px)",fontWeight:850,letterSpacing:-2.5,fontVariantNumeric:"tabular-nums",lineHeight:1,color:fg}}><Num>{nf(mm)}</Num>:<Num>{nf(ss)}</Num></div>
+              <div style={{fontSize:13.5,color:muted,marginTop:10}}>{running?(langSafe(t,"stayFocused"):langSafe(t,"ready"))}</div>
+              {topicLabel && <div style={{fontSize:11,color:muted,marginTop:7,maxWidth:190,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{topicLabel}</div>}
             </div>
-            {pomodoroIndicator}
           </div>
-        )}
-      </div>
 
-      {/* portrait/vertical মোডে বাটন আগের মতোই নিচে থাকবে */}
-      {stacked && (
-        <div style={{display:"flex", gap:16, padding:"0 30px 64px", justifyContent:"center", alignItems:"center", flexShrink:0}}>
-          <button onClick={onToggleRun} title={running ? t.pause : t.start} style={{background:accent, border:"none", borderRadius:14, width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
-            {running ? <Pause size={20} fill="#fff" color="#fff"/> : <Play size={20} fill="#fff" color="#fff"/>}
-          </button>
-          <button onClick={onReset} title={t.reset} style={{background:resetBtnBg, border:"none", borderRadius:14, width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
-            <RotateCcw size={20} color={fgMain}/>
-          </button>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:18,marginTop:24}}>
+            <button onClick={onReset} title={t.reset} style={{width:54,height:54,borderRadius:"50%",border:"1px solid rgba(255,255,255,0.08)",background:panel,color:fg,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}><RotateCcw size={19}/></button>
+            <button onClick={onToggleRun} title={running?t.pause:t.start} style={{width:70,height:70,borderRadius:"50%",border:"none",background:accent,color:"white",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",boxShadow:`0 0 0 7px ${accent}20,0 10px 28px ${accent}55`}}>{running?<Pause size={25} fill="#fff"/>:<Play size={25} fill="#fff" style={{marginLeft:3}}/>}</button>
+            <button onClick={toggleOrientation} title="Fullscreen" style={{width:54,height:54,borderRadius:"50%",border:"1px solid rgba(255,255,255,0.08)",background:panel,color:fg,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}><Maximize2 size={19}/></button>
+          </div>
+
+          <div style={{marginTop:20,width:"min(82vw,330px)",padding:"11px 14px",borderRadius:13,background:panel,border:"1px solid rgba(255,255,255,0.07)",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            <span style={{fontSize:11,color:muted}}>{t.sessionLabel} <Num>{nf(pomodoroSession || 1)}</Num>/<Num>{nf(pomodoroTotalSessions || 4)}</Num></span>
+            {timerTargetMinutes && <span style={{fontSize:11,color:muted}}>• <Num>{nf(timerElapsedMinutes || 0)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}</span>}
+          </div>
+        </div>
+      ) : (
+        <div style={{flex:1,minHeight:0,display:"flex",flexDirection:"column",alignItems:"center",padding:"20px 18px 24px",overflow:"hidden"}}>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flex:1,minHeight:0,width:"100%"}}>
+            <div style={{fontSize:12,fontWeight:700,color:muted,marginBottom:12}}>Stopwatch</div>
+            <div style={{fontSize:"clamp(58px,16vw,92px)",fontWeight:850,letterSpacing:-3,fontVariantNumeric:"tabular-nums",lineHeight:1,color:fg}}>
+              <Num>{nf(mm)}</Num>:<Num>{nf(ss)}</Num><span style={{fontSize:"0.42em",color:muted,letterSpacing:-1}}>.00</span>
+            </div>
+
+            <div style={{width:"min(92vw,350px)",marginTop:28,maxHeight:"30vh",overflowY:"auto",borderRadius:14,background:panel,border:"1px solid rgba(255,255,255,0.07)"}}>
+              {laps.length ? laps.slice().reverse().map((lap,i)=>(
+                <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 14px",borderBottom:i<laps.length-1?"1px solid rgba(255,255,255,0.07)":"none"}}>
+                  <span style={{fontSize:13,fontWeight:700,color:i===0?accent:fg}}>Lap {laps.length-i}</span>
+                  <span style={{fontSize:13,fontVariantNumeric:"tabular-nums",color:i===0?accent:fg}}>{formatLap(lap)}</span>
+                </div>
+              )) : <div style={{padding:"18px 14px",textAlign:"center",fontSize:12,color:muted}}>{langSafe(t,"noLaps")}</div>}
+            </div>
+          </div>
+
+          <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:18,marginTop:16,flexShrink:0}}>
+            <button onClick={onReset} title={t.reset} style={{width:54,height:54,borderRadius:"50%",border:"1px solid rgba(255,255,255,0.08)",background:panel,color:fg,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}><RotateCcw size={19}/></button>
+            <button onClick={onToggleRun} title={running?t.pause:t.start} style={{width:70,height:70,borderRadius:"50%",border:"none",background:accent,color:"white",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",boxShadow:`0 0 0 7px ${accent}20,0 10px 28px ${accent}55`}}>{running?<Pause size={25} fill="#fff"/>:<Play size={25} fill="#fff" style={{marginLeft:3}}/>}</button>
+            <button onClick={onLap} title="Lap" style={{width:54,height:54,borderRadius:"50%",border:"1px solid rgba(255,255,255,0.08)",background:panel,color:fg,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}><Flag size={19}/></button>
+          </div>
         </div>
       )}
     </div>
   );
 }
+
+function langSafe(t, key) {
+  const map = { back:"Back", focusTime:"Focus Time", stayFocused:"Stay focused ♥", ready:"Ready", noLaps:"No laps yet" };
+  return map[key] || key;
+}
+
 function PercentRing({ pct, size = 56, stroke = 5, accent, trackColor, textMain, nf, caption, captionColor }) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
