@@ -6418,25 +6418,40 @@ function FocusGoInner() {
         <div className="fg-tab-panel" style={{
             marginTop: 16,
             background: dark ? cardBg : "#FFFFFF",
-            borderRadius: 14,
-            padding: "10px 14px 11px",
+            borderRadius: 16,
+            padding: "14px 16px",
             position:"relative", overflow:"hidden",
-            boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)"
+            boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)",
+            display:"flex", alignItems:"center", gap:12,
           }}>
-          <div style={{display:"flex", alignItems:"center", gap:14}}>
-            <div style={{flex:1, minWidth:0}}>
-              <div style={{fontSize:12, fontWeight:600, color:inkA(0.6), marginBottom:3}}>{lang==="bn" ? "আজ" : "Today"}</div>
-              <div style={{fontSize:17, fontWeight:700, color:inkColor, letterSpacing:-0.2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
+          <div style={{display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0}}>
+            <span style={{width:38, height:38, borderRadius:"50%", background: dark?`${accent}29`:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+              <BookOpen size={18} color={accent}/>
+            </span>
+            <div style={{minWidth:0}}>
+              <div style={{fontSize:11.5, fontWeight:600, color:inkA(0.6)}}>{lang==="bn" ? "আজ" : "Today"}</div>
+              <div style={{fontSize:15.5, fontWeight:700, color:inkColor, letterSpacing:-0.2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
+                <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {lang==="bn" ? "এর মধ্যে" : "of"} <Num>{nf(todayTopics.length)}</Num> {lang==="bn" ? "সম্পন্ন" : "done"}
+              </div>
+              <div style={{fontSize:10.5, color:inkA(0.5), marginTop:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
                 {todayTopics.length === 0
-                  ? (lang==="bn" ? "একটা ফ্রেশ শুরু" : "A fresh start")
-                  : (<><Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {lang==="bn" ? "এর মধ্যে" : "of"} <Num>{nf(todayTopics.length)}</Num> {lang==="bn" ? "সম্পন্ন" : "done"}</>)}
+                  ? (lang==="bn" ? "প্রোডাক্টিভ দিনের জন্য একটা ফ্রেশ শুরু!" : "A fresh start for a productive day!")
+                  : (lang==="bn" ? "চালিয়ে যাও!" : "Keep it up!")}
               </div>
             </div>
-            <div style={{width:1, alignSelf:"stretch", background:`${accent}30`, flexShrink:0}}/>
-            <div style={{display:"flex", alignItems:"center", gap:6, flexShrink:0}}>
-              <Flame size={16} color={accent} fill={`${accent}55`}/>
-              <span style={{fontSize:17, fontWeight:700, color:inkColor, letterSpacing:-0.2}}><Num>{nf(studyOverview.streak)}</Num></span>
-              <span style={{fontSize:12, fontWeight:500, color:inkA(0.6), whiteSpace:"nowrap"}}>{t.streakLabel}</span>
+          </div>
+          <div style={{width:1, alignSelf:"stretch", background:`${accent}22`, flexShrink:0}}/>
+          <div style={{display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0}}>
+            <span style={{width:38, height:38, borderRadius:"50%", background: dark?`${accent}29`:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+              <Flame size={18} color={accent} fill={`${accent}55`}/>
+            </span>
+            <div style={{minWidth:0}}>
+              <div style={{fontSize:15.5, fontWeight:700, color:inkColor, letterSpacing:-0.2, whiteSpace:"nowrap"}}>
+                <Num>{nf(studyOverview.streak)}</Num> <span style={{fontWeight:600}}>{t.streakLabel}</span>
+              </div>
+              <div style={{fontSize:10.5, color:inkA(0.5), marginTop:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
+                {lang==="bn" ? "স্ট্রিক ধরে রাখো!" : "Keep your streak alive!"}
+              </div>
             </div>
           </div>
         </div>
@@ -6503,9 +6518,15 @@ function FocusGoInner() {
               </span>
               <div style={{fontSize:16.5, fontWeight:600, letterSpacing:-0.3, color:textMain}}>{t.todaysStudy}</div>
             </div>
-            <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} title={t.addTopic} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
-              <Plus size={17}/>
-            </button>
+            {tab === "today" ? (
+              <button onClick={()=>{vibrate(); setTab("study"); setStudySection("plan");}} style={{border:"none", background:"transparent", color:accent, fontSize:13, fontWeight:700, display:"flex", alignItems:"center", gap:2, cursor:"pointer", padding:0, flexShrink:0}}>
+                {t.seeAll}<ChevronRight size={15}/>
+              </button>
+            ) : (
+              <button onClick={()=>{setAddTargetKey(todayKey); setShowAdd(true);}} title={t.addTopic} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
+                <Plus size={17}/>
+              </button>
+            )}
           </div>
 
           {tab === "today" ? (
@@ -6521,6 +6542,8 @@ function FocusGoInner() {
                 onEdit={(item)=>setEditTopic({...item, _dk: todayKey})} onDelete={(id)=>deleteTopicFor(todayKey, id)}
                 onRename={(item, newTopic)=>saveEditFor(todayKey, {...item, topic:newTopic})}
                 emptyText={t.noTopicsToday} emptySubtext={t.noTopicsTodaySub} emptyIcon={Sparkles} useAccentColor
+                onEmptyAdd={()=>{vibrate(); setAddTargetKey(todayKey); setShowAdd(true);}}
+                emptyAddLabel={lang==="bn" ? "টপিক যোগ করুন" : "Add Study Topic"}
                 rowDividerColor={dark ? "rgba(255,255,255,0.07)" : "rgba(20,17,24,0.06)"}/>
             </div>
           ) : (
@@ -6560,19 +6583,24 @@ function FocusGoInner() {
                   </span>
                 )}
               </div>
-              <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}} title={t.taskAddBtn} style={{display:"flex",alignItems:"center",justifyContent:"center", width:28, height:28, background: dark ? `${accent}29` : `${accent}1A`, color: accent, border:"none", borderRadius:"50%", padding:0, cursor:"pointer", flexShrink:0}}>
-                <Plus size={17}/>
+              <button onClick={()=>{vibrate(); setTab("task");}} style={{border:"none", background:"transparent", color:accent, fontSize:13, fontWeight:700, display:"flex", alignItems:"center", gap:2, cursor:"pointer", padding:0, flexShrink:0}}>
+                {t.seeAll}<ChevronRight size={15}/>
               </button>
             </div>
             {homeTodayTasks.length === 0 ? (
-              <div style={{border:`1px dashed ${inkA(0.35)}`, borderRadius:12, padding:"9px 11px", background:inkA(0.06), display:"flex", alignItems:"center", gap:8}}>
-                <span style={{width:24, height:24, borderRadius:"50%", background:inkA(0.14), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                  <ListChecks size={13} color={inkColor} strokeWidth={2}/>
-                </span>
-                <div style={{minWidth:0}}>
-                  <div style={{fontWeight:600, color:textMain, fontSize:12.5}}>{t.taskEmptyTodayHome}</div>
-                  <div style={{color:textMuted2, fontSize:11, marginTop:1}}>{lang==="bn" ? "আজকের একটা টাস্ক যোগ করুন।" : "Add a task to plan your day."}</div>
+              <div style={{border:`1px dashed ${inkA(0.35)}`, borderRadius:12, padding:"9px 11px", background:inkA(0.06)}}>
+                <div style={{display:"flex", alignItems:"center", gap:8}}>
+                  <span style={{width:24, height:24, borderRadius:"50%", background:inkA(0.14), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                    <ListChecks size={13} color={inkColor} strokeWidth={2}/>
+                  </span>
+                  <div style={{minWidth:0}}>
+                    <div style={{fontWeight:600, color:textMain, fontSize:12.5}}>{t.taskEmptyTodayHome}</div>
+                    <div style={{color:textMuted2, fontSize:11, marginTop:1}}>{lang==="bn" ? "আজকের একটা টাস্ক যোগ করুন।" : "Add a task to plan your day."}</div>
+                  </div>
                 </div>
+                <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}} style={{marginTop:10, width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:6, border:"none", borderRadius:10, padding:"10px 0", background:inkA(0.14), color:inkColor, fontWeight:700, fontSize:13, cursor:"pointer"}}>
+                  <Plus size={15}/> {t.taskAddBtn}
+                </button>
               </div>
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:6}}>
@@ -6630,6 +6658,19 @@ function FocusGoInner() {
           </div>
           );
         })()}
+
+        {tab === "today" && (
+          <div style={{marginTop:22, marginBottom:6, textAlign:"center", padding:"0 20px"}}>
+            <div style={{fontSize:13, fontWeight:500, color:inkA(0.55), fontStyle:"italic", lineHeight:1.5}}>
+              {lang==="bn" ? "\u201c\u09a8\u09bf\u09df\u09ae\u09bf\u09a4 \u099b\u09cb\u099f \u09aa\u09a6\u0995\u09cd\u09b7\u09c7\u09aa\u0987 \u09ac\u09a1\u09bc \u09ab\u09b2\u09be\u09ab\u09b2 \u098f\u09a8\u09c7 \u09a6\u09c7\u0964\u201d" : "\u201cConsistently small steps lead to big results.\u201d"}
+            </div>
+            <div style={{marginTop:6, fontSize:11, fontWeight:600, color:inkA(0.4), display:"flex", alignItems:"center", justifyContent:"center", gap:8}}>
+              <span style={{width:14, height:1, background:inkA(0.25)}}/>
+              {lang==="bn" ? "\u098f\u0997\u09bf\u09df\u09c7 \u099a\u09b2\u0964" : "Keep going"}
+              <span style={{width:14, height:1, background:inkA(0.25)}}/>
+            </div>
+          </div>
+        )}
 
         {/* STUDY planning section */}
         {tab === "study" && studySection === "plan" && (
@@ -9012,16 +9053,23 @@ function TopicsList({ items, allSubjects, t, nf, lang, cardBg, cardBorder, textM
   const closeMenu = () => { setOpenMenuId(null); setConfirmDeleteId(null); };
   if (items.length === 0) {
     return (
-      <div style={{border:`1px dashed ${cardBorder}`, borderRadius:12, padding:"9px 11px", textAlign:"left", background: `${accent}08`, display:"flex", alignItems:"center", gap:8}}>
-        {EmptyIcon && (
-          <span style={{width:24, height:24, borderRadius:"50%", background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-            <EmptyIcon size={13} color={accent} strokeWidth={2}/>
-          </span>
-        )}
-        <div style={{minWidth:0}}>
-          <div style={{fontWeight:600, color:textMain, fontSize:12.5}}>{emptyText}</div>
-          {emptySubtext && <div style={{fontSize:11, color:textMuted2, marginTop:1, lineHeight:1.3}}>{emptySubtext}</div>}
+      <div style={{border:`1px dashed ${cardBorder}`, borderRadius:12, padding:"9px 11px", textAlign:"left", background: `${accent}08`}}>
+        <div style={{display:"flex", alignItems:"center", gap:8}}>
+          {EmptyIcon && (
+            <span style={{width:24, height:24, borderRadius:"50%", background:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+              <EmptyIcon size={13} color={accent} strokeWidth={2}/>
+            </span>
+          )}
+          <div style={{minWidth:0}}>
+            <div style={{fontWeight:600, color:textMain, fontSize:12.5}}>{emptyText}</div>
+            {emptySubtext && <div style={{fontSize:11, color:textMuted2, marginTop:1, lineHeight:1.3}}>{emptySubtext}</div>}
+          </div>
         </div>
+        {onEmptyAdd && emptyAddLabel && (
+          <button onClick={onEmptyAdd} style={{marginTop:10, width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:6, border:"none", borderRadius:10, padding:"10px 0", background:`${accent}1A`, color:accent, fontWeight:700, fontSize:13, cursor:"pointer"}}>
+            <Plus size={15}/> {emptyAddLabel}
+          </button>
+        )}
       </div>
     );
   }
