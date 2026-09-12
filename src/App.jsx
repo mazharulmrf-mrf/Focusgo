@@ -1058,7 +1058,8 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
   focusMinutes, setFocusMinutes, breakMinutes, setBreakMinutes, weekStartDay, setWeekStartDay,
   onClose, cardBg, cardBorder, textMain, textMuted2, accent, dark, asPage, onBack,
   user, isGuest, onOpenProfile, notes, tasks, subjects, setNotes, setTasks, setSubjects,
-  textScale, setTextScale, TEXT_SCALE_OPTIONS, initialOpenCard, initialAction }) {
+  textScale, setTextScale, TEXT_SCALE_OPTIONS, initialOpenCard, initialAction,
+  headerNotifications, onMarkAllNotifRead, onClearNotifs, onOpenSearch }) {
   const [showAbout, setShowAbout] = useState(false);
   // প্রোফাইল কার্ডের পাশে ছোট্ট লগ-আউট আইকন — ট্যাপ করলে আগে একটা কনফার্মেশন পপ-ওভার দেখায়,
   // তারপর "হ্যাঁ" চাপলেই সরাসরি সাইন-আউট হয়ে যায় (আলাদা Account পেজে না গিয়েই)
@@ -1491,9 +1492,23 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             )}
             <div className="fg-title">{onBack ? t.profile : t.settings}</div>
           </div>
-          <span onClick={()=>{vibrate(); setLang(l=>l==="bn"?"en":"bn");}} style={{border:`1px solid ${cardBorder}`, background: dark?"#0A0A0A":"#fff", color:textMain, borderRadius:999, padding:"6px 14px", fontSize:13, fontWeight:800, cursor:"pointer", flexShrink:0}}>
-            {lang==="bn" ? "বাং" : "EN"}
-          </span>
+          <div style={{display:"flex", alignItems:"center", gap:6, flexShrink:0}}>
+            {onBack && onOpenSearch && (
+              <button onClick={()=>{vibrate(); onOpenSearch();}} title={lang==="bn" ? "খুঁজুন" : "Search"} className="fg-btn-circle fg-btn-circle--sm">
+                <Search size={13} strokeWidth={1.8}/>
+              </button>
+            )}
+            {onBack && headerNotifications && (
+              <NotificationBell
+                t={t} lang={lang} notifications={headerNotifications}
+                onMarkAllRead={onMarkAllNotifRead} onClear={onClearNotifs}
+                cardBorder={cardBorder} cardBg={cardBg} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}
+              />
+            )}
+            <span onClick={()=>{vibrate(); setLang(l=>l==="bn"?"en":"bn");}} style={{border:`1px solid ${cardBorder}`, background: dark?"#0A0A0A":"#fff", color:textMain, borderRadius:999, padding:"6px 14px", fontSize:13, fontWeight:800, cursor:"pointer", flexShrink:0}}>
+              {lang==="bn" ? "বাং" : "EN"}
+            </span>
+          </div>
         </div>
 
         {/* ---- প্রোফাইল রো — ডানপাশে এখন ছোট্ট LogOut আইকনও আছে, ট্যাপ করলে কনফার্ম করে সরাসরি সাইন-আউট হয়।
@@ -5409,6 +5424,7 @@ function FocusGoInner() {
   const bg = activeTheme.bg;
   const cardBg = activeTheme.cardBg;
   const cardBorder = activeTheme.cardBorder;
+  const subtleBg = activeTheme.subtleBg;
   const textMain = activeTheme.textMain;
   const textMuted2 = activeTheme.textMuted2;
   const accent = accentHexFor(accentKey, dark);
@@ -5894,18 +5910,11 @@ function FocusGoInner() {
               cardBorder={cardBorder} cardBg={cardBg} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}
             />
             <div style={{position:"relative", flexShrink:0}}>
-              <button onClick={()=>{vibrate(); setShowSettingsMenu(v=>!v);}}
+              <button onClick={()=>{vibrate(); setSettingsInitialOpenCard(null); setSettingsInitialAction(null); setShowProfilePage(true);}}
                 title={t.settings}
                 className="fg-btn-circle fg-btn-circle--sm">
                 <Settings size={14}/>
               </button>
-              {showSettingsMenu && (
-                <SettingsQuickMenu
-                  isBn={lang==="bn"} dark={dark} cardBg={cardBg} cardBorder={cardBorder}
-                  textMain={textMain} textMuted2={textMuted2} accent={accent}
-                  onSelect={handleSettingsMenuSelect} onClose={()=>setShowSettingsMenu(false)}
-                />
-              )}
             </div>
           </div>
         </div>
@@ -5986,6 +5995,12 @@ function FocusGoInner() {
                         <div style={{fontSize:21,fontWeight:600,letterSpacing:-0.5,color:"var(--text)", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", display:"inline-block"}}>
                           {firstName}
                         </div>
+                        {line && (
+                          <div style={{display:"flex", alignItems:"center", gap:6, marginTop:3, fontSize:12.5, fontWeight:500, color:"var(--muted)"}}>
+                            <span style={{overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{line}</span>
+                            <Heart size={12} color={accent} fill={`${accent}33`} style={{flexShrink:0}}/>
+                          </div>
+                        )}
                       </div>
                       <div style={{display:"flex", alignItems:"center", gap:10, flexShrink:0, paddingTop:1}}>
                         {/* মিনিমাল ডেট ব্যাজ — উপরে ছোট করে দিনের নাম + মাস, নিচে accent রঙের সার্কেলের মধ্যে আজকের তারিখ। ট্যাপ করলে ফুল ক্যালেন্ডার খোলে, সময় আর দেখানো হয় না */}
@@ -6412,7 +6427,9 @@ function FocusGoInner() {
             <div style={{flex:1, minWidth:0}}>
               <div style={{fontSize:12, fontWeight:600, color:inkA(0.6), marginBottom:3}}>{lang==="bn" ? "আজ" : "Today"}</div>
               <div style={{fontSize:17, fontWeight:700, color:inkColor, letterSpacing:-0.2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
-                <Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {lang==="bn" ? "এর মধ্যে" : "of"} <Num>{nf(todayTopics.length)}</Num> {lang==="bn" ? "সম্পন্ন" : "done"}
+                {todayTopics.length === 0
+                  ? (lang==="bn" ? "একটা ফ্রেশ শুরু" : "A fresh start")
+                  : (<><Num>{nf(todayTopics.filter(x=>x.done).length)}</Num> {lang==="bn" ? "এর মধ্যে" : "of"} <Num>{nf(todayTopics.length)}</Num> {lang==="bn" ? "সম্পন্ন" : "done"}</>)}
               </div>
             </div>
             <div style={{width:1, alignSelf:"stretch", background:`${accent}30`, flexShrink:0}}/>
@@ -6623,7 +6640,7 @@ function FocusGoInner() {
               </div>
               {/* range selector: 7/15/30/60/90 দিনের মধ্যে বেছে নেওয়া যায়, পছন্দ মনে থাকে —
                   লেবেলের একই লাইনে, ছোট compact pill, হালকা background */}
-              <div style={{display:"flex", gap:2, background: dark?"#211E19":"#F0EBDF", borderRadius:10, padding:2, flexShrink:0}}>
+              <div style={{display:"flex", gap:2, background: subtleBg, border:`1px solid ${cardBorder}`, borderRadius:10, padding:2, flexShrink:0}}>
                 {[7,15,30,60,90].map(r => (
                   <button key={r} onClick={()=>{vibrate(); setPlanRange(r);}} style={{
                     border:"none", cursor:"pointer", fontFamily:"inherit", fontWeight:500, fontSize:11.5,
@@ -7046,7 +7063,7 @@ function FocusGoInner() {
         const TabBtn = ({Icon, label, active, onClick}) => (
           <button onClick={onClick} style={{
             flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4,
-            border:"none", background:"transparent", cursor:"pointer", padding:"6px 2px 0",
+            border:"none", background:"transparent", cursor:"pointer", padding:"3px 2px 0",
             color: active ? accent : textMuted2,
           }}>
             <Icon size={21} strokeWidth={active?2.3:1.9}/>
@@ -7054,7 +7071,7 @@ function FocusGoInner() {
           </button>
         );
 
-        const BAR_H = 62, NOTCH_R = 34, FAB = 58;
+        const BAR_H = 54, NOTCH_R = 30, FAB = 50;
 
         if (!addEnabled) {
           // শুধু Today ট্যাব থাকলে (Study/Task দুটোই বন্ধ) — সাধারণ ফ্ল্যাট বার, নচ/FAB লাগবে না
@@ -7062,7 +7079,7 @@ function FocusGoInner() {
             <div style={{
               position:"sticky", left:0, right:0, bottom:0, zIndex:40,
               background: cardBg, borderTop:`1px solid ${cardBorder}`,
-              paddingTop:8, paddingBottom:"calc(8px + env(safe-area-inset-bottom))",
+              paddingTop:5, paddingBottom:"calc(8px + env(safe-area-inset-bottom))",
               boxShadow: dark ? "0 -2px 12px rgba(0,0,0,0.25)" : "0 -2px 12px rgba(0,0,0,0.05)",
             }}>
               <div style={{width:"100%", maxWidth:480, margin:"0 auto", display:"flex"}}>
@@ -7135,7 +7152,7 @@ function FocusGoInner() {
                   boxShadow: dark ? "0 6px 18px rgba(0,0,0,0.5)" : "0 6px 16px rgba(26,24,20,0.35)",
                   zIndex:46,
                 }}>
-                <Plus size={24} strokeWidth={2.4}/>
+                <Plus size={20} strokeWidth={2.4}/>
               </button>
             </div>
           </div>
@@ -7318,6 +7335,8 @@ function FocusGoInner() {
               notificationsEnabled={notificationsEnabled} setNotificationsEnabled={setNotificationsEnabled} asPage
               onBack={()=>{ setShowProfilePage(false); setSettingsInitialOpenCard(null); setSettingsInitialAction(null); }}
               initialOpenCard={settingsInitialOpenCard} initialAction={settingsInitialAction}
+              headerNotifications={notifications} onMarkAllNotifRead={()=>setNotifications(prev => prev.map(n => ({...n, read:true})))}
+              onClearNotifs={()=>setNotifications([])} onOpenSearch={()=>{ setShowProfilePage(false); setShowSearch(true); }}
               examNotifEnabled={examNotifEnabled} setExamNotifEnabled={setExamNotifEnabled}
               taskNotifEnabled={taskNotifEnabled} setTaskNotifEnabled={setTaskNotifEnabled}
               salahNotifEnabled={salahNotifEnabled} setSalahNotifEnabled={setSalahNotifEnabled}
