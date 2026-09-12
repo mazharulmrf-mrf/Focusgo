@@ -6273,7 +6273,8 @@ function FocusGoInner() {
         </div>
         )}
 
-        {tab === "study" && (
+        {/* Study Plan header — Stats এখন Study-র sub-section না, তাই এই হেডার শুধু Plan-এ দেখানো হয় */}
+        {tab === "study" && studySection === "plan" && (
           <div className="fg-tab-panel" style={{marginTop:16, marginBottom:2}}>
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}>
               <div style={{minWidth:0}}>
@@ -6292,9 +6293,16 @@ function FocusGoInner() {
           </div>
         )}
 
+        {/* Stats header — এখন এটা সরাসরি নিজস্ব ট্যাব, Study-র কোনো sub-section না। তাই আলাদা সাদামাটা টাইটেল */}
+        {tab === "study" && studySection === "stats" && (
+          <div className="fg-tab-panel" style={{marginTop:16, marginBottom:2}}>
+            <div className="fg-title" style={{fontSize:21}}>{lang==="bn" ? "স্ট্যাটস" : "Stats"}</div>
+          </div>
+        )}
+
         {/* Focus timer - center-aligned minimal layout: title, big time, controls — all centered as one calm block.
-            studySection চেক তুলে দেওয়া হয়েছে যাতে Study ট্যাবে Plan/Stats যেটাতেই থাকুন না কেন, টাইমার কার্ডটা সবসময় সবার উপরে থাকে */}
-        {tab === "study" && (
+            শুধু Study Plan-এ দেখানো হয় — Stats এখন আলাদা ট্যাব, ফোকাস টাইমারের সাথে সম্পর্কিত না */}
+        {tab === "study" && studySection === "plan" && (
         <div className="fg-tab-panel" style={{marginTop:8, background:"#0A0A0A", borderRadius:16, padding:"14px 14px 12px", color:"#fff", boxShadow:"0 8px 24px rgba(0,0,0,0.45)", position:"relative", overflow:"hidden", border:"1px solid rgba(255,255,255,0.06)"}}>
 
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
@@ -6500,19 +6508,6 @@ function FocusGoInner() {
             </div>
           </div>
         </div>
-        )}
-
-        {tab === "study" && (
-          <div className="fg-tab-panel" style={{marginTop:12, marginBottom:-2}}>
-            <div style={{display:"flex", gap:20, marginTop:0, borderBottom:"1px solid var(--track)"}}>
-              <button onClick={()=>{vibrate(); setStudySection("plan");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 8px", fontSize:14, fontWeight:600, color: studySection==="plan" ? textMain : textMuted2, borderBottom: studySection==="plan" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
-                {t.planViewStudy}
-              </button>
-              <button onClick={()=>{vibrate(); setStudySection("stats");}} style={{border:"none", background:"transparent", cursor:"pointer", padding:"0 0 8px", fontSize:14, fontWeight:600, color: studySection==="stats" ? textMain : textMuted2, borderBottom: studySection==="stats" ? `2px solid ${accent}` : "2px solid transparent", marginBottom:-1, transition:"color .18s ease, border-color .18s ease"}}>
-                {lang==="bn" ? "স্ট্যাটস" : "Stats"}
-              </button>
-            </div>
-          </div>
         )}
 
         {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — Option 2: circular progress, premium look
@@ -6807,9 +6802,9 @@ function FocusGoInner() {
                       background:"transparent", color: isSel ? accent : textMain}}>
                       <Num>{nf(d.getDate())}</Num>
                     </div>
-                    {/* status dot — same legend colors as Calendar (green completed / blue planned) */}
+                    {/* status dot — same legend colors as Calendar (green completed / blue planned); selected day always shows accent color */}
                     <div style={{marginTop:6, display:"flex", justifyContent:"center"}}>
-                      <span style={{width:6, height:6, borderRadius:"50%", background: statusColor, opacity: hasAny ? 1 : 0.3}}/>
+                      <span style={{width:6, height:6, borderRadius:"50%", background: isSel && !hasAny ? accent : statusColor, opacity: (hasAny || isSel) ? 1 : 0.3}}/>
                     </div>
                   </div>
                 );
