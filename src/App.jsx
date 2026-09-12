@@ -984,15 +984,14 @@ function SettingsRow({ Icon, title, subtitle, right, onClick, href, expandKey, c
 function SettingsQuickMenu({ isBn, dark, cardBg, cardBorder, textMain, textMuted2, accent, onSelect, onClose }) {
   const items = [
     { key: "profile", Icon: User, title: isBn ? "প্রোফাইল" : "Profile", subtitle: isBn ? "অ্যাকাউন্ট ও সিঙ্ক" : "Account and sync" },
-    { key: "appearance", Icon: Palette, title: isBn ? "অ্যাপিয়ারেন্স" : "Appearance", subtitle: isBn ? "থিম ও রং" : "Theme and colors" },
-    { key: "textScale", Icon: Heading1, title: isBn ? "ফন্ট ও ডিসপ্লে সাইজ" : "Font & display size", subtitle: isBn ? "লেখার আকার" : "Text size" },
+    { key: "appearance", Icon: Palette, title: isBn ? "অ্যাপিয়ারেন্স" : "Appearance", subtitle: isBn ? "থিম, রং ও লেখার আকার" : "Theme, colors and text size" },
     { key: "weekStart", Icon: CalendarRange, title: isBn ? "সপ্তাহ শুরু" : "Week starts on", subtitle: isBn ? "ক্যালেন্ডার সেটিং" : "Calendar setting" },
     { key: "timer", Icon: Hourglass, title: isBn ? "ফোকাস টাইমার" : "Focus Timer", subtitle: isBn ? "ফোকাস ও বিরতির সময়" : "Focus and break length" },
     { key: "reminders", Icon: CalendarDays, title: isBn ? "স্টাডি রিমাইন্ডার" : "Study Reminders", subtitle: isBn ? "স্টাডির নোটিফিকেশন" : "Study notifications" },
     { key: "salah", Icon: MosqueIcon, title: isBn ? "সালাতের সময়" : "Salah Timer", subtitle: isBn ? "চালু/বন্ধ" : "On or off" },
     { key: "visibleTabs", Icon: LayoutGrid, title: isBn ? "ভিজিবল ট্যাব" : "Visible Tabs", subtitle: isBn ? "কোন ট্যাব দেখাবে" : "Which tabs to show" },
     { key: "notifications", Icon: Bell, title: isBn ? "নোটিফিকেশন" : "Notifications", subtitle: isBn ? "অ্যাপের নোটিফিকেশন" : "App notifications" },
-    { key: "sound", Icon: Volume2, title: isBn ? "সাউন্ড ও ভাইব্রেশন" : "Sound & Haptics", subtitle: isBn ? "শব্দ ও কম্পন" : "Sound and vibration" },
+    { key: "sound", Icon: Vibrate, title: isBn ? "হ্যাপটিক ফিডব্যাক" : "Haptic feedback", subtitle: isBn ? "কম্পন" : "Vibration" },
     { key: "backup", Icon: Cloud, title: isBn ? "ব্যাকআপ ও সিঙ্ক" : "Backup & Sync", subtitle: isBn ? "ক্লাউডে সংরক্ষণ" : "Save to the cloud" },
     { key: "export", Icon: UploadCloud, title: isBn ? "এক্সপোর্ট ডেটা" : "Export Data", subtitle: isBn ? "সাথে সাথে ডাউনলোড হবে" : "Downloads right away" },
     { key: "import", Icon: UploadCloud, title: isBn ? "ইমপোর্ট ডেটা" : "Import Data", subtitle: isBn ? "ফাইল বেছে নিন" : "Choose a file" },
@@ -1095,21 +1094,8 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
   // ---- নতুন Settings পেজের (কার্ড-গ্রিড ডিজাইন) জন্য এক্সট্রা state ----
   // কোন Preference কার্ড খোলা আছে — একসাথে একটাই খোলা থাকবে (accordion)
-  const [openCard, setOpenCard] = useState(initialOpenCard || null); // null | "appearance" | "timer" | "notifications" | "reminders" | "sound"
+  const [openCard, setOpenCard] = useState(initialOpenCard || null); // null | "appearance" | "timer" | "notifications" | "reminders"
   const toggleCard = (key) => { vibrate(); setOpenCard(v => v === key ? null : key); };
-
-  // সাউন্ড এফেক্ট অন/অফ — হ্যাপটিকের মতোই localStorage-এ সেভ থাকে
-  const [soundEnabled, setSoundEnabled] = useState(() => {
-    try { return window.localStorage.getItem("focusgo_sound_enabled") !== "0"; } catch (e) { return true; }
-  });
-  const toggleSound = () => {
-    vibrate();
-    setSoundEnabled(v => {
-      const next = !v;
-      try { window.localStorage.setItem("focusgo_sound_enabled", next ? "1" : "0"); } catch (e) {}
-      return next;
-    });
-  };
 
   // স্টাডি রিমাইন্ডার — প্রতিদিন নির্দিষ্ট সময়ে পড়াশোনার রিমাইন্ডার অন/অফ ও সময়
   const [studyRemindersEnabled, setStudyRemindersEnabled] = useState(() => {
@@ -1566,8 +1552,10 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
         <div style={{...sectionHeadingStyle, marginTop:0}}>{isBn ? "পছন্দসমূহ" : "Preferences"}</div>
         <div style={groupCardStyle}>
           <SettingsRow {...rowCtx} Icon={Palette} title={isBn ? "অ্যাপিয়ারেন্স" : "Appearance"} borderTop={false}
+            subtitle={isBn ? `টেক্সট সাইজ: ${textScale}%` : `Text size: ${textScale}%`}
+            expandKey="appearance"
             right={
-              <div style={{display:"flex", alignItems:"center", gap:2, background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:999, padding:3, flexShrink:0}}>
+              <div style={{display:"flex", alignItems:"center", gap:2, background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:999, padding:3, flexShrink:0}} onClick={(e)=>e.stopPropagation()}>
                 {themeInlineOptions.map(({key, label}) => {
                   const selected = themeMode === key;
                   const SegIcon = key === "system" ? Contrast : (key === "light" ? Sun : Moon);
@@ -1588,13 +1576,10 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                   );
                 })}
               </div>
-            }
-          />
-
-          <SettingsRow {...rowCtx} Icon={Heading1} title={isBn ? "ফন্ট ও ডিসপ্লে সাইজ" : "Font & display size"}
-            subtitle={textScale === 100 ? (isBn ? "ডিফল্ট" : "Default") : `${textScale}%`}
-            right={
-              <div style={{display:"flex", alignItems:"center", gap:8, flexShrink:0}} onClick={(e)=>e.stopPropagation()}>
+            }>
+            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+              <span style={{display:"flex", alignItems:"center", gap:10, fontSize:13.5, fontWeight:700, color:textMain}}><Heading1 size={15} color={textMuted2}/>{isBn ? "ফন্ট ও ডিসপ্লে সাইজ" : "Font & display size"}</span>
+              <div style={{display:"flex", alignItems:"center", gap:8, flexShrink:0}}>
                 <button
                   onClick={()=>{ vibrate(); const i = TEXT_SCALE_OPTIONS.indexOf(textScale); if (i > 0) setTextScale(TEXT_SCALE_OPTIONS[i-1]); }}
                   disabled={textScale === TEXT_SCALE_OPTIONS[0]}
@@ -1609,8 +1594,8 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                   style={{width:28, height:28, borderRadius:"50%", border:`1px solid ${cardBorder}`, background:"transparent", color: textScale === TEXT_SCALE_OPTIONS[TEXT_SCALE_OPTIONS.length-1] ? textMuted2 : textMain, opacity: textScale === TEXT_SCALE_OPTIONS[TEXT_SCALE_OPTIONS.length-1] ? 0.4 : 1, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontSize:15, fontWeight:600, padding:0}}
                 >+</button>
               </div>
-            }
-          />
+            </div>
+          </SettingsRow>
 
           <SettingsRow {...rowCtx} Icon={CalendarRange} title={t.weekStartsOn} subtitle={weekStartDayLabel(weekStartDay)} expandKey="weekStart">
             <SettingsDropdown
@@ -1676,42 +1661,15 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             </div>
           </SettingsRow>
 
-          <SettingsRow {...rowCtx} Icon={Bell} title={t.notifications} subtitle={notificationsEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")} expandKey="notifications">
-            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: notificationsEnabled ? 14 : 0}}>
-              <span style={{fontSize:13.5, fontWeight:700, color:textMain}}>{isBn ? "সব নোটিফিকেশন" : "All notifications"}</span>
-              <Toggle on={notificationsEnabled} onClick={()=>{vibrate(); toggleNotifications();}}/>
-            </div>
-            {notificationsEnabled && (
-              <div style={{display:"flex", flexDirection:"column", gap:12}}>
-                {[
-                  { label: t.notifExam, val: examNotifEnabled, set: setExamNotifEnabled },
-                  { label: t.notifTask, val: taskNotifEnabled, set: setTaskNotifEnabled },
-                  { label: t.notifSalah, val: salahNotifEnabled, set: setSalahNotifEnabled },
-                  { label: t.notifTimer, val: timerNotifEnabled, set: setTimerNotifEnabled },
-                  { label: t.notifAlarm, val: alarmNotifEnabled, set: setAlarmNotifEnabled },
-                ].map(({label, val, set}) => (
-                  <div key={label} style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-                    <span style={{fontSize:13, fontWeight:600, color:textMuted2}}>{label}</span>
-                    <Toggle on={val} onClick={()=>{vibrate(); set(v=>!v);}}/>
-                  </div>
-                ))}
-              </div>
-            )}
-          </SettingsRow>
+          <SettingsRow {...rowCtx} Icon={Bell} title={t.notifications}
+            subtitle={notificationsEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")}
+            right={<Toggle on={notificationsEnabled} onClick={()=>{vibrate(); toggleNotifications();}}/>}
+            onClick={()=>{vibrate(); toggleNotifications();}}/>
 
-          <SettingsRow {...rowCtx} Icon={soundEnabled ? Volume2 : VolumeX} title={isBn ? "সাউন্ড ও ভাইব্রেশন" : "Sound & Haptics"}
-            subtitle={soundEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")} expandKey="sound">
-            <div style={{display:"flex", flexDirection:"column", gap:14}}>
-              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-                <span style={{display:"flex", alignItems:"center", gap:10, fontSize:13.5, fontWeight:700, color:textMain}}><Music size={15} color={textMuted2}/>{isBn ? "অ্যাপ সাউন্ড এফেক্ট" : "App sound effects"}</span>
-                <Toggle on={soundEnabled} onClick={toggleSound}/>
-              </div>
-              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-                <span style={{display:"flex", alignItems:"center", gap:10, fontSize:13.5, fontWeight:700, color:textMain}}><Vibrate size={15} color={textMuted2}/>{t.hapticFeedback}</span>
-                <Toggle on={hapticsEnabled} onClick={toggleHaptics}/>
-              </div>
-            </div>
-          </SettingsRow>
+          <SettingsRow {...rowCtx} Icon={Vibrate} title={t.hapticFeedback}
+            subtitle={hapticsEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")}
+            right={<Toggle on={hapticsEnabled} onClick={toggleHaptics}/>}
+            onClick={toggleHaptics}/>
         </div>
 
         {/* ---- Data & Sync ---- */}
@@ -3702,7 +3660,7 @@ function FocusGoInner() {
     setShowSettingsMenu(false);
     if (key === "profile" || key === "backup") { setShowProfile(true); return; }
     if (key === "help") { try { window.location.href = `mailto:mazharul.mrf@gmail.com?subject=${encodeURIComponent(t.feedbackSubject)}`; } catch (e) {} return; }
-    const cardMap = { weekStart: "weekStart", timer: "timer", reminders: "reminders", visibleTabs: "visibleTabs", notifications: "notifications", sound: "sound" };
+    const cardMap = { appearance: "appearance", weekStart: "weekStart", timer: "timer", reminders: "reminders", visibleTabs: "visibleTabs", notifications: "notifications" };
     const actionMap = { export: "export", import: "import", about: "about" };
     setSettingsInitialOpenCard(cardMap[key] || null);
     setSettingsInitialAction(actionMap[key] || null);
@@ -3744,7 +3702,6 @@ function FocusGoInner() {
   const [focusMode, setFocusMode] = useState("timer"); // "timer" | "stopwatch"
   const [stopwatchSeconds, setStopwatchSeconds] = useState(0);
   const [stopwatchRunning, setStopwatchRunning] = useState(false);
-  const [stopwatchLaps, setStopwatchLaps] = useState([]); // FocusGo-স্টাইল Stopwatch mode-এর lap history — নতুনটা তালিকার সবার উপরে
   const [focusFullscreen, setFocusFullscreen] = useState(false);
   const focusFullscreenActiveRef = useRef(false); // popstate হ্যান্ডলারের ভেতর থেকে সবসময় সবশেষ ফুলস্ক্রিন অবস্থা জানার জন্য
   // ---- White Noise: পছন্দ localStorage-এ থেকে যায়, টাইমার/স্টপওয়াচ চললেই ব্যাকগ্রাউন্ডে বাজে ----
@@ -3774,7 +3731,7 @@ function FocusGoInner() {
     strictAwaySinceRef.current = null;
     vibrate(30);
     if (focusMode === "timer") { setTimerRunning(false); setTimerSeconds(timerTotal); }
-    else { setStopwatchRunning(false); setStopwatchSeconds(0); setStopwatchLaps([]); }
+    else { setStopwatchRunning(false); setStopwatchSeconds(0); }
     setDistractionCount(c => {
       const next = c + 1;
       try { window.localStorage.setItem("focusgo_distractions_" + todayKeyStr(), String(next)); } catch (e) {}
@@ -4158,11 +4115,6 @@ function FocusGoInner() {
       if (next) { setFocusFullscreen(true); playStartSound(); vibrate(); }
       return next;
     });
-  };
-  const addLap = () => {
-    if (!stopwatchRunning) return;
-    vibrate();
-    setStopwatchLaps(prev => [{ id: Date.now(), seconds: stopwatchSeconds }, ...prev]);
   };
 
   const t = T[lang];
@@ -6383,7 +6335,7 @@ function FocusGoInner() {
             const runningNow = focusMode === "timer" ? timerRunning : stopwatchRunning;
             return (
               <div style={{display:"flex", alignItems:"center", gap:10, marginTop:14}}>
-                <button onClick={()=>{ vibrate(); if (focusMode==="timer") { setTimerRunning(false); setTimerSeconds(timerTotal); } else { setStopwatchRunning(false); setStopwatchSeconds(0); setStopwatchLaps([]); } }} title={t.reset}
+                <button onClick={()=>{ vibrate(); if (focusMode==="timer") { setTimerRunning(false); setTimerSeconds(timerTotal); } else { setStopwatchRunning(false); setStopwatchSeconds(0); } }} title={t.reset}
                   style={{background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.08)", width:38, height:38, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:"rgba(255,255,255,0.8)", flexShrink:0}}>
                   <RotateCcw size={15}/>
                 </button>
@@ -7180,97 +7132,140 @@ function FocusGoInner() {
 
       </div>
 
-      {/* Bottom nav — মোবাইল/ট্যাবলেটে; ডেস্কটপে সাইডবার থাকায় এটা হাইড
-          "Linear style" রিডিজাইন: ভারি গ্লাস-ব্লার বাদ দিয়ে সলিড ফ্ল্যাট সারফেস,
-          অ্যাক্টিভ ট্যাবে হালকা রাউন্ডেড হাইলাইট ব্যাকগ্রাউন্ড + ছোট রঙিন ডট ইন্ডিকেটর */}
-      {!isDesktop && (
-      <div style={{position:"sticky", left:0, right:0, bottom:0, display:"flex", justifyContent:"center", padding:"10px 16px 12px", paddingBottom:"calc(12px + env(safe-area-inset-bottom))", zIndex:40, background: bg}}>
-        <div style={{width:"100%", maxWidth:480, display:"flex", alignItems:"center", gap:8}}>
-        <div style={{
-          flex:1, display:"flex", gap:2,
-          background: dark ? "#1C1A20" : "#FFFFFF",
-          border:`1px solid ${cardBorder}`,
-          borderRadius:16, padding:"5px",
-          boxShadow: dark ? "0 2px 10px rgba(0,0,0,0.25)" : "0 2px 10px rgba(0,0,0,0.06)",
-        }}>
-          {[
-            {k:"today", Icon: Home},
-            ...(studyFeatureEnabled ? [{k:"study", Icon: GraduationCap}] : []),
-            ...(tasksFeatureEnabled ? [{k:"task", Icon: ListChecks}] : []),
-          ].map(({k, Icon}) => {
-            const active = tab === k;
-            return (
-              <button key={k} onClick={()=>{vibrate(); setTab(k);}} style={{
-                flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3, border:"none", borderRadius:12, padding:"8px 4px", fontSize:10.5, fontWeight:600, cursor:"pointer",
-                background: active ? (dark ? `${accent}29` : `${accent}1A`) : "transparent",
-                color: active ? accent : textMuted2,
-                transition:"background .18s ease, color .18s ease"
-              }}>
-                <span style={{position:"relative", display:"flex"}}>
-                  <Icon size={18} strokeWidth={active?2.3:2} style={{transition:"stroke-width .15s ease"}}/>
-                  {active && (
-                    <span style={{position:"absolute", top:-2, right:-4, width:5, height:5, borderRadius:"50%", background:accent}}/>
-                  )}
-                </span>
-                {t.tabs[k]}
-              </button>
-            );
-          })}
-        </div>
+      {/* Bottom nav — নচ-কাট ফ্ল্যাট বার + মাঝখানে উঁচু "Add" FAB (Instagram/food-delivery অ্যাপ স্টাইল)।
+          Today/Study বাম পাশে, Task/Stats ডান পাশে; Stats আসলে Study ট্যাবেরই studySection="stats" ভিউ
+          (আলাদা কোনো নতুন কন্টেন্ট স্ট্রাকচার লাগেনি)। Add বাটন context-aware: Study(Plan)-এ থাকলে সরাসরি
+          Add Study, Task ট্যাবে থাকলে সরাসরি Add Task, নাহলে (Today/Stats) ছোট choice popup দেখায়।
+          দুইয়ের একটা ফিচার বন্ধ থাকলে popup-ই লাগে না — Add সবসময় সরাসরি সেটাই খোলে। */}
+      {!isDesktop && (() => {
+        const addEnabled = studyFeatureEnabled || tasksFeatureEnabled;
+        const onlyStudy = studyFeatureEnabled && !tasksFeatureEnabled;
+        const onlyTask = tasksFeatureEnabled && !studyFeatureEnabled;
+        const isStudyActive = tab === "study" && studySection === "plan";
+        const isStatsActive = tab === "study" && studySection === "stats";
 
-        {/* Quick-add "+" — বটম নেভের পাশে আলাদা ভাসমান বাটন, ট্যাপ করলে Study/Task সরাসরি Add করার
-            popup খোলে (যেই ফিচার বন্ধ আছে তার Add অপশনও এখানে দেখানো হয় না) */}
-        {(studyFeatureEnabled || tasksFeatureEnabled) && (
-          <div style={{position:"relative", flexShrink:0}}>
-            {showQuickAddMenu && (
-              <>
-                <div onClick={()=>setShowQuickAddMenu(false)} style={{position:"fixed", inset:0, zIndex:44}}/>
-                <div style={{
-                  position:"absolute", bottom:"calc(100% + 10px)", right:0, zIndex:45,
-                  background: dark ? "#1C1A20" : "#FFFFFF", border:`1px solid ${cardBorder}`, borderRadius:14,
-                  boxShadow: dark ? "0 8px 22px rgba(0,0,0,0.35)" : "0 8px 22px rgba(0,0,0,0.14)",
-                  minWidth:168, padding:6,
+        const handleAddTap = () => {
+          vibrate();
+          if (onlyStudy) { setAddTargetKey(todayKey); setShowAdd(true); return; }
+          if (onlyTask) { setTaskAddDefaultDate(todayKey); setShowAddTask(true); return; }
+          if (tab === "study" && studySection === "plan") { setAddTargetKey(todayKey); setShowAdd(true); return; }
+          if (tab === "task") { setTaskAddDefaultDate(todayKey); setShowAddTask(true); return; }
+          setShowQuickAddMenu(v=>!v);
+        };
+
+        const leftTabs = [
+          {k:"today", Icon: Home, label: t.tabs.today, active: tab === "today", onClick: ()=>{vibrate(); setTab("today");}},
+          ...(studyFeatureEnabled ? [{k:"study", Icon: GraduationCap, label: t.tabs.study, active: isStudyActive, onClick: ()=>{vibrate(); setTab("study"); setStudySection("plan");}}] : []),
+        ];
+        const rightTabs = [
+          ...(tasksFeatureEnabled ? [{k:"task", Icon: ListChecks, label: t.tabs.task, active: tab === "task", onClick: ()=>{vibrate(); setTab("task");}}] : []),
+          ...(studyFeatureEnabled ? [{k:"stats", Icon: BarChart3, label: t.tabs.stats, active: isStatsActive, onClick: ()=>{vibrate(); setTab("study"); setStudySection("stats");}}] : []),
+        ];
+
+        const TabBtn = ({Icon, label, active, onClick}) => (
+          <button onClick={onClick} style={{
+            flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4,
+            border:"none", background:"transparent", cursor:"pointer", padding:"6px 2px 0",
+            color: active ? accent : textMuted2,
+          }}>
+            <Icon size={21} strokeWidth={active?2.3:1.9}/>
+            <span style={{fontSize:10.5, fontWeight:600, lineHeight:1}}>{label}</span>
+          </button>
+        );
+
+        const BAR_H = 62, NOTCH_R = 34, FAB = 58;
+
+        if (!addEnabled) {
+          // শুধু Today ট্যাব থাকলে (Study/Task দুটোই বন্ধ) — সাধারণ ফ্ল্যাট বার, নচ/FAB লাগবে না
+          return (
+            <div style={{
+              position:"sticky", left:0, right:0, bottom:0, zIndex:40,
+              background: cardBg, borderTop:`1px solid ${cardBorder}`,
+              paddingTop:8, paddingBottom:"calc(8px + env(safe-area-inset-bottom))",
+              boxShadow: dark ? "0 -2px 12px rgba(0,0,0,0.25)" : "0 -2px 12px rgba(0,0,0,0.05)",
+            }}>
+              <div style={{width:"100%", maxWidth:480, margin:"0 auto", display:"flex"}}>
+                <TabBtn Icon={Home} label={t.tabs.today} active={true} onClick={()=>{}}/>
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <div style={{position:"sticky", left:0, right:0, bottom:0, zIndex:40}}>
+            <div style={{position:"relative", width:"100%", maxWidth:480, margin:"0 auto"}}>
+              <svg width="100%" height={BAR_H + 4} viewBox={`0 0 480 ${BAR_H + 4}`} preserveAspectRatio="none" style={{display:"block"}}>
+                <path
+                  d={`M0,4
+                      L${240 - NOTCH_R - 14},4
+                      C${240 - NOTCH_R + 2},4 ${240 - NOTCH_R + 6},${NOTCH_R * 0.9} ${240},${NOTCH_R * 0.9}
+                      C${240 + NOTCH_R - 6},${NOTCH_R * 0.9} ${240 + NOTCH_R - 2},4 ${240 + NOTCH_R + 14},4
+                      L480,4
+                      L480,${BAR_H + 4}
+                      L0,${BAR_H + 4}
+                      Z`}
+                  fill={cardBg} stroke={cardBorder} strokeWidth="1"
+                />
+              </svg>
+
+              <div style={{position:"absolute", top:4, left:0, right:0, height:BAR_H, display:"flex", alignItems:"stretch", paddingBottom:"env(safe-area-inset-bottom)"}}>
+                <div style={{flex:1, display:"flex"}}>{leftTabs.map(tb => <TabBtn key={tb.k} {...tb}/>)}</div>
+                <div style={{width:NOTCH_R*2}}/>
+                <div style={{flex:1, display:"flex"}}>{rightTabs.map(tb => <TabBtn key={tb.k} {...tb}/>)}</div>
+              </div>
+
+              {showQuickAddMenu && (
+                <>
+                  <div onClick={()=>setShowQuickAddMenu(false)} style={{position:"fixed", inset:0, zIndex:44}}/>
+                  <div style={{
+                    position:"absolute", bottom:BAR_H + 26, left:"50%", transform:"translateX(-50%)", zIndex:45,
+                    background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:14,
+                    boxShadow: dark ? "0 8px 22px rgba(0,0,0,0.35)" : "0 8px 22px rgba(0,0,0,0.14)",
+                    minWidth:172, padding:6,
+                  }}>
+                    {studyFeatureEnabled && (
+                      <button onClick={()=>{ vibrate(); setShowQuickAddMenu(false); setAddTargetKey(todayKey); setShowAdd(true); }} style={{
+                          width:"100%", display:"flex", alignItems:"center", gap:10, border:"none", background:"transparent",
+                          padding:"9px 10px", borderRadius:10, cursor:"pointer", textAlign:"left",
+                        }}>
+                        <GraduationCap size={16} color={textMuted2}/>
+                        <span style={{fontSize:13.5, fontWeight:600, color:textMain}}>{lang==="bn" ? "স্টাডি যোগ করো" : "Add Study"}</span>
+                      </button>
+                    )}
+                    {tasksFeatureEnabled && (
+                      <button onClick={()=>{ vibrate(); setShowQuickAddMenu(false); setTaskAddDefaultDate(todayKey); setShowAddTask(true); }} style={{
+                          width:"100%", display:"flex", alignItems:"center", gap:10, border:"none", background:"transparent",
+                          padding:"9px 10px", borderRadius:10, cursor:"pointer", textAlign:"left",
+                        }}>
+                        <ListChecks size={16} color={textMuted2}/>
+                        <span style={{fontSize:13.5, fontWeight:600, color:textMain}}>{lang==="bn" ? "টাস্ক যোগ করো" : "Add Task"}</span>
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+
+              <button onClick={handleAddTap} style={{
+                  position:"absolute", left:"50%", top: -FAB/2 + 8, transform:"translateX(-50%)",
+                  width:FAB, height:FAB, borderRadius:"50%", border:"none",
+                  background: dark ? "#F3F1F8" : "#1A1814",
+                  color: dark ? "#1A1814" : "#FFFFFF",
+                  display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
+                  boxShadow: dark ? "0 6px 18px rgba(0,0,0,0.5)" : "0 6px 16px rgba(26,24,20,0.35)",
+                  zIndex:46,
                 }}>
-                  {studyFeatureEnabled && (
-                    <button onClick={()=>{ vibrate(); setShowQuickAddMenu(false); setAddTargetKey(todayKey); setShowAdd(true); }} style={{
-                        width:"100%", display:"flex", alignItems:"center", gap:10, border:"none", background:"transparent",
-                        padding:"9px 10px", borderRadius:10, cursor:"pointer", textAlign:"left",
-                      }}>
-                      <GraduationCap size={16} color={textMuted2}/>
-                      <span style={{fontSize:13.5, fontWeight:600, color:textMain}}>{lang==="bn" ? "স্টাডি যোগ করো" : "Add Study"}</span>
-                    </button>
-                  )}
-                  {tasksFeatureEnabled && (
-                    <button onClick={()=>{ vibrate(); setShowQuickAddMenu(false); setTaskAddDefaultDate(todayKey); setShowAddTask(true); }} style={{
-                        width:"100%", display:"flex", alignItems:"center", gap:10, border:"none", background:"transparent",
-                        padding:"9px 10px", borderRadius:10, cursor:"pointer", textAlign:"left",
-                      }}>
-                      <ListChecks size={16} color={textMuted2}/>
-                      <span style={{fontSize:13.5, fontWeight:600, color:textMain}}>{lang==="bn" ? "টাস্ক যোগ করো" : "Add Task"}</span>
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
-            <button onClick={()=>{vibrate(); setShowQuickAddMenu(v=>!v);}} title={lang==="bn" ? "যোগ করো" : "Add"} style={{
-                width:52, height:52, borderRadius:"50%", border:`1px solid ${cardBorder}`,
-                background: dark ? "#1C1A20" : "#FFFFFF", color: textMain,
-                display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0,
-                boxShadow: dark ? "0 2px 10px rgba(0,0,0,0.25)" : "0 2px 10px rgba(0,0,0,0.06)",
-              }}>
-              <Plus size={21} strokeWidth={2.2}/>
-            </button>
+                <Plus size={24} strokeWidth={2.4}/>
+              </button>
+            </div>
           </div>
-        )}
-        </div>
-      </div>
-      )}
+        );
+      })()}
       </div>
 
       {/* Fullscreen focus timer */}
       {focusFullscreen && (
         <FullscreenFocus
-          t={t} nf={nf} lang={lang} mode={focusMode} now={now}
+          t={t} nf={nf} mode={focusMode} now={now}
           seconds={focusMode === "timer" ? timerSeconds : stopwatchSeconds}
           total={timerTotal}
           running={focusMode === "timer" ? timerRunning : stopwatchRunning}
@@ -7279,16 +7274,8 @@ function FocusGoInner() {
           onToggleRun={focusMode === "timer" ? toggleTimerRunning : toggleStopwatchRunning}
           onReset={()=>{
             if (focusMode === "timer") { setTimerRunning(false); setTimerSeconds(timerTotal); }
-            else { setStopwatchRunning(false); setStopwatchSeconds(0); setStopwatchLaps([]); }
+            else { setStopwatchRunning(false); setStopwatchSeconds(0); }
           }}
-          onStop={()=>{
-            vibrate();
-            if (focusMode === "timer") { setTimerRunning(false); setTimerSeconds(timerTotal); }
-            else { setStopwatchRunning(false); setStopwatchSeconds(0); setStopwatchLaps([]); }
-            closeFocusFullscreen();
-          }}
-          onSwitchMode={(m)=>{ if (timerRunning || stopwatchRunning) return; vibrate(); setFocusMode(m); }}
-          laps={stopwatchLaps} onLap={addLap}
           onClose={closeFocusFullscreen}
           sessionType={sessionType} pomodoroSession={pomodoroSession} pomodoroTotalSessions={pomodoroTotalSessions}
           timerTargetMinutes={timerTargetMinutes} timerElapsedMinutes={timerElapsedMinutes}
@@ -7616,200 +7603,154 @@ function BreakPromptModal({ t, nf, breakMinutes, accent, onAccept, onSkip }) {
   );
 }
 
-function FullscreenFocus({ t, nf, lang, mode, seconds, total, running, topicLabel, accent, dark, bg, textMain, textMuted2, onToggleRun, onReset, onStop, onClose, onSwitchMode, laps, onLap, now, sessionType, pomodoroSession, pomodoroTotalSessions, timerTargetMinutes, timerElapsedMinutes }) {
+function FullscreenFocus({ t, nf, mode, seconds, total, running, topicLabel, accent, dark, bg, textMain, textMuted2, onToggleRun, onReset, onClose, now, sessionType, pomodoroSession, pomodoroTotalSessions, timerTargetMinutes, timerElapsedMinutes }) {
   // মাউন্ট হওয়ার সাথে সাথেই (রেন্ডারের আগেই, browser paint হওয়ার আগে) html/body-এর ব্যাকগ্রাউন্ড
-  // কালো/গাঢ়-বেগুনি করে দেওয়া হচ্ছে — যাতে উপরের status bar/notch এরিয়াতে আগের (হালকা রঙের) ব্যাকগ্রাউন্ডের
+  // কালো করে দেওয়া হচ্ছে — যাতে উপরের status bar/notch এরিয়াতে আগের (হালকা রঙের) ব্যাকগ্রাউন্ডের
   // এক ঝলক (flash) দেখা না যায়, যেটা মূল theme-color useEffect (parent-এ) একটু দেরিতে চালু হওয়ায় হতে পারত।
   useLayoutEffect(() => {
     const prevHtmlBg = document.documentElement.style.background;
     const prevBodyBg = document.body.style.background;
-    document.documentElement.style.background = "#0B0A12";
-    document.body.style.background = "#0B0A12";
+    document.documentElement.style.background = "#000000";
+    document.body.style.background = "#000000";
     return () => {
       document.documentElement.style.background = prevHtmlBg;
       document.body.style.background = prevBodyBg;
     };
   }, []);
+  const orientation = useOrientation();
+  const stacked = orientation === "portrait"; // portrait -> mm উপরে/ss নিচে (বড় সংখ্যা), landscape -> পাশাপাশি
+  const mm = pad2(Math.floor(Math.max(0,seconds)/60));
+  const ss = pad2(Math.max(0,seconds)%60);
+  const pct = mode === "timer" && total ? Math.min(100, Math.max(0, Math.round(((total-seconds)/total)*100))) : null;
 
-  const isBn = lang === "bn";
-  const mm = pad2(Math.floor(Math.max(0, seconds) / 60));
-  const ss = pad2(Math.max(0, seconds) % 60);
-  const pct = mode === "timer" && total ? Math.min(100, Math.max(0, ((total - seconds) / total) * 100)) : 0;
+  // fullscreen-এ সবসময় fixed কালো প্যালেট — app theme (light/dark/system) থেকে independent।
+  const screenBg = "#000000";
+  const fgMain = "#F5F1E8";
+  const fgMuted = "#8A8272";
+  const trackColor = "#2A2A2A";
+  const trackBorder = "rgba(255,255,255,0.08)";
+  const resetBtnBg = "#1E1E1E";
+  const blockWidth = stacked ? "clamp(190px, 70vw, 320px)" : "clamp(120px, 28vw, 240px)";
+  const blockHeight = stacked ? "clamp(110px, 40vw, 200px)" : "clamp(95px, 24vw, 170px)";
 
-  // ---- FocusGo রেফারেন্স ডিজাইনের ফিক্সড ডার্ক-পার্পল প্যালেট — fullscreen সবসময় এই থিমেই থাকে, app-এর light/dark/system theme থেকে independent ----
-  const screenBg = "#0B0A12";
-  const purple = "#8B6CF2";
-  const purpleSoft = "rgba(139,108,242,0.16)";
-  const fgMain = "#F5F3FA";
-  const fgMuted = "rgba(245,243,250,0.55)";
-  const trackColor = "rgba(255,255,255,0.08)";
-  const panelBg = "rgba(255,255,255,0.05)";
-  const panelBorder = "rgba(255,255,255,0.09)";
-  const btnBg = "rgba(255,255,255,0.08)";
+  // stacked (portrait) লেআউটে mm বক্স উপরে, ss বক্স নিচে — তাই এখানে সেপারেটর হিসেবে
+  // ভার্টিক্যাল কোলন (দুইটা ডট উপর-নিচ) না দেখিয়ে দুইটা ডট পাশাপাশি (হরাইজন্টাল) দেখানো হচ্ছে,
+  // যাতে দুই বক্সের মাঝের গ্যাপে ঠিকভাবে সেন্টার্ড দেখায়।
+  const separator = stacked ? (
+    <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:"clamp(7px,1.8vw,11px)", margin:"clamp(10px,2.4vw,16px) 0"}}>
+      <span style={{width:"clamp(7px,1.8vw,11px)", height:"clamp(7px,1.8vw,11px)", borderRadius:"50%", background:fgMuted}}/>
+      <span style={{width:"clamp(7px,1.8vw,11px)", height:"clamp(7px,1.8vw,11px)", borderRadius:"50%", background:fgMuted}}/>
+    </div>
+  ) : (
+    <div style={{fontFamily:"'Bebas Neue','Noto Sans Bengali',sans-serif", fontSize:"clamp(55px,11vw,100px)", fontWeight:400, color:fgMuted, marginBottom:6}}>:</div>
+  );
 
-  const ringSize = 258, stroke = 16;
-  const r = (ringSize - stroke) / 2;
-  const circumference = 2 * Math.PI * r;
-  const ringOffset = circumference - (pct / 100) * circumference;
+  const clockDigits = (
+    <>
+      <FlipBlock textMain={fgMain} dark={true} running={true} stacked={stacked} blockWidth={blockWidth} blockHeight={blockHeight}>{nf(mm)}</FlipBlock>
+      {separator}
+      <FlipBlock textMain={fgMain} dark={true} running={true} stacked={stacked} blockWidth={blockWidth} blockHeight={blockHeight}>{nf(ss)}</FlipBlock>
+    </>
+  );
 
-  const quotes = isBn
-    ? ["ছোট ছোট পদক্ষেপ, বড় অগ্রগতি", "মনোযোগই তোমার সুপারপাওয়ার", "আজকের পরিশ্রম আগামীর ফলাফল"]
-    : ["Small Steps, Big Progress", "Focus is your superpower", "Today's effort is tomorrow's result"];
-  const quoteIdxRef = useRef(Math.floor(Math.random() * quotes.length));
-  const quote = quotes[quoteIdxRef.current];
+  // ছোট আইকন বাটন — reset উপরে, start/pause নিচে (landscape-এ seconds বক্সের ডান পাশে বসবে)
+  const sideButtons = (
+    <div style={{display:"flex", flexDirection:"column", gap:10, marginLeft:"clamp(8px,1.6vw,16px)"}}>
+      <button onClick={onReset} title={t.reset} style={{background:resetBtnBg, border:"none", borderRadius:14, width:48, height:48, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+        <RotateCcw size={18} color={fgMain}/>
+      </button>
+      <button onClick={onToggleRun} title={running ? t.pause : t.start} style={{background:accent, border:"none", borderRadius:14, width:48, height:48, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+        {running ? <Pause size={18} fill="#fff" color="#fff"/> : <Play size={18} fill="#fff" color="#fff"/>}
+      </button>
+    </div>
+  );
 
-  const modeLabel = { timer: t.timerMode, stopwatchMode: t.stopwatchMode };
-  const switchLocked = running;
+  const liveClock = now && (
+    <div style={{textAlign:"center", fontSize:12.5, fontWeight:700, color:fgMuted, fontVariantNumeric:"tabular-nums", letterSpacing:0.8, opacity:0.75, marginBottom: stacked ? 14 : 12}}>
+      <Num>{nf(pad2(((now.getHours()%12)||12)))}</Num>:<Num>{nf(pad2(now.getMinutes()))}</Num> <span style={{fontSize:10.5}}>{now.getHours()>=12 ? t.pmLabel : t.amLabel}</span>
+    </div>
+  );
+
+  // Pomodoro cycle progress — Timer mode-এই শুধু দেখা যাবে (Stopwatch-এ প্রযোজ্য না)
+  const pomodoroIndicator = mode === "timer" && pomodoroSession ? (
+    <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, marginTop:16}}>
+      <div style={{fontSize:11.5, fontWeight:700, color:fgMuted, letterSpacing:0.6}}>
+        {t.sessionLabel} <Num>{nf(pomodoroSession)}</Num>/<Num>{nf(pomodoroTotalSessions || 4)}</Num>
+      </div>
+      <div style={{display:"flex", gap:6, flexWrap:"wrap", justifyContent:"center", maxWidth:220}}>
+        {Array.from({length:pomodoroTotalSessions || 4}, (_,i)=>i+1).map(i => (
+          <span key={i} style={{fontSize:13.5, lineHeight:1, color: i===pomodoroSession ? accent : fgMuted, opacity: i===pomodoroSession ? 1 : 0.5}}>
+            {i===pomodoroSession ? "●" : "○"}
+          </span>
+        ))}
+      </div>
+      {timerTargetMinutes && (
+        <div style={{fontSize:11.5, color:fgMuted, fontWeight:600, opacity:0.8}}>
+          <Num>{nf(timerElapsedMinutes || 0)}</Num>/<Num>{nf(timerTargetMinutes)}</Num> {t.minutes}
+        </div>
+      )}
+    </div>
+  ) : null;
 
   return (
     <div style={{position:"fixed", inset:0, zIndex:100, background:screenBg, color:fgMain, display:"flex", flexDirection:"column", isolation:"isolate", overflow:"hidden", WebkitBackfaceVisibility:"hidden"}}>
-      {/* header */}
-      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"calc(14px + var(--fg-safe-top, env(safe-area-inset-top, 0px))) 18px 0", flexShrink:0}}>
+      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"calc(14px + var(--fg-safe-top, env(safe-area-inset-top, 0px))) 20px 0", flexShrink:0}}>
         <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:fgMuted, display:"flex", alignItems:"center", padding:6}}>
-          <ChevronLeft size={22}/>
+          <ChevronDown size={22}/>
         </button>
-        <div style={{fontSize:16.5, fontWeight:800}}>{t.focusTimer}</div>
-        <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:fgMuted, display:"flex", alignItems:"center", padding:6}}>
-          <Maximize2 size={17}/>
-        </button>
+        <div/>
+        <div style={{width:34}}/>
       </div>
 
-      {/* Timer / Stopwatch mode pill toggle — চলাকালীন লক থাকে, ঠিক আগের মিনি-কার্ডের মতোই */}
-      <div style={{display:"flex", justifyContent:"center", marginTop:18, flexShrink:0}}>
-        <div style={{display:"flex", background:"rgba(255,255,255,0.06)", border:`1px solid ${panelBorder}`, borderRadius:999, padding:4, gap:4}}>
-          <button onClick={()=>{ if (switchLocked) return; onSwitchMode && onSwitchMode("timer"); }} disabled={switchLocked}
-            style={{display:"flex", alignItems:"center", gap:6, border:"none", borderRadius:999, padding:"9px 18px", fontSize:13.5, fontWeight:700,
-              cursor: switchLocked ? "default" : "pointer", background: mode==="timer" ? purple : "transparent", color: mode==="timer" ? "#fff" : fgMuted,
-              opacity: switchLocked && mode!=="timer" ? 0.4 : 1, transition:"background .2s"}}>
-            <Hourglass size={14}/> {t.timerMode}
-          </button>
-          <button onClick={()=>{ if (switchLocked) return; onSwitchMode && onSwitchMode("stopwatch"); }} disabled={switchLocked}
-            style={{display:"flex", alignItems:"center", gap:6, border:"none", borderRadius:999, padding:"9px 18px", fontSize:13.5, fontWeight:700,
-              cursor: switchLocked ? "default" : "pointer", background: mode==="stopwatch" ? purple : "transparent", color: mode==="stopwatch" ? "#fff" : fgMuted,
-              opacity: switchLocked && mode!=="stopwatch" ? 0.4 : 1, transition:"background .2s"}}>
-            <Clock size={14}/> {t.stopwatchMode}
-          </button>
-        </div>
-      </div>
-
-      {topicLabel && (
-        <div style={{textAlign:"center", fontSize:11.5, fontWeight:600, color:fgMuted, marginTop:10, padding:"0 24px", flexShrink:0, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
-          {topicLabel}
-        </div>
-      )}
-
-      {/* মূল কনটেন্ট */}
-      <div style={{flex:1, minHeight:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:20, padding:"0 24px", overflow:"hidden"}}>
-        {mode === "timer" ? (
-          <div style={{display:"inline-flex", position:"relative", alignItems:"center", justifyContent:"center"}}>
-            <svg width={ringSize} height={ringSize} style={{transform:"rotate(-90deg)"}}>
-              <circle cx={ringSize/2} cy={ringSize/2} r={r} fill="none" stroke={trackColor} strokeWidth={stroke}/>
-              <circle cx={ringSize/2} cy={ringSize/2} r={r} fill="none" stroke={purple} strokeWidth={stroke}
-                strokeDasharray={circumference} strokeDashoffset={ringOffset} strokeLinecap="round"
-                style={{transition:"stroke-dashoffset .4s ease", filter:"drop-shadow(0 0 10px rgba(139,108,242,0.55))"}}/>
-            </svg>
-            <div style={{position:"absolute", display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
-              <div style={{fontSize:13.5, fontWeight:700, color:fgMuted}}>{isBn ? "ফোকাস সময়" : "Focus Time"}</div>
-              <div style={{fontSize:"clamp(36px,10vw,46px)", fontWeight:800, letterSpacing:-1, fontVariantNumeric:"tabular-nums"}}>
-                <Num>{nf(mm)}:{nf(ss)}</Num>
+      {/* মূল কনটেন্ট এরিয়া উলম্বভাবে center করা — real-time ঘড়ি এখন এই ব্লকের অংশ, তাই স্ক্রিনের মাঝামাঝি বসে */}
+      <div style={{flex:1, minHeight:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16, padding:"0 24px", overflow:"hidden"}}>
+        {stacked ? (
+          // ---- vertical/stacked layout: আগের মতোই — mm উপরে, ss নিচে, bar নিচে; শুধু real-time একটু নিচে নেমে এসেছে ----
+          <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:0}}>
+            {liveClock}
+            {clockDigits}
+            {pct !== null && (
+              <div style={{marginTop:16, height:6, width:blockWidth, borderRadius:4, background:trackColor, border:`1px solid ${trackBorder}`, overflow:"hidden"}}>
+                <div style={{height:"100%", width:`${pct}%`, background:accent, borderRadius:4, transition:"width .3s"}}/>
               </div>
-              <div style={{display:"flex", alignItems:"center", gap:5, fontSize:12.5, fontWeight:600, color:fgMuted}}>
-                {isBn ? "মনোযোগ ধরে রাখো" : "Stay focused"} <Heart size={12} fill={purple} color={purple}/>
-              </div>
-              {pomodoroSession && (
-                <div style={{display:"flex", gap:5, marginTop:2}}>
-                  {Array.from({length:pomodoroTotalSessions || 4}, (_,i)=>i+1).map(i => (
-                    <span key={i} style={{width:6, height:6, borderRadius:"50%", background: i===pomodoroSession ? purple : "rgba(255,255,255,0.25)"}}/>
-                  ))}
-                </div>
-              )}
-            </div>
+            )}
+            {pomodoroIndicator}
           </div>
         ) : (
-          <div style={{display:"flex", flexDirection:"column", alignItems:"center", width:"100%", gap:24}}>
-            <div style={{fontSize:"clamp(42px,13vw,56px)", fontWeight:800, letterSpacing:-1, fontVariantNumeric:"tabular-nums"}}>
-              <Num>{nf(mm)}:{nf(ss)}</Num>
-            </div>
-            <div style={{width:"100%", maxWidth:320, background:panelBg, border:`1px solid ${panelBorder}`, borderRadius:16, overflow:"hidden", maxHeight:"32vh", overflowY:"auto"}}>
-              {laps && laps.length > 0 ? laps.map((lap, i) => {
-                const num = laps.length - i;
-                const lm = pad2(Math.floor(lap.seconds/60)), lss = pad2(lap.seconds%60);
-                const isTop = i === 0;
-                return (
-                  <div key={lap.id} style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"13px 16px",
-                    borderBottom: i === laps.length-1 ? "none" : `1px solid ${panelBorder}`, background: isTop ? purpleSoft : "transparent"}}>
-                    <span style={{fontSize:14, fontWeight:700, color: isTop ? purple : fgMain}}>{isBn ? `ল্যাপ ${num}` : `Lap ${num}`}</span>
-                    <span style={{fontSize:14, fontWeight:700, fontVariantNumeric:"tabular-nums", color: isTop ? purple : fgMuted}}><Num>{nf(lm)}:{nf(lss)}</Num></span>
+          // ---- horizontal layout: real-time উপরে center-এ, নিচে bar + mm : ss + (reset উপরে/play-pause নিচে) seconds-এর ডান পাশে ----
+          // পুরো গ্রুপটা সামান্য উপরে সরানো হয়েছে, যাতে real-time + digits একসাথে দেখতে সেন্টার্ড লাগে
+          <div style={{display:"flex", flexDirection:"column", alignItems:"center", transform:"translateY(-6vh)"}}>
+            {liveClock}
+            <div style={{display:"flex", alignItems:"stretch", gap:"clamp(10px,2vw,16px)"}}>
+              <div style={{width:48, flexShrink:0, display:"flex", justifyContent:"center", alignItems:"flex-end"}}>
+                {pct !== null && (
+                  <div style={{width:8, borderRadius:4, background:trackColor, border:`1px solid ${trackBorder}`, overflow:"hidden", display:"flex", alignItems:"flex-end", alignSelf:"stretch"}}>
+                    <div style={{width:"100%", height:`${pct}%`, background:accent, borderRadius:4, transition:"height .3s"}}/>
                   </div>
-                );
-              }) : (
-                <div style={{padding:"22px 16px", textAlign:"center", fontSize:13, color:fgMuted}}>
-                  {isBn ? "ল্যাপ যোগ করতে নিচের Lap বাটনে চাপো" : "Tap Lap below to record a split"}
-                </div>
-              )}
+                )}
+              </div>
+              <div style={{display:"flex", alignItems:"center", gap:"clamp(4px,1vw,10px)"}}>
+                {clockDigits}
+              </div>
+              <div style={{width:48, flexShrink:0, display:"flex", justifyContent:"center", alignItems:"center"}}>
+                {sideButtons}
+              </div>
             </div>
+            {pomodoroIndicator}
           </div>
         )}
       </div>
 
-      {/* control buttons */}
-      <div style={{display:"flex", gap:22, padding:"0 30px 20px", justifyContent:"center", alignItems:"center", flexShrink:0}}>
-        {mode === "timer" ? (
-          <>
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
-              <button onClick={onStop} title={isBn ? "থামাও" : "Stop"} style={{background:btnBg, border:"none", borderRadius:"50%", width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
-                <Square size={17} color={fgMain} fill={fgMain}/>
-              </button>
-              <span style={{fontSize:11.5, fontWeight:600, color:fgMuted}}>{isBn ? "থামাও" : "Stop"}</span>
-            </div>
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
-              <button onClick={onToggleRun} title={running ? t.pause : t.start}
-                style={{background:purple, border:"none", borderRadius:"50%", width:72, height:72, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", boxShadow:"0 6px 22px rgba(139,108,242,0.45)"}}>
-                {running ? <Pause size={26} fill="#fff" color="#fff"/> : <Play size={26} fill="#fff" color="#fff" style={{marginLeft:2}}/>}
-              </button>
-              <span style={{fontSize:11.5, fontWeight:600, color:fgMuted}}>{running ? t.pause : t.start}</span>
-            </div>
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
-              <button onClick={onReset} title={t.reset} style={{background:btnBg, border:"none", borderRadius:"50%", width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
-                <RotateCcw size={19} color={fgMain}/>
-              </button>
-              <span style={{fontSize:11.5, fontWeight:600, color:fgMuted}}>{t.reset}</span>
-            </div>
-          </>
-        ) : (
-          <>
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
-              <button onClick={onReset} title={t.reset} style={{background:btnBg, border:"none", borderRadius:"50%", width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
-                <RotateCcw size={19} color={fgMain}/>
-              </button>
-              <span style={{fontSize:11.5, fontWeight:600, color:fgMuted}}>{t.reset}</span>
-            </div>
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
-              <button onClick={onToggleRun} title={running ? t.pause : t.start}
-                style={{background:purple, border:"none", borderRadius:"50%", width:72, height:72, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer", boxShadow:"0 6px 22px rgba(139,108,242,0.45)"}}>
-                {running ? <Pause size={26} fill="#fff" color="#fff"/> : <Play size={26} fill="#fff" color="#fff" style={{marginLeft:2}}/>}
-              </button>
-              <span style={{fontSize:11.5, fontWeight:600, color:fgMuted}}>{running ? t.pause : t.start}</span>
-            </div>
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:8}}>
-              <button onClick={onLap} disabled={!running} title={isBn ? "ল্যাপ" : "Lap"}
-                style={{background:btnBg, border:"none", borderRadius:"50%", width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor: running ? "pointer" : "default", opacity: running ? 1 : 0.4}}>
-                <Flag size={17} color={fgMain}/>
-              </button>
-              <span style={{fontSize:11.5, fontWeight:600, color:fgMuted}}>{isBn ? "ল্যাপ" : "Lap"}</span>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* motivational quote — Timer mode-এ নিচে দেখায়, Stopwatch-এ laps list-এর জন্য জায়গা ছেড়ে দেওয়া হয়েছে */}
-      {mode === "timer" ? (
-        <div style={{margin:"0 24px calc(20px + var(--fg-safe-bottom, env(safe-area-inset-bottom, 0px)))", background:panelBg, border:`1px solid ${panelBorder}`, borderRadius:14, padding:"13px 16px", display:"flex", alignItems:"center", gap:10, flexShrink:0}}>
-          <Sparkles size={15} color={purple}/>
-          <span style={{fontSize:12.5, fontWeight:600, color:fgMuted, fontStyle:"italic"}}>"{quote}"</span>
+      {/* portrait/vertical মোডে বাটন আগের মতোই নিচে থাকবে */}
+      {stacked && (
+        <div style={{display:"flex", gap:16, padding:"0 30px 64px", justifyContent:"center", alignItems:"center", flexShrink:0}}>
+          <button onClick={onToggleRun} title={running ? t.pause : t.start} style={{background:accent, border:"none", borderRadius:14, width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+            {running ? <Pause size={20} fill="#fff" color="#fff"/> : <Play size={20} fill="#fff" color="#fff"/>}
+          </button>
+          <button onClick={onReset} title={t.reset} style={{background:resetBtnBg, border:"none", borderRadius:14, width:56, height:56, display:"flex",alignItems:"center",justifyContent:"center", cursor:"pointer"}}>
+            <RotateCcw size={20} color={fgMain}/>
+          </button>
         </div>
-      ) : (
-        <div style={{height:"calc(16px + var(--fg-safe-bottom, env(safe-area-inset-bottom, 0px)))", flexShrink:0}}/>
       )}
     </div>
   );
