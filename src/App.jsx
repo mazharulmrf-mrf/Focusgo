@@ -5831,7 +5831,9 @@ function FocusGoInner() {
       )}
       <div style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, zoom: desktopZoom}}>
       <div style={styles.container}>
-        {/* Header row: logo | toggles (search circular icon next to bell, like before) */}
+        {/* Header row: logo | toggles (search circular icon next to bell, like before)
+            Stats সাব-ভিউতে (Study ট্যাবের ভেতরে) এই হেডার দেখানো হয় না — চার্ট/স্ট্যাটসের জন্য উপরের স্পেসটা ফাঁকা রাখতে */}
+        {!(tab === "study" && studySection === "stats") && (
         <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
           <div style={{display:"flex", alignItems:"center", gap:10}}>
             <button onClick={()=>{vibrate(); setTab("today");}} title={t.tabs.today}
@@ -5873,6 +5875,7 @@ function FocusGoInner() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Date row — Today tab এর নিজস্ব অ্যাঙ্কর (weekday + বড় তারিখ + লাইভ ক্লক), তাই শুধু Today-তেই দেখানো হয়।
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
@@ -8795,6 +8798,9 @@ function SummaryView({ t, lang, nf, entries, title, rangeLabel, cardBg, cardBord
 
 // Read-only subject-grouped list: remaining topics first, then done topics.
 function SubjectGroupedList({ entries, nf, t, remainingLabel, doneLabel, remainingEmptyText, doneEmptyText, cardBg, cardBorder, textMain, textMuted2, accent }) {
+  // ডিফল্টে বন্ধ থাকবে, হেডারে ট্যাপ করলে খুলবে
+  const [openRemaining, setOpenRemaining] = useState(false);
+  const [openDone, setOpenDone] = useState(false);
   const remaining = {}, done = {};
   entries.forEach(e => {
     const bucket = e.done ? done : remaining;
@@ -8808,8 +8814,11 @@ function SubjectGroupedList({ entries, nf, t, remainingLabel, doneLabel, remaini
   return (
     <div style={{display:"flex", flexDirection:"column", gap:16}}>
       <div>
-        <div style={{fontSize:12.5, fontWeight:700, color:textMain, marginBottom:8}}>✕ {remainingLabel} (<Num>{nf(remainingCount)}</Num>)</div>
-        {remainingSubjects.length === 0 ?
+        <button onClick={()=>setOpenRemaining(o=>!o)} style={{width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", background:"transparent", border:"none", padding:0, marginBottom:8, cursor:"pointer", color:textMain}}>
+          <span style={{fontSize:12.5, fontWeight:700}}>✕ {remainingLabel} (<Num>{nf(remainingCount)}</Num>)</span>
+          <ChevronDown size={16} style={{color:textMuted2, transform: openRemaining ? "rotate(180deg)" : "rotate(0deg)", transition:"transform .15s"}}/>
+        </button>
+        {openRemaining && (remainingSubjects.length === 0 ?
           <div style={{textAlign:"center", padding:"18px 10px", color:textMuted2, fontSize:12.5, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", gap:6}}>
             <Check size={16} style={{opacity:0.7, color:"#6E8B5E"}}/>
             {remainingEmptyText}
@@ -8825,11 +8834,14 @@ function SubjectGroupedList({ entries, nf, t, remainingLabel, doneLabel, remaini
                 </div>
               </div>
             ))}
-          </div>}
+          </div>)}
       </div>
       <div>
-        <div style={{fontSize:12.5, fontWeight:700, color:"#6E8B5E", marginBottom:8}}>✓ {doneLabel} (<Num>{nf(doneCount)}</Num>)</div>
-        {doneSubjects.length === 0 ?
+        <button onClick={()=>setOpenDone(o=>!o)} style={{width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", background:"transparent", border:"none", padding:0, marginBottom:8, cursor:"pointer"}}>
+          <span style={{fontSize:12.5, fontWeight:700, color:"#6E8B5E"}}>✓ {doneLabel} (<Num>{nf(doneCount)}</Num>)</span>
+          <ChevronDown size={16} style={{color:textMuted2, transform: openDone ? "rotate(180deg)" : "rotate(0deg)", transition:"transform .15s"}}/>
+        </button>
+        {openDone && (doneSubjects.length === 0 ?
           <div style={{textAlign:"center", padding:"18px 10px", color:textMuted2, fontSize:12.5, background:cardBg, border:`1px dashed ${cardBorder}`, borderRadius:14, display:"flex", flexDirection:"column", alignItems:"center", gap:6}}>
             <Folder size={16} style={{opacity:0.6}}/>
             {doneEmptyText}
@@ -8848,7 +8860,7 @@ function SubjectGroupedList({ entries, nf, t, remainingLabel, doneLabel, remaini
                 </div>
               </div>
             ))}
-          </div>}
+          </div>)}
       </div>
     </div>
   );
@@ -9014,13 +9026,9 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
   const [useDuration, setUseDuration] = useState(false);
   const [durationInput, setDurationInput] = useState(30);
   const [showSubjectPicker, setShowSubjectPicker] = useState(false); // সাবজেক্ট চিপ লিস্ট ডিফল্টে লুকানো থাকে (অনেকগুলো সাবজেক্ট থাকলে huge space নিত) — "Choose from list" চাপলেই খুলবে
-  const [showTopicPicker, setShowTopicPicker] = useState(false); // টপিক চিপ লিস্টও এখন সাবজেক্টের মতোই ডিফল্টে লুকানো থাকে — "Choose from list" চাপলেই খুলবে
   const inputStyle = { width:"100%", boxSizing:"border-box", background: dark?"#0A0A0A":"#F8F5EE", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 13px", fontSize:14.5, color:textMain, outline:"none", fontFamily:"inherit" };
   const duration = useTime ? diffMinutes(startTime, endTime) : (useDuration ? (Number(durationInput) || 0) : 0);
   const canSubmit = subject.trim() && topic.trim();
-  // Topic Bank quick-pick: not-yet-used topics first (still pending), then previously-used ones by recency —
-  // ফ্রি-টেক্সট ফলব্যাক এখনো আছে (নিচের input), নতুন কিছু লিখলে সেটাও অটো ব্যাংকে যোগ হয়ে যাবে
-  const pickTopics = topicPickList(topicBank, entries, subject);
   // সাবজেক্ট চিপ লিস্ট — আগে থেকে যোগ করা সাবজেক্টগুলো, ক্লিক করলেই সিলেক্ট হয়ে যাবে (টপিক চিপের মতোই)
   const subjectChips = [...subjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"}));
   const submit = () => {
@@ -9058,22 +9066,8 @@ function AddModal({ t, nf, subjects, entries, topicBank, onAddTopicToBank, onAdd
             <div style={{fontSize:11.5, color:textMuted2, opacity:0.75, marginTop:5}}>{t.newSubjectAutoSaved}</div>
           </div>
           <div>
-            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
-              <div style={{fontSize:11.5, fontWeight:700, color:textMuted2}}>{t.topicLabel}</div>
-              {pickTopics.length > 0 && (
-                <button type="button" onClick={()=>setShowTopicPicker(v=>!v)} style={{display:"flex", alignItems:"center", gap:3, border:"none", background:"transparent", color:accent, cursor:"pointer", fontSize:11.5, fontWeight:700, padding:0}}>
-                  {showTopicPicker ? t.hideSubjectList : t.chooseFromList}
-                  <ChevronDown size={12} style={{transform: showTopicPicker ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
-                </button>
-              )}
-            </div>
-            {showTopicPicker && pickTopics.length > 0 && (
-              <>
-                <div style={{fontSize:10.5, fontWeight:700, color:textMuted2, opacity:0.8, marginBottom:0}}>{t.pickFromBank}</div>
-                <RecentTopicChips topics={pickTopics} onPick={(tp)=>{setTopic(tp); setShowTopicPicker(false);}} accent={accent} cardBorder={cardBorder} textMuted2={textMuted2} dark={dark}/>
-              </>
-            )}
-            <input style={{...inputStyle, marginTop: (showTopicPicker && pickTopics.length) ? 8 : 0}} value={topic} onChange={e=>setTopic(e.target.value)} placeholder={t.topicPlaceholder}/>
+            <div style={{fontSize:11.5, fontWeight:700, color:textMuted2, marginBottom:6}}>{t.topicLabel}</div>
+            <input style={inputStyle} value={topic} onChange={e=>setTopic(e.target.value)} placeholder={t.topicPlaceholder}/>
             <div style={{fontSize:11.5, color:textMuted2, opacity:0.75, marginTop:5}}>{t.newTopicAutoSaved}</div>
           </div>
 
