@@ -6831,7 +6831,6 @@ function FocusGoInner() {
           const dateLabel = isListToday
             ? (lang==="bn" ? "আজ" : "Today")
             : `${weekdayShort(taskListDay)}, ${nf(taskListDay.getDate())} ${monthShort(taskListDay.getMonth())}`;
-          const shiftDay = (delta) => { vibrate(); setTaskListDay(d => { const nd = new Date(d); nd.setDate(nd.getDate()+delta); return nd; }); };
           const quotePool = lang === "bn"
             ? ["\u201cছোট পদক্ষেপই বড় অগ্রগতি আনে।\u201d", "\u201cআজকের এক কাজ, আগামীর একধাপ এগিয়ে।\u201d"]
             : ["\u201cSmall steps make big progress.\u201d", "\u201cOne task at a time.\u201d"];
@@ -6839,7 +6838,7 @@ function FocusGoInner() {
 
           return (
           <div className="fg-tab-panel" style={{marginTop:16}}>
-            {/* Title row + date pill (with prev/next day arrows when viewing "All") */}
+            {/* Title row + date pill — পিলে ট্যাপ করলেই ক্যালেন্ডার ভিউ খুলবে/বন্ধ হবে, আলাদা কোনো টগল বাটন বা অ্যারো নেই */}
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:14}}>
               <div style={{minWidth:0}}>
                 <div className="fg-title" style={{fontSize:21}}>{t.taskTitle}</div>
@@ -6847,35 +6846,11 @@ function FocusGoInner() {
                   {t.taskSubtitle}
                 </div>
               </div>
-              <div style={{display:"flex", alignItems:"center", gap:6, flexShrink:0}}>
-                <div style={{display:"flex", gap:2, background: subtleBg, border:`1px solid ${cardBorder}`, borderRadius:10, padding:2}}>
-                  <button onClick={()=>{vibrate(); setTaskViewMode("list");}} title={lang==="bn" ? "লিস্ট" : "List"}
-                    style={{border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", width:28, height:26, borderRadius:8,
-                      background: taskViewMode==="list" ? accent : "transparent", color: taskViewMode==="list" ? "#FFFFFF" : textMuted2}}>
-                    <List size={13}/>
-                  </button>
-                  <button onClick={()=>{vibrate(); setTaskViewMode("calendar"); setTaskCalMonth(new Date(taskListDay));}} title={lang==="bn" ? "ক্যালেন্ডার" : "Calendar"}
-                    style={{border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", width:28, height:26, borderRadius:8,
-                      background: taskViewMode==="calendar" ? accent : "transparent", color: taskViewMode==="calendar" ? "#FFFFFF" : textMuted2}}>
-                    <CalendarDays size={13}/>
-                  </button>
-                </div>
-                {taskListStatusFilter === "all" && taskViewMode === "list" && (
-                  <button onClick={()=>shiftDay(-1)} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:4, display:"flex"}}>
-                    <ChevronLeft size={16}/>
-                  </button>
-                )}
-                <button onClick={()=>{vibrate(); setTaskListDay(new Date());}}
-                  style={{display:"flex", alignItems:"center", gap:6, border:`1px solid ${accent}33`, background:"transparent", borderRadius:999, padding:"7px 12px", cursor:"pointer", flexShrink:0}}>
-                  <Calendar size={13} color={accent} strokeWidth={2.2}/>
-                  <span style={{fontSize:12.5, fontWeight:700, color:accent, whiteSpace:"nowrap"}}>{dateLabel}</span>
-                </button>
-                {taskListStatusFilter === "all" && taskViewMode === "list" && (
-                  <button onClick={()=>shiftDay(1)} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:4, display:"flex"}}>
-                    <ChevronRight size={16}/>
-                  </button>
-                )}
-              </div>
+              <button onClick={()=>{vibrate(); if (taskViewMode === "calendar") { setTaskViewMode("list"); } else { setTaskCalMonth(new Date(taskListDay)); setTaskViewMode("calendar"); } }}
+                style={{display:"flex", alignItems:"center", gap:6, border:`1px solid ${accent}33`, background: taskViewMode==="calendar" ? accent : "transparent", borderRadius:999, padding:"7px 12px", cursor:"pointer", flexShrink:0}}>
+                <Calendar size={13} color={taskViewMode==="calendar" ? "#FFFFFF" : accent} strokeWidth={2.2}/>
+                <span style={{fontSize:12.5, fontWeight:700, color: taskViewMode==="calendar" ? "#FFFFFF" : accent, whiteSpace:"nowrap"}}>{dateLabel}</span>
+              </button>
             </div>
 
             {/* All / Done / Overdue filter pills */}
