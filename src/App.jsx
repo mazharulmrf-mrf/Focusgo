@@ -3082,10 +3082,11 @@ const ACCENT_OPTIONS = [
   { key: "moss",  labelBn: "মস",     labelEn: "Moss",  light: "#4C7A52", dark: "#6FA377" },
 ];
 function accentHexFor(key, dark) {
-  // পুরো অ্যাপে সবসময় ভায়োলেট রং — ইউজার Settings থেকে অন্য কোনো রং বেছে নিলেও
-  // এখানে জোর করে ভায়োলেট রিটার্ন করা হচ্ছে, যাতে পুরনো localStorage/সেভ করা accentKey
-  // (যেমন "orange") থাকলেও অ্যাপ সবসময় এই একটাই রঙে দেখায়।
-  return dark ? "#A78BFA" : "#7C5CFC";
+  // ইউজার Settings থেকে যে accent বেছে নেয় (violet/orange/lilac/moss), সেটাই এখন সঠিকভাবে
+  // রিটার্ন হয় — আগে এখানে জোর করে সবসময় ভায়োলেট রিটার্ন হতো, ফলে অন্য কোনো accent বেছে নিলেও
+  // ৭/১৫/৩০... রেঞ্জ সিলেক্টর ও ডে-স্ট্রিপের মতো জায়গায় থিমের সাথে না মিলে সবসময় ভায়োলেট দেখাত।
+  const opt = ACCENT_OPTIONS.find(a => a.key === key) || ACCENT_OPTIONS[0];
+  return dark ? opt.dark : opt.light;
 }
 // হেক্স রঙকে percent অনুযায়ী গাঢ়/হালকা করে — Next Exam কার্ডের মতো জায়গায় accent থেকে গ্রেডিয়েন্ট/শ্যাডো রং বানাতে ব্যবহার হয়
 function shadeColor(hex, percent) {
@@ -5916,7 +5917,8 @@ function FocusGoInner() {
             )}
             <button onClick={()=>{vibrate(); setShowSearch(true);}}
               title={lang==="bn" ? "খুঁজুন" : "Search"}
-              className="fg-btn-circle fg-btn-circle--sm">
+              className="fg-btn-circle fg-btn-circle--sm"
+              style={{display: tab === "today" ? "none" : "flex"}}>
               <Search size={13} strokeWidth={1.8}/>
             </button>
             <NotificationBell
@@ -5934,6 +5936,27 @@ function FocusGoInner() {
             </div>
           </div>
         </div>
+
+        {/* Today tab-এর top search bar — ট্যাপ করলে বিদ্যমান Universal Search মডাল খোলে
+            (টাস্ক/নোট/সাবজেক্ট/পরীক্ষা একসাথে খোঁজার জন্য যেটা আগে থেকেই আছে) */}
+        {tab === "today" && (
+        <div style={{marginTop:14}}>
+          <button onClick={()=>{vibrate(); setShowSearch(true);}}
+            style={{
+              width:"100%", display:"flex", alignItems:"center", gap:10, textAlign:"left",
+              background: dark ? "rgba(255,255,255,0.06)" : "#FFFFFF",
+              border:`1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px",
+              cursor:"pointer", fontFamily:"inherit"
+            }}>
+            <Search size={17} color={textMuted2} strokeWidth={2} style={{flexShrink:0}}/>
+            <span style={{flex:1, minWidth:0, fontSize:13.5, color:textMuted2, fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+              {lang==="bn" ? "টপিক, টাস্ক, সাবজেক্ট খুঁজুন..." : "Search topics, tasks, subjects..."}
+            </span>
+            <span style={{width:1, height:18, background:cardBorder, flexShrink:0}}/>
+            <SlidersIcon size={16} color={accent}/>
+          </button>
+        </div>
+        )}
 
         {/* Date row — Today tab এর নিজস্ব অ্যাঙ্কর (weekday + বড় তারিখ + লাইভ ক্লক), তাই শুধু Today-তেই দেখানো হয়।
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
@@ -6769,7 +6792,7 @@ function FocusGoInner() {
                     textAlign:"center", cursor:"pointer",
                     flex: planRange > 7 ? "0 0 56px" : 1,
                     borderRadius:16, padding:"10px 4px 12px",
-                    background: isSel ? `${accent}17` : (dark ? cardBg : "#FFFFFF"),
+                    background: isSel ? (dark ? `${accent}29` : `${accent}1A`) : (dark ? cardBg : "#FFFFFF"),
                     border: isSel ? `1px solid ${accent}40` : `1px solid ${cardBorder}`,
                     transition:"background .18s ease, border-color .18s ease"
                   }}>
