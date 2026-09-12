@@ -49,6 +49,20 @@ const MosqueIcon = ({ size = 16, color = "currentColor" }) => (
     <path d="M13.5 2.6a2 2 0 1 0 1.9 3.15A2.4 2.4 0 0 1 13.5 2.6z" fill={color} stroke="none"/>
   </svg>
 );
+// Tasks ট্যাবের "কোনো টাস্ক নেই" ইলাস্ট্রেশনে ব্যবহৃত ক্লিপবোর্ড-চেকলিস্ট আইকন — lucide-এ এত ডিটেইলড ভার্সন নেই
+const ClipboardChecklistIcon = ({ size = 64, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="4" width="14" height="17" rx="2.2" stroke={color} strokeWidth="1.4"/>
+    <rect x="9" y="2.2" width="6" height="3.4" rx="1" fill={color}/>
+    <rect x="7.6" y="9.2" width="2.1" height="2.1" rx="0.5" stroke={color} strokeWidth="1.3"/>
+    <path d="M11.5 10.2h5" stroke={color} strokeWidth="1.3" strokeLinecap="round"/>
+    <rect x="7.6" y="12.7" width="2.1" height="2.1" rx="0.5" stroke={color} strokeWidth="1.3"/>
+    <path d="M11.5 13.7h5" stroke={color} strokeWidth="1.3" strokeLinecap="round"/>
+    <rect x="7.6" y="16.2" width="2.1" height="2.1" rx="0.5" fill={color}/>
+    <path d="M8.1 17.2l0.5 0.5 0.9-1" stroke="#FFFFFF" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M11.5 17.2h4" stroke={color} strokeWidth="1.3" strokeLinecap="round"/>
+  </svg>
+);
 import TaskTab from "./TaskTab";
 import { auth, db, googleProvider } from "./firebase";
 import { setupNotifications } from "./notifications";
@@ -3560,6 +3574,8 @@ function FocusGoInner() {
   });
   const [noteSearch, setNoteSearch] = useState("");
   const [taskFilter, setTaskFilter] = useState("all"); // all | study | personal
+  const [taskListStatusFilter, setTaskListStatusFilter] = useState("all"); // "all" | "done" | "overdue" — Tasks ট্যাবের উপরের All/Done/Overdue পিল
+  const [taskSearchQuery, setTaskSearchQuery] = useState(""); // Tasks ট্যাবের সার্চ বার
   const [taskViewMode, setTaskViewMode] = useState("list"); // "list" | "calendar" — Task tab-এর ভিউ টগল
   const [taskCalMonth, setTaskCalMonth] = useState(new Date()); // Task calendar view-এ কোন মাস দেখাচ্ছে
   const [taskCalSelectedDay, setTaskCalSelectedDay] = useState(null); // Task calendar-এ সিলেক্টেড দিনের dateKey | null
@@ -6796,31 +6812,140 @@ function FocusGoInner() {
           </div>
         )}
 
-        {/* TASK tab - simple to-do list, separate from study sessions */}
-        {/* TASK tab - simple to-do list, separate from study sessions (UI moved to ./TaskTab.jsx) */}
-        {tab === "task" && (
-          <TaskTab
-            t={t} lang={lang} dark={dark} accent={accent} nf={nf} isDesktop={isDesktop}
-            cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2}
-            today={today} todayKey={todayKey}
-            tasks={tasks.map(x => ({
-              ...x,
-              repeatProgress: (x.repeat && x.repeatGoal) ? { done: x.streakCount || 0, total: x.repeatGoal } : null,
-              ringProgress: typeof x.progress === "number" ? x.progress / 100 : null,
-            }))}
-            taskCategories={taskCategories}
-            taskFilter={taskFilter} setTaskFilter={setTaskFilter}
-            taskViewMode={taskViewMode} setTaskViewMode={setTaskViewMode}
-            taskCalMonth={taskCalMonth} setTaskCalMonth={setTaskCalMonth}
-            taskCalSelectedDay={taskCalSelectedDay} setTaskCalSelectedDay={setTaskCalSelectedDay}
-            taskMenuOpenId={taskMenuOpenId} setTaskMenuOpenId={setTaskMenuOpenId}
-            taskDeleteConfirmId={taskDeleteConfirmId} setTaskDeleteConfirmId={setTaskDeleteConfirmId}
-            closeTaskMenu={closeTaskMenu} deleteTask={deleteTask} toggleTask={toggleTask}
-            toggleTaskFavorite={toggleTaskFavorite} playTaskAudio={playTaskAudio}
-            setEditingTask={setEditingTask} setTaskDetailId={setTaskDetailId}
-            setTaskAddDefaultDate={setTaskAddDefaultDate} setShowAddTask={setShowAddTask}
-          />
-        )}
+        {/* TASK tab — screenshot অনুযায়ী হুবহু: টাইটেল + ডেট পিল, All/Done/Overdue ফিল্টার পিল, সার্চ বার,
+            তালিকা খালি থাকলে ক্লিপবোর্ড ইলাস্ট্রেশন + "Create Your First Task" বাটন + একটা উক্তি */}
+        {tab === "task" && (() => {
+          const overdueCount = tasks.filter(x => !x.done && x.dueDate && x.dueDate < todayKey).length;
+          const doneCount = tasks.filter(x => x.done).length;
+          const q = taskSearchQuery.trim().toLowerCase();
+          const visibleTasks = tasks.filter(x => {
+            if (taskListStatusFilter === "done" && !x.done) return false;
+            if (taskListStatusFilter === "overdue" && !(!x.done && x.dueDate && x.dueDate < todayKey)) return false;
+            if (q && !(x.title || "").toLowerCase().includes(q)) return false;
+            return true;
+          });
+          const dateLabel = `${weekdayShort(today)}, ${nf(today.getDate())} ${monthShort(today.getMonth())}`;
+          const quotePool = lang === "bn"
+            ? ["\u201cছোট পদক্ষেপই বড় অগ্রগতি আনে।\u201d", "\u201cআজকের এক কাজ, আগামীর একধাপ এগিয়ে।\u201d"]
+            : ["\u201cSmall steps make big progress.\u201d", "\u201cOne task at a time.\u201d"];
+          const quote = quotePool[Math.floor(new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime() / 86400000) % quotePool.length];
+
+          return (
+          <div className="fg-tab-panel" style={{marginTop:16}}>
+            {/* Title row + date pill */}
+            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:14}}>
+              <div style={{minWidth:0}}>
+                <div className="fg-title" style={{fontSize:21}}>{t.taskTitle}</div>
+                <div style={{fontSize:12.5, color:textMuted2, marginTop:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
+                  {t.taskSubtitle}
+                </div>
+              </div>
+              <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}}
+                style={{display:"flex", alignItems:"center", gap:6, border:`1px solid ${accent}33`, background:"transparent", borderRadius:999, padding:"7px 12px", cursor:"pointer", flexShrink:0}}>
+                <Calendar size={13} color={accent} strokeWidth={2.2}/>
+                <span style={{fontSize:12.5, fontWeight:700, color:accent, whiteSpace:"nowrap"}}>{dateLabel}</span>
+              </button>
+            </div>
+
+            {/* All / Done / Overdue filter pills */}
+            <div style={{display:"flex", gap:8, marginBottom:12}}>
+              {[
+                { key:"all", label: lang==="bn" ? "সব" : "All", count: tasks.length, Icon: ListChecks },
+                { key:"done", label: t.taskFilterDone, count: doneCount, Icon: Check },
+                { key:"overdue", label: t.taskFilterOverdue, count: overdueCount, Icon: Clock },
+              ].map(f => {
+                const sel = taskListStatusFilter === f.key;
+                return (
+                  <button key={f.key} onClick={()=>{vibrate(); setTaskListStatusFilter(f.key);}}
+                    style={{
+                      flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+                      border: sel ? "none" : `1px solid ${cardBorder}`, cursor:"pointer", fontFamily:"inherit",
+                      borderRadius:14, padding:"10px 6px",
+                      background: sel ? accent : (dark ? cardBg : "#FFFFFF"),
+                      color: sel ? "#FFFFFF" : textMuted2,
+                      boxShadow: sel ? `0 4px 12px ${accent}40` : "none",
+                    }}>
+                    <f.Icon size={13} strokeWidth={2.4}/>
+                    <span style={{fontSize:12.5, fontWeight:700, whiteSpace:"nowrap"}}>{f.label} (<Num>{nf(f.count)}</Num>)</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Search bar */}
+            <div style={{display:"flex", alignItems:"center", gap:8, background: dark ? "rgba(255,255,255,0.06)" : "rgba(20,17,24,0.045)", border:`1px solid ${cardBorder}`, borderRadius:14, padding:"11px 14px", marginBottom:18}}>
+              <Search size={16} color={textMuted2}/>
+              <input value={taskSearchQuery} onChange={e=>setTaskSearchQuery(e.target.value)}
+                placeholder={lang==="bn" ? "টাস্ক খুঁজুন..." : "Search tasks..."}
+                style={{flex:1, minWidth:0, border:"none", outline:"none", background:"transparent", fontFamily:"inherit", fontSize:13.5, color:textMain}}/>
+            </div>
+
+            {visibleTasks.length === 0 ? (
+              <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", padding:"18px 10px 6px"}}>
+                <div style={{position:"relative", width:120, height:120, marginBottom:18}}>
+                  <div style={{position:"absolute", inset:0, borderRadius:"50%", background: dark ? `${accent}22` : `${accent}14`}}/>
+                  <div style={{position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                    <ClipboardChecklistIcon size={56} color={accent}/>
+                  </div>
+                  <span style={{position:"absolute", top:6, right:2, width:10, height:16, borderRadius:4, background:`${accent}55`, transform:"rotate(20deg)"}}/>
+                  <span style={{position:"absolute", bottom:14, left:0, width:10, height:16, borderRadius:4, background:`${accent}55`, transform:"rotate(-25deg)"}}/>
+                </div>
+                <div style={{fontSize:17.5, fontWeight:800, color:textMain}}>
+                  {tasks.length === 0 ? t.taskEmpty : (lang==="bn" ? "কোনো টাস্ক পাওয়া যায়নি" : "No tasks found")}
+                </div>
+                <div style={{fontSize:13, color:textMuted2, marginTop:6, maxWidth:260, lineHeight:1.4}}>
+                  {tasks.length === 0
+                    ? (lang==="bn" ? "দিনটা পরিকল্পনা করতে প্রথম টাস্কটা যোগ করো।" : "Add your first task to start planning your day.")
+                    : (lang==="bn" ? "ফিল্টার বা সার্চ পরিবর্তন করে দেখো।" : "Try changing the filter or search.")}
+                </div>
+                {tasks.length === 0 && (
+                  <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}}
+                    style={{display:"flex", alignItems:"center", gap:8, marginTop:20, border:"none", cursor:"pointer", fontFamily:"inherit",
+                      background: dark ? `${accent}29` : `${accent}1A`, color:accent, fontWeight:700, fontSize:14, borderRadius:14, padding:"13px 22px"}}>
+                    <Sparkles size={16}/> {lang==="bn" ? "প্রথম টাস্ক তৈরি করো" : "Create Your First Task"}
+                  </button>
+                )}
+                {tasks.length === 0 && (
+                  <div style={{marginTop:34, fontSize:12.5, color:textMuted2, fontStyle:"italic"}}>{quote}</div>
+                )}
+                {tasks.length === 0 && (
+                  <div style={{display:"flex", alignItems:"center", gap:8, marginTop:6, fontSize:11.5, color:textMuted2, fontWeight:600}}>
+                    <span style={{width:18, height:1, background:cardBorder}}/>
+                    {lang==="bn" ? "চালিয়ে যাও" : "Keep going"}
+                    <span style={{width:18, height:1, background:cardBorder}}/>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{display:"flex", flexDirection:"column", gap:8}}>
+                {visibleTasks.map(x => {
+                  const overdue = !x.done && x.dueDate && x.dueDate < todayKey;
+                  const pr = x.priority || "med";
+                  const prColor = {high:"#C0392B", med:accent, low:"#6E8B5E"}[pr];
+                  return (
+                    <div key={x.id} onClick={()=>setTaskDetailId(x.id)}
+                      style={{display:"flex", alignItems:"center", gap:11, background: dark ? cardBg : "#FFFFFF", border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 13px", cursor:"pointer"}}>
+                      <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}}
+                        style={{width:22, height:22, borderRadius:"50%", border:`2px solid ${x.done ? "#6E8B5E" : prColor}`, background: x.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, cursor:"pointer", padding:0}}>
+                        {x.done && <Check size={13} color="#fff" strokeWidth={3}/>}
+                      </button>
+                      <div style={{flex:1, minWidth:0}}>
+                        <div style={{fontSize:14, fontWeight:600, color: x.done ? textMuted2 : textMain, textDecoration: x.done ? "line-through" : "none", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                          {x.title}
+                        </div>
+                        {x.dueDate && (
+                          <div style={{fontSize:11, fontWeight:600, color: overdue ? "#C0392B" : textMuted2, marginTop:2}}>{x.dueDate}</div>
+                        )}
+                      </div>
+                      {x.favorite && <Pin size={14} color={accent} fill={`${accent}55`} style={{flexShrink:0}}/>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          );
+        })()}
 
         {/* SETTINGS tab — অন্য ট্যাবগুলোর মতোই সরাসরি পেজ হিসেবে (আগে বটম-শিট মোডাল ছিল) */}
         {tab === "settings" && (
