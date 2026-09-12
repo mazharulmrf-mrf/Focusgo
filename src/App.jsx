@@ -5903,7 +5903,7 @@ function FocusGoInner() {
           <div style={{display:"flex", alignItems:"center", gap:10}}>
             <button onClick={()=>{vibrate(); setTab("today");}} title={t.tabs.today}
               style={{display:"flex", alignItems:"center", gap:10, border:"none", background:"transparent", cursor:"pointer", padding:0}}>
-              <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt="FocusGo" style={{height:26, width:"auto", objectFit:"contain"}}/>
+              <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt="FocusGo" style={{height:36, width:"auto", objectFit:"contain"}}/>
             </button>
           </div>
 
