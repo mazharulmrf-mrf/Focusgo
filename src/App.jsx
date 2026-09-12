@@ -2649,7 +2649,7 @@ const T = {
     editTopicTitle: "Edit Topic", save: "Save", edit: "Edit",
     yourRhythm: "Your Rhythm", todaysStudy: "Today's Study", todaysProgress: "Today's Progress", addTopic: "Add Topic",
     noTopicsToday: "No study planned yet", noTopicsTodaySub: "Add a topic to start your study session.",
-    thisWeek: "This Week",
+    thisWeek: "This Week", thisMonth: "This Month",
     longView: "Long View", syllabusProgress: "Subject Progress", complete: "Complete",
     weeklySummary: "Weekly Summary", monthlySummary: "Monthly Summary",
     covered: "Covered", missed: "Missed",
@@ -2811,7 +2811,7 @@ const T = {
     editTopicTitle: "টপিক এডিট করুন", save: "সেভ করো", edit: "এডিট",
     yourRhythm: "আপনার ছন্দ", todaysStudy: "আজকের পড়া", todaysProgress: "আজকের অগ্রগতি", addTopic: "টপিক যোগ করো",
     noTopicsToday: "এখনো কোনো পড়া প্ল্যান করা নেই", noTopicsTodaySub: "পড়া শুরু করতে একটা টপিক যোগ করুন।",
-    thisWeek: "এই সপ্তাহ",
+    thisWeek: "এই সপ্তাহ", thisMonth: "এই মাস",
     longView: "সামগ্রিক দৃশ্য", syllabusProgress: "বিষয়ভিত্তিক অগ্রগতি", complete: "সম্পন্ন",
     weeklySummary: "সাপ্তাহিক সারাংশ", monthlySummary: "মাসিক সারাংশ",
     covered: "কভার হয়েছে", missed: "বাদ পড়েছে",
@@ -3655,6 +3655,8 @@ function FocusGoInner() {
   const [showSubjects, setShowSubjects] = useState(false);
   const [showSearch, setShowSearch] = useState(false); // Universal search — টাস্ক/নোট/সাবজেক্ট/পরীক্ষা একসাথে খোঁজার মডাল
   const [showAllSubjectsProgress, setShowAllSubjectsProgress] = useState(false); // Stats-এ Subject Progress গ্রিড — সাবজেক্ট বেশি হলে ডিফল্টে ৬টা দেখায়, "See all" চাপলে বাকিগুলো
+  const [statsRange, setStatsRange] = useState("week"); // "week" | "month" — Stats কার্ডের "This Week/This Month" ড্রপডাউন সিলেকশন
+  const [showStatsRangeMenu, setShowStatsRangeMenu] = useState(false);
   const [planDate, setPlanDate] = useState(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d; });
   // Plan tab-এর "Next N Days" strip কতদিন দেখাবে — 7/15/30/60/90, পছন্দ localStorage-এ মনে থাকে
   const [planRange, setPlanRange] = useState(() => {
@@ -6325,10 +6327,12 @@ function FocusGoInner() {
           </div>
         )}
 
-        {/* Stats header — এখন এটা সরাসরি নিজস্ব ট্যাব, Study-র কোনো sub-section না। তাই আলাদা সাদামাটা টাইটেল */}
+        {/* Stats header — এখন এটা সরাসরি নিজস্ব ট্যাব, Study-র কোনো sub-section না। একটাই টাইটেল + সাবটাইটেল
+            (আগে নিচে Subject Progress কার্ডের উপরেও আরেকটা "Stats" টাইটেল ছিল — সেটা ডুপ্লিকেট বলে সরানো হয়েছে) */}
         {tab === "study" && studySection === "stats" && (
           <div className="fg-tab-panel" style={{marginTop:16, marginBottom:2}}>
-            <div className="fg-title" style={{fontSize:21}}>{lang==="bn" ? "স্ট্যাটস" : "Stats"}</div>
+            <div className="fg-title" style={{fontSize:21}}>{t.statsPageTitle}</div>
+            <div style={{fontSize:13.5, color:textMuted2, fontWeight:500, marginTop:2}}>{t.statsPageSubtitle}</div>
           </div>
         )}
 
@@ -6746,20 +6750,19 @@ function FocusGoInner() {
 
         {/* STATS sub-section (inside Study tab) - week + subjects + month, one shared day-detail card at the bottom */}
         {tab === "study" && studySection === "stats" && (
-          <div key="stats" className="fg-tab-panel" style={{marginTop:4}}>
-            {/* পেজ হেডার — বড় "Stats" টাইটেল + সাবটাইটেল, স্ক্রিনশট রেফারেন্স অনুযায়ী */}
-            <div style={{marginBottom:18}}>
-              <div style={{fontSize:26, fontWeight:800, letterSpacing:-0.4, color:textMain, lineHeight:1.15}}>{t.statsPageTitle}</div>
-              <div style={{fontSize:13.5, color:textMuted2, fontWeight:500, marginTop:2}}>{t.statsPageSubtitle}</div>
-            </div>
-
-            {/* একীভূত Stats কার্ড — উপরে আইকন + Total Time Focused হেডলাইন + "This Week" পিল,
-                নিচে ৫টা ইউনিক সেকেন্ডারি স্ট্যাট এক সারিতে, প্রতিটির নিজস্ব রঙিন গোল আইকন */}
+          <div key="stats" className="fg-tab-panel" style={{marginTop:14}}>
+            {/* একীভূত Stats কার্ড — উপরে আইকন + Total Time Focused হেডলাইন + "This Week/This Month" ড্রপডাউন,
+                নিচে ৫টা ইউনিক সেকেন্ডারি স্ট্যাট এক সারিতে, প্রতিটির নিজস্ব রঙিন গোল আইকন।
+                "This Week" পিলে ক্লিক করলে এখন সত্যিকারের ড্রপডাউন খোলে (This Week / This Month), আর হেডলাইনের
+                সময়টাও সিলেকশন অনুযায়ী সাপ্তাহিক/মাসিক অ্যাক্টিভিটি ডেটা থেকে হিসাব হয়ে বদলে যায়। */}
             {(() => {
               const DAILY_GOAL_MIN = 120;
               const todayMinutes = (entries[todayKey] || []).filter(x=>x.done).reduce((s,x)=>s+(x.duration||0),0);
               const goalPct = Math.min(100, Math.round((todayMinutes/DAILY_GOAL_MIN)*100));
-              const h = Math.floor(studyOverview.totalMin/60), m = studyOverview.totalMin%60;
+              const rangeMin = statsRange === "month"
+                ? monthlyActivity.reduce((s,w)=>s+w.min,0)
+                : weeklyActivity.reduce((s,w)=>s+w.min,0);
+              const h = Math.floor(rangeMin/60), m = rangeMin%60;
               const statItems = [
                 { Icon: BookOpen, color:"#3B82F6", value: nf(subjects.length), label: lang==="bn" ? "সাবজেক্ট" : "Subjects" },
                 { Icon: Check, color:"#22C55E", value: nf(studyOverview.doneCount), label: t.topicsCompletedLabel },
@@ -6779,8 +6782,23 @@ function FocusGoInner() {
                         <div style={{fontSize:12, color:textMuted2, fontWeight:500, marginTop:2}}>{t.focusedLabel}</div>
                       </div>
                     </div>
-                    <div style={{display:"flex", alignItems:"center", gap:3, flexShrink:0, background: dark ? "rgba(139,92,246,0.14)" : "rgba(139,92,246,0.10)", color: dark ? "#C4B5FD" : "#7C3AED", borderRadius:20, padding:"7px 11px", fontSize:11.5, fontWeight:700, whiteSpace:"nowrap"}}>
-                      {t.thisWeek} <ChevronDown size={13}/>
+                    <div style={{position:"relative", flexShrink:0}}>
+                      <button onClick={()=>{vibrate(); setShowStatsRangeMenu(v=>!v);}} style={{display:"flex", alignItems:"center", gap:3, border:"none", cursor:"pointer", fontFamily:"inherit", background: dark ? "rgba(139,92,246,0.14)" : "rgba(139,92,246,0.10)", color: dark ? "#C4B5FD" : "#7C3AED", borderRadius:20, padding:"7px 11px", fontSize:11.5, fontWeight:700, whiteSpace:"nowrap"}}>
+                        {statsRange === "month" ? t.thisMonth : t.thisWeek} <ChevronDown size={13} style={{transform: showStatsRangeMenu ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
+                      </button>
+                      {showStatsRangeMenu && (
+                        <>
+                          <div onClick={()=>setShowStatsRangeMenu(false)} style={{position:"fixed", inset:0, zIndex:44}}/>
+                          <div style={{position:"absolute", right:0, top:"100%", marginTop:6, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, boxShadow: dark ? "0 8px 22px rgba(0,0,0,0.35)" : "0 8px 22px rgba(0,0,0,0.14)", zIndex:45, minWidth:140, overflow:"hidden"}}>
+                            <button onClick={()=>{vibrate(); setStatsRange("week"); setShowStatsRangeMenu(false);}} style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, width:"100%", border:"none", background: statsRange==="week" ? (dark?"rgba(139,92,246,0.14)":"rgba(139,92,246,0.10)") : "transparent", color:textMain, padding:"10px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                              {t.thisWeek} {statsRange==="week" && <Check size={13} color="#8B5CF6" strokeWidth={3}/>}
+                            </button>
+                            <button onClick={()=>{vibrate(); setStatsRange("month"); setShowStatsRangeMenu(false);}} style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, width:"100%", border:"none", background: statsRange==="month" ? (dark?"rgba(139,92,246,0.14)":"rgba(139,92,246,0.10)") : "transparent", color:textMain, padding:"10px 12px", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left"}}>
+                              {t.thisMonth} {statsRange==="month" && <Check size={13} color="#8B5CF6" strokeWidth={3}/>}
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                   <div style={{display:"flex", marginTop:18, paddingTop:16, borderTop:`1px solid ${cardBorder}`}}>
@@ -6798,16 +6816,11 @@ function FocusGoInner() {
               );
             })()}
 
-            {/* Subject Progress — right after the merged stats card */}
-            <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginTop:6, marginBottom:14}}>
-              <div style={{minWidth:0}}>
-                <div className="fg-section-header" style={{fontSize:16.5}}>{t.syllabusProgress}</div>
-                <div style={{fontSize:11.5, color:"var(--muted)", fontWeight:500, marginTop:2}}>{t.subjectProgressSubtitle}</div>
-              </div>
-              {/* সাবজেক্ট ম্যানেজ করার শর্টকাট — স্ক্রিনশটের মতো গোল হালকা-অ্যাকসেন্ট ব্যাকগ্রাউন্ডসহ + বাটন */}
-              <button onClick={()=>{vibrate(); setShowSubjects(true);}} title={t.manageSubjects} style={{width:34, height:34, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", border:"none", borderRadius:"50%", background: dark ? "rgba(139,92,246,0.18)" : "rgba(139,92,246,0.12)", color:"#8B5CF6", cursor:"pointer"}}>
-                <Plus size={18} strokeWidth={2.4}/>
-              </button>
+            {/* Subject Progress — right after the merged stats card. আলাদা "+" বাটন সরানো হয়েছে —
+                সাবজেক্ট/টপিক যোগ করা এখন নিচের নচ-বার FAB থেকেই হবে, পেজে একাধিক "+" রাখা হয়নি। */}
+            <div style={{marginTop:6, marginBottom:14}}>
+              <div className="fg-section-header" style={{fontSize:16.5}}>{t.syllabusProgress}</div>
+              <div style={{fontSize:11.5, color:"var(--muted)", fontWeight:500, marginTop:2}}>{t.subjectProgressSubtitle}</div>
             </div>
 
             <div style={{display:"flex", flexDirection:"column", gap:12, marginBottom:16}}>
