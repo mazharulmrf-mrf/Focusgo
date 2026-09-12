@@ -5919,6 +5919,14 @@ function FocusGoInner() {
               style={{display: tab === "today" ? "none" : "flex"}}>
               <Search size={13} strokeWidth={1.8}/>
             </button>
+            {salahFeatureEnabled && (
+              <button
+                onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
+                title={lang === "bn" ? "সালাতের সময়" : "Salah times"}
+                className="fg-btn-circle fg-btn-circle--sm">
+                <MosqueIcon size={14} color="currentColor"/>
+              </button>
+            )}
             <NotificationBell
               t={t} lang={lang} notifications={notifications}
               onMarkAllRead={()=>setNotifications(prev => prev.map(n => ({...n, read:true})))}
@@ -6009,7 +6017,7 @@ function FocusGoInner() {
                       ? `linear-gradient(135deg, ${greetTheme.grad}, transparent 70%)`
                       : `linear-gradient(135deg, ${greetTheme.grad}, #FFFFFF 75%)`,
                   }} ref={salahMenuRef}>
-                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8}}>
+                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8}}>
                       <div style={{minWidth:0, flex:1}}>
                         <div
                           onClick={() => { vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
@@ -6031,15 +6039,9 @@ function FocusGoInner() {
                         <div style={{fontSize:21,fontWeight:600,letterSpacing:-0.5,color:"var(--text)", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", display:"inline-block"}}>
                           {firstName}
                         </div>
-                        {line && (
-                          <div style={{display:"flex", alignItems:"center", gap:6, marginTop:3, fontSize:12.5, fontWeight:500, color:"var(--muted)"}}>
-                            <span style={{overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{line}</span>
-                            <Heart size={12} color={accent} fill={`${accent}33`} style={{flexShrink:0}}/>
-                          </div>
-                        )}
                       </div>
-                      <div style={{display:"flex", alignItems:"center", gap:10, flexShrink:0, paddingTop:1}}>
-                        {/* মিনিমাল ডেট ব্যাজ — উপরে ছোট করে দিনের নাম + মাস, নিচে accent রঙের সার্কেলের মধ্যে আজকের তারিখ। ট্যাপ করলে ফুল ক্যালেন্ডার খোলে, সময় আর দেখানো হয় না */}
+                      <div style={{display:"flex", alignItems:"center", gap:10, flexShrink:0}}>
+                        {/* মিনিমাল ডেট ব্যাজ — উপরে ছোট করে দিনের নাম + মাস, নিচে accent রঙের সার্কেলের মধ্যে আজকের তারিখ। ট্যাপ করলে ফুল ক্যালেন্ডার খোলে, সময় আর দেখানো হয় না — সবসময় সবচেয়ে ডানে থাকবে */}
                         <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
                           <span style={{fontSize:9.5, fontWeight:600, color:"var(--muted)", letterSpacing:0.1, whiteSpace:"nowrap"}}>
                             {weekdayShort(today)}, {monthShort(today.getMonth())}
@@ -6056,20 +6058,6 @@ function FocusGoInner() {
                             }}/>
                           )}
                         </button>
-                        {salahFeatureEnabled && (
-                          <button
-                            onClick={() => { vibrate(); setShowSalahDropdown(v => !v); if (!salahCoords) requestSalahLocation(); }}
-                            style={{
-                              border:"none", background:`${accent}14`, padding:0, flexShrink:0,
-                              width:32, height:32, borderRadius:"50%",
-                              display:"flex", alignItems:"center", justifyContent:"center",
-                              cursor:"pointer", position:"relative",
-                            }}
-                            title={lang === "bn" ? "সালাতের সময়" : "Salah times"}
-                          >
-                            <MosqueIcon size={18} color={accent}/>
-                          </button>
-                        )}
                       </div>
                     </div>
                   </div>
