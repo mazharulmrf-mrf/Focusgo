@@ -6598,13 +6598,22 @@ function FocusGoInner() {
                 rowDividerColor={dark ? "rgba(255,255,255,0.07)" : "rgba(20,17,24,0.06)"}/>
             </div>
           ) : (
-            <TopicsList items={todayTopics} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
-              cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} textMain={textMain} accent={accent}
-              onToggle={(id)=>toggleDoneFor(todayKey, id)} onStartTimer={startTimerFor}
-              activeTimerId={timerTopicId} timerRunning={timerRunning} timerSeconds={timerSeconds} onToggleRun={toggleTimerRunning}
-              onEdit={(item)=>setEditTopic({...item, _dk: todayKey})} onDelete={(id)=>deleteTopicFor(todayKey, id)}
-              onRename={(item, newTopic)=>saveEditFor(todayKey, {...item, topic:newTopic})}
-              emptyText={t.noTopicsToday} emptySubtext={t.noTopicsTodaySub} emptyIcon={Sparkles} useAccentColor/>
+            <div style={{
+              background: dark ? cardBg : "#FFFFFF", borderRadius:16, padding: todayTopics.length ? "4px 13px" : "8px",
+              border:`1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(20,17,24,0.045)"}`,
+              boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 2px 10px rgba(32,34,43,0.05)",
+            }}>
+              <TopicsList items={todayTopics} allSubjects={allSubjects} t={t} nf={nf} lang={lang}
+                cardBg={cardBg} cardBorder={cardBorder} textMuted2={textMuted2} textMain={textMain} accent={accent}
+                onToggle={(id)=>toggleDoneFor(todayKey, id)} onStartTimer={startTimerFor}
+                activeTimerId={timerTopicId} timerRunning={timerRunning} timerSeconds={timerSeconds} onToggleRun={toggleTimerRunning}
+                onEdit={(item)=>setEditTopic({...item, _dk: todayKey})} onDelete={(id)=>deleteTopicFor(todayKey, id)}
+                onRename={(item, newTopic)=>saveEditFor(todayKey, {...item, topic:newTopic})}
+                emptyText={t.noTopicsToday} emptySubtext={t.noTopicsTodaySub} emptyIcon={Sparkles} useAccentColor
+                onEmptyAdd={()=>{vibrate(); setAddTargetKey(todayKey); setShowAdd(true);}}
+                emptyAddLabel={lang==="bn" ? "টপিক যোগ করুন" : "Add Study Topic"}
+                rowDividerColor={dark ? "rgba(255,255,255,0.07)" : "rgba(20,17,24,0.06)"}/>
+            </div>
           )}
         </div>
         )}
@@ -6746,7 +6755,7 @@ function FocusGoInner() {
                 ))}
               </div>
             </div>
-            <div style={{display:"flex", gap:2, padding:"5px 0 3px",
+            <div style={{display:"flex", gap:8, padding:"5px 2px 3px",
               overflowX: planRange > 7 ? "auto" : "visible", WebkitOverflowScrolling:"touch"}}>
               {planDays.map((d,i) => {
                 const dk = dateKey(d);
@@ -6754,18 +6763,29 @@ function FocusGoInner() {
                 const dayList = entries[dk] || [];
                 const hasAny = dayList.length > 0;
                 const doneAll = hasAny && dayList.every(x=>x.done);
-                const statusColor = !hasAny ? textMuted2 : (doneAll ? "#6E8B5E" : inkColor);
+                const statusColor = !hasAny ? (dark ? "#3A3A3A" : "#D9D5E8") : (doneAll ? "#6E8B5E" : inkColor);
                 return (
-                  <div key={i} className="fg-card" onClick={()=>setPlanDate(d)} style={{textAlign:"center", cursor:"pointer", flex: planRange > 7 ? "0 0 40px" : 1, padding:"0 2px"}}>
-                    <div style={{fontSize:10.5, fontWeight:500, color: isSel ? accent : textMuted2, opacity: isSel ? 1 : 0.85, marginBottom:6, letterSpacing:0.3}}>{weekdayShort(d)}</div>
-                    <div style={{width:34,height:34, borderRadius:"50%", display:"flex",alignItems:"center",justifyContent:"center", margin:"0 auto", fontSize:13.5, fontWeight:600,
-                      transition:"background .18s ease, color .18s ease, box-shadow .18s ease", boxShadow: isSel ? `0 0 0 1.5px ${accent}` : "none",
-                      background:"transparent", color: isSel ? accent : textMain}}>
+                  <div key={i} onClick={()=>setPlanDate(d)} style={{
+                    textAlign:"center", cursor:"pointer",
+                    flex: planRange > 7 ? "0 0 56px" : 1,
+                    borderRadius:16, padding:"10px 4px 12px",
+                    background: isSel ? `${accent}17` : (dark ? cardBg : "#FFFFFF"),
+                    border: isSel ? `1px solid ${accent}40` : `1px solid ${cardBorder}`,
+                    transition:"background .18s ease, border-color .18s ease"
+                  }}>
+                    <div style={{fontSize:10, fontWeight:700, letterSpacing:0.5, textTransform:"uppercase",
+                      color: isSel ? accent : textMuted2, opacity: isSel ? 1 : 0.85, marginBottom:8}}>
+                      {weekdayShort(d)}
+                    </div>
+                    {/* selected day gets a solid filled circle badge, others show a plain number */}
+                    <div style={{width:34,height:34, borderRadius:"50%", display:"flex",alignItems:"center",justifyContent:"center", margin:"0 auto", fontSize:13.5, fontWeight:700,
+                      transition:"background .18s ease, color .18s ease",
+                      background: isSel ? accent : "transparent", color: isSel ? "#FFFFFF" : textMain}}>
                       <Num>{nf(d.getDate())}</Num>
                     </div>
-                    {/* status dot — same legend colors as Calendar (green completed / blue planned); selected day always shows accent color */}
-                    <div style={{marginTop:6, display:"flex", justifyContent:"center"}}>
-                      <span style={{width:6, height:6, borderRadius:"50%", background: isSel && !hasAny ? accent : statusColor, opacity: (hasAny || isSel) ? 1 : 0.3}}/>
+                    {/* status dot — same legend colors as Calendar (green completed / accent planned); selected day always shows accent color */}
+                    <div style={{marginTop:8, display:"flex", justifyContent:"center"}}>
+                      <span style={{width:6, height:6, borderRadius:"50%", background: isSel && !hasAny ? accent : statusColor}}/>
                     </div>
                   </div>
                 );
