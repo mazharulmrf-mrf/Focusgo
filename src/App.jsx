@@ -6355,24 +6355,47 @@ function FocusGoInner() {
             ক্লিক করলে নতুন ফুল-স্ক্রিন Focus Timer পেজ (FocusTimerPage) খোলে। শুধু Study Plan-এ দেখানো হয় (Today ট্যাবে না —
             ওটা dashboard, টপিক বাছাইয়ের flow Study-তেই হয়)। */}
         {tab === "study" && studySection === "plan" && (
-        <div className="fg-card fg-card-flat fg-tab-panel" onClick={()=>{ vibrate(); setShowFocusTimerPage(true); }} style={{marginTop:8, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, padding:"12px 14px", cursor:"pointer"}}>
-          <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
-            <div style={{width:38, height:38, borderRadius:"50%", background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", color:accent, flexShrink:0}}>
-              <Hourglass size={18}/>
-            </div>
-            <div style={{textAlign:"left", minWidth:0}}>
-              <div style={{fontSize:14.5, fontWeight:700, color:textMain, whiteSpace:"nowrap"}}>{t.focusTimer}</div>
-              <div style={{fontSize:12, fontWeight:500, color:textMuted2, marginTop:1}}>
-                <Num>{nf(Math.round(timerTotal/60))}</Num> {t.minutes}
+        <div className="fg-card fg-card-flat fg-tab-panel" style={{marginTop:8, padding:"14px 14px 12px"}}>
+          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}>
+            <div onClick={()=>{ vibrate(); setShowFocusTimerPage(true); }} style={{display:"flex", alignItems:"center", gap:12, minWidth:0, cursor:"pointer"}}>
+              <div style={{width:42, height:42, borderRadius:"50%", background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", color:accent, flexShrink:0}}>
+                <Hourglass size={19}/>
+              </div>
+              <div style={{textAlign:"left", minWidth:0}}>
+                <div style={{fontSize:15, fontWeight:800, color:textMain, whiteSpace:"nowrap"}}>{t.focusTimer}</div>
+                <div style={{fontSize:11.5, fontWeight:500, color:textMuted2, marginTop:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
+                  {lang==="bn" ? "মনোযোগী থাকো, কাজ শেষ করো।" : "Stay focused, get things done."}
+                </div>
               </div>
             </div>
+            <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, flexShrink:0}}>
+              <button onClick={(e)=>{ e.stopPropagation(); if (timerRunning) { toggleTimerRunning(); } else { selectTimerTopic(null); setFocusMode("timer"); setTimerRunning(true); setShowFocusTimerPage(true); playStartSound(); vibrate(); } }}
+                style={{display:"flex", alignItems:"center", justifyContent:"center", background:accent, border:"none", borderRadius:"50%", width:44, height:44, color:"#fff", cursor:"pointer", flexShrink:0}}>
+                {timerRunning ? <Pause size={17} fill="#fff"/> : <Play size={17} fill="#fff" style={{marginLeft:2}}/>}
+              </button>
+              <span style={{fontSize:11, fontWeight:700, color:textMain, whiteSpace:"nowrap"}}>
+                {timerRunning ? (lang==="bn" ? "চলছে" : "Running") : (lang==="bn" ? "শুরু" : "Start")}
+              </span>
+            </div>
           </div>
-          <div style={{display:"flex", alignItems:"center", gap:10, flexShrink:0}}>
-            <button onClick={(e)=>{ e.stopPropagation(); if (timerRunning) { toggleTimerRunning(); } else { selectTimerTopic(null); setFocusMode("timer"); setTimerRunning(true); setShowFocusTimerPage(true); playStartSound(); vibrate(); } }}
-              style={{display:"flex", alignItems:"center", justifyContent:"center", background:accent, border:"none", borderRadius:"50%", width:40, height:40, color:"#fff", cursor:"pointer", flexShrink:0}}>
-              {timerRunning ? <Pause size={16} fill="#fff"/> : <Play size={16} fill="#fff" style={{marginLeft:2}}/>}
-            </button>
-            <ChevronRight size={18} color={textMuted2}/>
+          <div style={{display:"flex", gap:7, marginTop:12}}>
+            {[25,30,45,60].map(m => {
+              const sel = Math.round(timerTotal/60) === m;
+              return (
+                <button key={m} disabled={timerRunning} onClick={()=>{ vibrate(); setTimerTotal(m*60); setTimerSeconds(m*60); }}
+                  style={{
+                    flex:1, border:"none", fontFamily:"inherit", fontSize:12.5, fontWeight:600,
+                    padding:"8px 0", borderRadius:999,
+                    background: sel ? accent : (dark ? "rgba(255,255,255,0.08)" : "rgba(20,17,24,0.05)"),
+                    color: sel ? "#FFFFFF" : textMuted2,
+                    cursor: timerRunning ? "default" : "pointer",
+                    opacity: (timerRunning && !sel) ? 0.5 : 1,
+                    transition:"background .15s ease, color .15s ease"
+                  }}>
+                  <Num>{nf(m)}</Num> {t.minutes}
+                </button>
+              );
+            })}
           </div>
         </div>
         )}
