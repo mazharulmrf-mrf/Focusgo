@@ -6381,33 +6381,46 @@ function FocusGoInner() {
             এখন accent color ব্যবহার হচ্ছে (আগে dark teal ছিল, সেই রঙ Next Exam কার্ডে সরানো হয়েছে) */}
         {((tab === "today" && studyFeatureEnabled) || (tab === "study" && studySection === "plan")) && (() => {
           if (tab === "today") {
-            // Today tab hero: a single calm, focus-oriented card — a flat "X of Y done" summary,
-            // the streak next to it behind a divider, and the task progress as a slim bar below.
             const doneToday = todayTopics.filter(x => x.done).length;
             const totalToday = todayTopics.length;
 
             return (
               <div className="fg-tab-panel" style={{
                 marginTop:10, background: dark ? cardBg : "#FFFFFF", borderRadius:16,
-                padding:"12px 16px", position:"relative", overflow:"hidden",
+                padding:"14px 16px", position:"relative", overflow:"hidden",
                 border:`1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(20,17,24,0.045)"}`,
                 boxShadow: dark ? "0 2px 12px rgba(0,0,0,0.32)" : "0 4px 18px rgba(32,34,43,0.06)",
+                display:"flex", alignItems:"center", gap:12,
               }}>
-                <div style={{display:"flex", alignItems:"center", gap:12}}>
-                  <div style={{flex:1, minWidth:0}}>
-                    <div style={{fontSize:12, fontWeight:600, color:textMuted2, marginBottom:3}}>{lang === "bn" ? "আজ" : "Today"}</div>
-                    <div style={{fontSize:17, fontWeight:800, color:textMain, letterSpacing:-0.3, fontVariantNumeric:"tabular-nums"}}>
+                <div style={{display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0}}>
+                  <span style={{width:38, height:38, borderRadius:"50%", background: dark?`${accent}29`:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                    <BookOpen size={18} color={accent}/>
+                  </span>
+                  <div style={{minWidth:0}}>
+                    <div style={{fontSize:11.5, fontWeight:600, color:textMuted2}}>{lang === "bn" ? "আজ" : "Today"}</div>
+                    <div style={{fontSize:15.5, fontWeight:700, color:textMain, letterSpacing:-0.2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
                       {lang === "bn"
                         ? <><Num>{nf(doneToday)}</Num>/<Num>{nf(totalToday)}</Num> {t.doneCount}</>
                         : <><Num>{nf(doneToday)}</Num> of <Num>{nf(totalToday)}</Num> {t.doneCount.toLowerCase()}</>}
                     </div>
+                    <div style={{fontSize:10.5, color:textMuted2, marginTop:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
+                      {totalToday === 0
+                        ? (lang==="bn" ? "প্রোডাক্টিভ দিনের জন্য একটা ফ্রেশ শুরু!" : "A fresh start for a productive day!")
+                        : (lang==="bn" ? "চালিয়ে যাও!" : "Keep it up!")}
+                    </div>
                   </div>
-                  <div style={{width:1, alignSelf:"stretch", background: dark ? "rgba(255,255,255,0.08)" : "rgba(20,17,24,0.08)", flexShrink:0}}/>
-                  <div style={{display:"flex", alignItems:"center", gap:7, flexShrink:0}}>
-                    <Flame size={17} color={accent} fill={`${accent}55`}/>
-                    <div style={{display:"flex", alignItems:"baseline", gap:4, whiteSpace:"nowrap"}}>
-                      <span style={{fontSize:17, fontWeight:800, color:textMain, fontVariantNumeric:"tabular-nums"}}><Num>{nf(studyOverview.streak)}</Num></span>
-                      <span style={{fontSize:12, fontWeight:600, color:textMuted2}}>{t.streakLabel}</span>
+                </div>
+                <div style={{width:1, alignSelf:"stretch", background: dark ? "rgba(255,255,255,0.08)" : "rgba(20,17,24,0.08)", flexShrink:0}}/>
+                <div style={{display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0}}>
+                  <span style={{width:38, height:38, borderRadius:"50%", background: dark?`${accent}29`:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                    <Flame size={18} color={accent} fill={`${accent}55`}/>
+                  </span>
+                  <div style={{minWidth:0}}>
+                    <div style={{fontSize:15.5, fontWeight:700, color:textMain, letterSpacing:-0.2, whiteSpace:"nowrap"}}>
+                      <Num>{nf(studyOverview.streak)}</Num> <span style={{fontWeight:600}}>{t.streakLabel}</span>
+                    </div>
+                    <div style={{fontSize:10.5, color:textMuted2, marginTop:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
+                      {lang==="bn" ? "স্ট্রিক ধরে রাখো!" : "Keep your streak alive!"}
                     </div>
                   </div>
                 </div>
@@ -6435,7 +6448,7 @@ function FocusGoInner() {
               </div>
               <div style={{fontSize:10.5, color:inkA(0.5), marginTop:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
                 {todayTopics.length === 0
-                  ? (lang==="bn" ? "প্রোডাক্টিভ দিনের জন্য একটা ফ্রেশ শুরু!" : "A fresh start for a productive day!")
+                  ? (lang==="bn" ? "চলো শুরু করি!" : "Let's make it count!")
                   : (lang==="bn" ? "চালিয়ে যাও!" : "Keep it up!")}
               </div>
             </div>
@@ -6450,7 +6463,7 @@ function FocusGoInner() {
                 <Num>{nf(studyOverview.streak)}</Num> <span style={{fontWeight:600}}>{t.streakLabel}</span>
               </div>
               <div style={{fontSize:10.5, color:inkA(0.5), marginTop:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
-                {lang==="bn" ? "স্ট্রিক ধরে রাখো!" : "Keep your streak alive!"}
+                {lang==="bn" ? "চালিয়ে যাও!" : "Keep going!"}
               </div>
             </div>
           </div>
@@ -6754,7 +6767,9 @@ function FocusGoInner() {
               onEdit={(item)=>setEditTopic({...item, _dk: planKey})}
               onDelete={(id)=>deleteTopicFor(planKey, id)}
               onRename={(item, newTopic)=>saveEditFor(planKey, {...item, topic:newTopic})}
-              emptyText={t.noTopicsPlanned} emptySubtext={t.noTopicsPlannedSub}/>
+              emptyText={t.noTopicsPlanned} emptySubtext={t.noTopicsPlannedSub}
+              onEmptyAdd={()=>{vibrate(); setAddTargetKey(planKey); setShowAdd(true);}}
+              emptyAddLabel={lang==="bn" ? "টপিক যোগ করুন" : "Add Study Topic"}/>
           </div>
         )}
 
