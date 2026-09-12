@@ -10,7 +10,7 @@ import { NativeSettings, AndroidSettings, IOSSettings } from "capacitor-native-s
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert, BookOpen, Hourglass, Flag, Lightbulb, Cloud, UploadCloud, Globe, HelpCircle, Menu, Heart, Mic, Square } from "lucide-react";
+import { Plus, Play, Pause, RotateCcw, Calendar, ChevronLeft, ChevronRight, ChevronDown, X, Check, Trash2, Clock, Pencil, Home, CalendarDays, BarChart3, GraduationCap, Folder, Maximize2, User, LogOut, Sun, Moon, Contrast, Settings, Info, Eye, EyeOff, Mail, WifiOff, MoreVertical, Pin, PinOff, Tag, Flame, Target, TrendingUp, Bell, ListChecks, User2, Sparkles, FileText, Search, CalendarClock, List, CalendarRange, Repeat, Bold, Italic, Underline, Heading1, Heading2, RemoveFormatting, Palette, LayoutGrid, ArrowUpDown, MapPin, Compass, Image as ImageIcon, KeyRound, AtSign, Link2, Cake, Loader2, Vibrate, Music, Volume2, VolumeX, CloudRain, Waves, Shield, ShieldAlert, BookOpen, Hourglass, Flag, Lightbulb, Cloud, UploadCloud, Globe, HelpCircle, Menu, Heart, Mic, Square, Brain, FlaskConical, Calculator, Landmark, Globe2, Music2, Palette as PaletteIcon, Code2, Languages } from "lucide-react";
 
 // lucide-react-এর এই ভার্সনে Mars/Venus নেই, তাই নিজে ছোট SVG icon বানানো হলো
 const Mars = ({ size = 18, color = "currentColor" }) => (
@@ -2754,6 +2754,8 @@ const T = {
     completionLabel: "completion rate", streakLabel: "day streak", weeklyActivity: "Weekly Activity",
     monthlyActivity: "Monthly Activity", weekLabelShort: "W",
     subjectProgressSubtitle: "How far you've covered in each subject",
+    statsPageTitle: "Stats", statsPageSubtitle: "Track your progress",
+    dailyGoalLabel: "Daily goal", completeShort: "Complete", noTopicsYetCaps: "NO TOPICS YET",
     calendarLegendCompleted: "Study completed", calendarLegendExam: "Exam", calendarLegendPlanned: "Planned",
     calendarLegendHoliday: "Govt holiday",
     noTopicsSubjectShort: "No topics yet", addTopicsShort: "Add Topics",
@@ -2914,6 +2916,8 @@ const T = {
     completionLabel: "সম্পন্ন হার", streakLabel: "দিনের স্ট্রিক", weeklyActivity: "সাপ্তাহিক কার্যক্রম",
     monthlyActivity: "মাসিক কার্যক্রম", weekLabelShort: "সপ্তাহ ",
     subjectProgressSubtitle: "প্রতিটি সাবজেক্টে তুমি কতদূর পড়েছ",
+    statsPageTitle: "স্ট্যাটস", statsPageSubtitle: "তোমার অগ্রগতি ট্র্যাক করো",
+    dailyGoalLabel: "দৈনিক লক্ষ্য", completeShort: "সম্পন্ন", noTopicsYetCaps: "এখনো টপিক নেই",
     calendarLegendCompleted: "পড়া সম্পন্ন", calendarLegendExam: "পরীক্ষা", calendarLegendPlanned: "পরিকল্পিত",
     calendarLegendHoliday: "সরকারি ছুটি",
     noTopicsSubjectShort: "এখনো কোনো টপিক নেই", addTopicsShort: "টপিক যোগ করো",
@@ -2958,6 +2962,22 @@ const colorForSubject = (name, subjects) => {
     hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
   }
   return SUBJECT_COLORS[hash % SUBJECT_COLORS.length];
+};
+
+// সাবজেক্টের নাম দেখে একটা প্রাসঙ্গিক আইকন বেছে নেওয়া হয় (Stats ট্যাবের Subject Progress কার্ডে ব্যবহৃত) —
+// ডেটা মডেলে সাবজেক্টের নিজস্ব আইকন ফিল্ড নেই, তাই নামের কিওয়ার্ড ম্যাচ করে সবচেয়ে কাছাকাছি আইকন দেওয়া হচ্ছে
+const iconForSubject = (name) => {
+  const n = (name || "").toLowerCase();
+  if (/general knowledge|\bgk\b|সাধারণ জ্ঞান/.test(n)) return Brain;
+  if (/science|physics|chemistry|biology|বিজ্ঞান|পদার্থ|রসায়ন|জীববিজ্ঞান/.test(n)) return FlaskConical;
+  if (/math|গণিত|অংক/.test(n)) return Calculator;
+  if (/history|geography|social|ইতিহাস|ভূগোল|সমাজ/.test(n)) return Landmark;
+  if (/english|literature|grammar|ইংরেজি|সাহিত্য/.test(n)) return BookOpen;
+  if (/programming|code|computer|আইসিটি|কম্পিউটার/.test(n)) return Code2;
+  if (/language|ভাষা/.test(n)) return Languages;
+  if (/art|drawing|আর্ট|চিত্র/.test(n)) return PaletteIcon;
+  if (/music|সংগীত/.test(n)) return Music2;
+  return BookOpen;
 };
 
 // টাস্ক ক্যাটাগরির নাম -> lucide আইকন কম্পোনেন্ট (dynamic custom category-র জন্য)
@@ -6313,7 +6333,8 @@ function FocusGoInner() {
         )}
 
         {/* Focus Timer preview row — screenshot অনুযায়ী সাদা কার্ড, আইকন + টাইটেল + ডিউরেশন, Play বাটন আর chevron;
-            ক্লিক করলে নতুন ফুল-স্ক্রিন Focus Timer পেজ (FocusTimerPage) খোলে। শুধু Study Plan-এ দেখানো হয়। */}
+            ক্লিক করলে নতুন ফুল-স্ক্রিন Focus Timer পেজ (FocusTimerPage) খোলে। শুধু Study Plan-এ দেখানো হয় (Today ট্যাবে না —
+            ওটা dashboard, টপিক বাছাইয়ের flow Study-তেই হয়)। */}
         {tab === "study" && studySection === "plan" && (
         <div className="fg-card fg-card-flat fg-tab-panel" onClick={()=>{ vibrate(); setShowFocusTimerPage(true); }} style={{marginTop:8, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, padding:"12px 14px", cursor:"pointer"}}>
           <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
@@ -6725,33 +6746,50 @@ function FocusGoInner() {
 
         {/* STATS sub-section (inside Study tab) - week + subjects + month, one shared day-detail card at the bottom */}
         {tab === "study" && studySection === "stats" && (
-          <div key="stats" className="fg-tab-panel" style={{marginTop:22}}>
-            {/* একীভূত Stats কার্ড — আগে দুটো আলাদা ব্লক ছিল (৪-আইকন quick-stats grid + "Study Overview" hero),
-                দুটোতেই Day Streak রিপিট হচ্ছিল আর concept ওভারল্যাপ করছিল, তাই একটা কম্প্যাক্ট কার্ডে মার্জ করা হলো:
-                উপরে Total Time Focused (হেডলাইন), নিচে ৫টা ইউনিক সেকেন্ডারি স্ট্যাট এক সারিতে */}
+          <div key="stats" className="fg-tab-panel" style={{marginTop:4}}>
+            {/* পেজ হেডার — বড় "Stats" টাইটেল + সাবটাইটেল, স্ক্রিনশট রেফারেন্স অনুযায়ী */}
+            <div style={{marginBottom:18}}>
+              <div style={{fontSize:26, fontWeight:800, letterSpacing:-0.4, color:textMain, lineHeight:1.15}}>{t.statsPageTitle}</div>
+              <div style={{fontSize:13.5, color:textMuted2, fontWeight:500, marginTop:2}}>{t.statsPageSubtitle}</div>
+            </div>
+
+            {/* একীভূত Stats কার্ড — উপরে আইকন + Total Time Focused হেডলাইন + "This Week" পিল,
+                নিচে ৫টা ইউনিক সেকেন্ডারি স্ট্যাট এক সারিতে, প্রতিটির নিজস্ব রঙিন গোল আইকন */}
             {(() => {
               const DAILY_GOAL_MIN = 120;
               const todayMinutes = (entries[todayKey] || []).filter(x=>x.done).reduce((s,x)=>s+(x.duration||0),0);
               const goalPct = Math.min(100, Math.round((todayMinutes/DAILY_GOAL_MIN)*100));
               const h = Math.floor(studyOverview.totalMin/60), m = studyOverview.totalMin%60;
               const statItems = [
-                { Icon: BookOpen, color:"#4C8FA6", value: nf(subjects.length), label: lang==="bn" ? "সাবজেক্ট" : "Subjects" },
-                { Icon: Check, color:"#6E8B5E", value: nf(studyOverview.doneCount), label: t.topicsCompletedLabel },
-                { Icon: TrendingUp, color: inkColor, value: `${nf(studyOverview.pct)}%`, label: t.completionLabel },
-                { Icon: Target, color: accent, value: `${nf(goalPct)}%`, label: lang==="bn" ? "দৈনিক লক্ষ্য" : "Daily Goal" },
-                { Icon: Flame, color:"#C08A2E", value: nf(studyOverview.streak), label: t.streakLabel },
+                { Icon: BookOpen, color:"#3B82F6", value: nf(subjects.length), label: lang==="bn" ? "সাবজেক্ট" : "Subjects" },
+                { Icon: Check, color:"#22C55E", value: nf(studyOverview.doneCount), label: t.topicsCompletedLabel },
+                { Icon: TrendingUp, color:"#8B5CF6", value: `${nf(studyOverview.pct)}%`, label: t.completionLabel },
+                { Icon: Target, color:"#EC4899", value: `${nf(goalPct)}%`, label: t.dailyGoalLabel },
+                { Icon: Flame, color:"#F59E0B", value: nf(studyOverview.streak), label: t.streakLabel },
               ];
               return (
-                <div style={{background: dark ? cardBg : "#FFFFFF", borderRadius:14, padding:"18px 16px 16px", marginBottom:16, textAlign:"center", boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)"}}>
-                  <div style={{fontSize:28, fontWeight:700, letterSpacing:-0.6, color:textMain, lineHeight:1.1}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
-                  <div style={{fontSize:12, color:textMuted2, fontWeight:500, marginTop:3}}>{t.focusedLabel}</div>
+                <div style={{background: dark ? cardBg : "#FFFFFF", borderRadius:16, padding:"18px 16px 16px", marginBottom:22, boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)"}}>
+                  <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:10}}>
+                    <div style={{display:"flex", alignItems:"center", gap:12}}>
+                      <div style={{width:44, height:44, borderRadius:12, flexShrink:0, background: dark ? "rgba(139,92,246,0.18)" : "rgba(139,92,246,0.12)", display:"flex", alignItems:"center", justifyContent:"center"}}>
+                        <BarChart3 size={20} color="#8B5CF6"/>
+                      </div>
+                      <div>
+                        <div style={{fontSize:22, fontWeight:800, letterSpacing:-0.4, color:textMain, lineHeight:1.15}}>{h > 0 && <><Num>{nf(h)}</Num>h </>}<Num>{nf(m)}</Num>m</div>
+                        <div style={{fontSize:12, color:textMuted2, fontWeight:500, marginTop:2}}>{t.focusedLabel}</div>
+                      </div>
+                    </div>
+                    <div style={{display:"flex", alignItems:"center", gap:3, flexShrink:0, background: dark ? "rgba(139,92,246,0.14)" : "rgba(139,92,246,0.10)", color: dark ? "#C4B5FD" : "#7C3AED", borderRadius:20, padding:"7px 11px", fontSize:11.5, fontWeight:700, whiteSpace:"nowrap"}}>
+                      {t.thisWeek} <ChevronDown size={13}/>
+                    </div>
+                  </div>
                   <div style={{display:"flex", marginTop:18, paddingTop:16, borderTop:`1px solid ${cardBorder}`}}>
                     {statItems.map((it, i) => (
                       <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6, textAlign:"center"}}>
-                        <div style={{width:30, height:30, borderRadius:"50%", background:`${it.color}1E`, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                          <it.Icon size={14} color={it.color}/>
+                        <div style={{width:32, height:32, borderRadius:"50%", background:`${it.color}20`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                          <it.Icon size={15} color={it.color}/>
                         </div>
-                        <div style={{fontSize:14.5, fontWeight:700, color:textMain, letterSpacing:-0.2, lineHeight:1.1}}>{it.value}</div>
+                        <div style={{fontSize:15, fontWeight:800, color:textMain, letterSpacing:-0.2, lineHeight:1.1}}>{it.value}</div>
                         <div style={{fontSize:9.5, color:textMuted2, fontWeight:500, lineHeight:1.2}}>{it.label}</div>
                       </div>
                     ))}
@@ -6766,58 +6804,63 @@ function FocusGoInner() {
                 <div className="fg-section-header" style={{fontSize:16.5}}>{t.syllabusProgress}</div>
                 <div style={{fontSize:11.5, color:"var(--muted)", fontWeight:500, marginTop:2}}>{t.subjectProgressSubtitle}</div>
               </div>
-              {/* সাবজেক্ট ম্যানেজ করার শর্টকাট — আগে টেক্সট বাটন হিসেবে নিচে আলাদা লাইনে ছিল, এখন হেডিং-এর পাশেই ছোট + আইকন হিসেবে হাইলাইট করা */}
-              <button onClick={()=>{vibrate(); setShowSubjects(true);}} title={t.manageSubjects} style={{width:32, height:32, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", border:"none", background:"transparent", color:accent, cursor:"pointer"}}>
-                <Plus size={19} strokeWidth={2.3}/>
+              {/* সাবজেক্ট ম্যানেজ করার শর্টকাট — স্ক্রিনশটের মতো গোল হালকা-অ্যাকসেন্ট ব্যাকগ্রাউন্ডসহ + বাটন */}
+              <button onClick={()=>{vibrate(); setShowSubjects(true);}} title={t.manageSubjects} style={{width:34, height:34, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", border:"none", borderRadius:"50%", background: dark ? "rgba(139,92,246,0.18)" : "rgba(139,92,246,0.12)", color:"#8B5CF6", cursor:"pointer"}}>
+                <Plus size={18} strokeWidth={2.4}/>
               </button>
             </div>
 
-            <div style={{marginBottom:20, background: dark ? cardBg : "#FFFFFF", borderRadius:14, padding: "4px 14px", boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)"}}>
+            <div style={{display:"flex", flexDirection:"column", gap:12, marginBottom:16}}>
               {(() => {
                 const sorted = [...allSubjects].sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:"base"}));
                 const COLLAPSE_AT = 4; // max 4 subjects shown in the grid — rest via "See more"
                 const isLong = sorted.length > COLLAPSE_AT;
                 const visible = (isLong && !showAllSubjectsProgress) ? sorted.slice(0, COLLAPSE_AT) : sorted;
+                if (sorted.length === 0) {
+                  return <div style={{fontSize:13.5, color:textMuted2, padding:"14px 0", textAlign:"center"}}>—</div>;
+                }
                 return (
                   <>
-                    <div style={{display:"flex", flexDirection:"column", gap:0}}>
-                      {sorted.length === 0 && (
-                        <div style={{fontSize:13.5, color:textMuted2, padding:"14px 0"}}>—</div>
-                      )}
-                      {visible.map(subj => {
-                        const v = subjectProgress[subj] || { done:0, total:0 };
-                        const c = colorForSubject(subj, allSubjects);
-                        const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
-                        return (
-                          <button key={subj} className="fg-task-row" onClick={()=>{vibrate(); setShowManageTopicsFor(subj); setShowSubjects(true);}} style={{display:"flex", alignItems:"center", gap:12, background:"transparent", borderRadius:0, padding:"13px 0", cursor:"pointer", textAlign:"left", width:"100%"}}>
-                            <span style={{width:10, height:10, borderRadius:"50%", background:c.bg, flexShrink:0}}/>
-                            <div style={{flex:1, minWidth:0}}>
-                              <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:c.bg, textTransform:"uppercase", marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{v.total ? `${nf(pct)}%` : t.noTopicsSubjectShort}</div>
-                              <div style={{fontSize:14.5, fontWeight:800, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subj}</div>
-                              {v.total > 0 ? (
-                                <>
-                                  <div style={{height:5, borderRadius:8, background: dark?"#242424":"#EFEBDF", overflow:"hidden", marginTop:6}}>
-                                    <div style={{width:`${pct}%`, height:"100%", borderRadius:8, background:c.bg, transition:"width .25s ease"}}/>
-                                  </div>
-                                  <div style={{fontSize:11.5, color:textMuted2, fontWeight:500, opacity:0.75, marginTop:4}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num> {t.complete}</div>
-                                </>
-                              ) : null}
-                            </div>
+                    {visible.map(subj => {
+                      const v = subjectProgress[subj] || { done:0, total:0 };
+                      const c = colorForSubject(subj, allSubjects);
+                      const SubjIcon = iconForSubject(subj);
+                      const pct = v.total ? Math.round((v.done/v.total)*100) : 0;
+                      return (
+                        <button key={subj} className="fg-card" onClick={()=>{vibrate(); setShowManageTopicsFor(subj); setShowSubjects(true);}}
+                          style={{display:"flex", alignItems:"center", gap:12, background: dark ? cardBg : "#FFFFFF", border:"none", borderRadius:16, padding:"14px 14px", cursor:"pointer", textAlign:"left", width:"100%", boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)"}}>
+                          <div style={{width:46, height:46, borderRadius:14, flexShrink:0, background: c.bgSoft, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                            <SubjIcon size={20} color={c.bg}/>
+                          </div>
+                          <div style={{flex:1, minWidth:0}}>
+                            <div style={{fontSize:11, fontWeight:800, letterSpacing:0.4, color:c.bg, textTransform:"uppercase", marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{v.total ? `${nf(pct)}%` : t.noTopicsYetCaps}</div>
+                            <div style={{fontSize:15, fontWeight:800, color:textMain, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{subj}</div>
                             {v.total > 0 ? (
-                              <span style={{width:34, height:34, borderRadius:"50%", background:c.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                                <Play size={13} color="#fff" fill="#fff" strokeWidth={0}/>
+                              <>
+                                <div style={{height:6, borderRadius:8, background: dark?"#242424":"#EFEBDF", overflow:"hidden", marginTop:8}}>
+                                  <div style={{width:`${pct}%`, height:"100%", borderRadius:8, background:c.bg, transition:"width .25s ease"}}/>
+                                </div>
+                                <div style={{fontSize:11.5, color:textMuted2, fontWeight:500, opacity:0.75, marginTop:5}}><Num>{nf(v.done)}</Num>/<Num>{nf(v.total)}</Num> {t.completeShort}</div>
+                              </>
+                            ) : null}
+                          </div>
+                          <div style={{display:"flex", alignItems:"center", gap:8, flexShrink:0}}>
+                            {v.total > 0 ? (
+                              <span style={{width:36, height:36, borderRadius:"50%", background:c.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                                <Play size={14} color="#fff" fill="#fff" strokeWidth={0}/>
                               </span>
                             ) : (
-                              <span style={{display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:c.bg}}>
-                                <Plus size={16} strokeWidth={2.4}/>
+                              <span style={{width:36, height:36, borderRadius:"50%", background:c.bgSoft, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:c.bg}}>
+                                <Plus size={17} strokeWidth={2.4}/>
                               </span>
                             )}
-                          </button>
-                        );
-                      })}
-                    </div>
+                            <ChevronRight size={16} color={textMuted2} style={{opacity:0.6}}/>
+                          </div>
+                        </button>
+                      );
+                    })}
                     {isLong && (
-                      <button onClick={()=>{vibrate(); setShowAllSubjectsProgress(v=>!v);}} style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4, width:"100%", border:"none", background:"transparent", color:textMain, borderRadius:10, padding:"10px 0 12px", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
+                      <button onClick={()=>{vibrate(); setShowAllSubjectsProgress(v=>!v);}} style={{display:"flex", alignItems:"center", justifyContent:"center", gap:4, width:"100%", border:`1px solid ${cardBorder}`, background: dark ? cardBg : "#FFFFFF", color:textMain, borderRadius:16, padding:"13px 0", fontSize:12.5, fontWeight:700, cursor:"pointer"}}>
                         {showAllSubjectsProgress ? t.showLess : t.seeAll} <ChevronDown size={14} style={{transform: showAllSubjectsProgress ? "rotate(180deg)" : "none", transition:"transform .15s ease"}}/>
                       </button>
                     )}
