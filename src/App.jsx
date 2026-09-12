@@ -3576,6 +3576,8 @@ function FocusGoInner() {
   const [taskFilter, setTaskFilter] = useState("all"); // all | study | personal
   const [taskListStatusFilter, setTaskListStatusFilter] = useState("all"); // "all" | "done" | "overdue" — Tasks ট্যাবের উপরের All/Done/Overdue পিল
   const [taskSearchQuery, setTaskSearchQuery] = useState(""); // Tasks ট্যাবের সার্চ বার
+  const [taskListDay, setTaskListDay] = useState(() => new Date()); // "All" ফিল্টারে সব তারিখের টাস্ক একসাথে দেখালে অগোছালো লাগে,
+  // তাই এক দিনের টাস্কই দেখানো হয় — এই স্টেট সেই দিনটা ধরে রাখে, ডিফল্ট আজ
   const [taskViewMode, setTaskViewMode] = useState("list"); // "list" | "calendar" — Task tab-এর ভিউ টগল
   const [taskCalMonth, setTaskCalMonth] = useState(new Date()); // Task calendar view-এ কোন মাস দেখাচ্ছে
   const [taskCalSelectedDay, setTaskCalSelectedDay] = useState(null); // Task calendar-এ সিলেক্টেড দিনের dateKey | null
@@ -5897,9 +5899,7 @@ function FocusGoInner() {
       )}
       <div style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, zoom: desktopZoom}}>
       <div style={styles.container}>
-        {/* Header row: logo | toggles (search circular icon next to bell, like before)
-            Stats সাব-ভিউতে (Study ট্যাবের ভেতরে) এই হেডার দেখানো হয় না — চার্ট/স্ট্যাটসের জন্য উপরের স্পেসটা ফাঁকা রাখতে */}
-        {!(tab === "study" && studySection === "stats") && (
+        {/* Header row: logo | toggles (search circular icon next to bell, like before) */}
         <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
           <div style={{display:"flex", alignItems:"center", gap:10}}>
             <button onClick={()=>{vibrate(); setTab("today");}} title={t.tabs.today}
@@ -5934,7 +5934,6 @@ function FocusGoInner() {
             </div>
           </div>
         </div>
-        )}
 
         {/* Date row — Today tab এর নিজস্ব অ্যাঙ্কর (weekday + বড় তারিখ + লাইভ ক্লক), তাই শুধু Today-তেই দেখানো হয়।
             Plan-এর নিজস্ব date-selector আছে বলে এখানে আলাদা "আজকের" হেডার লাগে না (দুই তারিখ পাশাপাশি দেখালে বিভ্রান্তি হয়),
@@ -6813,18 +6812,26 @@ function FocusGoInner() {
         )}
 
         {/* TASK tab — screenshot অনুযায়ী হুবহু: টাইটেল + ডেট পিল, All/Done/Overdue ফিল্টার পিল, সার্চ বার,
-            তালিকা খালি থাকলে ক্লিপবোর্ড ইলাস্ট্রেশন + "Create Your First Task" বাটন + একটা উক্তি */}
+            তালিকা খালি থাকলে ক্লিপবোর্ড ইলাস্ট্রেশন + "Create Your First Task" বাটন + একটা উক্তি।
+            "All"-এ সব তারিখের টাস্ক একসাথে দেখালে অগোছালো লাগে, তাই সেটা এখন এক দিনের টাস্কই দেখায় (taskListDay,
+            ডিফল্ট আজ) — পিলের দুইপাশের ছোট অ্যারো দিয়ে আগের/পরের দিনে যাওয়া যায়, পিলে ট্যাপ করলে আজকে ফিরে আসে। */}
         {tab === "task" && (() => {
           const overdueCount = tasks.filter(x => !x.done && x.dueDate && x.dueDate < todayKey).length;
           const doneCount = tasks.filter(x => x.done).length;
           const q = taskSearchQuery.trim().toLowerCase();
+          const dayKeyForList = dateKey(taskListDay);
+          const isListToday = dayKeyForList === todayKey;
           const visibleTasks = tasks.filter(x => {
+            if (taskListStatusFilter === "all" && x.dueDate && x.dueDate !== dayKeyForList) return false;
             if (taskListStatusFilter === "done" && !x.done) return false;
             if (taskListStatusFilter === "overdue" && !(!x.done && x.dueDate && x.dueDate < todayKey)) return false;
             if (q && !(x.title || "").toLowerCase().includes(q)) return false;
             return true;
           });
-          const dateLabel = `${weekdayShort(today)}, ${nf(today.getDate())} ${monthShort(today.getMonth())}`;
+          const dateLabel = isListToday
+            ? (lang==="bn" ? "আজ" : "Today")
+            : `${weekdayShort(taskListDay)}, ${nf(taskListDay.getDate())} ${monthShort(taskListDay.getMonth())}`;
+          const shiftDay = (delta) => { vibrate(); setTaskListDay(d => { const nd = new Date(d); nd.setDate(nd.getDate()+delta); return nd; }); };
           const quotePool = lang === "bn"
             ? ["\u201cছোট পদক্ষেপই বড় অগ্রগতি আনে।\u201d", "\u201cআজকের এক কাজ, আগামীর একধাপ এগিয়ে।\u201d"]
             : ["\u201cSmall steps make big progress.\u201d", "\u201cOne task at a time.\u201d"];
@@ -6832,7 +6839,7 @@ function FocusGoInner() {
 
           return (
           <div className="fg-tab-panel" style={{marginTop:16}}>
-            {/* Title row + date pill */}
+            {/* Title row + date pill (with prev/next day arrows when viewing "All") */}
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:14}}>
               <div style={{minWidth:0}}>
                 <div className="fg-title" style={{fontSize:21}}>{t.taskTitle}</div>
@@ -6840,17 +6847,41 @@ function FocusGoInner() {
                   {t.taskSubtitle}
                 </div>
               </div>
-              <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}}
-                style={{display:"flex", alignItems:"center", gap:6, border:`1px solid ${accent}33`, background:"transparent", borderRadius:999, padding:"7px 12px", cursor:"pointer", flexShrink:0}}>
-                <Calendar size={13} color={accent} strokeWidth={2.2}/>
-                <span style={{fontSize:12.5, fontWeight:700, color:accent, whiteSpace:"nowrap"}}>{dateLabel}</span>
-              </button>
+              <div style={{display:"flex", alignItems:"center", gap:6, flexShrink:0}}>
+                <div style={{display:"flex", gap:2, background: subtleBg, border:`1px solid ${cardBorder}`, borderRadius:10, padding:2}}>
+                  <button onClick={()=>{vibrate(); setTaskViewMode("list");}} title={lang==="bn" ? "লিস্ট" : "List"}
+                    style={{border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", width:28, height:26, borderRadius:8,
+                      background: taskViewMode==="list" ? accent : "transparent", color: taskViewMode==="list" ? "#FFFFFF" : textMuted2}}>
+                    <List size={13}/>
+                  </button>
+                  <button onClick={()=>{vibrate(); setTaskViewMode("calendar"); setTaskCalMonth(new Date(taskListDay));}} title={lang==="bn" ? "ক্যালেন্ডার" : "Calendar"}
+                    style={{border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", width:28, height:26, borderRadius:8,
+                      background: taskViewMode==="calendar" ? accent : "transparent", color: taskViewMode==="calendar" ? "#FFFFFF" : textMuted2}}>
+                    <CalendarDays size={13}/>
+                  </button>
+                </div>
+                {taskListStatusFilter === "all" && taskViewMode === "list" && (
+                  <button onClick={()=>shiftDay(-1)} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:4, display:"flex"}}>
+                    <ChevronLeft size={16}/>
+                  </button>
+                )}
+                <button onClick={()=>{vibrate(); setTaskListDay(new Date());}}
+                  style={{display:"flex", alignItems:"center", gap:6, border:`1px solid ${accent}33`, background:"transparent", borderRadius:999, padding:"7px 12px", cursor:"pointer", flexShrink:0}}>
+                  <Calendar size={13} color={accent} strokeWidth={2.2}/>
+                  <span style={{fontSize:12.5, fontWeight:700, color:accent, whiteSpace:"nowrap"}}>{dateLabel}</span>
+                </button>
+                {taskListStatusFilter === "all" && taskViewMode === "list" && (
+                  <button onClick={()=>shiftDay(1)} style={{border:"none", background:"transparent", color:textMuted2, cursor:"pointer", padding:4, display:"flex"}}>
+                    <ChevronRight size={16}/>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* All / Done / Overdue filter pills */}
             <div style={{display:"flex", gap:8, marginBottom:12}}>
               {[
-                { key:"all", label: lang==="bn" ? "সব" : "All", count: tasks.length, Icon: ListChecks },
+                { key:"all", label: lang==="bn" ? "সব" : "All", count: tasks.filter(x=>!x.dueDate || x.dueDate===dayKeyForList).length, Icon: ListChecks },
                 { key:"done", label: t.taskFilterDone, count: doneCount, Icon: Check },
                 { key:"overdue", label: t.taskFilterOverdue, count: overdueCount, Icon: Clock },
               ].map(f => {
@@ -6880,7 +6911,60 @@ function FocusGoInner() {
                 style={{flex:1, minWidth:0, border:"none", outline:"none", background:"transparent", fontFamily:"inherit", fontSize:13.5, color:textMain}}/>
             </div>
 
-            {visibleTasks.length === 0 ? (
+            {/* Calendar view — মাসের গ্রিডে প্রতিটা দিনে ডট দিয়ে বোঝানো হয় (সবুজ = সব সম্পন্ন, accent = বাকি আছে,
+                লাল = মেয়াদোত্তীর্ণ); কোনো দিনে ট্যাপ করলে সেই দিনের লিস্ট ভিউতে চলে যায় */}
+            {taskViewMode === "calendar" && (() => {
+              const y = taskCalMonth.getFullYear(), m = taskCalMonth.getMonth();
+              const firstDay = new Date(y, m, 1);
+              const startOffset = weekStartOffset(firstDay.getDay());
+              const daysInMonth = new Date(y, m+1, 0).getDate();
+              const calCells = [];
+              for (let i=0;i<startOffset;i++) calCells.push(null);
+              for (let d=1; d<=daysInMonth; d++) calCells.push(new Date(y,m,d));
+              const shortDays = weekdayShortLabels(lang);
+              return (
+                <div style={{marginBottom:18, background: dark ? cardBg : "#FFFFFF", border:`1px solid ${cardBorder}`, borderRadius:16, padding:14}}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
+                    <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m-1,1));}} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:textMain}}>
+                      <ChevronLeft size={15}/>
+                    </button>
+                    <div style={{fontWeight:700, fontSize:14.5, color:textMain}}>{monthName(m)} <Num>{nf(y)}</Num></div>
+                    <button onClick={()=>{vibrate(); setTaskCalMonth(new Date(y,m+1,1));}} style={{border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:10, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:textMain}}>
+                      <ChevronRight size={15}/>
+                    </button>
+                  </div>
+                  <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:3, marginBottom:4}}>
+                    {shortDays.map((d,i)=>(<div key={i} style={{textAlign:"center", fontSize:10, fontWeight:700, color:textMuted2}}>{d}</div>))}
+                  </div>
+                  <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:3}}>
+                    {calCells.map((d,i) => {
+                      if (!d) return <div key={i}/>;
+                      const dk = dateKey(d);
+                      const dayTasks = tasks.filter(x => x.dueDate === dk);
+                      const hasAny = dayTasks.length > 0;
+                      const doneAll = hasAny && dayTasks.every(x=>x.done);
+                      const hasOverdue = dayTasks.some(x => !x.done && dk < todayKey);
+                      const isToday = dk === todayKey;
+                      const isSel = dk === dayKeyForList;
+                      return (
+                        <button key={i} onClick={()=>{vibrate(); setTaskListDay(d); setTaskViewMode("list");}}
+                          style={{position:"relative", aspectRatio:"1", border: isSel ? `1.5px solid ${accent}` : (isToday ? `1px solid ${accent}66` : "1px solid transparent"), borderRadius:10, background: dark?"#0A0A0A":"#F8F5EE", cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:3}}>
+                          <span style={{fontSize:12, fontWeight:600, color:textMain}}><Num>{nf(d.getDate())}</Num></span>
+                          <span style={{width:5, height:5, borderRadius:"50%", background: !hasAny ? "transparent" : (doneAll ? "#6E8B5E" : (hasOverdue ? "#C0392B" : accent))}}/>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div style={{display:"flex", justifyContent:"center", gap:12, marginTop:12, flexWrap:"wrap"}}>
+                    <span style={{display:"flex", alignItems:"center", gap:4, fontSize:10.5, color:textMuted2, fontWeight:600}}><span style={{width:6,height:6,borderRadius:"50%", background:"#6E8B5E"}}/>{lang==="bn" ? "সম্পন্ন" : "Done"}</span>
+                    <span style={{display:"flex", alignItems:"center", gap:4, fontSize:10.5, color:textMuted2, fontWeight:600}}><span style={{width:6,height:6,borderRadius:"50%", background:accent}}/>{lang==="bn" ? "বাকি" : "Pending"}</span>
+                    <span style={{display:"flex", alignItems:"center", gap:4, fontSize:10.5, color:textMuted2, fontWeight:600}}><span style={{width:6,height:6,borderRadius:"50%", background:"#C0392B"}}/>{lang==="bn" ? "মেয়াদোত্তীর্ণ" : "Overdue"}</span>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {taskViewMode === "list" && (visibleTasks.length === 0 ? (
               <div style={{display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", padding:"18px 10px 6px"}}>
                 <div style={{position:"relative", width:120, height:120, marginBottom:18}}>
                   <div style={{position:"absolute", inset:0, borderRadius:"50%", background: dark ? `${accent}22` : `${accent}14`}}/>
@@ -6896,13 +6980,22 @@ function FocusGoInner() {
                 <div style={{fontSize:13, color:textMuted2, marginTop:6, maxWidth:260, lineHeight:1.4}}>
                   {tasks.length === 0
                     ? (lang==="bn" ? "দিনটা পরিকল্পনা করতে প্রথম টাস্কটা যোগ করো।" : "Add your first task to start planning your day.")
-                    : (lang==="bn" ? "ফিল্টার বা সার্চ পরিবর্তন করে দেখো।" : "Try changing the filter or search.")}
+                    : (taskListStatusFilter === "all" && !q)
+                      ? (lang==="bn" ? "এই দিনে কোনো টাস্ক নেই।" : "No tasks for this day.")
+                      : (lang==="bn" ? "ফিল্টার বা সার্চ পরিবর্তন করে দেখো।" : "Try changing the filter or search.")}
                 </div>
                 {tasks.length === 0 && (
                   <button onClick={()=>{vibrate(); setTaskAddDefaultDate(todayKey); setShowAddTask(true);}}
                     style={{display:"flex", alignItems:"center", gap:8, marginTop:20, border:"none", cursor:"pointer", fontFamily:"inherit",
                       background: dark ? `${accent}29` : `${accent}1A`, color:accent, fontWeight:700, fontSize:14, borderRadius:14, padding:"13px 22px"}}>
                     <Sparkles size={16}/> {lang==="bn" ? "প্রথম টাস্ক তৈরি করো" : "Create Your First Task"}
+                  </button>
+                )}
+                {tasks.length > 0 && taskListStatusFilter === "all" && !q && (
+                  <button onClick={()=>{vibrate(); setTaskAddDefaultDate(dayKeyForList); setShowAddTask(true);}}
+                    style={{display:"flex", alignItems:"center", gap:8, marginTop:20, border:"none", cursor:"pointer", fontFamily:"inherit",
+                      background: dark ? `${accent}29` : `${accent}1A`, color:accent, fontWeight:700, fontSize:14, borderRadius:14, padding:"13px 22px"}}>
+                    <Plus size={16}/> {lang==="bn" ? "এই দিনে টাস্ক যোগ করো" : "Add Task for This Day"}
                   </button>
                 )}
                 {tasks.length === 0 && (
@@ -6942,7 +7035,7 @@ function FocusGoInner() {
                   );
                 })}
               </div>
-            )}
+            ))}
           </div>
           );
         })()}
