@@ -3082,11 +3082,9 @@ const ACCENT_OPTIONS = [
   { key: "moss",  labelBn: "মস",     labelEn: "Moss",  light: "#4C7A52", dark: "#6FA377" },
 ];
 function accentHexFor(key, dark) {
-  // ইউজার Settings থেকে যে accent বেছে নেয় (violet/orange/lilac/moss), সেটাই এখন সঠিকভাবে
-  // রিটার্ন হয় — আগে এখানে জোর করে সবসময় ভায়োলেট রিটার্ন হতো, ফলে অন্য কোনো accent বেছে নিলেও
-  // ৭/১৫/৩০... রেঞ্জ সিলেক্টর ও ডে-স্ট্রিপের মতো জায়গায় থিমের সাথে না মিলে সবসময় ভায়োলেট দেখাত।
-  const opt = ACCENT_OPTIONS.find(a => a.key === key) || ACCENT_OPTIONS[0];
-  return dark ? opt.dark : opt.light;
+  // ইউজারের অনুরোধে আবার আগের মতো — Settings-এ যেই accent সেভ থাকুক না কেন,
+  // পুরো অ্যাপ সবসময় ভায়োলেট রঙেই দেখাবে।
+  return dark ? "#A78BFA" : "#7C5CFC";
 }
 // হেক্স রঙকে percent অনুযায়ী গাঢ়/হালকা করে — Next Exam কার্ডের মতো জায়গায় accent থেকে গ্রেডিয়েন্ট/শ্যাডো রং বানাতে ব্যবহার হয়
 function shadeColor(hex, percent) {
