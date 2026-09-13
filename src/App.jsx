@@ -688,7 +688,7 @@ function NotificationBell({ t, lang, notifications, onMarkAllRead, onClear, card
 // ---------- Universal Search — টাস্ক, নোট, সাবজেক্ট/টপিক, পরীক্ষা — সব একসাথে খোঁজার মডাল ----------
 function UniversalSearchModal({
   lang, dark, cardBg, cardBorder, textMain, textMuted2, accent,
-  tasks, notes, allSubjects, topicBank, examSubjects, examSchedule,
+  tasks, notes, allSubjects, topicBank, examSubjects, examSchedule, sortMode,
   onClose, onOpenTask, onOpenNote, onOpenSubject, onOpenExam,
 }) {
   const [q, setQ] = useState("");
@@ -734,8 +734,24 @@ function UniversalSearchModal({
       if ((ex.subject || "").toLowerCase().includes(query)) out.exams.push(ex);
     });
 
+    // Today ট্যাবের sliders আইকন থেকে নির্বাচিত sort mode অনুযায়ী রেজাল্ট সাজানো —
+    // priority/status শুধু টাস্কের ক্ষেত্রেই অর্থবহ, date আর name সব ধরনের রেজাল্টেই প্রযোজ্য যতটা সম্ভব
+    const priorityRank = { high: 0, med: 1, low: 2 };
+    if (sortMode === "priority") {
+      out.tasks.sort((a, b) => (priorityRank[a.priority || "med"] - priorityRank[b.priority || "med"]));
+    } else if (sortMode === "status") {
+      out.tasks.sort((a, b) => (a.done === b.done ? 0 : a.done ? 1 : -1));
+    } else if (sortMode === "name") {
+      out.tasks.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+      out.notes.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+      out.subjects.sort((a, b) => a.localeCompare(b));
+    } else { // "date" (ডিফল্ট)
+      out.tasks.sort((a, b) => (a.dueDate || "9999").localeCompare(b.dueDate || "9999") || (a.reminderTime || "99:99").localeCompare(b.reminderTime || "99:99"));
+      out.exams.sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999"));
+    }
+
     return out;
-  }, [query, tasks, notes, allSubjects, topicBank, examSubjects, examSchedule]);
+  }, [query, tasks, notes, allSubjects, topicBank, examSubjects, examSchedule, sortMode]);
 
   const totalCount = results ? Object.values(results).reduce((s, arr) => s + arr.length, 0) : 0;
 
@@ -3686,6 +3702,16 @@ function FocusGoInner() {
   const [addTargetKey, setAddTargetKey] = useState(null);
   const [showSubjects, setShowSubjects] = useState(false);
   const [showSearch, setShowSearch] = useState(false); // Universal search — টাস্ক/নোট/সাবজেক্ট/পরীক্ষা একসাথে খোঁজার মডাল
+  // Today ট্যাবের search bar-এর sliders আইকন — ট্যাপ করলে sort অপশন মেনু খোলে, নির্বাচিত sort mode
+  // Universal Search Modal-এর টাস্ক রেজাল্ট সাজাতে ব্যবহার হয় (localStorage-এ সেভ থাকে)
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [searchSortMode, setSearchSortMode] = useState(() => {
+    try { return window.localStorage.getItem("focusgo_search_sort_mode") || "date"; } catch (e) { return "date"; }
+  });
+  const changeSearchSortMode = (m) => {
+    setSearchSortMode(m);
+    try { window.localStorage.setItem("focusgo_search_sort_mode", m); } catch (e) {}
+  };
   const [showAllSubjectsProgress, setShowAllSubjectsProgress] = useState(false); // Stats-এ Subject Progress গ্রিড — সাবজেক্ট বেশি হলে ডিফল্টে ৬টা দেখায়, "See all" চাপলে বাকিগুলো
   const [statsRange, setStatsRange] = useState("week"); // "week" | "month" — Stats কার্ডের "This Week/This Month" ড্রপডাউন সিলেকশন
   const [showStatsRangeMenu, setShowStatsRangeMenu] = useState(false);
@@ -5903,7 +5929,7 @@ function FocusGoInner() {
           <div style={{display:"flex", alignItems:"center", gap:10}}>
             <button onClick={()=>{vibrate(); setTab("today");}} title={t.tabs.today}
               style={{display:"flex", alignItems:"center", gap:10, border:"none", background:"transparent", cursor:"pointer", padding:0}}>
-              <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt="FocusGo" style={{height:40, width:"auto", objectFit:"contain"}}/>
+              <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt="FocusGo" style={{height:32, width:"auto", objectFit:"contain"}}/>
             </button>
           </div>
 
@@ -5944,23 +5970,61 @@ function FocusGoInner() {
         </div>
 
         {/* Today tab-এর top search bar — ট্যাপ করলে বিদ্যমান Universal Search মডাল খোলে
-            (টাস্ক/নোট/সাবজেক্ট/পরীক্ষা একসাথে খোঁজার জন্য যেটা আগে থেকেই আছে) */}
+            (টাস্ক/নোট/সাবজেক্ট/পরীক্ষা একসাথে খোঁজার জন্য যেটা আগে থেকেই আছে)।
+            ডানপাশের sliders আইকনটা আলাদা বাটন — এটাতে ট্যাপ করলে sort মেনু খোলে, সেই sort
+            অনুযায়ী Universal Search-এর টাস্ক রেজাল্ট সাজানো হবে। */}
         {tab === "today" && (
-        <div style={{marginTop:14}}>
-          <button onClick={()=>{vibrate(); setShowSearch(true);}}
-            style={{
-              width:"100%", display:"flex", alignItems:"center", gap:10, textAlign:"left",
+        <div style={{marginTop:14, position:"relative"}}>
+          <div style={{
+              width:"100%", display:"flex", alignItems:"center", gap:10,
               background: dark ? "rgba(255,255,255,0.06)" : "#FFFFFF",
               border:`1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px",
-              cursor:"pointer", fontFamily:"inherit"
             }}>
-            <Search size={17} color={textMuted2} strokeWidth={2} style={{flexShrink:0}}/>
-            <span style={{flex:1, minWidth:0, fontSize:13.5, color:textMuted2, fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-              {lang==="bn" ? "টপিক, টাস্ক, সাবজেক্ট খুঁজুন..." : "Search topics, tasks, subjects..."}
-            </span>
+            <button onClick={()=>{vibrate(); setShowSearch(true);}}
+              style={{flex:1, minWidth:0, display:"flex", alignItems:"center", gap:10, textAlign:"left", border:"none", background:"transparent", cursor:"pointer", fontFamily:"inherit", padding:0}}>
+              <Search size={17} color={textMuted2} strokeWidth={2} style={{flexShrink:0}}/>
+              <span style={{flex:1, minWidth:0, fontSize:13.5, color:textMuted2, fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                {lang==="bn" ? "টপিক, টাস্ক, সাবজেক্ট খুঁজুন..." : "Search topics, tasks, subjects..."}
+              </span>
+            </button>
             <span style={{width:1, height:18, background:cardBorder, flexShrink:0}}/>
-            <SlidersIcon size={16} color={accent}/>
-          </button>
+            <button onClick={(e)=>{e.stopPropagation(); vibrate(); setShowSortMenu(v=>!v);}}
+              title={lang==="bn" ? "সাজানোর ধরন" : "Sort order"}
+              style={{border:"none", background:"transparent", cursor:"pointer", padding:2, display:"flex", flexShrink:0}}>
+              <SlidersIcon size={16} color={accent}/>
+            </button>
+          </div>
+
+          {showSortMenu && (() => {
+            const sortOptions = [
+              { key:"date", label: lang==="bn" ? "তারিখ/সময় অনুযায়ী" : "Date/time", Icon: Calendar },
+              { key:"priority", label: lang==="bn" ? "প্রায়োরিটি (উচ্চ→নিম্ন)" : "Priority (high→low)", Icon: Flag },
+              { key:"name", label: lang==="bn" ? "নাম অনুযায়ী (A-Z)" : "Name (A-Z)", Icon: ArrowUpDown },
+              { key:"status", label: lang==="bn" ? "সম্পন্ন/অসম্পন্ন" : "Done/Not done", Icon: Check },
+            ];
+            return (
+              <>
+                <div style={{position:"fixed", inset:0, zIndex:59}} onClick={()=>setShowSortMenu(false)}/>
+                <div style={{position:"absolute", top:"calc(100% + 6px)", right:0, zIndex:60, minWidth:210,
+                    background: dark ? cardBg : "#FFFFFF", border:`1px solid ${cardBorder}`, borderRadius:14,
+                    boxShadow:"0 8px 24px rgba(0,0,0,0.16)", padding:6}}>
+                  {sortOptions.map(opt => {
+                    const sel = searchSortMode === opt.key;
+                    return (
+                      <button key={opt.key} onClick={()=>{vibrate(); changeSearchSortMode(opt.key); setShowSortMenu(false);}}
+                        style={{width:"100%", display:"flex", alignItems:"center", gap:9, border:"none", cursor:"pointer", fontFamily:"inherit",
+                          background: sel ? (dark ? `${accent}22` : `${accent}14`) : "transparent", color: sel ? accent : textMain,
+                          borderRadius:10, padding:"9px 10px", fontSize:12.5, fontWeight:600, textAlign:"left"}}>
+                        <opt.Icon size={14} strokeWidth={2.3} style={{flexShrink:0}}/>
+                        <span style={{flex:1}}>{opt.label}</span>
+                        {sel && <Check size={13} strokeWidth={3}/>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            );
+          })()}
         </div>
         )}
 
@@ -7642,7 +7706,7 @@ function FocusGoInner() {
       {showSearch && (
         <UniversalSearchModal
           lang={lang} dark={dark} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}
-          tasks={tasks} notes={notes} allSubjects={allSubjects} topicBank={topicBank} examSubjects={examSubjects} examSchedule={examSchedule}
+          tasks={tasks} notes={notes} allSubjects={allSubjects} topicBank={topicBank} examSubjects={examSubjects} examSchedule={examSchedule} sortMode={searchSortMode}
           onClose={()=>setShowSearch(false)}
           onOpenTask={(x)=>{ setShowSearch(false); setTab("task"); setTaskDetailId(x.id); }}
           onOpenNote={()=>{ setShowSearch(false); }}
