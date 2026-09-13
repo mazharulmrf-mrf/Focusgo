@@ -5976,7 +5976,7 @@ function FocusGoInner() {
         {tab === "today" && (
         <div style={{marginTop:14, position:"relative"}}>
           <div style={{
-              width:"100%", display:"flex", alignItems:"center", gap:10,
+              width:"100%", boxSizing:"border-box", display:"flex", alignItems:"center", gap:10,
               background: dark ? "rgba(255,255,255,0.06)" : "#FFFFFF",
               border:`1px solid ${cardBorder}`, borderRadius:16, padding:"12px 14px",
             }}>
