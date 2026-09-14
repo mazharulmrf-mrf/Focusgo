@@ -6063,49 +6063,55 @@ function FocusGoInner() {
               const greetKey = hr < 5 ? "night" : hr < 12 ? "morning" : hr < 14 ? "noon" : hr < 17 ? "afternoon" : hr < 21 ? "evening" : "night";
               const greetingEn = { morning: "Good Morning", noon: "Good Noon", afternoon: "Good Afternoon", evening: "Good Evening", night: "Good Night" }[greetKey];
               const greetingBn = { morning: "শুভ সকাল", noon: "শুভ দুপুর", afternoon: "শুভ বিকেল", evening: "শুভ সন্ধ্যা", night: "শুভ রাত্রি" }[greetKey];
-              // এখন সময়ভিত্তিক হালকা টিন্টের বদলে সবসময় একটাই বোল্ড ভায়োলেট gradient hero লুক —
-              // Today's Focus/Focus Timer কার্ডের মতোই accent gradient, শুধু সময় অনুযায়ী Sun/Moon আইকনটা বদলায়
-              const GreetIcon = (greetKey === "evening" || greetKey === "night") ? Moon : Sun;
+              // আগের বোল্ড ভায়োলেট gradient-টা নিচের "Today's Focus" কার্ডের সাথে একদম একরকম দেখাচ্ছিল বলে
+              // ফিরিয়ে আনা হলো refined light card লুক — সময়ভিত্তিক subtle tint + icon, বড় ও bold নাম
+              const greetTheme = {
+                morning:   { grad: dark ? "rgba(224,168,58,0.10)" : "#E0A83A0F", Icon: Sun,  iconColor: "#E0A83A" },
+                noon:      { grad: dark ? "rgba(237,236,242,0.10)" : "#1A18140F", Icon: Sun,  iconColor: dark ? "#F3F1F8" : "#1A1814" },
+                afternoon: { grad: `${accent}${dark ? "18" : "0F"}`, Icon: Sun,  iconColor: accent },
+                evening:   { grad: dark ? "rgba(155,107,158,0.11)" : "#9B6B9E0F", Icon: Moon, iconColor: "#9B6B9E" },
+                night:     { grad: dark ? "rgba(75,90,150,0.12)" : "#4B5A960F", Icon: Moon, iconColor: dark ? "#8FA0E0" : "#4B5A96" },
+              }[greetKey];
+
+              const GreetIcon = greetTheme.Icon;
               return (
                 <>
                   <div style={{
-                    padding:"18px 20px 17px", marginBottom:0, position:"relative", overflow:"hidden", borderRadius:18,
-                    background:`linear-gradient(135deg, ${accent} 0%, ${shadeColor(accent, -14)} 100%)`,
-                    boxShadow:`0 12px 24px ${accent}38`,
+                    padding:"18px 20px 17px", marginBottom:0, position:"relative", borderRadius:18,
+                    background: dark
+                      ? `linear-gradient(135deg, ${greetTheme.grad}, transparent 70%)`
+                      : "#FFFFFF",
                   }} ref={salahMenuRef}>
-                    <svg style={{position:"absolute", right:-8, bottom:-10, width:130, height:52, opacity:0.35, pointerEvents:"none"}} viewBox="0 0 130 52" fill="none">
-                      <path d="M0 26 C 22 6, 40 46, 68 26 S 116 6, 130 26" stroke="rgba(255,255,255,0.6)" strokeWidth="2" fill="none"/>
-                    </svg>
-                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, position:"relative"}}>
+                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:10}}>
                       <div style={{minWidth:0, flex:1}}>
                         <div
                           onClick={() => { vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                          style={{fontSize:13, fontWeight:600, color:"rgba(255,255,255,0.85)", letterSpacing:0.3, marginBottom:5, display:"flex", alignItems:"center", gap:7, cursor:"pointer"}}
+                          style={{fontSize:13, fontWeight:600, color:accent, letterSpacing:0.3, marginBottom:5, display:"flex", alignItems:"center", gap:7, cursor:"pointer"}}
                           title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
                         >
-                          <GreetIcon size={15} color="#fff" strokeWidth={2.2}/>
+                          <GreetIcon size={14} color={greetTheme.iconColor} strokeWidth={2.2}/>
                           {lang === "bn" ? greetingBn : greetingEn}
                           {weatherData && weatherData.temp != null && (
                             <span
                               onClick={(e) => { e.stopPropagation(); vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                              style={{display:"inline-flex", alignItems:"center", fontSize:13, fontWeight:600, color:"rgba(255,255,255,0.85)", cursor:"pointer"}}
+                              style={{display:"inline-flex", alignItems:"center", fontSize:13, fontWeight:600, color:accent, cursor:"pointer"}}
                               title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
                             >
                               · <Num>{nf(weatherData.temp)}</Num>°C
                             </span>
                           )}
                         </div>
-                        <div style={{fontSize:27,fontWeight:700,letterSpacing:-0.6,color:"#fff", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", display:"inline-block"}}>
+                        <div style={{fontSize:27,fontWeight:700,letterSpacing:-0.6,color:"var(--text)", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", display:"inline-block"}}>
                           {firstName}
                         </div>
                       </div>
                       <div style={{display:"flex", alignItems:"center", gap:10, flexShrink:0}}>
-                        {/* মিনিমাল ডেট ব্যাজ — উপরে ছোট করে দিনের নাম + মাস, নিচে সাদা সার্কেলের মধ্যে accent রঙে আজকের তারিখ। ট্যাপ করলে ফুল ক্যালেন্ডার খোলে, সময় আর দেখানো হয় না — সবসময় সবচেয়ে ডানে থাকবে */}
+                        {/* মিনিমাল ডেট ব্যাজ — উপরে ছোট করে দিনের নাম + মাস, নিচে accent রঙের সার্কেলের মধ্যে আজকের তারিখ। ট্যাপ করলে ফুল ক্যালেন্ডার খোলে, সময় আর দেখানো হয় না — সবসময় সবচেয়ে ডানে থাকবে */}
                         <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:5, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
-                          <span style={{fontSize:10, fontWeight:600, color:"rgba(255,255,255,0.75)", letterSpacing:0.2, whiteSpace:"nowrap"}}>
+                          <span style={{fontSize:10, fontWeight:600, color:"var(--muted)", letterSpacing:0.2, whiteSpace:"nowrap"}}>
                             {weekdayShort(today)}, {monthShort(today.getMonth())}
                           </span>
-                          <span style={{width:36, height:36, borderRadius:"50%", background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:700, color:accent}}>
+                          <span style={{width:36, height:36, borderRadius:"50%", background:accent, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:700, color:"#FFFFFF"}}>
                             <Num>{nf(today.getDate())}</Num>
                           </span>
                           {examDateKeys.has(todayKey) && (
@@ -6113,7 +6119,7 @@ function FocusGoInner() {
                               position:"absolute", top:-2, left:-10,
                               width:7, height:7, borderRadius:"50%",
                               background:"#C0392B",
-                              border:`1.5px solid ${shadeColor(accent, -14)}`,
+                              border:`1.5px solid ${dark ? cardBg : "#FFFFFF"}`,
                             }}/>
                           )}
                         </button>
@@ -7538,7 +7544,7 @@ function FocusGoInner() {
           <button onClick={onClick} style={{
             flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:3,
             border:"none", background:"transparent", cursor:"pointer", padding:"2px 2px 0", fontFamily:"inherit",
-            color: active ? "#FFFFFF" : "#8B889A",
+            color: active ? (dark ? "#FFFFFF" : accent) : (dark ? "#8B889A" : textMuted2),
           }}>
             <Icon size={20} strokeWidth={active?2.3:1.9}/>
             <span style={{fontSize:9.5, fontWeight:600, lineHeight:1}}>{label}</span>
@@ -7546,14 +7552,13 @@ function FocusGoInner() {
         );
 
         const FAB = 50;
+        const navBarBg = dark ? "#171522" : "#FFFFFF";
 
         if (!addEnabled) {
-          // শুধু Today ট্যাব থাকলে (Study/Task দুটোই বন্ধ) — floating dark pill bার, FAB লাগবে না
+          // শুধু Today ট্যাব থাকলে (Study/Task দুটোই বন্ধ) — normal ফুল-উইদথ বার, স্ক্রিনের একদম নিচে ফিক্সড, FAB লাগবে না
           return (
-            <div style={{position:"sticky", left:0, right:0, bottom:0, zIndex:40, padding:"0 14px calc(16px + env(safe-area-inset-bottom))"}}>
-              <div style={{width:"100%", maxWidth:452, margin:"0 auto", display:"flex",
-                background:"#171522", borderRadius:28, padding:"10px 10px",
-                boxShadow:"0 14px 26px rgba(0,0,0,0.28)"}}>
+            <div style={{position:"sticky", left:0, right:0, bottom:0, zIndex:40, background:navBarBg, borderTop: dark ? "none" : `1px solid ${cardBorder}`, paddingBottom:"env(safe-area-inset-bottom)"}}>
+              <div style={{display:"flex", padding:"10px 10px 8px"}}>
                 <TabBtn Icon={Home} label={t.tabs.today} active={true} onClick={()=>{}}/>
               </div>
             </div>
@@ -7561,12 +7566,11 @@ function FocusGoInner() {
         }
 
         return (
-          <div style={{position:"sticky", left:0, right:0, bottom:0, zIndex:40, padding:"0 14px calc(16px + env(safe-area-inset-bottom))"}}>
-            <div style={{position:"relative", width:"100%", maxWidth:452, margin:"0 auto"}}>
+          <div style={{position:"sticky", left:0, right:0, bottom:0, zIndex:40, background:navBarBg, borderTop: dark ? "none" : `1px solid ${cardBorder}`, paddingBottom:"env(safe-area-inset-bottom)"}}>
+            <div style={{position:"relative", width:"100%"}}>
               <div style={{
                 display:"flex", alignItems:"stretch", justifyContent:"space-around",
-                background:"#171522", borderRadius:28, padding:"8px 8px 6px",
-                boxShadow:"0 14px 26px rgba(0,0,0,0.28)",
+                padding:"8px 8px 6px",
               }}>
                 <div style={{flex:1, display:"flex"}}>{leftTabs.map(tb => <TabBtn key={tb.k} {...tb}/>)}</div>
                 <div style={{width:FAB, flexShrink:0}}/>
@@ -7605,12 +7609,12 @@ function FocusGoInner() {
               )}
 
               <button onClick={handleAddTap} style={{
-                  position:"absolute", left:"50%", top:-FAB/2 + 4, transform:"translateX(-50%)",
-                  width:FAB, height:FAB, borderRadius:"50%", border:"3px solid #171522",
+                  position:"absolute", left:"50%", top:-14, transform:"translateX(-50%)",
+                  width:FAB, height:FAB, borderRadius:"50%", border:`3px solid ${navBarBg}`,
                   background: accent,
                   color:"#171522",
                   display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
-                  boxShadow:`0 8px 18px ${accent}66`,
+                  boxShadow:`0 6px 14px ${accent}55`,
                   zIndex:46,
                 }}>
                 <Plus size={22} strokeWidth={2.6}/>
