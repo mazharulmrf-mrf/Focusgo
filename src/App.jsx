@@ -3693,7 +3693,6 @@ function FocusGoInner() {
   const [showProfilePage, setShowProfilePage] = useState(false);
   // ফোনের ব্যাক বাটন/জেসচার দিয়ে এই ফুল-স্ক্রিন ওভারলে বন্ধ করা যাবে (ব্রাউজার/PWA কনটেক্সটেও)
   useBackableOverlay(showProfilePage, () => setShowProfilePage(false));
-  useBackableOverlay(showProfile, () => setShowProfile(false));
   // উপরের gear আইকনে ক্লিক করলে এখন সরাসরি Settings পেজে না গিয়ে একটা ছোট quick-menu popup খোলে,
   // সেখান থেকে যে আইটেমে ক্লিক করা হয় সেই অনুযায়ী Settings পেজ নির্দিষ্ট সেকশন expand করে খোলে
   // (initialOpenCard), অথবা Export/Import/About/Help এর ক্ষেত্রে সেই একশনটা সরাসরি ট্রিগার হয়
