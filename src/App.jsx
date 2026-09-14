@@ -3553,7 +3553,6 @@ function FocusGoInner() {
   const [noteSearch, setNoteSearch] = useState("");
   const [taskFilter, setTaskFilter] = useState("all"); // all | study | personal
   const [taskListStatusFilter, setTaskListStatusFilter] = useState("all"); // "all" | "done" | "overdue" — Tasks ট্যাবের উপরের All/Done/Overdue পিল
-  const [taskKindFilter, setTaskKindFilter] = useState("task"); // "task" | "habit" — সাধারণ one-off টাস্ক বনাম repeat/streak-ওয়ালা হ্যাবিট
   const [taskSearchQuery, setTaskSearchQuery] = useState(""); // Tasks ট্যাবের সার্চ বার
   const [taskListDay, setTaskListDay] = useState(() => new Date()); // "All" ফিল্টারে সব তারিখের টাস্ক একসাথে দেখালে অগোছালো লাগে,
   // তাই এক দিনের টাস্কই দেখানো হয় — এই স্টেট সেই দিনটা ধরে রাখে, ডিফল্ট আজ
@@ -6914,8 +6913,6 @@ function FocusGoInner() {
           const dayKeyForList = dateKey(taskListDay);
           const isListToday = dayKeyForList === todayKey;
           const visibleTasks = tasks.filter(x => {
-            if (taskKindFilter === "habit" && !x.repeat) return false;
-            if (taskKindFilter === "task" && x.repeat) return false;
             if (taskListStatusFilter === "all" && x.dueDate && x.dueDate !== dayKeyForList) return false;
             if (taskListStatusFilter === "done" && !x.done) return false;
             if (taskListStatusFilter === "overdue" && !(!x.done && x.dueDate && x.dueDate < todayKey)) return false;
@@ -6945,26 +6942,6 @@ function FocusGoInner() {
                 <Calendar size={13} color={taskViewMode==="calendar" ? "#FFFFFF" : accent} strokeWidth={2.2}/>
                 <span style={{fontSize:12.5, fontWeight:700, color: taskViewMode==="calendar" ? "#FFFFFF" : accent, whiteSpace:"nowrap"}}>{dateLabel}</span>
               </button>
-            </div>
-
-            {/* Task / Habit টগল — সাধারণ one-off টাস্ক আর repeat/streak-ওয়ালা হ্যাবিট আলাদা করে দেখার জন্য */}
-            <div style={{display:"flex", gap:6, background: dark ? "rgba(255,255,255,0.06)" : "rgba(20,17,24,0.045)", borderRadius:14, padding:4, marginBottom:14}}>
-              {[
-                { key:"task", label: lang==="bn" ? "টাস্ক" : "Task", Icon: ListChecks },
-                { key:"habit", label: lang==="bn" ? "হ্যাবিট" : "Habit", Icon: Flame },
-              ].map(k => {
-                const sel = taskKindFilter === k.key;
-                return (
-                  <button key={k.key} onClick={()=>{vibrate(); setTaskKindFilter(k.key);}}
-                    style={{flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:6,
-                      border:"none", cursor:"pointer", fontFamily:"inherit", borderRadius:11, padding:"9px 0",
-                      background: sel ? (dark ? cardBg : "#FFFFFF") : "transparent",
-                      color: sel ? textMain : textMuted2, fontWeight:700, fontSize:12.5}}>
-                    <k.Icon size={13} strokeWidth={2.4} color={sel && k.key==="habit" ? "#F59E0B" : undefined}/>
-                    {k.label}
-                  </button>
-                );
-              })}
             </div>
 
             {/* সপ্তাহের streak strip — সপ্তাহ শুরুর দিন Settings-এর সেটিং অনুযায়ী; আজকের আগের দিনগুলোতে
