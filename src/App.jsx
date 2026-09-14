@@ -571,18 +571,24 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
           )}
         </form>
 
-        <div style={{ display: "flex", alignItems: "center", gap:10, margin: "18px 0" }}>
-          <div style={{ flex: 1, height: 1, background: cardBorder }} />
-          <div style={{ fontSize:11.5, color: textMuted2 }}>{L.or}</div>
-          <div style={{ flex: 1, height: 1, background: cardBorder }} />
-        </div>
+        {/* Google sign-in আপাতত native (Android/iOS) app-এ কাজ করছে না (Firebase native config বাকি),
+            তাই শুধু web-এ দেখানো হচ্ছে — মোবাইল অ্যাপে email/password ও guest অপশন যথেষ্ট। */}
+        {!Capacitor.isNativePlatform() && (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap:10, margin: "18px 0" }}>
+              <div style={{ flex: 1, height: 1, background: cardBorder }} />
+              <div style={{ fontSize:11.5, color: textMuted2 }}>{L.or}</div>
+              <div style={{ flex: 1, height: 1, background: cardBorder }} />
+            </div>
 
-        <button type="button" onClick={handleGoogle} disabled={busy} style={{
-          width: "100%", border: `1px solid ${cardBorder}`, background: "transparent", color: textMain,
-          borderRadius:12, padding: "11px 0", fontSize:13.5, fontWeight: 700, cursor: "pointer",
-        }}>
-          {L.google}
-        </button>
+            <button type="button" onClick={handleGoogle} disabled={busy} style={{
+              width: "100%", border: `1px solid ${cardBorder}`, background: "transparent", color: textMain,
+              borderRadius:12, padding: "11px 0", fontSize:13.5, fontWeight: 700, cursor: "pointer",
+            }}>
+              {L.google}
+            </button>
+          </>
+        )}
 
         <button type="button" onClick={onGuest} disabled={busy} style={{
           width: "100%", border: "none", background: "transparent", color: textMuted2,
@@ -3496,6 +3502,18 @@ function FocusGoInner() {
   // ব্যানারে ট্যাপ করে বা প্রোফাইল থেকে ইচ্ছাকৃতভাবে সাইন-ইন স্ক্রিন খুললে true — guest-first flow-তে
   // AuthScreen আর ডিফল্ট এন্ট্রি-পয়েন্ট না, শুধু ইউজার নিজে চাইলেই এটা দেখা যায়
   const [showAuthScreen, setShowAuthScreen] = useState(false);
+  // সাইন-ইন নাজ ব্যানার — X দিয়ে ডিসমিস করলে কয়েকদিন (৩ দিন) এর জন্য লুকানো থাকে, তারপর আবার দেখাবে।
+  // সময়টা localStorage-এ সেভ থাকে যাতে অ্যাপ বন্ধ/খোলা করলেও ডিসমিস মনে থাকে।
+  const SIGNIN_BANNER_SNOOZE_KEY = "focusgo_signin_banner_snoozed_until";
+  const SIGNIN_BANNER_SNOOZE_MS = 3 * 24 * 60 * 60 * 1000; // ৩ দিন
+  const [signinBannerSnoozedUntil, setSigninBannerSnoozedUntil] = useState(() => {
+    try { return Number(window.localStorage.getItem(SIGNIN_BANNER_SNOOZE_KEY)) || 0; } catch (e) { return 0; }
+  });
+  const dismissSigninBanner = () => {
+    const until = Date.now() + SIGNIN_BANNER_SNOOZE_MS;
+    setSigninBannerSnoozedUntil(until);
+    try { window.localStorage.setItem(SIGNIN_BANNER_SNOOZE_KEY, String(until)); } catch (e) {}
+  };
   const [onboardingDone, setOnboardingDone] = useState(() => {
     try { return window.localStorage.getItem("focusgo_onboarding_v1") === "1"; } catch (e) { return true; } // localStorage না থাকলে অনবোর্ডিং আটকে না রাখাই ভালো
   });
@@ -6016,8 +6034,8 @@ function FocusGoInner() {
 
         {/* Guest-first নাজ ব্যানার — লগইন করা না থাকলে (আর গেস্ট মোডে) হালকাভাবে মনে করিয়ে দেয় যে ডেটা
             শুধু এই ডিভাইসেই আছে। ট্যাপ করলে AuthScreen খোলে; জোর করে আটকায় না, তাই ব্যবহারকারী
-            সবসময় app-টা আগে ব্যবহার করে দেখতে পারে, সাইন-ইন পরে ইচ্ছেমতো। */}
-        {tab === "today" && isGuest && !user && (
+            সবসময় app-টা আগে ব্যবহার করে দেখতে পারে, সাইন-ইন পরে ইচ্ছেমতো। X চাপলে ৩ দিনের জন্য স্নুজ হয়ে যায়। */}
+        {tab === "today" && isGuest && !user && Date.now() > signinBannerSnoozedUntil && (
           <div onClick={() => { vibrate(); setShowAuthScreen(true); }} style={{
               marginTop:14, display:"flex", alignItems:"center", gap:10, cursor:"pointer",
               border:`1px solid ${accent}55`, background: dark ? `${accent}1A` : `${accent}12`,
@@ -6032,7 +6050,11 @@ function FocusGoInner() {
                 {lang==="bn" ? "সেভ করতে সাইন ইন করুন" : "Sign in to keep it safe"}
               </div>
             </div>
-            <ChevronRight size={16} color={textMuted2} style={{flexShrink:0}}/>
+            <button onClick={(e) => { e.stopPropagation(); vibrate(); dismissSigninBanner(); }}
+              aria-label={lang==="bn" ? "বন্ধ করুন" : "Dismiss"}
+              style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:4, display:"flex", flexShrink:0}}>
+              <X size={15}/>
+            </button>
           </div>
         )}
 
