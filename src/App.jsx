@@ -1482,9 +1482,18 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
       </button>
     );
 
-    // ---- মিনিমাল, মনোক্রোম আইকন র‍্যাপ — গ্রিডের বদলে এখন সব প্রেফারেন্স এক লিস্টে, রঙের ভ্যারাইটি বাদ দিয়ে একটাই নিউট্রাল টোন ----
+    // ---- রঙিন আইকন ব্যাজ — প্রতিটা প্রেফারেন্স ক্যাটাগরির নিজস্ব হালকা টিন্ট রঙ, যাতে লিস্টটা স্ক্যান করা সহজ হয়;
+    // Backup/Help-এর মতো নিরপেক্ষ আইটেমের জন্য এখনো একটা মিউটেড neutral টোন ফলব্যাক হিসেবে থাকছে ----
     const neutralIconBg = dark ? "#242229" : "#F0EEF5";
     const neutralIconColor = dark ? "#B0ABC2" : "#6E6B7A";
+    const tint = (hex) => (dark ? `${hex}33` : `${hex}1F`);
+    const iconColors = {
+      appearance: { iconBg: tint("#7C5CFC"), iconColor: dark ? "#A78BFA" : "#7C5CFC" },
+      timer:      { iconBg: tint("#4C8FA6"), iconColor: dark ? "#7FB4C7" : "#4C8FA6" },
+      reminders:  { iconBg: tint("#6E8B5E"), iconColor: dark ? "#93B682" : "#6E8B5E" },
+      salah:      { iconBg: tint("#C08A2E"), iconColor: dark ? "#E0AE5C" : "#C08A2E" },
+      alerts:     { iconBg: tint("#D97757"), iconColor: dark ? "#E59A80" : "#D97757" },
+    };
 
     // এক লাইনের সেটিংস রো — module-level SettingsRow কম্পোনেন্ট ব্যবহার হয় (উপরে দেখুন কেন — একটা
     // ইনলাইন wrapper ফাংশন এখানে রাখলে সেটাও প্রতি render-এ নতুন রেফারেন্স হয়ে একই সমস্যা ফিরিয়ে আনত,
@@ -1596,7 +1605,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
         {/* ---- Preferences — একটাই কার্ডে সব প্রেফারেন্স, প্রতিটা রো accordion হিসেবে খোলে ---- */}
         <div style={{...sectionHeadingStyle, marginTop:0}}>{isBn ? "পছন্দসমূহ" : "Preferences"}</div>
         <div style={groupCardStyle}>
-          <SettingsRow {...rowCtx} Icon={Palette} title={isBn ? "অ্যাপিয়ারেন্স" : "Appearance"} borderTop={false}
+          <SettingsRow {...rowCtx} {...iconColors.appearance} Icon={Palette} title={isBn ? "অ্যাপিয়ারেন্স" : "Appearance"} borderTop={false}
             subtitle={isBn ? `টেক্সট সাইজ: ${textScale}%` : `Text size: ${textScale}%`}
             expandKey="appearance"
             right={
@@ -1650,7 +1659,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             </div>
           </SettingsRow>
 
-          <SettingsRow {...rowCtx} Icon={Hourglass} title={isBn ? "ফোকাস টাইমার" : "Focus Timer"} subtitle={`${focusMinutes} / ${breakMinutes} ${t.minutes}`} expandKey="timer">
+          <SettingsRow {...rowCtx} {...iconColors.timer} Icon={Hourglass} title={isBn ? "ফোকাস টাইমার" : "Focus Timer"} subtitle={`${focusMinutes} / ${breakMinutes} ${t.minutes}`} expandKey="timer">
             <div style={{display:"flex", gap:10}}>
               <div style={{flex:1, minWidth:0}}>
                 <div style={{fontSize:11.5, fontWeight:800, color:textMuted2, letterSpacing:0.3, textTransform:"uppercase", marginBottom:7, paddingLeft:2}}>{t.focusLabel}</div>
@@ -1665,7 +1674,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             </div>
           </SettingsRow>
 
-          <SettingsRow {...rowCtx} Icon={CalendarDays} title={isBn ? "স্টাডি রিমাইন্ডার" : "Study Reminders"}
+          <SettingsRow {...rowCtx} {...iconColors.reminders} Icon={CalendarDays} title={isBn ? "স্টাডি রিমাইন্ডার" : "Study Reminders"}
             subtitle={studyRemindersEnabled ? (isBn ? "প্রতিদিনের রিমাইন্ডার" : "Daily reminders") : (isBn ? "বন্ধ" : "Off")} expandKey="reminders">
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: studyRemindersEnabled ? 14 : 0}}>
               <span style={{fontSize:13.5, fontWeight:700, color:textMain}}>{isBn ? "দৈনিক স্টাডি রিমাইন্ডার" : "Daily study reminder"}</span>
@@ -1680,12 +1689,12 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             )}
           </SettingsRow>
 
-          <SettingsRow {...rowCtx} Icon={MosqueIcon} title={isBn ? "সালাতের সময়" : "Salah Timer"}
+          <SettingsRow {...rowCtx} {...iconColors.salah} Icon={MosqueIcon} title={isBn ? "সালাতের সময়" : "Salah Timer"}
             subtitle={salahFeatureEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")}
             right={<Toggle on={salahFeatureEnabled} onClick={()=>{vibrate(); setSalahFeatureEnabled(v=>!v);}}/>}
             onClick={()=>{vibrate(); setSalahFeatureEnabled(v=>!v);}}/>
 
-          <SettingsRow {...rowCtx} Icon={Bell} title={isBn ? "অ্যালার্ট" : "Alerts"}
+          <SettingsRow {...rowCtx} {...iconColors.alerts} Icon={Bell} title={isBn ? "অ্যালার্ট" : "Alerts"}
             subtitle={isBn ? "নোটিফিকেশন ও হ্যাপটিক" : "Notifications and haptics"}
             expandKey="alerts">
             <div style={{display:"flex", flexDirection:"column", gap:14}}>
@@ -2194,13 +2203,15 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
           <button onClick={onClose} style={{border:"none", background:"transparent", cursor:"pointer", color:textMuted2}}><X size={20}/></button>
         </div>
 
-        {/* Avatar */}
-        <div style={{display:"flex", alignItems:"center", gap:16, marginBottom:8}}>
+        {/* Avatar — এখন সালাত টাইমারের "UP NEXT" কার্ডের মতো সলিড accent ব্যানারে, সাদা বর্ডার-রিং সহ */}
+        <div style={{borderRadius:18, background:accent, padding:"16px 14px 18px", marginBottom:18, display:"flex", alignItems:"center", gap:14}}>
           <div style={{position:"relative", flexShrink:0}}>
-            <AvatarCircle size={56}/>
+            <div style={{padding:3, background:"rgba(255,255,255,0.92)", borderRadius:"50%", display:"flex"}}>
+              <AvatarCircle size={56}/>
+            </div>
             <button onClick={handlePickPhoto} disabled={photoBusy} title={L.changePhoto} style={{
               position:"absolute", right:-2, bottom:-2, width:22, height:22, borderRadius:"50%",
-              border:`2px solid ${cardBg}`, background:accent, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center",
+              border:`2px solid ${accent}`, background:"#fff", color:accent, display:"flex", alignItems:"center", justifyContent:"center",
               cursor: photoBusy ? "default" : "pointer", opacity: photoBusy ? 0.6 : 1,
             }}>
               {photoBusy ? <Loader2 size={11} style={{animation:"spin 0.8s linear infinite"}}/> : <Pencil size={11}/>}
@@ -2208,28 +2219,25 @@ function ProfileModal({ t, lang, user, isGuest, onExitGuest, onClose, onUserUpda
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{display:"none"}}/>
           </div>
           <div style={{minWidth:0, flex:1}}>
-            <div style={{fontSize:16.5, fontWeight:700, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{user.displayName || (user.email ? user.email.split("@")[0] : "Account")}</div>
-            {user.email && <div style={{fontSize:12.5, color:textMuted2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{user.email}</div>}
+            <div style={{fontSize:16.5, fontWeight:800, color:"#fff", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{user.displayName || (user.email ? user.email.split("@")[0] : "Account")}</div>
+            {user.email && <div style={{fontSize:12.5, color:"rgba(255,255,255,0.82)", fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginTop:2}}>{user.email}</div>}
           </div>
         </div>
         {photoError && <div style={{fontSize:12.5, color:"#C0553F", fontWeight:600, marginBottom:10}}>{photoError}</div>}
 
-        {/* মেনু লিস্ট */}
-        <div style={{marginTop:10, marginBottom:18}}>
-          <div onClick={()=>openSection("personal")} style={rowStyle}>
-            <div style={menuLabelStyle}><span style={iconWrapStyle}><User size={15}/></span>{L.personalInfo}</div>
+        {/* মেনু লিস্ট — প্রতিটা আইটেমের নিজস্ব রঙিন আইকন ব্যাজ (Settings পেজের সাথে মিলিয়ে); Social Media
+             Links রো ইউজারের অনুরোধে সম্পূর্ণ বাদ দেওয়া হলো */}
+        <div style={{background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:14, padding:"0 12px", marginBottom:18}}>
+          <div onClick={()=>openSection("personal")} style={{...rowStyle, borderBottom:`1px solid ${cardBorder}`}}>
+            <div style={menuLabelStyle}><span style={{...iconWrapStyle, background: dark?"#7C5CFC33":"#7C5CFC1F", border:"none", color: dark?"#A78BFA":"#7C5CFC"}}><User size={15}/></span>{L.personalInfo}</div>
             {isBn ? <ChevronLeft size={16} color={textMuted2}/> : <ChevronRight size={16} color={textMuted2}/>}
           </div>
-          <div onClick={()=>openSection("email")} style={rowStyle}>
-            <div style={menuLabelStyle}><span style={iconWrapStyle}><AtSign size={15}/></span>{L.changeEmail}</div>
+          <div onClick={()=>openSection("email")} style={{...rowStyle, borderBottom:`1px solid ${cardBorder}`}}>
+            <div style={menuLabelStyle}><span style={{...iconWrapStyle, background: dark?"#4C8FA633":"#4C8FA61F", border:"none", color: dark?"#7FB4C7":"#4C8FA6"}}><AtSign size={15}/></span>{L.changeEmail}</div>
             {isBn ? <ChevronLeft size={16} color={textMuted2}/> : <ChevronRight size={16} color={textMuted2}/>}
           </div>
-          <div onClick={()=>openSection("password")} style={rowStyle}>
-            <div style={menuLabelStyle}><span style={iconWrapStyle}><KeyRound size={15}/></span>{L.changePassword}</div>
-            {isBn ? <ChevronLeft size={16} color={textMuted2}/> : <ChevronRight size={16} color={textMuted2}/>}
-          </div>
-          <div onClick={()=>openSection("social")} style={{...rowStyle, borderBottom:"none"}}>
-            <div style={menuLabelStyle}><span style={iconWrapStyle}><Link2 size={15}/></span>{L.socialLinks}</div>
+          <div onClick={()=>openSection("password")} style={{...rowStyle, borderBottom:"none"}}>
+            <div style={menuLabelStyle}><span style={{...iconWrapStyle, background: dark?"#C08A2E33":"#C08A2E1F", border:"none", color: dark?"#E0AE5C":"#C08A2E"}}><KeyRound size={15}/></span>{L.changePassword}</div>
             {isBn ? <ChevronLeft size={16} color={textMuted2}/> : <ChevronRight size={16} color={textMuted2}/>}
           </div>
         </div>
