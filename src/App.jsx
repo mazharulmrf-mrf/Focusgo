@@ -334,7 +334,7 @@ function OnboardingScreen({ lang, dark, cardBg, textMain, textMuted2, accent, on
 }
 
 // ---------- Email/Password Auth স্ক্রিন ----------
-function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent, dark, onGuest }) {
+function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent, dark, onGuest, onClose }) {
   const breakpoint = useViewport(); // "mobile" | "tablet" | "desktop"
   const cardMaxWidth = breakpoint === "desktop" ? 440 : breakpoint === "tablet" ? 410 : 380;
   const [mode, setMode] = useState("login"); // "login" | "signup" | "forgot"
@@ -477,7 +477,12 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
   // আলাদা "পাসওয়ার্ড রিসেট" স্ক্রিন — লগইন/সাইন-আপ ফর্ম থেকে সম্পূর্ণ আলাদা, শুধু ইমেইল চাওয়া হয়
   if (mode === "forgot") {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding:20, background: dark ? "#1A1814" : "#F8F5EF" }}>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding:20, background: dark ? "#1A1814" : "#F8F5EF", position:"relative" }}>
+        {onClose && (
+          <button type="button" onClick={onClose} style={{ position:"absolute", top:20, right:20, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:6, display:"flex" }}>
+            <X size={20} />
+          </button>
+        )}
         <div style={{ width: "100%", maxWidth: cardMaxWidth, background: cardBg, border: `1px solid ${cardBorder}`, borderRadius:14, padding: "28px 24px" }}>
           <div style={{ display: "flex", alignItems: "center", gap:8, marginBottom: 18 }}>
             <button type="button" onClick={() => { setMode("login"); setError(""); setInfo(""); setForgotEmail(""); }}
@@ -512,7 +517,12 @@ function AuthScreen({ t, lang, cardBg, cardBorder, textMain, textMuted2, accent,
   }
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding:20, background: dark ? "#1A1814" : "#F8F5EF" }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding:20, background: dark ? "#1A1814" : "#F8F5EF", position:"relative" }}>
+      {onClose && (
+        <button type="button" onClick={onClose} style={{ position:"absolute", top:20, right:20, border:"none", background:"transparent", cursor:"pointer", color:textMuted2, padding:6, display:"flex" }}>
+          <X size={20} />
+        </button>
+      )}
       <div style={{ width: "100%", maxWidth: cardMaxWidth, background: cardBg, border: `1px solid ${cardBorder}`, borderRadius:14, padding: "28px 24px" }}>
         <div style={{ textAlign: "center", marginBottom: 20 }}>
           <img src={dark ? LOGO_FULL_DARK : LOGO_FULL} alt="FocusGo" style={{height:30, width:"auto", objectFit:"contain", display:"block", margin:"0 auto"}}/>
@@ -3483,6 +3493,9 @@ function FocusGoInner() {
   const exitToastTimerRef = useRef(null);
   const [user, setUser] = useState(null);
   const [isGuest, setIsGuest] = useState(false); // "Continue without an account" — data stays in-memory only, never synced
+  // ব্যানারে ট্যাপ করে বা প্রোফাইল থেকে ইচ্ছাকৃতভাবে সাইন-ইন স্ক্রিন খুললে true — guest-first flow-তে
+  // AuthScreen আর ডিফল্ট এন্ট্রি-পয়েন্ট না, শুধু ইউজার নিজে চাইলেই এটা দেখা যায়
+  const [showAuthScreen, setShowAuthScreen] = useState(false);
   const [onboardingDone, setOnboardingDone] = useState(() => {
     try { return window.localStorage.getItem("focusgo_onboarding_v1") === "1"; } catch (e) { return true; } // localStorage না থাকলে অনবোর্ডিং আটকে না রাখাই ভালো
   });
@@ -4236,6 +4249,15 @@ function FocusGoInner() {
     });
     return () => unsubscribe();
   }, []);
+
+  // Guest-first entry: auth state resolve হওয়ার পর যদি কোনো real user লগইন করা না থাকে, তাহলে
+  // AuthScreen দেখিয়ে আটকে না রেখে সরাসরি গেস্ট মোডে অ্যাপে ঢুকিয়ে দেওয়া হয় — সাইন-ইন স্ক্রিন আর
+  // মূল এন্ট্রি-পয়েন্ট না, ইউজার পরে ইচ্ছা করলে (নিচের নাজ ব্যানার/প্রোফাইল থেকে) সাইন ইন করতে পারবে।
+  useEffect(() => {
+    if (authChecked && !user && !isGuest) {
+      setIsGuest(true);
+    }
+  }, [authChecked, user, isGuest]);
 
   // Native (Android) splash screen — capacitor.config.json-এ SplashScreen.launchAutoHide:false
   // সেট করা আছে, তাই এটা নিজে থেকে সরে না। আগে এটা authChecked (Firebase auth স্টেট জানা হওয়া)
@@ -5721,10 +5743,12 @@ function FocusGoInner() {
     );
   }
 
-  // লগইন করা নেই আর গেস্ট মোডও না — Email/Password (বা Google) দিয়ে লগইন/সাইন-আপ স্ক্রিন দেখানো, সাথে "একাউন্ট ছাড়াই ব্যবহার করুন" অপশন
-  if (!user && !isGuest) {
+  // Guest-first: লগইন করা না থাকলেও অ্যাপে আটকানো হয় না (উপরের effect অটো-গেস্ট মোডে ঢুকিয়ে দেয়)।
+  // AuthScreen এখন শুধু তখনই দেখানো হয় যখন ইউজার নিজে ইচ্ছা করে সাইন-ইন খুলেছে (নাজ ব্যানার/প্রোফাইল থেকে)।
+  if (!user && showAuthScreen) {
     return <AuthScreen t={t} lang={lang} cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}
-      onGuest={() => { setIsGuest(true); }} />;
+      onGuest={() => { setIsGuest(true); setShowAuthScreen(false); }}
+      onClose={() => setShowAuthScreen(false)} />;
   }
 
   // লগইন/গেস্ট হয়ে গেছে কিন্তু এই ডিভাইসে আগে অনবোর্ডিং দেখানো হয়নি — একবারই দেখানো হবে
@@ -5988,6 +6012,28 @@ function FocusGoInner() {
             );
           })()}
         </div>
+        )}
+
+        {/* Guest-first নাজ ব্যানার — লগইন করা না থাকলে (আর গেস্ট মোডে) হালকাভাবে মনে করিয়ে দেয় যে ডেটা
+            শুধু এই ডিভাইসেই আছে। ট্যাপ করলে AuthScreen খোলে; জোর করে আটকায় না, তাই ব্যবহারকারী
+            সবসময় app-টা আগে ব্যবহার করে দেখতে পারে, সাইন-ইন পরে ইচ্ছেমতো। */}
+        {tab === "today" && isGuest && !user && (
+          <div onClick={() => { vibrate(); setShowAuthScreen(true); }} style={{
+              marginTop:14, display:"flex", alignItems:"center", gap:10, cursor:"pointer",
+              border:`1px solid ${accent}55`, background: dark ? `${accent}1A` : `${accent}12`,
+              borderRadius:14, padding:"10px 12px",
+            }}>
+            <UploadCloud size={18} color={accent} style={{flexShrink:0}}/>
+            <div style={{flex:1, minWidth:0}}>
+              <div style={{fontSize:13, fontWeight:700, color:textMain}}>
+                {lang==="bn" ? "ডেটা এই ডিভাইসেই আছে" : "Your data is only on this device"}
+              </div>
+              <div style={{fontSize:11.5, color:textMuted2, marginTop:1}}>
+                {lang==="bn" ? "সেভ করতে সাইন ইন করুন" : "Sign in to keep it safe"}
+              </div>
+            </div>
+            <ChevronRight size={16} color={textMuted2} style={{flexShrink:0}}/>
+          </div>
         )}
 
         {/* Date row — Today tab এর নিজস্ব অ্যাঙ্কর (weekday + বড় তারিখ + লাইভ ক্লক), তাই শুধু Today-তেই দেখানো হয়।
@@ -7752,7 +7798,7 @@ function FocusGoInner() {
       {/* Profile tab — user icon-এ ক্লিক করলে এটা খোলে */}
       {showProfile && (
         <ProfileModal t={t} lang={lang} user={user} isGuest={isGuest} onClose={()=>setShowProfile(false)}
-          onExitGuest={() => { clearGuestData(); setIsGuest(false); setShowProfile(false); }}
+          onExitGuest={() => { setShowProfile(false); setShowAuthScreen(true); }}
           onUserUpdate={(patch)=>setUser(u=>({...u, ...patch}))}
           cardBg={cardBg} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} dark={dark}/>
       )}
