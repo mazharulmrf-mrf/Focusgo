@@ -6427,6 +6427,41 @@ function FocusGoInner() {
                 )}
               </button>
             </div>
+
+            {/* Plan summary hero card — গ্রেডিয়েন্ট + wavy decoration + circular progress ring, planKey দিনের হিসাবে */}
+            {(() => {
+              const planDone = planTopics.filter(x=>x.done).length;
+              const planTotal = planTopics.length;
+              const planPct = planTotal > 0 ? Math.round((planDone/planTotal)*100) : 0;
+              return (
+                <div style={{
+                  marginTop:14, borderRadius:20, padding:"16px 18px", position:"relative", overflow:"hidden",
+                  background:`linear-gradient(135deg, ${accent} 0%, ${shadeColor(accent, -14)} 100%)`,
+                  boxShadow:`0 12px 24px ${accent}38`,
+                }}>
+                  <svg style={{position:"absolute", right:-8, bottom:-8, width:140, height:56, opacity:0.5, pointerEvents:"none"}} viewBox="0 0 140 56" fill="none">
+                    <path d="M0 28 C 22 6, 40 50, 68 28 S 116 6, 140 28" stroke="rgba(255,255,255,0.6)" strokeWidth="2" fill="none"/>
+                  </svg>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, position:"relative"}}>
+                    <div style={{minWidth:0}}>
+                      <div style={{fontSize:11.5, fontWeight:600, color:"rgba(255,255,255,0.85)"}}>
+                        {isPlanToday ? (lang==="bn" ? "আজকের পরিকল্পনা" : "Today's plan") : (lang==="bn" ? "এই দিনের পরিকল্পনা" : "This day's plan")}
+                      </div>
+                      <div style={{fontSize:17, fontWeight:800, color:"#fff", letterSpacing:-0.3, marginTop:6}}>
+                        {planTotal === 0
+                          ? (lang==="bn" ? "এখনো টপিক যোগ হয়নি" : "No topics added yet")
+                          : <><Num>{nf(planDone)}</Num>/<Num>{nf(planTotal)}</Num> {t.doneCount}</>}
+                      </div>
+                    </div>
+                    <div style={{width:48, height:48, borderRadius:"50%", flexShrink:0, background:`conic-gradient(#fff 0% ${planPct}%, rgba(255,255,255,0.28) ${planPct}% 100%)`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                      <div style={{width:37, height:37, borderRadius:"50%", background:shadeColor(accent,-24), display:"flex", alignItems:"center", justifyContent:"center"}}>
+                        <span style={{color:"#fff", fontWeight:800, fontSize:11}}><Num>{nf(planPct)}</Num>%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -6509,48 +6544,65 @@ function FocusGoInner() {
           if (tab === "today") {
             const doneToday = todayTopics.filter(x => x.done).length;
             const totalToday = todayTopics.length;
+            const pctToday = totalToday > 0 ? Math.round((doneToday / totalToday) * 100) : 0;
+            const heroHeadline = totalToday === 0
+              ? (lang==="bn" ? "প্রোডাক্টিভ দিনের জন্য একটা ফ্রেশ শুরু!" : "A fresh start for a productive day!")
+              : (lang==="bn"
+                  ? <><Num>{nf(doneToday)}</Num>/<Num>{nf(totalToday)}</Num> {t.doneCount}</>
+                  : <><Num>{nf(doneToday)}</Num> of <Num>{nf(totalToday)}</Num> {t.doneCount.toLowerCase()}</>);
 
             return (
-              <div className="fg-tab-panel" style={{
-                marginTop:10, background: dark ? cardBg : "#FFFFFF", borderRadius:16,
-                padding:"14px 16px", position:"relative", overflow:"hidden",
-                border:`1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(20,17,24,0.045)"}`,
-                boxShadow: dark ? "0 2px 12px rgba(0,0,0,0.32)" : "0 4px 18px rgba(32,34,43,0.06)",
-                display:"flex", alignItems:"center", gap:12,
-              }}>
-                <div style={{display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0}}>
-                  <span style={{width:38, height:38, borderRadius:"50%", background: dark?`${accent}29`:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                    <BookOpen size={18} color={accent}/>
-                  </span>
-                  <div style={{minWidth:0}}>
-                    <div style={{fontSize:11.5, fontWeight:600, color:textMuted2}}>{lang === "bn" ? "আজ" : "Today"}</div>
-                    <div style={{fontSize:15.5, fontWeight:700, color:textMain, letterSpacing:-0.2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
-                      {lang === "bn"
-                        ? <><Num>{nf(doneToday)}</Num>/<Num>{nf(totalToday)}</Num> {t.doneCount}</>
-                        : <><Num>{nf(doneToday)}</Num> of <Num>{nf(totalToday)}</Num> {t.doneCount.toLowerCase()}</>}
+              <>
+                {/* Hero card — accent gradient, wavy decoration, circular progress ring */}
+                <div className="fg-tab-panel" style={{
+                  marginTop:10, borderRadius:20, padding:"18px 20px 20px", position:"relative", overflow:"hidden",
+                  background:`linear-gradient(135deg, ${accent} 0%, ${shadeColor(accent, -14)} 100%)`,
+                  boxShadow:`0 14px 28px ${accent}40`,
+                }}>
+                  <svg style={{position:"absolute", right:-8, top:14, width:150, height:60, opacity:0.5, pointerEvents:"none"}} viewBox="0 0 150 60" fill="none">
+                    <path d="M0 30 C 25 5, 45 55, 75 30 S 125 5, 150 30" stroke="rgba(255,255,255,0.65)" strokeWidth="2" fill="none"/>
+                  </svg>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12, position:"relative"}}>
+                    <div style={{minWidth:0}}>
+                      <div style={{fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.85)"}}>{lang==="bn" ? "আজকের ফোকাস" : "Today's focus"}</div>
+                      <div style={{fontSize:18, fontWeight:800, color:"#fff", letterSpacing:-0.3, marginTop:8, lineHeight:1.35, maxWidth:210}}>
+                        {heroHeadline}
+                      </div>
                     </div>
-                    <div style={{fontSize:10.5, color:textMuted2, marginTop:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
-                      {totalToday === 0
-                        ? (lang==="bn" ? "প্রোডাক্টিভ দিনের জন্য একটা ফ্রেশ শুরু!" : "A fresh start for a productive day!")
-                        : (lang==="bn" ? "চালিয়ে যাও!" : "Keep it up!")}
-                    </div>
-                  </div>
-                </div>
-                <div style={{width:1, alignSelf:"stretch", background: dark ? "rgba(255,255,255,0.08)" : "rgba(20,17,24,0.08)", flexShrink:0}}/>
-                <div style={{display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0}}>
-                  <span style={{width:38, height:38, borderRadius:"50%", background: dark?`${accent}29`:`${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-                    <Flame size={18} color={accent} fill={`${accent}55`}/>
-                  </span>
-                  <div style={{minWidth:0}}>
-                    <div style={{fontSize:15.5, fontWeight:700, color:textMain, letterSpacing:-0.2, whiteSpace:"nowrap"}}>
-                      <Num>{nf(studyOverview.streak)}</Num> <span style={{fontWeight:600}}>{t.streakLabel}</span>
-                    </div>
-                    <div style={{fontSize:10.5, color:textMuted2, marginTop:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
-                      {lang==="bn" ? "স্ট্রিক ধরে রাখো!" : "Keep your streak alive!"}
+                    <div style={{width:52, height:52, borderRadius:"50%", flexShrink:0, background:`conic-gradient(#fff 0% ${pctToday}%, rgba(255,255,255,0.28) ${pctToday}% 100%)`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                      <div style={{width:40, height:40, borderRadius:"50%", background:shadeColor(accent, -24), display:"flex", alignItems:"center", justifyContent:"center"}}>
+                        <span style={{color:"#fff", fontWeight:800, fontSize:12}}><Num>{nf(pctToday)}</Num>%</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+
+                {/* Two colorful stat cards — today's progress + streak */}
+                <div style={{display:"flex", gap:10, marginTop:10}}>
+                  <div style={{flex:1, borderRadius:18, padding:"14px 14px 12px", minHeight:88, background:"#B6F27A", display:"flex", flexDirection:"column", justifyContent:"space-between"}}>
+                    <div style={{fontSize:12, fontWeight:600, color:"#171522", opacity:0.75}}>{lang==="bn" ? "আজকের অগ্রগতি" : "Today's progress"}</div>
+                    <div>
+                      <div style={{fontFamily:"'Inter Tight', sans-serif", fontWeight:800, fontSize:18, color:"#171522", letterSpacing:-0.3, marginTop:6}}>
+                        {heroHeadline}
+                      </div>
+                      <div style={{fontSize:11, color:"#171522", opacity:0.7, marginTop:2}}>
+                        {totalToday === 0 ? (lang==="bn" ? "চলো শুরু করি!" : "Let's get started!") : (lang==="bn" ? "চালিয়ে যাও!" : "Keep it up!")}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{flex:1, borderRadius:18, padding:"14px 14px 12px", minHeight:88, background:"#F5A85A", display:"flex", flexDirection:"column", justifyContent:"space-between"}}>
+                    <div style={{fontSize:12, fontWeight:600, color:"#171522", opacity:0.75}}>{t.streakLabel}</div>
+                    <div>
+                      <div style={{fontFamily:"'Inter Tight', sans-serif", fontWeight:800, fontSize:18, color:"#171522", letterSpacing:-0.3, marginTop:6}}>
+                        <Num>{nf(studyOverview.streak)}</Num> {lang==="bn" ? "দিন" : "days"}
+                      </div>
+                      <div style={{fontSize:11, color:"#171522", opacity:0.7, marginTop:2}}>
+                        {lang==="bn" ? "স্ট্রিক ধরে রাখো!" : "Keep your streak alive!"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
             );
           }
           return (
@@ -7015,9 +7067,9 @@ function FocusGoInner() {
                       flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:6,
                       border: sel ? "none" : `1px solid ${cardBorder}`, cursor:"pointer", fontFamily:"inherit",
                       borderRadius:14, padding:"10px 6px",
-                      background: sel ? accent : (dark ? cardBg : "#FFFFFF"),
+                      background: sel ? "#171522" : (dark ? cardBg : "#FFFFFF"),
                       color: sel ? "#FFFFFF" : textMuted2,
-                      boxShadow: sel ? `0 4px 12px ${accent}40` : "none",
+                      boxShadow: sel ? "0 4px 12px rgba(23,21,34,0.35)" : "none",
                     }}>
                     <f.Icon size={13} strokeWidth={2.4}/>
                     <span style={{fontSize:12.5, fontWeight:700, whiteSpace:"nowrap"}}>{f.label} (<Num>{nf(f.count)}</Num>)</span>
@@ -7163,7 +7215,9 @@ function FocusGoInner() {
                           const prColor = {high:"#C0392B", med:accent, low:"#6E8B5E"}[pr];
                           return (
                             <div key={x.id} onClick={()=>setTaskDetailId(x.id)}
-                              style={{display:"flex", alignItems:"center", gap:11, background: dark ? cardBg : "#FFFFFF", border:`1px solid ${cardBorder}`, borderRadius:14, padding:"12px 13px", cursor:"pointer"}}>
+                              style={{display:"flex", alignItems:"center", gap:11,
+                                background: overdue ? (dark ? "#2A1614" : "#FFF6F4") : (dark ? cardBg : "#FFFFFF"),
+                                border:`1px solid ${overdue ? "#E2604533" : cardBorder}`, borderRadius:16, padding:"12px 13px", cursor:"pointer"}}>
                               <button onClick={(e)=>{e.stopPropagation(); vibrate(); toggleTask(x.id);}}
                                 style={{width:22, height:22, borderRadius:"50%", border:`2px solid ${x.done ? "#6E8B5E" : prColor}`, background: x.done ? "#6E8B5E" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, cursor:"pointer", padding:0}}>
                                 {x.done && <Check size={13} color="#fff" strokeWidth={3}/>}
@@ -7172,9 +7226,19 @@ function FocusGoInner() {
                                 <div style={{fontSize:14, fontWeight:600, color: x.done ? textMuted2 : textMain, textDecoration: x.done ? "line-through" : "none", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                                   {x.title}
                                 </div>
-                                {x.dueDate && (
-                                  <div style={{fontSize:11, fontWeight:600, color: overdue ? "#C0392B" : textMuted2, marginTop:2}}>{x.dueDate}</div>
-                                )}
+                                <div style={{display:"flex", alignItems:"center", gap:6, marginTop:4}}>
+                                  {x.done ? (
+                                    <span style={{fontSize:10.5, fontWeight:700, color:"#3F8A3B", background: dark?"#1E3A1C":"#E3F5DC", padding:"2px 8px", borderRadius:999}}>
+                                      {lang==="bn" ? "সম্পন্ন" : "Done"}
+                                    </span>
+                                  ) : overdue ? (
+                                    <span style={{fontSize:10.5, fontWeight:700, color:"#E25B45", background: dark?"#3A1E1A":"#FDE7E2", padding:"2px 8px", borderRadius:999}}>
+                                      {lang==="bn" ? "মেয়াদ পার" : "Overdue"}
+                                    </span>
+                                  ) : x.dueDate && (
+                                    <span style={{fontSize:11, fontWeight:600, color:textMuted2}}>{x.dueDate}</span>
+                                  )}
+                                </div>
                               </div>
                               {x.favorite && <Pin size={14} color={accent} fill={`${accent}55`} style={{flexShrink:0}}/>}
                             </div>
@@ -7346,11 +7410,11 @@ function FocusGoInner() {
               })()}
             </div>
 
-            {/* Weekly Activity — bar chart with value labels and accent-weighted bars */}
-            <div style={{background: dark ? cardBg : "#FFFFFF", borderRadius:14, padding:"14px 14px 6px", marginBottom:20, boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)"}}>
-            <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:4}}>
-              <span style={{fontSize:10.5, letterSpacing:ls(1.5), color:textMuted2, fontWeight:700, opacity:0.85}}>{t.weeklyActivity}</span>
-              <span style={{fontSize:11.5, fontWeight:700, color:textMuted2}}>
+            {/* Weekly Activity — dark card, lime highlighted bar for today (matches new home/plan design language) */}
+            <div style={{background:"#171522", borderRadius:20, padding:"16px 16px 14px", marginBottom:20, boxShadow:"0 12px 24px rgba(23,21,34,0.22)"}}>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:14}}>
+              <span style={{fontSize:12, fontWeight:700, color:"#FFFFFF"}}>{t.weeklyActivity}</span>
+              <span style={{fontSize:12, fontWeight:800, color:"#B6F27A"}}>
                 {(() => {
                   const total = weeklyActivity.reduce((s,w)=>s+w.min,0);
                   const h = Math.floor(total/60), m = total%60;
@@ -7358,7 +7422,7 @@ function FocusGoInner() {
                 })()}
               </span>
             </div>
-            <div style={{background:"transparent", borderRadius:14, padding:"14px 0 12px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:118}}>
+            <div style={{background:"transparent", borderRadius:14, padding:"0 0 4px", display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:6, height:118}}>
               {(() => {
                 const maxMin = Math.max(1, ...weeklyActivity.map(w=>w.min));
                 return weeklyActivity.map((w,i) => {
@@ -7368,12 +7432,12 @@ function FocusGoInner() {
                   return (
                     <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6, height:"100%", justifyContent:"flex-end"}}>
                       {w.min > 0 ? (
-                        <span style={{fontSize:10.5, fontWeight:700, color: isToday ? accent : textMuted2, opacity: isToday?1:0.75, whiteSpace:"nowrap"}}>
+                        <span style={{fontSize:10, fontWeight:700, color: isToday ? "#B6F27A" : "#8B889A", whiteSpace:"nowrap"}}>
                           {hh > 0 ? <><Num>{nf(hh)}</Num>h<Num>{nf(mm)}</Num></> : <Num>{nf(mm)}</Num>}
                         </span>
-                      ) : <span style={{fontSize:10.5, height:11}}/>}
-                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:8, background: w.min>0 ? (isToday ? accent : inkA(0.33)) : (dark?"#3A342A":"#F2ECDF"), border: w.min>0 ? "none" : `1px dashed ${textMuted2}55`, boxSizing:"border-box", transition:"height .3s"}}/>
-                      <span style={{fontSize:10.5, fontWeight:700, color: isToday?accent:textMuted2}}>{weekdayShort(w.day)}</span>
+                      ) : <span style={{fontSize:10, height:11}}/>}
+                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:7, background: w.min>0 ? (isToday ? "#B6F27A" : "#3A3650") : "rgba(255,255,255,0.06)", boxSizing:"border-box", transition:"height .3s"}}/>
+                      <span style={{fontSize:10, fontWeight:700, color: isToday? "#FFFFFF" : "#8B889A"}}>{weekdayShort(w.day)}</span>
                     </div>
                   );
                 });
@@ -7509,27 +7573,24 @@ function FocusGoInner() {
 
         const TabBtn = ({Icon, label, active, onClick}) => (
           <button onClick={onClick} style={{
-            flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4,
-            border:"none", background:"transparent", cursor:"pointer", padding:"3px 2px 0",
-            color: active ? accent : textMuted2,
+            flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:3,
+            border:"none", background:"transparent", cursor:"pointer", padding:"2px 2px 0", fontFamily:"inherit",
+            color: active ? "#FFFFFF" : "#8B889A",
           }}>
-            <Icon size={21} strokeWidth={active?2.3:1.9}/>
-            <span style={{fontSize:10.5, fontWeight:600, lineHeight:1}}>{label}</span>
+            <Icon size={20} strokeWidth={active?2.3:1.9}/>
+            <span style={{fontSize:9.5, fontWeight:600, lineHeight:1}}>{label}</span>
           </button>
         );
 
-        const BAR_H = 54, NOTCH_R = 30, FAB = 50;
+        const FAB = 50;
 
         if (!addEnabled) {
-          // শুধু Today ট্যাব থাকলে (Study/Task দুটোই বন্ধ) — সাধারণ ফ্ল্যাট বার, নচ/FAB লাগবে না
+          // শুধু Today ট্যাব থাকলে (Study/Task দুটোই বন্ধ) — floating dark pill bার, FAB লাগবে না
           return (
-            <div style={{
-              position:"sticky", left:0, right:0, bottom:0, zIndex:40,
-              background: cardBg, borderTop:`1px solid ${cardBorder}`,
-              paddingTop:5, paddingBottom:"calc(8px + env(safe-area-inset-bottom))",
-              boxShadow: dark ? "0 -2px 12px rgba(0,0,0,0.25)" : "0 -2px 12px rgba(0,0,0,0.05)",
-            }}>
-              <div style={{width:"100%", maxWidth:480, margin:"0 auto", display:"flex"}}>
+            <div style={{position:"sticky", left:0, right:0, bottom:0, zIndex:40, padding:"0 14px calc(16px + env(safe-area-inset-bottom))"}}>
+              <div style={{width:"100%", maxWidth:452, margin:"0 auto", display:"flex",
+                background:"#171522", borderRadius:28, padding:"10px 10px",
+                boxShadow:"0 14px 26px rgba(0,0,0,0.28)"}}>
                 <TabBtn Icon={Home} label={t.tabs.today} active={true} onClick={()=>{}}/>
               </div>
             </div>
@@ -7537,25 +7598,15 @@ function FocusGoInner() {
         }
 
         return (
-          <div style={{position:"sticky", left:0, right:0, bottom:0, zIndex:40}}>
-            <div style={{position:"relative", width:"100%", maxWidth:480, margin:"0 auto"}}>
-              <svg width="100%" height={BAR_H + 4} viewBox={`0 0 480 ${BAR_H + 4}`} preserveAspectRatio="none" style={{display:"block"}}>
-                <path
-                  d={`M0,4
-                      L${240 - NOTCH_R - 14},4
-                      C${240 - NOTCH_R + 2},4 ${240 - NOTCH_R + 6},${NOTCH_R * 0.9} ${240},${NOTCH_R * 0.9}
-                      C${240 + NOTCH_R - 6},${NOTCH_R * 0.9} ${240 + NOTCH_R - 2},4 ${240 + NOTCH_R + 14},4
-                      L480,4
-                      L480,${BAR_H + 4}
-                      L0,${BAR_H + 4}
-                      Z`}
-                  fill={cardBg} stroke={cardBorder} strokeWidth="1"
-                />
-              </svg>
-
-              <div style={{position:"absolute", top:4, left:0, right:0, height:BAR_H, display:"flex", alignItems:"stretch", paddingBottom:"env(safe-area-inset-bottom)"}}>
+          <div style={{position:"sticky", left:0, right:0, bottom:0, zIndex:40, padding:"0 14px calc(16px + env(safe-area-inset-bottom))"}}>
+            <div style={{position:"relative", width:"100%", maxWidth:452, margin:"0 auto"}}>
+              <div style={{
+                display:"flex", alignItems:"stretch", justifyContent:"space-around",
+                background:"#171522", borderRadius:28, padding:"8px 8px 6px",
+                boxShadow:"0 14px 26px rgba(0,0,0,0.28)",
+              }}>
                 <div style={{flex:1, display:"flex"}}>{leftTabs.map(tb => <TabBtn key={tb.k} {...tb}/>)}</div>
-                <div style={{width:NOTCH_R*2}}/>
+                <div style={{width:FAB, flexShrink:0}}/>
                 <div style={{flex:1, display:"flex"}}>{rightTabs.map(tb => <TabBtn key={tb.k} {...tb}/>)}</div>
               </div>
 
@@ -7563,7 +7614,7 @@ function FocusGoInner() {
                 <>
                   <div onClick={()=>setShowQuickAddMenu(false)} style={{position:"fixed", inset:0, zIndex:44}}/>
                   <div style={{
-                    position:"absolute", bottom:BAR_H + 26, left:"50%", transform:"translateX(-50%)", zIndex:45,
+                    position:"absolute", bottom:"100%", marginBottom:22, left:"50%", transform:"translateX(-50%)", zIndex:45,
                     background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:14,
                     boxShadow: dark ? "0 8px 22px rgba(0,0,0,0.35)" : "0 8px 22px rgba(0,0,0,0.14)",
                     minWidth:172, padding:6,
@@ -7591,15 +7642,15 @@ function FocusGoInner() {
               )}
 
               <button onClick={handleAddTap} style={{
-                  position:"absolute", left:"50%", top: -FAB/2 + 8, transform:"translateX(-50%)",
-                  width:FAB, height:FAB, borderRadius:"50%", border:"none",
-                  background: dark ? "#F3F1F8" : "#1A1814",
-                  color: dark ? "#1A1814" : "#FFFFFF",
+                  position:"absolute", left:"50%", top:-FAB/2 + 4, transform:"translateX(-50%)",
+                  width:FAB, height:FAB, borderRadius:"50%", border:"3px solid #171522",
+                  background: accent,
+                  color:"#171522",
                   display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
-                  boxShadow: dark ? "0 6px 18px rgba(0,0,0,0.5)" : "0 6px 16px rgba(26,24,20,0.35)",
+                  boxShadow:`0 8px 18px ${accent}66`,
                   zIndex:46,
                 }}>
-                <Plus size={20} strokeWidth={2.4}/>
+                <Plus size={22} strokeWidth={2.6}/>
               </button>
             </div>
           </div>
