@@ -6410,6 +6410,69 @@ function FocusGoInner() {
         </div>
         )}
 
+        {/* Focus Timer preview row — screenshot অনুযায়ী সাদা কার্ড, আইকন + টাইটেল + ডিউরেশন, Play বাটন আর chevron;
+            ক্লিক করলে নতুন ফুল-স্ক্রিন Focus Timer পেজ (FocusTimerPage) খোলে। Study Plan-এর একদম উপরে দেখানো হয়
+            (Stats সাব-সেকশনে না, Today ট্যাবেও না — ওটা dashboard, টপিক বাছাইয়ের flow Study-তেই হয়)। */}
+        {tab === "study" && studySection === "plan" && (
+        <div className="fg-card fg-card-flat fg-tab-panel" style={{
+          marginTop:8, padding:"14px 14px 12px", position:"relative", overflow:"hidden",
+          background: dark
+            ? `linear-gradient(135deg, ${accent}2E, var(--card-bg) 68%)`
+            : `linear-gradient(135deg, ${accent}22, #FFFFFF 68%)`,
+        }}>
+          {/* সফট ভায়োলেট gradient-এর উপর দুটো ব্লব-শেপ — একটা accent-টিন্টেড, একটা সাদা/ট্রান্সপারেন্ট wave —
+              wave-এর মতো লেয়ার্ড লুক দিতে; zIndex:-1 রাখা হয়েছে যাতে কার্ডের কন্টেন্টের পেছনে থাকে (overflow:hidden দিয়ে ক্লিপ করা) */}
+          <div style={{position:"absolute", top:-46, right:-30, width:130, height:130, borderRadius:"50%", background: dark ? `${accent}1F` : `${accent}17`, zIndex:-1, pointerEvents:"none"}} />
+          <div style={{position:"absolute", bottom:-70, right:-25, width:190, height:190, borderRadius:"50%", background: dark ? "rgba(255,255,255,0.035)" : "rgba(255,255,255,0.6)", zIndex:-1, pointerEvents:"none"}} />
+          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}>
+            <div onClick={()=>{ vibrate(); setShowFocusTimerPage(true); }} style={{display:"flex", alignItems:"center", gap:12, minWidth:0, cursor:"pointer"}}>
+              <div style={{position:"relative", width:42, height:42, flexShrink:0}}>
+                <div style={{width:42, height:42, borderRadius:"50%", background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", color:accent}}>
+                  <Hourglass size={19}/>
+                </div>
+                {/* কর্নার ব্যাজ — বোঝাতে যে ট্যাপ করলে নতুন (ফুলস্ক্রিন) পেজ খোলে */}
+                <div style={{position:"absolute", bottom:-2, right:-2, width:16, height:16, borderRadius:"50%", background:accent, border:`2px solid ${dark ? cardBg : "#FFFFFF"}`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                  <ArrowUpRight size={9} color="#fff" strokeWidth={3}/>
+                </div>
+              </div>
+              <div style={{textAlign:"left", minWidth:0}}>
+                <div style={{fontSize:15, fontWeight:800, color:textMain, whiteSpace:"nowrap"}}>{t.focusTimer}</div>
+                <div style={{fontSize:11.5, fontWeight:500, color:textMuted2, marginTop:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
+                  {lang==="bn" ? "মনোযোগী থাকো, কাজ শেষ করো।" : "Stay focused, get things done."}
+                </div>
+              </div>
+            </div>
+            <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, flexShrink:0}}>
+              <button onClick={(e)=>{ e.stopPropagation(); if (timerRunning) { toggleTimerRunning(); } else { selectTimerTopic(null); setFocusMode("timer"); setTimerRunning(true); setShowFocusTimerPage(true); playStartSound(); vibrate(); } }}
+                style={{display:"flex", alignItems:"center", justifyContent:"center", background:accent, border:"none", borderRadius:"50%", width:44, height:44, color:"#fff", cursor:"pointer", flexShrink:0}}>
+                {timerRunning ? <Pause size={17} fill="#fff"/> : <Play size={17} fill="#fff" style={{marginLeft:2}}/>}
+              </button>
+              <span style={{fontSize:11, fontWeight:700, color:textMain, whiteSpace:"nowrap"}}>
+                {timerRunning ? (lang==="bn" ? "চলছে" : "Running") : (lang==="bn" ? "শুরু" : "Start")}
+              </span>
+            </div>
+          </div>
+          <div style={{display:"flex", gap:7, marginTop:12}}>
+            {[25,30,45,60].map(m => {
+              const sel = Math.round(timerTotal/60) === m;
+              return (
+                <button key={m} disabled={timerRunning} onClick={()=>{ vibrate(); setTimerTotal(m*60); setTimerSeconds(m*60); }}
+                  style={{
+                    flex:1, border:"none", fontFamily:"inherit", fontSize:12.5, fontWeight:600,
+                    padding:"8px 0", borderRadius:999,
+                    background: sel ? accent : (dark ? "rgba(255,255,255,0.08)" : "rgba(20,17,24,0.05)"),
+                    color: sel ? "#FFFFFF" : textMuted2,
+                    cursor: timerRunning ? "default" : "pointer",
+                    opacity: (timerRunning && !sel) ? 0.5 : 1,
+                    transition:"background .15s ease, color .15s ease"
+                  }}>
+                  <Num>{nf(m)}</Num> {t.minutes}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        )}
         {/* Study Plan header — Stats এখন Study-র sub-section না, তাই এই হেডার শুধু Plan-এ দেখানো হয় */}
         {tab === "study" && studySection === "plan" && (
           <div className="fg-tab-panel" style={{marginTop:16, marginBottom:2}}>
@@ -6474,69 +6537,6 @@ function FocusGoInner() {
           </div>
         )}
 
-        {/* Focus Timer preview row — screenshot অনুযায়ী সাদা কার্ড, আইকন + টাইটেল + ডিউরেশন, Play বাটন আর chevron;
-            ক্লিক করলে নতুন ফুল-স্ক্রিন Focus Timer পেজ (FocusTimerPage) খোলে। শুধু Study Plan-এ দেখানো হয় (Today ট্যাবে না —
-            ওটা dashboard, টপিক বাছাইয়ের flow Study-তেই হয়)। */}
-        {tab === "study" && studySection === "plan" && (
-        <div className="fg-card fg-card-flat fg-tab-panel" style={{
-          marginTop:8, padding:"14px 14px 12px", position:"relative", overflow:"hidden",
-          background: dark
-            ? `linear-gradient(135deg, ${accent}2E, var(--card-bg) 68%)`
-            : `linear-gradient(135deg, ${accent}22, #FFFFFF 68%)`,
-        }}>
-          {/* সফট ভায়োলেট gradient-এর উপর দুটো ব্লব-শেপ — একটা accent-টিন্টেড, একটা সাদা/ট্রান্সপারেন্ট wave —
-              wave-এর মতো লেয়ার্ড লুক দিতে; zIndex:-1 রাখা হয়েছে যাতে কার্ডের কন্টেন্টের পেছনে থাকে (overflow:hidden দিয়ে ক্লিপ করা) */}
-          <div style={{position:"absolute", top:-46, right:-30, width:130, height:130, borderRadius:"50%", background: dark ? `${accent}1F` : `${accent}17`, zIndex:-1, pointerEvents:"none"}} />
-          <div style={{position:"absolute", bottom:-70, right:-25, width:190, height:190, borderRadius:"50%", background: dark ? "rgba(255,255,255,0.035)" : "rgba(255,255,255,0.6)", zIndex:-1, pointerEvents:"none"}} />
-          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}>
-            <div onClick={()=>{ vibrate(); setShowFocusTimerPage(true); }} style={{display:"flex", alignItems:"center", gap:12, minWidth:0, cursor:"pointer"}}>
-              <div style={{position:"relative", width:42, height:42, flexShrink:0}}>
-                <div style={{width:42, height:42, borderRadius:"50%", background: dark ? `${accent}29` : `${accent}1A`, display:"flex", alignItems:"center", justifyContent:"center", color:accent}}>
-                  <Hourglass size={19}/>
-                </div>
-                {/* কর্নার ব্যাজ — বোঝাতে যে ট্যাপ করলে নতুন (ফুলস্ক্রিন) পেজ খোলে */}
-                <div style={{position:"absolute", bottom:-2, right:-2, width:16, height:16, borderRadius:"50%", background:accent, border:`2px solid ${dark ? cardBg : "#FFFFFF"}`, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                  <ArrowUpRight size={9} color="#fff" strokeWidth={3}/>
-                </div>
-              </div>
-              <div style={{textAlign:"left", minWidth:0}}>
-                <div style={{fontSize:15, fontWeight:800, color:textMain, whiteSpace:"nowrap"}}>{t.focusTimer}</div>
-                <div style={{fontSize:11.5, fontWeight:500, color:textMuted2, marginTop:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
-                  {lang==="bn" ? "মনোযোগী থাকো, কাজ শেষ করো।" : "Stay focused, get things done."}
-                </div>
-              </div>
-            </div>
-            <div style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, flexShrink:0}}>
-              <button onClick={(e)=>{ e.stopPropagation(); if (timerRunning) { toggleTimerRunning(); } else { selectTimerTopic(null); setFocusMode("timer"); setTimerRunning(true); setShowFocusTimerPage(true); playStartSound(); vibrate(); } }}
-                style={{display:"flex", alignItems:"center", justifyContent:"center", background:accent, border:"none", borderRadius:"50%", width:44, height:44, color:"#fff", cursor:"pointer", flexShrink:0}}>
-                {timerRunning ? <Pause size={17} fill="#fff"/> : <Play size={17} fill="#fff" style={{marginLeft:2}}/>}
-              </button>
-              <span style={{fontSize:11, fontWeight:700, color:textMain, whiteSpace:"nowrap"}}>
-                {timerRunning ? (lang==="bn" ? "চলছে" : "Running") : (lang==="bn" ? "শুরু" : "Start")}
-              </span>
-            </div>
-          </div>
-          <div style={{display:"flex", gap:7, marginTop:12}}>
-            {[25,30,45,60].map(m => {
-              const sel = Math.round(timerTotal/60) === m;
-              return (
-                <button key={m} disabled={timerRunning} onClick={()=>{ vibrate(); setTimerTotal(m*60); setTimerSeconds(m*60); }}
-                  style={{
-                    flex:1, border:"none", fontFamily:"inherit", fontSize:12.5, fontWeight:600,
-                    padding:"8px 0", borderRadius:999,
-                    background: sel ? accent : (dark ? "rgba(255,255,255,0.08)" : "rgba(20,17,24,0.05)"),
-                    color: sel ? "#FFFFFF" : textMuted2,
-                    cursor: timerRunning ? "default" : "pointer",
-                    opacity: (timerRunning && !sel) ? 0.5 : 1,
-                    transition:"background .15s ease, color .15s ease"
-                  }}>
-                  <Num>{nf(m)}</Num> {t.minutes}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        )}
 
         {/* Today's study overview card - Today tab + Study tab (shown above Study Plan/Exam) — Option 2: circular progress, premium look
             এখন accent color ব্যবহার হচ্ছে (আগে dark teal ছিল, সেই রঙ Next Exam কার্ডে সরানো হয়েছে) */}
