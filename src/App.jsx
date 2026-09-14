@@ -1014,19 +1014,13 @@ function SettingsRow({ Icon, title, subtitle, right, onClick, href, expandKey, c
 function SettingsQuickMenu({ isBn, dark, cardBg, cardBorder, textMain, textMuted2, accent, onSelect, onClose }) {
   const items = [
     { key: "profile", Icon: User, title: isBn ? "প্রোফাইল" : "Profile", subtitle: isBn ? "অ্যাকাউন্ট ও সিঙ্ক" : "Account and sync" },
-    { key: "appearance", Icon: Palette, title: isBn ? "অ্যাপিয়ারেন্স" : "Appearance", subtitle: isBn ? "থিম, রং ও লেখার আকার" : "Theme, colors and text size" },
-    { key: "weekStart", Icon: CalendarRange, title: isBn ? "সপ্তাহ শুরু" : "Week starts on", subtitle: isBn ? "ক্যালেন্ডার সেটিং" : "Calendar setting" },
+    { key: "appearance", Icon: Palette, title: isBn ? "অ্যাপিয়ারেন্স" : "Appearance", subtitle: isBn ? "থিম, রং, লেখার আকার ও সপ্তাহ শুরু" : "Theme, text size and week start" },
     { key: "timer", Icon: Hourglass, title: isBn ? "ফোকাস টাইমার" : "Focus Timer", subtitle: isBn ? "ফোকাস ও বিরতির সময়" : "Focus and break length" },
     { key: "reminders", Icon: CalendarDays, title: isBn ? "স্টাডি রিমাইন্ডার" : "Study Reminders", subtitle: isBn ? "স্টাডির নোটিফিকেশন" : "Study notifications" },
     { key: "salah", Icon: MosqueIcon, title: isBn ? "সালাতের সময়" : "Salah Timer", subtitle: isBn ? "চালু/বন্ধ" : "On or off" },
-    { key: "visibleTabs", Icon: LayoutGrid, title: isBn ? "ভিজিবল ট্যাব" : "Visible Tabs", subtitle: isBn ? "কোন ট্যাব দেখাবে" : "Which tabs to show" },
-    { key: "notifications", Icon: Bell, title: isBn ? "নোটিফিকেশন" : "Notifications", subtitle: isBn ? "অ্যাপের নোটিফিকেশন" : "App notifications" },
-    { key: "sound", Icon: Vibrate, title: isBn ? "হ্যাপটিক ফিডব্যাক" : "Haptic feedback", subtitle: isBn ? "কম্পন" : "Vibration" },
-    { key: "backup", Icon: Cloud, title: isBn ? "ব্যাকআপ ও সিঙ্ক" : "Backup & Sync", subtitle: isBn ? "ক্লাউডে সংরক্ষণ" : "Save to the cloud" },
-    { key: "export", Icon: UploadCloud, title: isBn ? "এক্সপোর্ট ডেটা" : "Export Data", subtitle: isBn ? "সাথে সাথে ডাউনলোড হবে" : "Downloads right away" },
-    { key: "import", Icon: UploadCloud, title: isBn ? "ইমপোর্ট ডেটা" : "Import Data", subtitle: isBn ? "ফাইল বেছে নিন" : "Choose a file" },
-    { key: "help", Icon: HelpCircle, title: isBn ? "সাহায্য ও সাপোর্ট" : "Help & Support", subtitle: isBn ? "মেইল অ্যাপ খুলবে" : "Opens your mail app" },
-    { key: "about", Icon: Info, title: isBn ? "FocusGo সম্পর্কে" : "About FocusGo", subtitle: isBn ? "ভার্সন ও তথ্য" : "Version and info" },
+    { key: "alerts", Icon: Bell, title: isBn ? "অ্যালার্ট" : "Alerts", subtitle: isBn ? "নোটিফিকেশন ও হ্যাপটিক" : "Notifications and haptics" },
+    { key: "backup", Icon: Cloud, title: isBn ? "ব্যাকআপ" : "Backup", subtitle: isBn ? "এক্সপোর্ট/ইমপোর্ট ডেটা" : "Export or import your data" },
+    { key: "supportInfo", Icon: HelpCircle, title: isBn ? "সাহায্য ও তথ্য" : "Help & Info", subtitle: isBn ? "ফিডব্যাক ও ভার্সন তথ্য" : "Feedback and version info" },
   ];
   return (
     <div style={{position:"fixed", inset:0, zIndex:200, display:"flex", alignItems:"flex-end", justifyContent:"center"}}>
@@ -1125,7 +1119,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
 
   // ---- নতুন Settings পেজের (কার্ড-গ্রিড ডিজাইন) জন্য এক্সট্রা state ----
   // কোন Preference কার্ড খোলা আছে — একসাথে একটাই খোলা থাকবে (accordion)
-  const [openCard, setOpenCard] = useState(initialOpenCard || null); // null | "appearance" | "timer" | "notifications" | "reminders"
+  const [openCard, setOpenCard] = useState(initialOpenCard || null); // null | "appearance" | "timer" | "reminders" | "alerts" | "backup" | "supportInfo"
   const toggleCard = (key) => { vibrate(); setOpenCard(v => v === key ? null : key); };
 
   // স্টাডি রিমাইন্ডার — প্রতিদিন নির্দিষ্ট সময়ে পড়াশোনার রিমাইন্ডার অন/অফ ও সময়
@@ -1561,6 +1555,12 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
               <div style={{flex:1, minWidth:0}}>
                 <div style={{fontSize:15, fontWeight:800, color:textMain, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayName}</div>
                 <div style={{fontSize:12, color:textMuted2, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{displayEmail}</div>
+                {!isGuest && user && (
+                  <div style={{display:"flex", alignItems:"center", gap:5, marginTop:3}}>
+                    <span style={{width:6, height:6, borderRadius:"50%", background:"#6E8B5E", flexShrink:0}}/>
+                    <span style={{fontSize:11, color:textMuted2, fontWeight:600}}>{isBn ? "সব ডিভাইসে সিঙ্ক আছে" : "Synced across devices"}</span>
+                  </div>
+                )}
               </div>
             </button>
             <ChevronRight size={17} color={textMuted2} style={{flexShrink:0}}/>
@@ -1640,14 +1640,14 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
                 >+</button>
               </div>
             </div>
-          </SettingsRow>
-
-          <SettingsRow {...rowCtx} Icon={CalendarRange} title={t.weekStartsOn} subtitle={weekStartDayLabel(weekStartDay)} expandKey="weekStart">
-            <SettingsDropdown
-              value={weekStartDay}
-              options={[6,0,1,2,3,4,5].map(d => ({ value: d, label: weekStartDayLabel(d) }))}
-              onChange={(v)=>{ vibrate(); setWeekStartDay(v); }}
-              dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
+            <div style={{marginTop:14, paddingTop:14, borderTop:`1px dashed ${cardBorder}`}}>
+              <div style={{display:"flex", alignItems:"center", gap:10, fontSize:13.5, fontWeight:700, color:textMain, marginBottom:10}}><CalendarRange size={15} color={textMuted2}/>{t.weekStartsOn}</div>
+              <SettingsDropdown
+                value={weekStartDay}
+                options={[6,0,1,2,3,4,5].map(d => ({ value: d, label: weekStartDayLabel(d) }))}
+                onChange={(v)=>{ vibrate(); setWeekStartDay(v); }}
+                dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent}/>
+            </div>
           </SettingsRow>
 
           <SettingsRow {...rowCtx} Icon={Hourglass} title={isBn ? "ফোকাস টাইমার" : "Focus Timer"} subtitle={`${focusMinutes} / ${breakMinutes} ${t.minutes}`} expandKey="timer">
@@ -1685,57 +1685,59 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
             right={<Toggle on={salahFeatureEnabled} onClick={()=>{vibrate(); setSalahFeatureEnabled(v=>!v);}}/>}
             onClick={()=>{vibrate(); setSalahFeatureEnabled(v=>!v);}}/>
 
-          {/* Visible Tabs — Study/Tasks বটম ন্যাভ থেকে দেখানো/লুকানো; Today ও Settings সবসময় থাকে (তাই এখানে টগল নেই) */}
-          <SettingsRow {...rowCtx} Icon={LayoutGrid} title={isBn ? "ভিজিবল ট্যাব" : "Visible Tabs"}
-            subtitle={[studyFeatureEnabled && (isBn ? "স্টাডি" : "Study"), tasksFeatureEnabled && (isBn ? "টাস্ক" : "Tasks")].filter(Boolean).join(", ") || (isBn ? "সব বন্ধ" : "All off")}
-            expandKey="visibleTabs">
-            <div style={{display:"flex", flexDirection:"column", gap:12}}>
+          <SettingsRow {...rowCtx} Icon={Bell} title={isBn ? "অ্যালার্ট" : "Alerts"}
+            subtitle={isBn ? "নোটিফিকেশন ও হ্যাপটিক" : "Notifications and haptics"}
+            expandKey="alerts">
+            <div style={{display:"flex", flexDirection:"column", gap:14}}>
               <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-                <span style={{fontSize:13.5, fontWeight:700, color:textMain}}>{isBn ? "স্টাডি" : "Study"}</span>
-                <Toggle on={studyFeatureEnabled} onClick={()=>{vibrate(); setStudyFeatureEnabled(v=>!v);}}/>
+                <span style={{fontSize:13.5, fontWeight:700, color:textMain}}>{t.notifications}</span>
+                <Toggle on={notificationsEnabled} onClick={()=>{vibrate(); toggleNotifications();}}/>
               </div>
               <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-                <span style={{fontSize:13.5, fontWeight:700, color:textMain}}>{isBn ? "টাস্ক" : "Tasks"}</span>
-                <Toggle on={tasksFeatureEnabled} onClick={()=>{vibrate(); setTasksFeatureEnabled(v=>!v);}}/>
-              </div>
-              <div style={{fontSize:11.5, color:textMuted2, lineHeight:1.5, paddingTop:10, borderTop:`1px dashed ${cardBorder}`}}>
-                {isBn
-                  ? "বন্ধ করলে সেই ট্যাব বটম নেভিগেশন থেকে সরে যাবে। স্টাডি বন্ধ করলে Exam banner ও Today's Study কার্ডও Today ট্যাব থেকে লুকাবে; টাস্ক বন্ধ করলে Today's Tasks কার্ড লুকাবে।"
-                  : "Turning one off removes it from the bottom navigation. Turning Study off also hides the Exam banner and Today's Study card from the Today tab; turning Tasks off hides the Today's Tasks card."}
+                <span style={{fontSize:13.5, fontWeight:700, color:textMain}}>{t.hapticFeedback}</span>
+                <Toggle on={hapticsEnabled} onClick={toggleHaptics}/>
               </div>
             </div>
           </SettingsRow>
-
-          <SettingsRow {...rowCtx} Icon={Bell} title={t.notifications}
-            subtitle={notificationsEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")}
-            right={<Toggle on={notificationsEnabled} onClick={()=>{vibrate(); toggleNotifications();}}/>}
-            onClick={()=>{vibrate(); toggleNotifications();}}/>
-
-          <SettingsRow {...rowCtx} Icon={Vibrate} title={t.hapticFeedback}
-            subtitle={hapticsEnabled ? (isBn ? "চালু আছে" : "On") : (isBn ? "বন্ধ" : "Off")}
-            right={<Toggle on={hapticsEnabled} onClick={toggleHaptics}/>}
-            onClick={toggleHaptics}/>
         </div>
 
-        {/* ---- Data & Sync ---- */}
-        <div style={sectionHeadingStyle}>{isBn ? "ডেটা ও সিঙ্ক" : "Data & Sync"}</div>
+        {/* ---- Data & Support — আগে "Data & Sync" আর "More" আলাদা ছিল, এখন একটাই গ্রুপে; Backup &
+             Sync স্ট্যাটাস রো সরিয়ে প্রোফাইল কার্ডে নেওয়া হয়েছে, Export/Import একটা "ব্যাকআপ" accordion-এ,
+             আর Help/About একটা "সাহায্য ও তথ্য" accordion-এ মার্জ করা হলো ---- */}
+        <div style={sectionHeadingStyle}>{isBn ? "ডেটা ও সাপোর্ট" : "Data & Support"}</div>
         <div style={groupCardStyle}>
           <SettingsRow {...rowCtx} Icon={Cloud} borderTop={false}
-            title={isBn ? "ব্যাকআপ ও সিঙ্ক" : "Backup & Sync"}
-            subtitle={isGuest ? (isBn ? "সাইন ইন করুন — সিঙ্ক বন্ধ আছে" : "Sign in to enable sync") : (isBn ? "সব ডিভাইসে অটো-সিঙ্ক চালু আছে" : "Auto-syncing across your devices")}
-            onClick={() => { onOpenProfile && onOpenProfile(); }}/>
-          <SettingsRow {...rowCtx} Icon={UploadCloud}
-            title={isBn ? "এক্সপোর্ট ডেটা" : "Export Data"}
-            subtitle={exportDone ? (isBn ? "ডাউনলোড হয়ে গেছে ✓" : "Downloaded ✓") : (isBn ? "নোট ও ডেটা এক্সপোর্ট করুন" : "Export your notes and data")}
-            onClick={exportData}/>
-          <SettingsRow {...rowCtx} Icon={UploadCloud}
-            title={isBn ? "ইমপোর্ট ডেটা" : "Import Data"}
-            subtitle={
-              importState === "done" ? (isBn ? "রিস্টোর সম্পন্ন হয়েছে ✓" : "Restored ✓")
-              : importState === "error" ? (isBn ? "ফাইলটি সঠিক নয়" : "Invalid backup file")
-              : (isBn ? "ব্যাকআপ ফাইল থেকে ডেটা ফিরিয়ে আনুন" : "Restore from a backup file")
-            }
-            onClick={triggerImport}/>
+            title={isBn ? "ব্যাকআপ" : "Backup"}
+            subtitle={isBn ? "এক্সপোর্ট/ইমপোর্ট ডেটা" : "Export or import your data"}
+            expandKey="backup">
+            <div style={{display:"flex", flexDirection:"column", gap:10}}>
+              <button onClick={exportData} style={{display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:12, padding:"11px 14px", cursor:"pointer", textAlign:"left"}}>
+                <span style={{fontSize:13.5, fontWeight:700, color:textMain}}>{isBn ? "এক্সপোর্ট ডেটা" : "Export data"}</span>
+                <span style={{fontSize:11.5, fontWeight:600, color: exportDone ? "#6E8B5E" : textMuted2}}>{exportDone ? (isBn ? "ডাউনলোড হয়েছে ✓" : "Downloaded ✓") : (isBn ? "ডাউনলোড" : "Download")}</span>
+              </button>
+              <button onClick={triggerImport} style={{display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:12, padding:"11px 14px", cursor:"pointer", textAlign:"left"}}>
+                <span style={{fontSize:13.5, fontWeight:700, color:textMain}}>{isBn ? "ইমপোর্ট ডেটা" : "Import data"}</span>
+                <span style={{fontSize:11.5, fontWeight:600, color: importState === "done" ? "#6E8B5E" : importState === "error" ? "#C0553F" : textMuted2}}>
+                  {importState === "done" ? (isBn ? "রিস্টোর হয়েছে ✓" : "Restored ✓") : importState === "error" ? (isBn ? "ফাইল সঠিক নয়" : "Invalid file") : (isBn ? "ফাইল বাছুন" : "Choose file")}
+                </span>
+              </button>
+            </div>
+          </SettingsRow>
+          <SettingsRow {...rowCtx} Icon={HelpCircle}
+            title={isBn ? "সাহায্য ও তথ্য" : "Help & Info"}
+            subtitle={isBn ? "ফিডব্যাক ও ভার্সন তথ্য" : "Feedback and version info"}
+            expandKey="supportInfo">
+            <div style={{display:"flex", flexDirection:"column", gap:10}}>
+              <a href={`mailto:mazharul.mrf@gmail.com?subject=${encodeURIComponent(t.feedbackSubject)}`} onClick={()=>vibrate()} style={{display:"flex", alignItems:"center", justifyContent:"space-between", textDecoration:"none", border:`1px solid ${cardBorder}`, borderRadius:12, padding:"11px 14px"}}>
+                <span style={{fontSize:13.5, fontWeight:700, color:textMain}}>{isBn ? "ফিডব্যাক পাঠান" : "Send feedback"}</span>
+                <Mail size={15} color={textMuted2}/>
+              </a>
+              <button onClick={()=>{vibrate(); setShowAbout(true);}} style={{display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", border:`1px solid ${cardBorder}`, background:"transparent", borderRadius:12, padding:"11px 14px", cursor:"pointer", textAlign:"left"}}>
+                <span style={{fontSize:13.5, fontWeight:700, color:textMain}}>{isBn ? "FocusGo সম্পর্কে" : "About FocusGo"}</span>
+                <span style={{fontSize:11.5, fontWeight:600, color:textMuted2}}>{`${t.version} 1.0.0`}</span>
+              </button>
+            </div>
+          </SettingsRow>
           <input ref={importFileInputRef} type="file" accept="application/json,.json" onChange={onImportFileChosen} style={{display:"none"}}/>
         </div>
 
@@ -1756,16 +1758,6 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
           </div>
         )}
 
-        {/* ---- More ---- */}
-        <div style={sectionHeadingStyle}>{isBn ? "আরও" : "More"}</div>
-        <div style={groupCardStyle}>
-          <SettingsRow {...rowCtx} Icon={HelpCircle} borderTop={false}
-            title={isBn ? "সাহায্য ও সাপোর্ট" : "Help & Support"} subtitle={isBn ? "প্রশ্ন, মতামত ও সহায়তা" : "FAQs, feedback and help"}
-            href={`mailto:mazharul.mrf@gmail.com?subject=${encodeURIComponent(t.feedbackSubject)}`}/>
-          <SettingsRow {...rowCtx} Icon={Info}
-            title={isBn ? "FocusGo সম্পর্কে" : "About FocusGo"} subtitle={`${t.version} 1.0.0`}
-            onClick={()=>{vibrate(); setShowAbout(true);}}/>
-        </div>
       </div>
     );
   }
@@ -3740,10 +3732,9 @@ function FocusGoInner() {
   const [settingsInitialAction, setSettingsInitialAction] = useState(null);
   const handleSettingsMenuSelect = (key) => {
     setShowSettingsMenu(false);
-    if (key === "profile" || key === "backup") { setShowProfile(true); return; }
-    if (key === "help") { try { window.location.href = `mailto:mazharul.mrf@gmail.com?subject=${encodeURIComponent(t.feedbackSubject)}`; } catch (e) {} return; }
-    const cardMap = { appearance: "appearance", weekStart: "weekStart", timer: "timer", reminders: "reminders", visibleTabs: "visibleTabs", notifications: "notifications" };
-    const actionMap = { export: "export", import: "import", about: "about" };
+    if (key === "profile") { setShowProfile(true); return; }
+    const cardMap = { appearance: "appearance", timer: "timer", reminders: "reminders", salah: null, alerts: "alerts", backup: "backup", supportInfo: "supportInfo" };
+    const actionMap = {};
     setSettingsInitialOpenCard(cardMap[key] || null);
     setSettingsInitialAction(actionMap[key] || null);
     setShowProfilePage(true);
