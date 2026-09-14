@@ -6063,54 +6063,49 @@ function FocusGoInner() {
               const greetKey = hr < 5 ? "night" : hr < 12 ? "morning" : hr < 14 ? "noon" : hr < 17 ? "afternoon" : hr < 21 ? "evening" : "night";
               const greetingEn = { morning: "Good Morning", noon: "Good Noon", afternoon: "Good Afternoon", evening: "Good Evening", night: "Good Night" }[greetKey];
               const greetingBn = { morning: "শুভ সকাল", noon: "শুভ দুপুর", afternoon: "শুভ বিকেল", evening: "শুভ সন্ধ্যা", night: "শুভ রাত্রি" }[greetKey];
-              // সময়ভিত্তিক subtle gradient + icon — greeting card-টাকে আরেকটু জীবন্ত করতে
-              const greetTheme = {
-                morning:   { grad: dark ? "rgba(224,168,58,0.10)" : "#E0A83A0F", Icon: Sun,  iconColor: "#E0A83A" },
-                noon:      { grad: dark ? "rgba(237,236,242,0.10)" : "#1A18140F", Icon: Sun,  iconColor: dark ? "#F3F1F8" : "#1A1814" },
-                afternoon: { grad: `${accent}${dark ? "18" : "0F"}`, Icon: Sun,  iconColor: accent },
-                evening:   { grad: dark ? "rgba(155,107,158,0.11)" : "#9B6B9E0F", Icon: Moon, iconColor: "#9B6B9E" },
-                night:     { grad: dark ? "rgba(75,90,150,0.12)" : "#4B5A960F", Icon: Moon, iconColor: dark ? "#8FA0E0" : "#4B5A96" },
-              }[greetKey];
-
-              const GreetIcon = greetTheme.Icon;
+              // এখন সময়ভিত্তিক হালকা টিন্টের বদলে সবসময় একটাই বোল্ড ভায়োলেট gradient hero লুক —
+              // Today's Focus/Focus Timer কার্ডের মতোই accent gradient, শুধু সময় অনুযায়ী Sun/Moon আইকনটা বদলায়
+              const GreetIcon = (greetKey === "evening" || greetKey === "night") ? Moon : Sun;
               return (
                 <>
                   <div style={{
-                    padding:"10px 14px 9px", marginBottom:0, position:"relative", borderRadius:18,
-                    background: dark
-                      ? `linear-gradient(135deg, ${greetTheme.grad}, transparent 70%)`
-                      : `linear-gradient(135deg, ${greetTheme.grad}, #FFFFFF 75%)`,
+                    padding:"18px 20px 17px", marginBottom:0, position:"relative", overflow:"hidden", borderRadius:18,
+                    background:`linear-gradient(135deg, ${accent} 0%, ${shadeColor(accent, -14)} 100%)`,
+                    boxShadow:`0 12px 24px ${accent}38`,
                   }} ref={salahMenuRef}>
-                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8}}>
+                    <svg style={{position:"absolute", right:-8, bottom:-10, width:130, height:52, opacity:0.35, pointerEvents:"none"}} viewBox="0 0 130 52" fill="none">
+                      <path d="M0 26 C 22 6, 40 46, 68 26 S 116 6, 130 26" stroke="rgba(255,255,255,0.6)" strokeWidth="2" fill="none"/>
+                    </svg>
+                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, position:"relative"}}>
                       <div style={{minWidth:0, flex:1}}>
                         <div
                           onClick={() => { vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                          style={{fontSize:12.5, fontWeight:600, color:accent, letterSpacing:0.2, marginBottom:3, display:"flex", alignItems:"center", gap:6, cursor:"pointer"}}
+                          style={{fontSize:13, fontWeight:600, color:"rgba(255,255,255,0.85)", letterSpacing:0.3, marginBottom:5, display:"flex", alignItems:"center", gap:7, cursor:"pointer"}}
                           title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
                         >
-                          <GreetIcon size={13} color={greetTheme.iconColor} strokeWidth={2.2}/>
+                          <GreetIcon size={15} color="#fff" strokeWidth={2.2}/>
                           {lang === "bn" ? greetingBn : greetingEn}
                           {weatherData && weatherData.temp != null && (
                             <span
                               onClick={(e) => { e.stopPropagation(); vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                              style={{display:"inline-flex", alignItems:"center", fontSize:12.5, fontWeight:600, color:accent, cursor:"pointer"}}
+                              style={{display:"inline-flex", alignItems:"center", fontSize:13, fontWeight:600, color:"rgba(255,255,255,0.85)", cursor:"pointer"}}
                               title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
                             >
                               · <Num>{nf(weatherData.temp)}</Num>°C
                             </span>
                           )}
                         </div>
-                        <div style={{fontSize:21,fontWeight:600,letterSpacing:-0.5,color:"var(--text)", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", display:"inline-block"}}>
+                        <div style={{fontSize:27,fontWeight:700,letterSpacing:-0.6,color:"#fff", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", display:"inline-block"}}>
                           {firstName}
                         </div>
                       </div>
                       <div style={{display:"flex", alignItems:"center", gap:10, flexShrink:0}}>
-                        {/* মিনিমাল ডেট ব্যাজ — উপরে ছোট করে দিনের নাম + মাস, নিচে accent রঙের সার্কেলের মধ্যে আজকের তারিখ। ট্যাপ করলে ফুল ক্যালেন্ডার খোলে, সময় আর দেখানো হয় না — সবসময় সবচেয়ে ডানে থাকবে */}
-                        <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
-                          <span style={{fontSize:9.5, fontWeight:600, color:"var(--muted)", letterSpacing:0.1, whiteSpace:"nowrap"}}>
+                        {/* মিনিমাল ডেট ব্যাজ — উপরে ছোট করে দিনের নাম + মাস, নিচে সাদা সার্কেলের মধ্যে accent রঙে আজকের তারিখ। ট্যাপ করলে ফুল ক্যালেন্ডার খোলে, সময় আর দেখানো হয় না — সবসময় সবচেয়ে ডানে থাকবে */}
+                        <button onClick={()=>{vibrate(); setShowCalendar(true); setCalMonth(new Date());}} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:5, border:"none", background:"transparent", padding:0, cursor:"pointer", position:"relative"}}>
+                          <span style={{fontSize:10, fontWeight:600, color:"rgba(255,255,255,0.75)", letterSpacing:0.2, whiteSpace:"nowrap"}}>
                             {weekdayShort(today)}, {monthShort(today.getMonth())}
                           </span>
-                          <span style={{width:32, height:32, borderRadius:"50%", background:accent, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:"#FFFFFF"}}>
+                          <span style={{width:36, height:36, borderRadius:"50%", background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:700, color:accent}}>
                             <Num>{nf(today.getDate())}</Num>
                           </span>
                           {examDateKeys.has(todayKey) && (
@@ -6118,7 +6113,7 @@ function FocusGoInner() {
                               position:"absolute", top:-2, left:-10,
                               width:7, height:7, borderRadius:"50%",
                               background:"#C0392B",
-                              border:`1.5px solid ${dark ? cardBg : "#FFFFFF"}`,
+                              border:`1.5px solid ${shadeColor(accent, -14)}`,
                             }}/>
                           )}
                         </button>
