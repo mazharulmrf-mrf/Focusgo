@@ -647,7 +647,7 @@ function NotificationBell({ t, lang, notifications, onMarkAllRead, onClear, card
       >
         <Bell size={13} strokeWidth={1.8} />
         {unreadCount > 0 && (
-          <span style={{ position: "absolute", top: 1, right: 2, width: 8, height: 8, borderRadius: "50%", background: "#F0651E", border: `1.5px solid ${cardBg}` }} />
+          <span style={{ position: "absolute", top: 1, right: 2, width: 8, height: 8, borderRadius: "50%", background: accent, border: `1.5px solid ${cardBg}` }} />
         )}
       </button>
       {open && (
@@ -1085,17 +1085,6 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
   textScale, setTextScale, TEXT_SCALE_OPTIONS, initialOpenCard, initialAction,
   headerNotifications, onMarkAllNotifRead, onClearNotifs, onOpenSearch }) {
   const [showAbout, setShowAbout] = useState(false);
-  // প্রোফাইল কার্ডের পাশে ছোট্ট লগ-আউট আইকন — ট্যাপ করলে আগে একটা কনফার্মেশন পপ-ওভার দেখায়,
-  // তারপর "হ্যাঁ" চাপলেই সরাসরি সাইন-আউট হয়ে যায় (আলাদা Account পেজে না গিয়েই)
-  const [logoutConfirming, setLogoutConfirming] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
-  const handleQuickSignOut = async () => {
-    if (signingOut) return;
-    setSigningOut(true);
-    try { await signOut(auth); } catch (err) { console.error("Sign out error:", err); }
-    setSigningOut(false);
-    setLogoutConfirming(false);
-  };
   const [legalDoc, setLegalDoc] = useState(null); // null | "privacy" | "terms"
   const isBn = lang === "bn";
   // সপ্তাহ শুরুর দিনের লেবেল — 0=রবি...6=শনি, ট্রান্সলেশনের weekStart* কী থেকে বসানো হয়
@@ -1573,33 +1562,7 @@ function SettingsModal({ t, lang, setLang, themeMode, setThemeMode, accentKey, s
               </div>
             </button>
             <ChevronRight size={17} color={textMuted2} style={{flexShrink:0}}/>
-            {!isGuest && user && (
-              <button onClick={()=>{ vibrate(); setLogoutConfirming(v=>!v); }} title={isBn ? "লগ-আউট" : "Log out"} style={{
-                  border:"none", background:"transparent", color:"#C0553F", cursor:"pointer", flexShrink:0,
-                  display:"flex", alignItems:"center", justifyContent:"center", padding:4, borderRadius:8,
-                }}>
-                <LogOut size={17}/>
-              </button>
-            )}
           </div>
-          {logoutConfirming && (
-            <>
-              <div onClick={()=>setLogoutConfirming(false)} style={{position:"fixed", inset:0, zIndex:59}}/>
-              <div style={{position:"absolute", right:10, top:"100%", marginTop:6, background:cardBg, border:`1px solid ${cardBorder}`, borderRadius:12, boxShadow:"0 4px 14px rgba(0,0,0,0.14)", zIndex:60, minWidth:210, padding:12}}>
-                <div style={{fontSize:12.5, fontWeight:700, color:textMain, marginBottom:10}}>
-                  {isBn ? "সত্যিই লগ-আউট করবেন?" : "Really log out?"}
-                </div>
-                <div style={{display:"flex", gap:8}}>
-                  <button onClick={()=>{vibrate(); setLogoutConfirming(false);}} style={{flex:1, border:`1px solid ${cardBorder}`, background:"transparent", color:textMain, borderRadius:9, padding:"8px 0", fontWeight:700, fontSize:12.5, cursor:"pointer"}}>
-                    {isBn ? "বাতিল" : "Cancel"}
-                  </button>
-                  <button onClick={()=>{vibrate(); handleQuickSignOut();}} disabled={signingOut} style={{flex:1, border:"none", background:"#C0553F", color:"#fff", borderRadius:9, padding:"8px 0", fontWeight:700, fontSize:12.5, cursor: signingOut ? "default" : "pointer", opacity: signingOut ? 0.7 : 1}}>
-                    {isBn ? "লগ-আউট" : "Log out"}
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
         </div>
 
         {/* ---- Preferences — একটাই কার্ডে সব প্রেফারেন্স, প্রতিটা রো accordion হিসেবে খোলে ---- */}
