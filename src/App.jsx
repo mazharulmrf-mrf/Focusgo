@@ -3476,6 +3476,14 @@ function FocusGoInner() {
   const salahMenuRef = useRef(null);
 
   const [tab, setTab] = useState("today");
+  // iOS-style glass header -- scroll করলে header-এ blur + hairline আসে
+  const [navScrolled, setNavScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setNavScrolled((window.scrollY || document.documentElement.scrollTop || 0) > 6);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   // Visible Tabs — Study/Tasks/Notes বটম ন্যাভ থেকে দেখানো/লুকানো যায় (Today ও Settings সবসময় থাকে)।
   // OFF করলে সংশ্লিষ্ট ফিচার-রিলেটেড সবকিছু Today ট্যাব থেকেও লুকায় (নিচে দেখুন)।
   const [studyFeatureEnabled, setStudyFeatureEnabled] = useState(() => {
@@ -5492,9 +5500,22 @@ function FocusGoInner() {
     ? 1400
     : breakpoint === "tablet" ? 640 : 480;
   const containerPadding = isDesktop ? "24px 28px 36px" : breakpoint === "tablet" ? "22px 24px 28px" : "10px 16px 24px";
+  // ---- iOS design helpers (glass surfaces) ----
+  const hexA = (hex, a) => {
+    const h6 = String(hex).replace("#", "");
+    const n = parseInt(h6.length === 3 ? h6.split("").map(c => c + c).join("") : h6, 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+  };
+  const iosHdrTop = breakpoint === "tablet" ? 22 : 10;
+  const iosHdrSide = breakpoint === "tablet" ? 24 : 16;
+  const iosSafeTop = "var(--fg-safe-top, env(safe-area-inset-top, 0px))";
+  const iosGlassBg = hexA(bg, dark ? 0.72 : 0.78);
+  const iosGlassCard = hexA(cardBg, dark ? 0.72 : 0.7);
+  const iosGlassLine = dark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.75)";
+  const iosGlassHi = dark ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.95)";
 
   const styles = {
-    page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Noto Sans Bengali',sans-serif" : "'Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column", paddingTop:"var(--fg-safe-top, env(safe-area-inset-top))" },
+    page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Noto Sans Bengali',sans-serif" : "-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column", paddingTop:"var(--fg-safe-top, env(safe-area-inset-top))" },
     container: { maxWidth: containerMaxWidth, margin: "0 auto", padding: containerPadding, width:"100%", boxSizing:"border-box", flex:"1 0 auto", transition: "max-width .2s ease" },
   };
 
@@ -5838,17 +5859,17 @@ function FocusGoInner() {
 
         /* ---- design tokens: titles / section headers / body labels / circular buttons / dividers ---- */
         .fg-title {
-          font-family: 'Inter Tight', 'Inter', 'Helvetica Neue', sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter Tight', 'Inter', 'Helvetica Neue', sans-serif;
           font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.7px;
           color: var(--text); margin: 0;
         }
         .fg-section-header {
-          font-family: 'Inter Tight', 'Inter', 'Helvetica Neue', sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter Tight', 'Inter', 'Helvetica Neue', sans-serif;
           font-size: 19px; line-height: 24px; font-weight: 600; letter-spacing: -0.6px;
           color: var(--text); margin: 0;
         }
         .fg-body-label {
-          font-family: 'Inter Tight', 'Inter', 'Helvetica Neue', sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter Tight', 'Inter', 'Helvetica Neue', sans-serif;
           font-size: 14.5px; line-height: 18px; font-weight: 400; letter-spacing: 0.3px;
           color: var(--text); margin: 0;
         }
@@ -5861,26 +5882,26 @@ function FocusGoInner() {
           -webkit-appearance: none; appearance: none;
           width: 42px; height: 42px; border-radius: 50%; border: none; padding: 0;
           display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
-          background: var(--card-bg); color: var(--strong); cursor: pointer;
-          box-shadow: inset 0 1px 0 ${dark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.65)"},
-                      inset 0 -1px 2px rgba(0,0,0,${dark ? "0.35" : "0.05"}),
-                      0 2px 6px rgba(0,0,0,${dark ? "0.4" : "0.09"}),
-                      0 1px 2px rgba(0,0,0,${dark ? "0.3" : "0.05"});
+          background: ${iosGlassCard}; color: var(--strong); cursor: pointer;
+          -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%);
+          box-shadow: inset 0 1px 0 ${iosGlassHi},
+                      0 2px 10px rgba(30,20,80,${dark ? "0.4" : "0.10"}),
+                      0 0 0 0.5px ${iosGlassLine};
           transition: transform .16s cubic-bezier(0.16,1,0.3,1), box-shadow .2s ease;
         }
         .fg-btn-circle:active:not(:disabled) { transform: scale(0.94); }
-        .fg-btn-circle--sm { width: 29px; height: 29px; }
+        .fg-btn-circle--sm { width: 34px; height: 34px; }
         .fg-btn-circle--lg { width: 46px; height: 46px; }
 
         .fg-card-flat {
-          border: none; border-radius: 14px; background: var(--card-bg);
-          box-shadow: 0 1px 2px rgba(0,0,0,${dark ? "0.4" : "0.04"}),
-                      0 8px 20px rgba(0,0,0,${dark ? "0.35" : "0.06"});
+          border: none; border-radius: 20px; background: var(--card-bg);
+          box-shadow: 0 1px 2px rgba(30,20,80,${dark ? "0.4" : "0.04"}),
+                      0 6px 16px rgba(30,20,80,${dark ? "0.3" : "0.04"});
         }
         .fg-card-deep {
-          border: none; border-radius: 18px; background: var(--card-bg);
-          box-shadow: 0 2px 4px rgba(0,0,0,${dark ? "0.45" : "0.05"}),
-                      0 14px 32px rgba(0,0,0,${dark ? "0.4" : "0.09"});
+          border: none; border-radius: 24px; background: var(--card-bg);
+          box-shadow: 0 1px 3px rgba(30,20,80,${dark ? "0.45" : "0.05"}),
+                      0 10px 26px rgba(30,20,80,${dark ? "0.35" : "0.07"});
         }
 
         /* ---- subtle motion: tab switches, buttons, cards ---- */
@@ -5890,7 +5911,7 @@ function FocusGoInner() {
         .fg-spin { animation: fg-spin .8s linear infinite; }
         .fg-tab-panel { animation: fg-fade-up .32s cubic-bezier(0.16,1,0.3,1); }
         button { transition: transform .16s cubic-bezier(0.16,1,0.3,1), opacity .16s ease, background-color .2s ease, box-shadow .2s ease; }
-        button:active:not(:disabled) { transform: scale(0.96); }
+        button:active:not(:disabled) { transform: scale(0.97); opacity: 0.85; }
         .fg-card { transition: transform .16s cubic-bezier(0.16,1,0.3,1), box-shadow .2s ease, border-color .2s ease; }
         .fg-card:active { transform: scale(0.985); }
         input:focus, select:focus, textarea:focus { outline: 2px solid rgba(217,119,87,0.30); outline-offset: 1px; transition: outline-color .15s ease; }
@@ -5912,7 +5933,7 @@ function FocusGoInner() {
         @keyframes fg-sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
         @keyframes fg-backdrop-in { from { opacity:0; } to { opacity:1; } }
         .fg-sheet-backdrop { animation: fg-backdrop-in .18s ease-out; }
-        .fg-sheet { animation: fg-sheet-up .26s cubic-bezier(0.16,1,0.3,1); will-change: transform; }
+        .fg-sheet { animation: fg-sheet-up .26s cubic-bezier(0.16,1,0.3,1); will-change: transform; border-top-left-radius: 28px; border-top-right-radius: 28px; }
       `}</style>
       {isDesktop && !sidebarHidden && (
         <DesktopSidebar t={t} tab={tab} setTab={setTab} vibrate={vibrate} dark={dark} cardBorder={cardBorder} textMain={textMain} textMuted2={textMuted2} accent={accent} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(v => !v)} onHideAll={() => setSidebarHidden(true)}
@@ -5929,7 +5950,17 @@ function FocusGoInner() {
       <div style={{flex:"1 1 auto", display:"flex", flexDirection:"column", minWidth:0, zoom: desktopZoom}}>
       <div style={styles.container}>
         {/* Header row: logo | toggles (search circular icon next to bell, like before) */}
-        <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8}}>
+        <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:8,
+          ...(isDesktop ? {} : {
+            position:"sticky", top:0, zIndex:41,
+            margin:`calc(-1 * (${iosHdrTop}px + ${iosSafeTop})) -${iosHdrSide}px 0`,
+            padding:`calc(${iosHdrTop}px + ${iosSafeTop}) ${iosHdrSide}px 8px`,
+            background: navScrolled ? iosGlassBg : "transparent",
+            WebkitBackdropFilter: navScrolled ? "blur(22px) saturate(180%)" : "none",
+            backdropFilter: navScrolled ? "blur(22px) saturate(180%)" : "none",
+            boxShadow: navScrolled ? `0 0.5px 0 ${cardBorder}` : "none",
+            transition:"background .2s ease, box-shadow .2s ease",
+          })}}>
           <div style={{display:"flex", alignItems:"center", gap:10}}>
             <button onClick={()=>{vibrate(); setTab("today");}} title={t.tabs.today}
               style={{display:"flex", alignItems:"center", gap:10, border:"none", background:"transparent", cursor:"pointer", padding:0}}>
@@ -6448,7 +6479,7 @@ function FocusGoInner() {
           <div className="fg-tab-panel" style={{marginTop:16, marginBottom:2}}>
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}>
               <div style={{minWidth:0}}>
-                <div className="fg-title" style={{fontSize:21}}>{lang==="bn" ? "স্টাডি" : "Study"}</div>
+                <div className="fg-title" style={{fontSize:28, lineHeight:"34px", fontWeight:700, letterSpacing:0.3}}>{lang==="bn" ? "স্টাডি" : "Study"}</div>
                 <div style={{fontSize:12.5, color:"var(--muted)", marginTop:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
                   {lang==="bn" ? "তোমার পড়াশোনার যাত্রা ট্র্যাক করো" : "Track your learning journey"}
                 </div>
@@ -6531,7 +6562,7 @@ function FocusGoInner() {
             (আগে নিচে Subject Progress কার্ডের উপরেও আরেকটা "Stats" টাইটেল ছিল — সেটা ডুপ্লিকেট বলে সরানো হয়েছে) */}
         {tab === "study" && studySection === "stats" && (
           <div className="fg-tab-panel" style={{marginTop:16, marginBottom:2}}>
-            <div className="fg-title" style={{fontSize:21}}>{t.statsPageTitle}</div>
+            <div className="fg-title" style={{fontSize:28, lineHeight:"34px", fontWeight:700, letterSpacing:0.3}}>{t.statsPageTitle}</div>
             <div style={{fontSize:13.5, color:textMuted2, fontWeight:500, marginTop:2}}>{t.statsPageSubtitle}</div>
           </div>
         )}
@@ -7000,7 +7031,7 @@ function FocusGoInner() {
             {/* Title row + date pill — পিলে ট্যাপ করলেই ক্যালেন্ডার ভিউ খুলবে/বন্ধ হবে, আলাদা কোনো টগল বাটন বা অ্যারো নেই */}
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:14}}>
               <div style={{minWidth:0}}>
-                <div className="fg-title" style={{fontSize:21}}>{t.taskTitle}</div>
+                <div className="fg-title" style={{fontSize:28, lineHeight:"34px", fontWeight:700, letterSpacing:0.3}}>{t.taskTitle}</div>
                 <div style={{fontSize:12.5, color:textMuted2, marginTop:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
                   {t.taskSubtitle}
                 </div>
@@ -7578,23 +7609,34 @@ function FocusGoInner() {
 
         const TabBtn = ({Icon, label, active, onClick}) => (
           <button onClick={onClick} style={{
-            flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:3,
-            border:"none", background:"transparent", cursor:"pointer", padding:"2px 2px 0", fontFamily:"inherit",
-            color: active ? (dark ? "#FFFFFF" : accent) : (dark ? "#8B889A" : textMuted2),
+            flex:1, height:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2,
+            border:"none", background: active ? accentLight : "transparent", borderRadius:26, cursor:"pointer", padding:"0 2px", fontFamily:"inherit",
+            color: active ? accent : textMuted2, transition:"background .2s ease, color .2s ease",
           }}>
-            <Icon size={20} strokeWidth={active?2.3:1.9}/>
-            <span style={{fontSize:9.5, fontWeight:600, lineHeight:1}}>{label}</span>
+            <Icon size={22} strokeWidth={active?2.3:1.8}/>
+            <span style={{fontSize:10, fontWeight:600, lineHeight:1.1}}>{label}</span>
           </button>
         );
 
-        const FAB = 50;
-        const navBarBg = dark ? "#171522" : "#FFFFFF";
+        const FAB = 56;
+        const navBarBg = cardBg;
+        // iOS floating glass tab bar -- wrapper পুরো নিচে sticky, ভেতরের pill-টা আসল bar
+        const navWrapStyle = {
+          position:"sticky", left:0, right:0, bottom:0, zIndex:40, background:"transparent",
+          pointerEvents:"none", padding:"0 14px calc(env(safe-area-inset-bottom, 0px) + 10px)",
+        };
+        const navPillStyle = {
+          pointerEvents:"auto", height:60, borderRadius:30, boxSizing:"border-box",
+          background: iosGlassCard,
+          WebkitBackdropFilter:"blur(26px) saturate(190%)", backdropFilter:"blur(26px) saturate(190%)",
+          boxShadow:`inset 0 1px 0 ${iosGlassHi}, 0 10px 30px rgba(30,20,80,${dark ? "0.45" : "0.16"}), 0 0 0 0.5px ${iosGlassLine}`,
+        };
 
         if (!addEnabled) {
           // শুধু Today ট্যাব থাকলে (Study/Task দুটোই বন্ধ) — normal ফুল-উইদথ বার, স্ক্রিনের একদম নিচে ফিক্সড, FAB লাগবে না
           return (
-            <div style={{position:"sticky", left:0, right:0, bottom:0, zIndex:40, background:navBarBg, borderTop: dark ? "none" : `1px solid ${cardBorder}`, paddingBottom:"env(safe-area-inset-bottom)"}}>
-              <div style={{display:"flex", padding:"10px 10px 8px"}}>
+            <div style={navWrapStyle}>
+              <div style={{...navPillStyle, display:"flex", padding:4}}>
                 <TabBtn Icon={Home} label={t.tabs.today} active={true} onClick={()=>{}}/>
               </div>
             </div>
@@ -7602,11 +7644,11 @@ function FocusGoInner() {
         }
 
         return (
-          <div style={{position:"sticky", left:0, right:0, bottom:0, zIndex:40, background:navBarBg, borderTop: dark ? "none" : `1px solid ${cardBorder}`, paddingBottom:"env(safe-area-inset-bottom)"}}>
-            <div style={{position:"relative", width:"100%"}}>
+          <div style={navWrapStyle}>
+            <div style={{...navPillStyle, position:"relative", width:"100%"}}>
               <div style={{
                 display:"flex", alignItems:"stretch", justifyContent:"space-around",
-                padding:"8px 8px 6px",
+                height:"100%", padding:4, boxSizing:"border-box",
               }}>
                 <div style={{flex:1, display:"flex"}}>{leftTabs.map(tb => <TabBtn key={tb.k} {...tb}/>)}</div>
                 <div style={{width:FAB, flexShrink:0}}/>
@@ -7617,9 +7659,10 @@ function FocusGoInner() {
                 <>
                   <div onClick={()=>setShowQuickAddMenu(false)} style={{position:"fixed", inset:0, zIndex:44}}/>
                   <div style={{
-                    position:"absolute", bottom:"100%", marginBottom:22, left:"50%", transform:"translateX(-50%)", zIndex:45,
-                    background: cardBg, border:`1px solid ${cardBorder}`, borderRadius:14,
-                    boxShadow: dark ? "0 8px 22px rgba(0,0,0,0.35)" : "0 8px 22px rgba(0,0,0,0.14)",
+                    position:"absolute", bottom:"100%", marginBottom:32, left:"50%", transform:"translateX(-50%)", zIndex:45,
+                    background: hexA(cardBg, dark ? 0.86 : 0.84), border:`0.5px solid ${cardBorder}`, borderRadius:18,
+                    WebkitBackdropFilter:"blur(24px) saturate(180%)", backdropFilter:"blur(24px) saturate(180%)",
+                    boxShadow: dark ? "0 10px 28px rgba(0,0,0,0.45)" : "0 10px 28px rgba(30,20,80,0.16)",
                     minWidth:172, padding:6,
                   }}>
                     {studyFeatureEnabled && (
@@ -7645,15 +7688,15 @@ function FocusGoInner() {
               )}
 
               <button onClick={handleAddTap} style={{
-                  position:"absolute", left:"50%", top:-14, transform:"translateX(-50%)",
-                  width:FAB, height:FAB, borderRadius:"50%", border:`3px solid ${navBarBg}`,
+                  position:"absolute", left:"50%", top:-20, transform:"translateX(-50%)",
+                  width:FAB, height:FAB, borderRadius:"50%", border:"none",
                   background: accent,
-                  color:"#171522",
+                  color: dark ? "#171522" : "#FFFFFF",
                   display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
-                  boxShadow:`0 6px 14px ${accent}55`,
+                  boxShadow:`0 0 0 5px ${navBarBg}, 0 12px 26px ${accent}66, inset 0 1px 0 rgba(255,255,255,0.3)`,
                   zIndex:46,
                 }}>
-                <Plus size={22} strokeWidth={2.6}/>
+                <Plus size={26} strokeWidth={2.6}/>
               </button>
             </div>
           </div>
