@@ -6583,7 +6583,7 @@ function FocusGoInner() {
               <>
                 {/* Hero card -- FocusGo purple, badge + big % + progress ticks (iOS / pastel redesign) */}
                 {(() => {
-                  const heroBg = dark ? "#5B45D6" : "#6B4CF2";
+                  const heroBg = dark ? "linear-gradient(135deg, #6D28D9 0%, #A21CAF 100%)" : "linear-gradient(135deg, #7C3AED 0%, #C026D3 100%)";
                   const badgeTxt = totalToday === 0
                     ? (lang==="bn" ? "নতুন শুরু" : "Fresh start")
                     : pctToday >= 100 ? (lang==="bn" ? "সব সম্পন্ন" : "All done") : (lang==="bn" ? "ঠিক পথে" : "On track");
@@ -6592,7 +6592,7 @@ function FocusGoInner() {
                   return (
                     <div className="fg-tab-panel" style={{
                       marginTop:10, borderRadius:22, padding:"12px 15px 13px", position:"relative", overflow:"hidden",
-                      background: heroBg, color:"#fff", minHeight:104,
+                      background: heroBg, color:"#fff", minHeight:104, boxShadow:`0 14px 30px ${dark ? "rgba(109,40,217,0.4)" : "rgba(124,58,237,0.36)"}, inset 0 1px 0 rgba(255,255,255,0.16)`,
                       display:"flex", flexDirection:"column", justifyContent:"space-between", gap:10,
                     }}>
                       <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:10}}>
@@ -6605,7 +6605,7 @@ function FocusGoInner() {
                         </div>
                         <div style={{display:"flex", alignItems:"flex-end", gap:4, height:40, flex:1, justifyContent:"flex-end", maxWidth:170}}>
                           {tickVals.map((v,i) => (
-                            <i key={i} style={{display:"block", width:3, borderRadius:2, height: 8 + v*30, background: i < filled ? "#C8F27A" : "rgba(255,255,255,0.42)"}}/>
+                            <i key={i} style={{display:"block", width:3, borderRadius:2, height: 8 + v*30, background: i < filled ? "#FFD84D" : "rgba(255,255,255,0.5)"}}/>
                           ))}
                         </div>
                       </div>
@@ -6619,27 +6619,27 @@ function FocusGoInner() {
                   const fh = Math.floor(focusMin / 60), fm = focusMin % 60;
                   const unitH = lang==="bn" ? "ঘ" : "h", unitM = lang==="bn" ? "মি" : "m";
                   const tileBase = { position:"relative", borderRadius:20, padding:"10px 12px", color:inkColor };
-                  const ib = { position:"absolute", top:8, right:8, width:30, height:30, borderRadius:"50%", background: dark ? cardBg : "#FFFFFF", display:"flex", alignItems:"center", justifyContent:"center", color:inkColor };
+                  const ib = { position:"absolute", top:10, right:10, width:32, height:32, borderRadius:"50%", background: dark ? cardBg : "#FFFFFF", display:"flex", alignItems:"center", justifyContent:"center", color:"#A855F7", boxShadow:"0 2px 6px rgba(30,20,80,0.10)" };
                   const lbl = { fontSize:12, fontWeight:500, color:inkA(0.62) };
                   const num = { fontSize:19, lineHeight:1.1, fontWeight:700, letterSpacing:-0.6, marginTop:6, color:inkColor };
                   const unit = { fontSize:11, color:inkA(0.6), letterSpacing:0, margin:"0 2px 0 1px" };
                   return (
                     <div style={{display:"grid", gridTemplateColumns:"1.08fr 1fr", gridTemplateRows:"auto auto", gap:9, marginTop:10}}>
-                      <div style={{...tileBase, gridRow:"span 2", background: dark ? "#2B2544" : "#EDE6F8", display:"flex", flexDirection:"column", justifyContent:"space-between", minHeight:112}}>
+                      <div style={{...tileBase, gridRow:"span 2", background: dark ? "linear-gradient(165deg, #332255 0%, #4A2E80 130%)" : "linear-gradient(165deg, #E6D9FA 0%, #D3B8F2 130%)", display:"flex", flexDirection:"column", justifyContent:"space-between", minHeight:112}}>
                         <div style={lbl}>{lang==="bn" ? "ফোকাস" : "Focused"}</div>
                         <span style={ib}><Hourglass size={15} strokeWidth={1.9}/></span>
                         <div style={{...num, fontSize:24}}>
                           {fh > 0 && <><Num>{nf(fh)}</Num><span style={unit}>{unitH}</span></>}<Num>{nf(fm)}</Num><span style={unit}>{unitM}</span>
                         </div>
                       </div>
-                      <div style={{...tileBase, background: dark ? "#22352A" : "#E2EFD8"}}>
+                      <div style={{...tileBase, background: dark ? "linear-gradient(165deg, #1E3D28 0%, #14321F 130%)" : "linear-gradient(165deg, #CDEEBB 0%, #AEE896 130%)"}}>
                         <div style={lbl}>{lang==="bn" ? "সম্পন্ন" : "Done"}</div>
-                        <span style={ib}><Check size={15} strokeWidth={2.4}/></span>
+                        <span style={{...ib, color:"#2FBE45"}}><Check size={15} strokeWidth={2.4}/></span>
                         <div style={num}><Num>{nf(doneToday)}</Num><span style={unit}>{lang==="bn" ? "/" : "of"}</span><Num>{nf(totalToday)}</Num></div>
                       </div>
-                      <div style={{...tileBase, background: dark ? "#3A2A27" : "#F8E8E1"}}>
+                      <div style={{...tileBase, background: dark ? "linear-gradient(165deg, #4A2A20 0%, #3A1F17 130%)" : "linear-gradient(165deg, #FBD9C4 0%, #F7C199 130%)"}}>
                         <div style={lbl}>{t.streakLabel}</div>
-                        <span style={{...ib, color:"#F08A2C"}}><Flame size={15} strokeWidth={1.9}/></span>
+                        <span style={{...ib, color:"#FF9114"}}><Flame size={15} strokeWidth={1.9}/></span>
                         <div style={num}><Num>{nf(studyOverview.streak)}</Num><span style={unit}>{lang==="bn" ? "দিন" : "days"}</span></div>
                       </div>
                     </div>
@@ -7460,7 +7460,7 @@ function FocusGoInner() {
             </div>
 
             {/* Weekly Activity — dark card, lime highlighted bar for today (matches new home/plan design language) */}
-            <div style={{background: dark ? "#2B2544" : "#EDE6F8", borderRadius:22, padding:"14px 14px 12px", marginBottom:20}}>
+            <div style={{background: dark ? "linear-gradient(165deg, #332255 0%, #4A2338 140%)" : "linear-gradient(165deg, #E6D9FA 0%, #FAD1E0 140%)", borderRadius:22, padding:"14px 14px 12px", marginBottom:20}}>
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:14}}>
               <span style={{fontSize:13, fontWeight:500, color:textMain}}>{t.weeklyActivity}</span>
               <span style={{fontSize:12, fontWeight:600, color:accent}}>
@@ -7481,11 +7481,11 @@ function FocusGoInner() {
                   return (
                     <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6, height:"100%", justifyContent:"flex-end"}}>
                       {w.min > 0 ? (
-                        <span style={{fontSize:10, fontWeight:700, color: isToday ? accent : textMuted2, whiteSpace:"nowrap"}}>
+                        <span style={{fontSize:10, fontWeight:700, color: isToday ? "#A855F7" : textMuted2, whiteSpace:"nowrap"}}>
                           {hh > 0 ? <><Num>{nf(hh)}</Num>h<Num>{nf(mm)}</Num></> : <Num>{nf(mm)}</Num>}
                         </span>
                       ) : <span style={{fontSize:10, height:11}}/>}
-                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:7, background: w.min>0 ? (isToday ? accent : `${accent}66`) : `${accent}22`, boxSizing:"border-box", transition:"height .3s"}}/>
+                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:7, background: w.min>0 ? (isToday ? "linear-gradient(180deg, #F472B6, #7C3AED)" : "linear-gradient(180deg, #C084FC, #818CF8)") : `${accent}1A`, boxSizing:"border-box", transition:"height .3s"}}/>
                       <span style={{fontSize:10, fontWeight:700, color: isToday ? textMain : textMuted2}}>{weekdayShort(w.day)}</span>
                     </div>
                   );
