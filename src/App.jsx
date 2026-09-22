@@ -5890,7 +5890,7 @@ function FocusGoInner() {
           transition: transform .16s cubic-bezier(0.16,1,0.3,1), box-shadow .2s ease;
         }
         .fg-btn-circle:active:not(:disabled) { transform: scale(0.94); }
-        .fg-btn-circle--sm { width: 34px; height: 34px; }
+        .fg-btn-circle--sm { width: 38px; height: 38px; }
         .fg-btn-circle--lg { width: 46px; height: 46px; }
 
         .fg-card-flat {
@@ -6138,16 +6138,14 @@ function FocusGoInner() {
               return (
                 <>
                   <div style={{
-                    padding:"18px 20px 17px", marginBottom:0, position:"relative", borderRadius:18,
-                    background: dark
-                      ? `linear-gradient(135deg, ${greetTheme.grad}, transparent 70%)`
-                      : "#FFFFFF",
+                    padding:"6px 4px 4px", marginBottom:0, position:"relative", borderRadius:18,
+                    background: "transparent",
                   }} ref={salahMenuRef}>
                     <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:10}}>
                       <div style={{minWidth:0, flex:1}}>
                         <div
                           onClick={() => { vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                          style={{fontSize:13, fontWeight:600, color:accent, letterSpacing:0.3, marginBottom:5, display:"flex", alignItems:"center", gap:7, cursor:"pointer"}}
+                          style={{fontSize:13, fontWeight:500, color:textMuted2, letterSpacing:0.2, marginBottom:3, display:"flex", alignItems:"center", gap:7, cursor:"pointer"}}
                           title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
                         >
                           <GreetIcon size={14} color={greetTheme.iconColor} strokeWidth={2.2}/>
@@ -6155,14 +6153,14 @@ function FocusGoInner() {
                           {weatherData && weatherData.temp != null && (
                             <span
                               onClick={(e) => { e.stopPropagation(); vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                              style={{display:"inline-flex", alignItems:"center", fontSize:13, fontWeight:600, color:accent, cursor:"pointer"}}
+                              style={{display:"inline-flex", alignItems:"center", fontSize:13, fontWeight:500, color:textMuted2, cursor:"pointer"}}
                               title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
                             >
                               · <Num>{nf(weatherData.temp)}</Num>°C
                             </span>
                           )}
                         </div>
-                        <div style={{fontSize:27,fontWeight:700,letterSpacing:-0.6,color:"var(--text)", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", display:"inline-block"}}>
+                        <div style={{fontSize:26,fontWeight:500,letterSpacing:-0.8,color:"var(--text)", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", display:"inline-block"}}>
                           {firstName}
                         </div>
                       </div>
@@ -6479,7 +6477,7 @@ function FocusGoInner() {
           <div className="fg-tab-panel" style={{marginTop:16, marginBottom:2}}>
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}>
               <div style={{minWidth:0}}>
-                <div className="fg-title" style={{fontSize:28, lineHeight:"34px", fontWeight:700, letterSpacing:0.3}}>{lang==="bn" ? "স্টাডি" : "Study"}</div>
+                <div className="fg-title" style={{fontSize:24, lineHeight:"30px", fontWeight:500, letterSpacing:-0.4}}>{lang==="bn" ? "স্টাডি" : "Study"}</div>
                 <div style={{fontSize:12.5, color:"var(--muted)", marginTop:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
                   {lang==="bn" ? "তোমার পড়াশোনার যাত্রা ট্র্যাক করো" : "Track your learning journey"}
                 </div>
@@ -6542,7 +6540,7 @@ function FocusGoInner() {
                 <button key={m} disabled={timerRunning} onClick={()=>{ vibrate(); setTimerTotal(m*60); setTimerSeconds(m*60); }}
                   style={{
                     flex:1, border:"none", fontFamily:"inherit", fontSize:12.5, fontWeight:700,
-                    padding:"8px 0", borderRadius:999,
+                    padding:"10px 0", borderRadius:999,
                     background: sel ? "#fff" : "rgba(255,255,255,0.18)",
                     color: sel ? accent : "rgba(255,255,255,0.85)",
                     cursor: timerRunning ? "default" : "pointer",
@@ -6562,7 +6560,7 @@ function FocusGoInner() {
             (আগে নিচে Subject Progress কার্ডের উপরেও আরেকটা "Stats" টাইটেল ছিল — সেটা ডুপ্লিকেট বলে সরানো হয়েছে) */}
         {tab === "study" && studySection === "stats" && (
           <div className="fg-tab-panel" style={{marginTop:16, marginBottom:2}}>
-            <div className="fg-title" style={{fontSize:28, lineHeight:"34px", fontWeight:700, letterSpacing:0.3}}>{t.statsPageTitle}</div>
+            <div className="fg-title" style={{fontSize:24, lineHeight:"30px", fontWeight:500, letterSpacing:-0.4}}>{t.statsPageTitle}</div>
             <div style={{fontSize:13.5, color:textMuted2, fontWeight:500, marginTop:2}}>{t.statsPageSubtitle}</div>
           </div>
         )}
@@ -6583,55 +6581,70 @@ function FocusGoInner() {
 
             return (
               <>
-                {/* Hero card — accent gradient, wavy decoration, circular progress ring */}
-                <div className="fg-tab-panel" style={{
-                  marginTop:10, borderRadius:20, padding:"18px 20px 20px", position:"relative", overflow:"hidden",
-                  background:`linear-gradient(135deg, ${accent} 0%, ${shadeColor(accent, -14)} 100%)`,
-                  boxShadow:`0 14px 28px ${accent}40`,
-                }}>
-                  <svg style={{position:"absolute", right:-8, top:14, width:150, height:60, opacity:0.5, pointerEvents:"none"}} viewBox="0 0 150 60" fill="none">
-                    <path d="M0 30 C 25 5, 45 55, 75 30 S 125 5, 150 30" stroke="rgba(255,255,255,0.65)" strokeWidth="2" fill="none"/>
-                  </svg>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12, position:"relative"}}>
-                    <div style={{minWidth:0}}>
-                      <div style={{fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.85)"}}>{lang==="bn" ? "আজকের ফোকাস" : "Today's focus"}</div>
-                      <div style={{fontSize:18, fontWeight:800, color:"#fff", letterSpacing:-0.3, marginTop:8, lineHeight:1.35, maxWidth:210}}>
-                        {heroHeadline}
+                {/* Hero card -- FocusGo purple, badge + big % + progress ticks (iOS / pastel redesign) */}
+                {(() => {
+                  const heroBg = dark ? "#5B45D6" : "#6B4CF2";
+                  const badgeTxt = totalToday === 0
+                    ? (lang==="bn" ? "নতুন শুরু" : "Fresh start")
+                    : pctToday >= 100 ? (lang==="bn" ? "সব সম্পন্ন" : "All done") : (lang==="bn" ? "ঠিক পথে" : "On track");
+                  const tickVals = [0.3,0.5,0.35,0.8,0.45,0.9,0.4,0.6,0.3,0.7,1,0.5,0.35,0.6,0.4,0.8];
+                  const filled = Math.round((pctToday / 100) * tickVals.length);
+                  return (
+                    <div className="fg-tab-panel" style={{
+                      marginTop:10, borderRadius:22, padding:"12px 15px 13px", position:"relative", overflow:"hidden",
+                      background: heroBg, color:"#fff", minHeight:104,
+                      display:"flex", flexDirection:"column", justifyContent:"space-between", gap:10,
+                    }}>
+                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:10}}>
+                        <div style={{fontSize:13, fontWeight:500, color:"rgba(255,255,255,0.88)"}}>{lang==="bn" ? "আজকের ফোকাস" : "Today's focus"}</div>
+                        <span style={{background:"rgba(255,255,255,0.22)", color:"#fff", borderRadius:999, padding:"3px 10px", fontSize:11, fontWeight:600}}>{badgeTxt}</span>
+                      </div>
+                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-end", gap:10}}>
+                        <div style={{fontSize:30, lineHeight:1, fontWeight:400, letterSpacing:-1}}>
+                          <Num>{nf(pctToday)}</Num><span style={{fontSize:13, marginLeft:3, color:"rgba(255,255,255,0.75)", letterSpacing:0}}>% {String(t.doneCount || "done").toLowerCase()}</span>
+                        </div>
+                        <div style={{display:"flex", alignItems:"flex-end", gap:4, height:40, flex:1, justifyContent:"flex-end", maxWidth:170}}>
+                          {tickVals.map((v,i) => (
+                            <i key={i} style={{display:"block", width:3, borderRadius:2, height: 8 + v*30, background: i < filled ? "#C8F27A" : "rgba(255,255,255,0.42)"}}/>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                    <div style={{width:52, height:52, borderRadius:"50%", flexShrink:0, background:`conic-gradient(#fff 0% ${pctToday}%, rgba(255,255,255,0.28) ${pctToday}% 100%)`, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                      <div style={{width:40, height:40, borderRadius:"50%", background:shadeColor(accent, -24), display:"flex", alignItems:"center", justifyContent:"center"}}>
-                        <span style={{color:"#fff", fontWeight:800, fontSize:12}}><Num>{nf(pctToday)}</Num>%</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })()}
 
-                {/* Two colorful stat cards — today's progress + streak */}
-                <div style={{display:"flex", gap:10, marginTop:10}}>
-                  <div style={{flex:1, borderRadius:18, padding:"14px 14px 12px", minHeight:88, background:"#B6F27A", display:"flex", flexDirection:"column", justifyContent:"space-between"}}>
-                    <div style={{fontSize:12, fontWeight:600, color:"#171522", opacity:0.75}}>{lang==="bn" ? "আজকের অগ্রগতি" : "Today's progress"}</div>
-                    <div>
-                      <div style={{fontFamily:"'Inter Tight', sans-serif", fontWeight:800, fontSize:18, color:"#171522", letterSpacing:-0.3, marginTop:6}}>
-                        {heroHeadline}
+                {/* Overview tiles -- pastel: focused time, topics done, streak */}
+                {(() => {
+                  const focusMin = todayTopics.filter(x => x.done).reduce((s, x) => s + (Number(x.duration) || 0), 0);
+                  const fh = Math.floor(focusMin / 60), fm = focusMin % 60;
+                  const unitH = lang==="bn" ? "ঘ" : "h", unitM = lang==="bn" ? "মি" : "m";
+                  const tileBase = { position:"relative", borderRadius:20, padding:"10px 12px", color:inkColor };
+                  const ib = { position:"absolute", top:8, right:8, width:30, height:30, borderRadius:"50%", background: dark ? cardBg : "#FFFFFF", display:"flex", alignItems:"center", justifyContent:"center", color:inkColor };
+                  const lbl = { fontSize:12, fontWeight:500, color:inkA(0.62) };
+                  const num = { fontSize:19, lineHeight:1.1, fontWeight:400, letterSpacing:-0.6, marginTop:6, color:inkColor };
+                  const unit = { fontSize:11, color:inkA(0.6), letterSpacing:0, margin:"0 2px 0 1px" };
+                  return (
+                    <div style={{display:"grid", gridTemplateColumns:"1.08fr 1fr", gridTemplateRows:"auto auto", gap:9, marginTop:10}}>
+                      <div style={{...tileBase, gridRow:"span 2", background: dark ? "#2B2544" : "#EDE6F8", display:"flex", flexDirection:"column", justifyContent:"space-between", minHeight:112}}>
+                        <div style={lbl}>{lang==="bn" ? "ফোকাস" : "Focused"}</div>
+                        <span style={ib}><Hourglass size={15} strokeWidth={1.9}/></span>
+                        <div style={{...num, fontSize:24}}>
+                          {fh > 0 && <><Num>{nf(fh)}</Num><span style={unit}>{unitH}</span></>}<Num>{nf(fm)}</Num><span style={unit}>{unitM}</span>
+                        </div>
                       </div>
-                      <div style={{fontSize:11, color:"#171522", opacity:0.7, marginTop:2}}>
-                        {totalToday === 0 ? (lang==="bn" ? "চলো শুরু করি!" : "Let's get started!") : (lang==="bn" ? "চালিয়ে যাও!" : "Keep it up!")}
+                      <div style={{...tileBase, background: dark ? "#22352A" : "#E2EFD8"}}>
+                        <div style={lbl}>{lang==="bn" ? "সম্পন্ন" : "Done"}</div>
+                        <span style={ib}><Check size={15} strokeWidth={2.4}/></span>
+                        <div style={num}><Num>{nf(doneToday)}</Num><span style={unit}>{lang==="bn" ? "/" : "of"}</span><Num>{nf(totalToday)}</Num></div>
+                      </div>
+                      <div style={{...tileBase, background: dark ? "#3A2A27" : "#F8E8E1"}}>
+                        <div style={lbl}>{t.streakLabel}</div>
+                        <span style={{...ib, color:"#F08A2C"}}><Flame size={15} strokeWidth={1.9}/></span>
+                        <div style={num}><Num>{nf(studyOverview.streak)}</Num><span style={unit}>{lang==="bn" ? "দিন" : "days"}</span></div>
                       </div>
                     </div>
-                  </div>
-                  <div style={{flex:1, borderRadius:18, padding:"14px 14px 12px", minHeight:88, background:"#F5A85A", display:"flex", flexDirection:"column", justifyContent:"space-between"}}>
-                    <div style={{fontSize:12, fontWeight:600, color:"#171522", opacity:0.75}}>{t.streakLabel}</div>
-                    <div>
-                      <div style={{fontFamily:"'Inter Tight', sans-serif", fontWeight:800, fontSize:18, color:"#171522", letterSpacing:-0.3, marginTop:6}}>
-                        <Num>{nf(studyOverview.streak)}</Num> {lang==="bn" ? "দিন" : "days"}
-                      </div>
-                      <div style={{fontSize:11, color:"#171522", opacity:0.7, marginTop:2}}>
-                        {lang==="bn" ? "স্ট্রিক ধরে রাখো!" : "Keep your streak alive!"}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })()}
               </>
             );
           }
@@ -7031,7 +7044,7 @@ function FocusGoInner() {
             {/* Title row + date pill — পিলে ট্যাপ করলেই ক্যালেন্ডার ভিউ খুলবে/বন্ধ হবে, আলাদা কোনো টগল বাটন বা অ্যারো নেই */}
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:14}}>
               <div style={{minWidth:0}}>
-                <div className="fg-title" style={{fontSize:28, lineHeight:"34px", fontWeight:700, letterSpacing:0.3}}>{t.taskTitle}</div>
+                <div className="fg-title" style={{fontSize:24, lineHeight:"30px", fontWeight:500, letterSpacing:-0.4}}>{t.taskTitle}</div>
                 <div style={{fontSize:12.5, color:textMuted2, marginTop:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
                   {t.taskSubtitle}
                 </div>
@@ -7447,10 +7460,10 @@ function FocusGoInner() {
             </div>
 
             {/* Weekly Activity — dark card, lime highlighted bar for today (matches new home/plan design language) */}
-            <div style={{background:"#171522", borderRadius:20, padding:"16px 16px 14px", marginBottom:20, boxShadow:"0 12px 24px rgba(23,21,34,0.22)"}}>
+            <div style={{background: dark ? "#2B2544" : "#EDE6F8", borderRadius:22, padding:"14px 14px 12px", marginBottom:20}}>
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:14}}>
-              <span style={{fontSize:12, fontWeight:700, color:"#FFFFFF"}}>{t.weeklyActivity}</span>
-              <span style={{fontSize:12, fontWeight:800, color:"#B6F27A"}}>
+              <span style={{fontSize:13, fontWeight:500, color:textMain}}>{t.weeklyActivity}</span>
+              <span style={{fontSize:12, fontWeight:600, color:accent}}>
                 {(() => {
                   const total = weeklyActivity.reduce((s,w)=>s+w.min,0);
                   const h = Math.floor(total/60), m = total%60;
@@ -7468,12 +7481,12 @@ function FocusGoInner() {
                   return (
                     <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6, height:"100%", justifyContent:"flex-end"}}>
                       {w.min > 0 ? (
-                        <span style={{fontSize:10, fontWeight:700, color: isToday ? "#B6F27A" : "#8B889A", whiteSpace:"nowrap"}}>
+                        <span style={{fontSize:10, fontWeight:700, color: isToday ? accent : textMuted2, whiteSpace:"nowrap"}}>
                           {hh > 0 ? <><Num>{nf(hh)}</Num>h<Num>{nf(mm)}</Num></> : <Num>{nf(mm)}</Num>}
                         </span>
                       ) : <span style={{fontSize:10, height:11}}/>}
-                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:7, background: w.min>0 ? (isToday ? "#B6F27A" : "#3A3650") : "rgba(255,255,255,0.06)", boxSizing:"border-box", transition:"height .3s"}}/>
-                      <span style={{fontSize:10, fontWeight:700, color: isToday? "#FFFFFF" : "#8B889A"}}>{weekdayShort(w.day)}</span>
+                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:7, background: w.min>0 ? (isToday ? accent : `${accent}66`) : `${accent}22`, boxSizing:"border-box", transition:"height .3s"}}/>
+                      <span style={{fontSize:10, fontWeight:700, color: isToday ? textMain : textMuted2}}>{weekdayShort(w.day)}</span>
                     </div>
                   );
                 });
@@ -7610,11 +7623,11 @@ function FocusGoInner() {
         const TabBtn = ({Icon, label, active, onClick}) => (
           <button onClick={onClick} style={{
             flex:1, height:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2,
-            border:"none", background: active ? accentLight : "transparent", borderRadius:26, cursor:"pointer", padding:"0 2px", fontFamily:"inherit",
+            border:"none", background: active ? accentLight : "transparent", borderRadius:27, cursor:"pointer", padding:"0 2px", fontFamily:"inherit",
             color: active ? accent : textMuted2, transition:"background .2s ease, color .2s ease",
           }}>
             <Icon size={22} strokeWidth={active?2.3:1.8}/>
-            <span style={{fontSize:10, fontWeight:600, lineHeight:1.1}}>{label}</span>
+            <span style={{fontSize:10.5, fontWeight:600, lineHeight:1.1}}>{label}</span>
           </button>
         );
 
@@ -7626,7 +7639,7 @@ function FocusGoInner() {
           pointerEvents:"none", padding:"0 14px calc(env(safe-area-inset-bottom, 0px) + 10px)",
         };
         const navPillStyle = {
-          pointerEvents:"auto", height:60, borderRadius:30, boxSizing:"border-box",
+          pointerEvents:"auto", height:62, borderRadius:31, boxSizing:"border-box",
           background: iosGlassCard,
           WebkitBackdropFilter:"blur(26px) saturate(190%)", backdropFilter:"blur(26px) saturate(190%)",
           boxShadow:`inset 0 1px 0 ${iosGlassHi}, 0 10px 30px rgba(30,20,80,${dark ? "0.45" : "0.16"}), 0 0 0 0.5px ${iosGlassLine}`,
@@ -7651,7 +7664,7 @@ function FocusGoInner() {
                 height:"100%", padding:4, boxSizing:"border-box",
               }}>
                 <div style={{flex:1, display:"flex"}}>{leftTabs.map(tb => <TabBtn key={tb.k} {...tb}/>)}</div>
-                <div style={{width:FAB, flexShrink:0}}/>
+                <div style={{width:FAB + 20, flexShrink:0}}/>
                 <div style={{flex:1, display:"flex"}}>{rightTabs.map(tb => <TabBtn key={tb.k} {...tb}/>)}</div>
               </div>
 
