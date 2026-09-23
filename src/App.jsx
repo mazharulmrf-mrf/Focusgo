@@ -3359,7 +3359,7 @@ function FocusGoInner() {
     addLink("preconnect", "https://fonts.gstatic.com", { crossOrigin: "anonymous" });
     // আসল ফন্ট stylesheet — এবার real <link>, তাই ব্রাউজার এটাকে render-blocking resource
     // হিসেবে priority দিয়ে আগেভাগে ফেচ করে, `@import`-এর মতো দেরি করে না
-    addLink("stylesheet", "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap");
+    addLink("stylesheet", "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap");
   }, []);
 
   const breakpoint = useViewport(); // "mobile" | "tablet" | "desktop"
@@ -5515,7 +5515,7 @@ function FocusGoInner() {
   const iosGlassHi = dark ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.95)";
 
   const styles = {
-    page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Noto Sans Bengali',sans-serif" : "'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column", paddingTop:"var(--fg-safe-top, env(safe-area-inset-top))" },
+    page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Noto Sans Bengali',sans-serif" : "'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif", fontWeight:500, transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column", paddingTop:"var(--fg-safe-top, env(safe-area-inset-top))" },
     container: { maxWidth: containerMaxWidth, margin: "0 auto", padding: containerPadding, width:"100%", boxSizing:"border-box", flex:"1 0 auto", transition: "max-width .2s ease" },
   };
 
@@ -5859,17 +5859,17 @@ function FocusGoInner() {
 
         /* ---- design tokens: titles / section headers / body labels / circular buttons / dividers ---- */
         .fg-title {
-          font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter Tight', 'Inter', 'Helvetica Neue', sans-serif;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
           font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.7px;
           color: var(--text); margin: 0;
         }
         .fg-section-header {
-          font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter Tight', 'Inter', 'Helvetica Neue', sans-serif;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
           font-size: 19px; line-height: 24px; font-weight: 600; letter-spacing: -0.6px;
           color: var(--text); margin: 0;
         }
         .fg-body-label {
-          font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter Tight', 'Inter', 'Helvetica Neue', sans-serif;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
           font-size: 14.5px; line-height: 18px; font-weight: 400; letter-spacing: 0.3px;
           color: var(--text); margin: 0;
         }
@@ -6160,7 +6160,7 @@ function FocusGoInner() {
                             </span>
                           )}
                         </div>
-                        <div style={{fontSize:26,fontWeight:700,letterSpacing:-0.8,color:"var(--text)", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", display:"inline-block"}}>
+                        <div style={{fontSize:26,fontWeight:900,letterSpacing:-0.6,color:"var(--text)", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", display:"inline-block"}}>
                           {firstName}
                         </div>
                       </div>
@@ -6477,7 +6477,7 @@ function FocusGoInner() {
           <div className="fg-tab-panel" style={{marginTop:16, marginBottom:2}}>
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}>
               <div style={{minWidth:0}}>
-                <div className="fg-title" style={{fontSize:24, lineHeight:"30px", fontWeight:700, letterSpacing:-0.4}}>{lang==="bn" ? "স্টাডি" : "Study"}</div>
+                <div className="fg-title" style={{fontSize:24, lineHeight:"30px", fontWeight:800, letterSpacing:-0.4}}>{lang==="bn" ? "স্টাডি" : "Study"}</div>
                 <div style={{fontSize:12.5, color:"var(--muted)", marginTop:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
                   {lang==="bn" ? "তোমার পড়াশোনার যাত্রা ট্র্যাক করো" : "Track your learning journey"}
                 </div>
@@ -6560,7 +6560,7 @@ function FocusGoInner() {
             (আগে নিচে Subject Progress কার্ডের উপরেও আরেকটা "Stats" টাইটেল ছিল — সেটা ডুপ্লিকেট বলে সরানো হয়েছে) */}
         {tab === "study" && studySection === "stats" && (
           <div className="fg-tab-panel" style={{marginTop:16, marginBottom:2}}>
-            <div className="fg-title" style={{fontSize:24, lineHeight:"30px", fontWeight:700, letterSpacing:-0.4}}>{t.statsPageTitle}</div>
+            <div className="fg-title" style={{fontSize:24, lineHeight:"30px", fontWeight:800, letterSpacing:-0.4}}>{t.statsPageTitle}</div>
             <div style={{fontSize:13.5, color:textMuted2, fontWeight:500, marginTop:2}}>{t.statsPageSubtitle}</div>
           </div>
         )}
@@ -6600,7 +6600,7 @@ function FocusGoInner() {
                         <span style={{background:"rgba(255,255,255,0.22)", color:"#fff", borderRadius:999, padding:"3px 10px", fontSize:11, fontWeight:600}}>{badgeTxt}</span>
                       </div>
                       <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-end", gap:10}}>
-                        <div style={{fontSize:30, lineHeight:1, fontWeight:700, letterSpacing:-1}}>
+                        <div style={{fontSize:30, lineHeight:1, fontWeight:900, letterSpacing:-0.6}}>
                           <Num>{nf(pctToday)}</Num><span style={{fontSize:13, marginLeft:3, color:"rgba(255,255,255,0.75)", letterSpacing:0}}>% {String(t.doneCount || "done").toLowerCase()}</span>
                         </div>
                         <div style={{display:"flex", alignItems:"flex-end", gap:4, height:40, flex:1, justifyContent:"flex-end", maxWidth:170}}>
@@ -6621,7 +6621,7 @@ function FocusGoInner() {
                   const tileBase = { position:"relative", borderRadius:20, padding:"10px 12px", color:inkColor };
                   const ib = { position:"absolute", top:10, right:10, width:32, height:32, borderRadius:"50%", background: dark ? cardBg : "#FFFFFF", display:"flex", alignItems:"center", justifyContent:"center", color:"#A855F7", boxShadow:"0 2px 6px rgba(30,20,80,0.10)" };
                   const lbl = { fontSize:12, fontWeight:500, color:inkA(0.62) };
-                  const num = { fontSize:19, lineHeight:1.1, fontWeight:700, letterSpacing:-0.6, marginTop:6, color:inkColor };
+                  const num = { fontSize:19, lineHeight:1.1, fontWeight:900, letterSpacing:-0.4, marginTop:6, color:inkColor };
                   const unit = { fontSize:11, color:inkA(0.6), letterSpacing:0, margin:"0 2px 0 1px" };
                   return (
                     <div style={{display:"grid", gridTemplateColumns:"1.08fr 1fr", gridTemplateRows:"auto auto", gap:9, marginTop:10}}>
@@ -7044,7 +7044,7 @@ function FocusGoInner() {
             {/* Title row + date pill — পিলে ট্যাপ করলেই ক্যালেন্ডার ভিউ খুলবে/বন্ধ হবে, আলাদা কোনো টগল বাটন বা অ্যারো নেই */}
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:14}}>
               <div style={{minWidth:0}}>
-                <div className="fg-title" style={{fontSize:24, lineHeight:"30px", fontWeight:700, letterSpacing:-0.4}}>{t.taskTitle}</div>
+                <div className="fg-title" style={{fontSize:24, lineHeight:"30px", fontWeight:800, letterSpacing:-0.4}}>{t.taskTitle}</div>
                 <div style={{fontSize:12.5, color:textMuted2, marginTop:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
                   {t.taskSubtitle}
                 </div>
@@ -7631,22 +7631,25 @@ function FocusGoInner() {
           </button>
         );
 
-        const FAB = 46;
+        const FAB = 56;
         const navBarBg = cardBg;
-        // Normal edge-to-edge bottom nav -- পুরো width, top hairline, device-এর safe area পর্যন্ত extend করে
+        // Floating glass tab bar (final) -- wrapper পুরো নিচে sticky, ভেতরের pill-টা আসল bar, FAB আলাদা ভাসমান বৃত্ত
         const navWrapStyle = {
-          position:"sticky", left:0, right:0, bottom:0, zIndex:40,
+          position:"sticky", left:0, right:0, bottom:0, zIndex:40, background:"transparent",
+          pointerEvents:"none", padding:"0 14px calc(env(safe-area-inset-bottom, 0px) + 10px)",
         };
         const navPillStyle = {
-          background: cardBg, borderTop:`1px solid ${cardBorder}`, boxSizing:"border-box",
-          boxShadow: dark ? "0 -4px 16px rgba(0,0,0,0.25)" : "0 -4px 16px rgba(20,20,50,0.05)",
+          pointerEvents:"auto", height:62, borderRadius:31, boxSizing:"border-box",
+          background: iosGlassCard,
+          WebkitBackdropFilter:"blur(26px) saturate(190%)", backdropFilter:"blur(26px) saturate(190%)",
+          boxShadow:`inset 0 1px 0 ${iosGlassHi}, 0 10px 30px rgba(30,20,80,${dark ? "0.45" : "0.16"}), 0 0 0 0.5px ${iosGlassLine}`,
         };
 
         if (!addEnabled) {
           // শুধু Today ট্যাব থাকলে (Study/Task দুটোই বন্ধ) — normal ফুল-উইদথ বার, স্ক্রিনের একদম নিচে ফিক্সড, FAB লাগবে না
           return (
             <div style={navWrapStyle}>
-              <div style={{...navPillStyle, display:"flex", padding:`6px 4px calc(env(safe-area-inset-bottom, 0px) + 6px)`}}>
+              <div style={{...navPillStyle, display:"flex", padding:4}}>
                 <TabBtn Icon={Home} label={t.tabs.today} active={true} onClick={()=>{}}/>
               </div>
             </div>
@@ -7658,28 +7661,29 @@ function FocusGoInner() {
             <div style={{...navPillStyle, position:"relative", width:"100%"}}>
               <div style={{
                 display:"flex", alignItems:"stretch", justifyContent:"space-around",
-                padding:`6px 4px calc(env(safe-area-inset-bottom, 0px) + 6px)`, boxSizing:"border-box",
+                height:"100%", padding:4, boxSizing:"border-box",
               }}>
                 <div style={{flex:1, display:"flex"}}>{leftTabs.map(tb => <TabBtn key={tb.k} {...tb}/>)}</div>
-                <div style={{width:FAB + 14, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center"}}>
-                  <button onClick={handleAddTap} style={{
-                      width:FAB, height:FAB, borderRadius:16, border:"none",
-                      background: `linear-gradient(135deg, ${accent}, ${shadeColor(accent, -18)})`,
-                      color:"#FFFFFF",
-                      display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
-                      boxShadow:`0 6px 16px ${accent}52`,
-                    }}>
-                    <Plus size={22} strokeWidth={2.6}/>
-                  </button>
-                </div>
+                <div style={{width:FAB + 20, flexShrink:0}}/>
                 <div style={{flex:1, display:"flex"}}>{rightTabs.map(tb => <TabBtn key={tb.k} {...tb}/>)}</div>
               </div>
+              <button onClick={handleAddTap} style={{
+                  position:"absolute", left:"50%", top:-20, transform:"translateX(-50%)",
+                  width:FAB, height:FAB, borderRadius:"50%", border:"none",
+                  background: `linear-gradient(135deg, ${accent}, ${shadeColor(accent, -18)})`,
+                  color:"#FFFFFF",
+                  display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
+                  boxShadow:`0 0 0 5px ${navBarBg}, 0 12px 26px ${accent}66, inset 0 1px 0 rgba(255,255,255,0.3)`,
+                  zIndex:46,
+                }}>
+                <Plus size={26} strokeWidth={2.6}/>
+              </button>
 
               {showQuickAddMenu && (
                 <>
                   <div onClick={()=>setShowQuickAddMenu(false)} style={{position:"fixed", inset:0, zIndex:44}}/>
                   <div style={{
-                    position:"absolute", bottom:"100%", marginBottom:8, right:14, zIndex:45,
+                    position:"absolute", bottom:"100%", marginBottom:32, left:"50%", transform:"translateX(-50%)", zIndex:45,
                     background: hexA(cardBg, dark ? 0.86 : 0.84), border:`0.5px solid ${cardBorder}`, borderRadius:18,
                     WebkitBackdropFilter:"blur(24px) saturate(180%)", backdropFilter:"blur(24px) saturate(180%)",
                     boxShadow: dark ? "0 10px 28px rgba(0,0,0,0.45)" : "0 10px 28px rgba(30,20,80,0.16)",
