@@ -7126,11 +7126,20 @@ function FocusGoInner() {
                   {t.taskSubtitle}
                 </div>
               </div>
-              <button onClick={()=>{vibrate(); if (taskViewMode === "calendar") { setTaskViewMode("list"); } else { setTaskCalMonth(new Date(taskListDay)); setTaskViewMode("calendar"); } }}
-                style={{display:"flex", alignItems:"center", gap:6, border:`1px solid ${accent}33`, background: taskViewMode==="calendar" ? accent : "transparent", borderRadius:999, padding:"7px 12px", cursor:"pointer", flexShrink:0}}>
-                <Calendar size={13} color={taskViewMode==="calendar" ? "#FFFFFF" : accent} strokeWidth={2.2}/>
-                <span style={{fontSize:12.5, fontWeight:700, color: taskViewMode==="calendar" ? "#FFFFFF" : accent, whiteSpace:"nowrap"}}>{dateLabel}</span>
-              </button>
+              <div style={{display:"flex", alignItems:"center", gap:8, flexShrink:0}}>
+                {studyFeatureEnabled && (
+                  <button onClick={()=>{vibrate(); setTab("study"); setStudySection("plan");}}
+                    title={lang==="bn" ? "স্টাডি প্ল্যান" : "Study Plan"}
+                    style={{display:"flex", alignItems:"center", justifyContent:"center", width:36, height:36, border:`1px solid ${accent}33`, background:"transparent", borderRadius:999, cursor:"pointer", flexShrink:0}}>
+                    <GraduationCap size={15} color={accent} strokeWidth={2.2}/>
+                  </button>
+                )}
+                <button onClick={()=>{vibrate(); if (taskViewMode === "calendar") { setTaskViewMode("list"); } else { setTaskCalMonth(new Date(taskListDay)); setTaskViewMode("calendar"); } }}
+                  style={{display:"flex", alignItems:"center", gap:6, border:`1px solid ${accent}33`, background: taskViewMode==="calendar" ? accent : "transparent", borderRadius:999, padding:"7px 12px", cursor:"pointer", flexShrink:0}}>
+                  <Calendar size={13} color={taskViewMode==="calendar" ? "#FFFFFF" : accent} strokeWidth={2.2}/>
+                  <span style={{fontSize:12.5, fontWeight:700, color: taskViewMode==="calendar" ? "#FFFFFF" : accent, whiteSpace:"nowrap"}}>{dateLabel}</span>
+                </button>
+              </div>
             </div>
 
             {/* সপ্তাহের streak strip — সপ্তাহ শুরুর দিন Settings-এর সেটিং অনুযায়ী; আজকের আগের দিনগুলোতে
@@ -7324,11 +7333,27 @@ function FocusGoInner() {
                   });
                   const groups = [...groupsMap.entries()].map(([time, items]) => ({ heading: timeLabel(time), items }));
                   if (anytime.length) groups.push({ heading: lang==="bn" ? "যেকোনো সময়" : "Anytime", items: anytime });
+                  const dayStudyTopics = studyFeatureEnabled ? (entries[dayKeyForList] || []) : [];
+                  if (dayStudyTopics.length && (taskListStatusFilter === "all" || (taskListStatusFilter === "done" && dayStudyTopics.some(x=>x.done)))) {
+                    groups.unshift({ heading: lang==="bn" ? "📘 স্টাডি" : "📘 Study", items: [], studyItems: dayStudyTopics.filter(x => taskListStatusFilter !== "done" || x.done) });
+                  }
 
                   return groups.map((g, gi) => (
                     <div key={gi} style={{marginBottom:14}}>
                       <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:8, marginLeft:2}}>{g.heading}</div>
                       <div style={{display:"flex", flexDirection:"column", gap:8}}>
+                        {g.studyItems && g.studyItems.map(item => (
+                          <div key={`study-${item.id}`} style={{display:"flex",alignItems:"center",gap:11,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:"10px 13px",boxSizing:"border-box",boxShadow: dark ? "none" : "0 2px 8px rgba(0,0,0,0.04)"}}>
+                            <span style={{width:32, height:32, borderRadius:10, background: dark ? "#332255" : "#EDE7FB", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0}}>📘</span>
+                            <button onClick={()=>{vibrate(); toggleDoneFor(dayKeyForList, item.id);}} style={{width:23,height:23,borderRadius:"50%",flexShrink:0,border:`2px solid ${item.done?"#6E8B5E":cardBorder}`,background:item.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
+                              {item.done && <Check size={13} color="#fff" strokeWidth={3}/>}
+                            </button>
+                            <div style={{flex:1,minWidth:0}}>
+                              <div style={{fontSize:13.5,fontWeight:500,color:item.done?textMuted2:textMain,opacity:item.done?0.7:0.85,lineHeight:1.35}}>{item.subject ? `${item.subject} — ${item.topic || item.title || ""}` : (item.topic || item.title || "")}</div>
+                              {item.duration ? <span style={{display:"inline-block", fontSize:9.5, fontWeight:700, color:"#7C3AED", background: dark ? "#332255" : "#EDE7FB", borderRadius:999, padding:"2px 8px", marginTop:3}}>{item.duration}m</span> : null}
+                            </div>
+                          </div>
+                        ))}
                         {g.items.map(x => {
                           const overdue = !x.done && x.dueDate && x.dueDate < todayKey;
                           const pr = x.priority || "med";
@@ -7690,7 +7715,6 @@ function FocusGoInner() {
 
         const leftTabs = [
           {k:"today", Icon: Home, label: t.tabs.today, active: tab === "today", onClick: ()=>{vibrate(); setTab("today");}},
-          ...(studyFeatureEnabled ? [{k:"study", Icon: GraduationCap, label: t.tabs.study, active: isStudyActive, onClick: ()=>{vibrate(); setTab("study"); setStudySection("plan");}}] : []),
         ];
         const rightTabs = [
           ...(tasksFeatureEnabled ? [{k:"task", Icon: ListChecks, label: t.tabs.task, active: tab === "task", onClick: ()=>{vibrate(); setTab("task");}}] : []),
