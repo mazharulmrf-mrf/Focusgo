@@ -6589,24 +6589,39 @@ function FocusGoInner() {
                     : pctToday >= 100 ? (lang==="bn" ? "সব সম্পন্ন" : "All done") : (lang==="bn" ? "ঠিক পথে" : "On track");
                   const tickVals = [0.3,0.5,0.35,0.8,0.45,0.9,0.4,0.6,0.3,0.7,1,0.5,0.35,0.6,0.4,0.8];
                   const filled = Math.round((pctToday / 100) * tickVals.length);
+                  const DAILY_GOAL_MIN = 120;
+                  const goalFocusMin = todayTopics.filter(x => x.done).reduce((s, x) => s + (Number(x.duration) || 0), 0);
+                  const goalPct = Math.min(100, Math.round((goalFocusMin / DAILY_GOAL_MIN) * 100));
+                  const gh = Math.floor(goalFocusMin/60), gm = goalFocusMin%60;
                   return (
                     <div className="fg-tab-panel" style={{
-                      marginTop:10, borderRadius:22, padding:"12px 15px 13px", position:"relative", overflow:"hidden",
-                      background: heroBg, color:"#fff", minHeight:104, boxShadow:`0 14px 30px ${dark ? "rgba(109,40,217,0.4)" : "rgba(124,58,237,0.36)"}, inset 0 1px 0 rgba(255,255,255,0.16)`,
-                      display:"flex", flexDirection:"column", justifyContent:"space-between", gap:10,
+                      marginTop:10, borderRadius:18, padding:"9px 12px 10px", position:"relative", overflow:"hidden",
+                      background: heroBg, color:"#fff", minHeight:76, boxShadow:`0 10px 20px ${dark ? "rgba(109,40,217,0.4)" : "rgba(124,58,237,0.36)"}, inset 0 1px 0 rgba(255,255,255,0.16)`,
+                      display:"flex", flexDirection:"column", justifyContent:"space-between", gap:7,
                     }}>
-                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:10}}>
-                        <div style={{fontSize:13, fontWeight:500, color:"rgba(255,255,255,0.88)"}}>{lang==="bn" ? "আজকের ফোকাস" : "Today's focus"}</div>
-                        <span style={{background:"rgba(255,255,255,0.22)", color:"#fff", borderRadius:999, padding:"3px 10px", fontSize:11, fontWeight:600}}>{badgeTxt}</span>
+                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8}}>
+                        <div style={{fontSize:11.5, fontWeight:500, color:"rgba(255,255,255,0.88)"}}>{lang==="bn" ? "আজকের ফোকাস" : "Today's focus"}</div>
+                        <span style={{background:"rgba(255,255,255,0.22)", color:"#fff", borderRadius:999, padding:"2px 8px", fontSize:9.5, fontWeight:600}}>{badgeTxt}</span>
                       </div>
-                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-end", gap:10}}>
-                        <div style={{fontSize:30, lineHeight:1, fontWeight:900, letterSpacing:-0.6}}>
-                          <Num>{nf(pctToday)}</Num><span style={{fontSize:13, marginLeft:3, color:"rgba(255,255,255,0.75)", letterSpacing:0}}>% {String(t.doneCount || "done").toLowerCase()}</span>
+                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-end", gap:8}}>
+                        <div style={{fontSize:22, lineHeight:1, fontWeight:900, letterSpacing:-0.5}}>
+                          <Num>{nf(pctToday)}</Num><span style={{fontSize:11, marginLeft:2, color:"rgba(255,255,255,0.75)", letterSpacing:0}}>% {String(t.doneCount || "done").toLowerCase()}</span>
                         </div>
-                        <div style={{display:"flex", alignItems:"flex-end", gap:4, height:40, flex:1, justifyContent:"flex-end", maxWidth:170}}>
+                        <div style={{display:"flex", alignItems:"flex-end", gap:3, height:28, flex:1, justifyContent:"flex-end", maxWidth:150}}>
                           {tickVals.map((v,i) => (
-                            <i key={i} style={{display:"block", width:3, borderRadius:2, height: 8 + v*30, background: i < filled ? "#FFD84D" : "rgba(255,255,255,0.5)"}}/>
+                            <i key={i} style={{display:"block", width:2.5, borderRadius:2, height: 6 + v*20, background: i < filled ? "#FFD84D" : "rgba(255,255,255,0.5)"}}/>
                           ))}
+                        </div>
+                      </div>
+                      {/* Daily goal bar — real data (DAILY_GOAL_MIN=120) */}
+                      <div style={{marginTop:1}}>
+                        <div style={{height:5, borderRadius:999, background:"rgba(255,255,255,0.28)", overflow:"hidden"}}>
+                          <div style={{height:"100%", width:`${goalPct}%`, borderRadius:999, background:"#fff", transition:"width .3s ease"}}/>
+                        </div>
+                        <div style={{fontSize:10, fontWeight:600, color:"rgba(255,255,255,0.85)", marginTop:4}}>
+                          {lang==="bn"
+                            ? <>{t.dailyGoalLabel}: <Num>{nf(gh)}</Num>ঘ <Num>{nf(gm)}</Num>মি / <Num>{nf(Math.floor(DAILY_GOAL_MIN/60))}</Num>ঘ <Num>{nf(DAILY_GOAL_MIN%60)}</Num>মি</>
+                            : <>{t.dailyGoalLabel}: {gh>0 && <><Num>{nf(gh)}</Num>h </>}<Num>{nf(gm)}</Num>m of <Num>{nf(Math.floor(DAILY_GOAL_MIN/60))}</Num>h {DAILY_GOAL_MIN%60>0 && <><Num>{nf(DAILY_GOAL_MIN%60)}</Num>m</>}</>}
                         </div>
                       </div>
                     </div>
@@ -6618,29 +6633,80 @@ function FocusGoInner() {
                   const focusMin = todayTopics.filter(x => x.done).reduce((s, x) => s + (Number(x.duration) || 0), 0);
                   const fh = Math.floor(focusMin / 60), fm = focusMin % 60;
                   const unitH = lang==="bn" ? "ঘ" : "h", unitM = lang==="bn" ? "মি" : "m";
-                  const tileBase = { position:"relative", borderRadius:20, padding:"10px 12px", color:inkColor };
-                  const ib = { position:"absolute", top:10, right:10, width:32, height:32, borderRadius:"50%", background: dark ? cardBg : "#FFFFFF", display:"flex", alignItems:"center", justifyContent:"center", color:"#A855F7", boxShadow:"0 2px 6px rgba(30,20,80,0.10)" };
-                  const lbl = { fontSize:12, fontWeight:500, color:inkA(0.62) };
-                  const num = { fontSize:19, lineHeight:1.1, fontWeight:900, letterSpacing:-0.4, marginTop:6, color:inkColor };
-                  const unit = { fontSize:11, color:inkA(0.6), letterSpacing:0, margin:"0 2px 0 1px" };
+                  const tileBase = { position:"relative", borderRadius:16, padding:"8px 10px", color:inkColor };
+                  const ib = { position:"absolute", top:8, right:8, width:26, height:26, borderRadius:"50%", background: dark ? cardBg : "#FFFFFF", display:"flex", alignItems:"center", justifyContent:"center", color:"#A855F7", boxShadow:"0 2px 6px rgba(30,20,80,0.10)" };
+                  const lbl = { fontSize:10.5, fontWeight:500, color:inkA(0.62) };
+                  const num = { fontSize:15, lineHeight:1.1, fontWeight:900, letterSpacing:-0.4, marginTop:4, color:inkColor };
+                  const unit = { fontSize:9.5, color:inkA(0.6), letterSpacing:0, margin:"0 2px 0 1px" };
                   return (
-                    <div style={{display:"grid", gridTemplateColumns:"1.08fr 1fr", gridTemplateRows:"auto auto", gap:9, marginTop:10}}>
-                      <div style={{...tileBase, gridRow:"span 2", background: dark ? "linear-gradient(165deg, #332255 0%, #4A2E80 130%)" : "linear-gradient(165deg, #E6D9FA 0%, #D3B8F2 130%)", display:"flex", flexDirection:"column", justifyContent:"space-between", minHeight:112}}>
+                    <div style={{display:"grid", gridTemplateColumns:"1.08fr 1fr", gridTemplateRows:"auto auto", gap:7, marginTop:8}}>
+                      <div style={{...tileBase, gridRow:"span 2", background: dark ? "linear-gradient(165deg, #332255 0%, #4A2E80 130%)" : "linear-gradient(165deg, #E6D9FA 0%, #D3B8F2 130%)", display:"flex", flexDirection:"column", justifyContent:"space-between", minHeight:82}}>
                         <div style={lbl}>{lang==="bn" ? "ফোকাস" : "Focused"}</div>
-                        <span style={ib}><Hourglass size={15} strokeWidth={1.9}/></span>
-                        <div style={{...num, fontSize:24}}>
+                        <span style={ib}><Hourglass size={12} strokeWidth={1.9}/></span>
+                        <div style={{...num, fontSize:18}}>
                           {fh > 0 && <><Num>{nf(fh)}</Num><span style={unit}>{unitH}</span></>}<Num>{nf(fm)}</Num><span style={unit}>{unitM}</span>
                         </div>
                       </div>
                       <div style={{...tileBase, background: dark ? "linear-gradient(165deg, #1E3D28 0%, #14321F 130%)" : "linear-gradient(165deg, #CDEEBB 0%, #AEE896 130%)"}}>
                         <div style={lbl}>{lang==="bn" ? "সম্পন্ন" : "Done"}</div>
-                        <span style={{...ib, color:"#2FBE45"}}><Check size={15} strokeWidth={2.4}/></span>
+                        <span style={{...ib, color:"#2FBE45"}}><Check size={12} strokeWidth={2.4}/></span>
                         <div style={num}><Num>{nf(doneToday)}</Num><span style={unit}>{lang==="bn" ? "/" : "of"}</span><Num>{nf(totalToday)}</Num></div>
                       </div>
                       <div style={{...tileBase, background: dark ? "linear-gradient(165deg, #4A2A20 0%, #3A1F17 130%)" : "linear-gradient(165deg, #FBD9C4 0%, #F7C199 130%)"}}>
                         <div style={lbl}>{t.streakLabel}</div>
-                        <span style={{...ib, color:"#FF9114"}}><Flame size={15} strokeWidth={1.9}/></span>
+                        <span style={{...ib, color:"#FF9114"}}><Flame size={12} strokeWidth={1.9}/></span>
                         <div style={num}><Num>{nf(studyOverview.streak)}</Num><span style={unit}>{lang==="bn" ? "দিন" : "days"}</span></div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Weekly mini chart — real data from weeklyActivity, compact version of the Stats page chart */}
+                {(() => {
+                  const maxMin = Math.max(1, ...weeklyActivity.map(w=>w.min));
+                  const totalMin = weeklyActivity.reduce((s,w)=>s+w.min,0);
+                  const th = Math.floor(totalMin/60), tm = totalMin%60;
+                  return (
+                    <div style={{marginTop:9, background: dark ? cardBg : "#FFFFFF", borderRadius:16, padding:"11px 13px 9px", boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.06)"}}>
+                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:9}}>
+                        <span style={{fontSize:12.5, fontWeight:700, color:textMain}}>{lang==="bn" ? "এই সপ্তাহ" : "This week"}</span>
+                        <span onClick={()=>{ vibrate(); setTab("study"); setStudySection("stats"); }} style={{fontSize:11, fontWeight:700, color:accent, cursor:"pointer"}}>
+                          {th>0 && <><Num>{nf(th)}</Num>h </>}<Num>{nf(tm)}</Num>m
+                        </span>
+                      </div>
+                      <div style={{display:"flex", alignItems:"flex-end", gap:5, height:38}}>
+                        {weeklyActivity.map((w,i) => {
+                          const h = Math.max(3, Math.round((w.min/maxMin)*32));
+                          const isToday = dateKey(w.day) === todayKey;
+                          return (
+                            <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3, height:"100%", justifyContent:"flex-end"}}>
+                              <div style={{width:"100%", maxWidth:16, height:h, borderRadius:5, background: w.min>0 ? (isToday ? "linear-gradient(180deg, #A855F7, #7C3AED)" : `${accent}55`) : `${accent}1A`}}/>
+                              <span style={{fontSize:8.5, fontWeight:700, color: isToday ? accent : textMuted2}}>{weekdayShort(w.day)}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Streak heatmap — real data, last 14 days from entries */}
+                {(() => {
+                  const days14 = Array.from({length:14}, (_,i) => { const d = new Date(today); d.setDate(d.getDate() - (13-i)); return d; });
+                  const mins14 = days14.map(d => (entries[dateKey(d)] || []).filter(x=>x.done).reduce((s,x)=>s+(x.duration||0),0));
+                  const maxMin14 = Math.max(1, ...mins14);
+                  return (
+                    <div style={{marginTop:8, background: dark ? cardBg : "#FFFFFF", borderRadius:16, padding:"11px 13px", boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.06)"}}>
+                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
+                        <span style={{fontSize:12.5, fontWeight:700, color:textMain}}>{lang==="bn" ? "গত ১৪ দিন" : "Last 14 days"}</span>
+                        <span style={{fontSize:11, fontWeight:700, color:"#FF9114"}}><Num>{nf(studyOverview.streak)}</Num> {t.streakLabel}</span>
+                      </div>
+                      <div style={{display:"grid", gridTemplateColumns:"repeat(14, 1fr)", gap:3}}>
+                        {mins14.map((m,i) => {
+                          const ratio = m / maxMin14;
+                          const bg = m===0 ? (dark?"rgba(255,255,255,0.08)":"#EFEAF9") : ratio>0.66 ? "#7C3AED" : ratio>0.33 ? "#A855F7" : "#D3B8F2";
+                          return <div key={i} style={{aspectRatio:"1", borderRadius:3, background:bg}} title={`${nf(m)}m`}/>;
+                        })}
                       </div>
                     </div>
                   );
@@ -6847,8 +6913,16 @@ function FocusGoInner() {
               </div>
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                {homeTodayTasks.map(x => (
+                {homeTodayTasks.map(x => {
+                  const pr = x.priority || "med";
+                  const prColor = {high:"#C0392B", med:accent, low:"#6E8B5E"}[pr];
+                  const catInfo = x.category === "personal"
+                    ? { icon:"✅", tint: dark ? "#4A2A20" : "#FDE7E3", fg:"#C2410C", label: lang==="bn"?"পার্সোনাল":"Personal" }
+                    : { icon:"📘", tint: dark ? "#332255" : "#EDE7FB", fg:"#7C3AED", label: lang==="bn"?"স্টাডি":"Study" };
+                  return (
                   <div key={x.id} style={{display:"flex",alignItems:"center",gap:11,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:"8px 13px",boxSizing:"border-box",boxShadow: dark ? "none" : "0 2px 8px rgba(0,0,0,0.04)"}}>
+                    <span style={{width:4, alignSelf:"stretch", minHeight:26, borderRadius:3, background:prColor, flexShrink:0}}/>
+                    <span style={{width:32, height:32, borderRadius:10, background:catInfo.tint, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0}}>{catInfo.icon}</span>
                     <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:23,height:23,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
                       {x.done && <Check size={13} color="#fff" strokeWidth={3}/>}
                     </button>
@@ -6856,10 +6930,12 @@ function FocusGoInner() {
                       <div style={{fontSize:13.5,fontWeight:500,color:x.done?textMuted2:textMain,opacity:x.done?0.7:0.85,textDecoration:"none",overflow:"visible",whiteSpace:"normal",wordBreak:"break-word",lineHeight:1.35}}>
                         {x.title}
                       </div>
-                      {x.done && (
+                      {x.done ? (
                         <div style={{fontSize:11.5, fontWeight:500, color:"#6E8B5E", marginTop:2}}>
                           {lang==="bn" ? "সম্পন্ন হয়েছে" : "Completed"}
                         </div>
+                      ) : (
+                        <span style={{display:"inline-block", fontSize:9.5, fontWeight:700, color:catInfo.fg, background:catInfo.tint, borderRadius:999, padding:"2px 8px", marginTop:3}}>{catInfo.label}</span>
                       )}
                     </div>
                     <div style={{position:"relative", flexShrink:0}}>
@@ -6895,7 +6971,8 @@ function FocusGoInner() {
                       )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -7348,7 +7425,7 @@ function FocusGoInner() {
                 { Icon: Flame, color:"#F59E0B", value: nf(studyOverview.streak), label: t.streakLabel },
               ];
               return (
-                <div style={{background: dark ? cardBg : "#FFFFFF", borderRadius:16, padding:"18px 16px 16px", marginBottom:22, boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)"}}>
+                <div style={{background: dark ? cardBg : "#FFFFFF", borderRadius:18, padding:"18px 16px 16px", marginBottom:22, boxShadow: dark ? "0 2px 10px rgba(0,0,0,0.28)" : "0 2px 12px rgba(124,58,237,0.07)"}}>
                   <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:10}}>
                     <div style={{display:"flex", alignItems:"center", gap:12}}>
                       <div style={{width:44, height:44, borderRadius:12, flexShrink:0, background: dark ? "rgba(139,92,246,0.18)" : "rgba(139,92,246,0.12)", display:"flex", alignItems:"center", justifyContent:"center"}}>
