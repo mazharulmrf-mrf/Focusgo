@@ -3359,7 +3359,7 @@ function FocusGoInner() {
     addLink("preconnect", "https://fonts.gstatic.com", { crossOrigin: "anonymous" });
     // আসল ফন্ট stylesheet — এবার real <link>, তাই ব্রাউজার এটাকে render-blocking resource
     // হিসেবে priority দিয়ে আগেভাগে ফেচ করে, `@import`-এর মতো দেরি করে না
-    addLink("stylesheet", "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap");
+    addLink("stylesheet", "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap");
   }, []);
 
   const breakpoint = useViewport(); // "mobile" | "tablet" | "desktop"
@@ -5515,7 +5515,7 @@ function FocusGoInner() {
   const iosGlassHi = dark ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.95)";
 
   const styles = {
-    page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Noto Sans Bengali',sans-serif" : "'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif", fontWeight:500, transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column", paddingTop:"var(--fg-safe-top, env(safe-area-inset-top))" },
+    page: { minHeight: "100dvh", background: bg, color: textMain, fontFamily: lang === "bn" ? "'Noto Sans Bengali',sans-serif" : "-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Helvetica Neue',sans-serif", transition: "background .22s ease,color .22s ease", display:"flex", flexDirection:"column", paddingTop:"var(--fg-safe-top, env(safe-area-inset-top))" },
     container: { maxWidth: containerMaxWidth, margin: "0 auto", padding: containerPadding, width:"100%", boxSizing:"border-box", flex:"1 0 auto", transition: "max-width .2s ease" },
   };
 
@@ -5859,17 +5859,17 @@ function FocusGoInner() {
 
         /* ---- design tokens: titles / section headers / body labels / circular buttons / dividers ---- */
         .fg-title {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter Tight', 'Inter', 'Helvetica Neue', sans-serif;
           font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.7px;
           color: var(--text); margin: 0;
         }
         .fg-section-header {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter Tight', 'Inter', 'Helvetica Neue', sans-serif;
           font-size: 19px; line-height: 24px; font-weight: 600; letter-spacing: -0.6px;
           color: var(--text); margin: 0;
         }
         .fg-body-label {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter Tight', 'Inter', 'Helvetica Neue', sans-serif;
           font-size: 14.5px; line-height: 18px; font-weight: 400; letter-spacing: 0.3px;
           color: var(--text); margin: 0;
         }
@@ -5890,7 +5890,7 @@ function FocusGoInner() {
           transition: transform .16s cubic-bezier(0.16,1,0.3,1), box-shadow .2s ease;
         }
         .fg-btn-circle:active:not(:disabled) { transform: scale(0.94); }
-        .fg-btn-circle--sm { width: 38px; height: 38px; }
+        .fg-btn-circle--sm { width: 34px; height: 34px; }
         .fg-btn-circle--lg { width: 46px; height: 46px; }
 
         .fg-card-flat {
@@ -6138,14 +6138,16 @@ function FocusGoInner() {
               return (
                 <>
                   <div style={{
-                    padding:"6px 4px 4px", marginBottom:0, position:"relative", borderRadius:18,
-                    background: "transparent",
+                    padding:"18px 20px 17px", marginBottom:0, position:"relative", borderRadius:18,
+                    background: dark
+                      ? `linear-gradient(135deg, ${greetTheme.grad}, transparent 70%)`
+                      : "#FFFFFF",
                   }} ref={salahMenuRef}>
                     <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:10}}>
                       <div style={{minWidth:0, flex:1}}>
                         <div
                           onClick={() => { vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                          style={{fontSize:13, fontWeight:500, color:textMuted2, letterSpacing:0.2, marginBottom:3, display:"flex", alignItems:"center", gap:7, cursor:"pointer"}}
+                          style={{fontSize:13, fontWeight:600, color:accent, letterSpacing:0.3, marginBottom:5, display:"flex", alignItems:"center", gap:7, cursor:"pointer"}}
                           title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
                         >
                           <GreetIcon size={14} color={greetTheme.iconColor} strokeWidth={2.2}/>
@@ -6153,14 +6155,14 @@ function FocusGoInner() {
                           {weatherData && weatherData.temp != null && (
                             <span
                               onClick={(e) => { e.stopPropagation(); vibrate(); setShowWeatherModal(true); if (!salahCoords) requestSalahLocation(); }}
-                              style={{display:"inline-flex", alignItems:"center", fontSize:13, fontWeight:500, color:textMuted2, cursor:"pointer"}}
+                              style={{display:"inline-flex", alignItems:"center", fontSize:13, fontWeight:600, color:accent, cursor:"pointer"}}
                               title={lang === "bn" ? "আবহাওয়া দেখুন" : "View weather"}
                             >
                               · <Num>{nf(weatherData.temp)}</Num>°C
                             </span>
                           )}
                         </div>
-                        <div style={{fontSize:26,fontWeight:900,letterSpacing:-0.6,color:"var(--text)", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", display:"inline-block"}}>
+                        <div style={{fontSize:27,fontWeight:700,letterSpacing:-0.6,color:"var(--text)", fontFamily:"'Inter Tight','Inter','Helvetica Neue',sans-serif", display:"inline-block"}}>
                           {firstName}
                         </div>
                       </div>
@@ -6477,7 +6479,7 @@ function FocusGoInner() {
           <div className="fg-tab-panel" style={{marginTop:16, marginBottom:2}}>
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10}}>
               <div style={{minWidth:0}}>
-                <div className="fg-title" style={{fontSize:24, lineHeight:"30px", fontWeight:800, letterSpacing:-0.4}}>{lang==="bn" ? "স্টাডি" : "Study"}</div>
+                <div className="fg-title" style={{fontSize:28, lineHeight:"34px", fontWeight:700, letterSpacing:0.3}}>{lang==="bn" ? "স্টাডি" : "Study"}</div>
                 <div style={{fontSize:12.5, color:"var(--muted)", marginTop:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
                   {lang==="bn" ? "তোমার পড়াশোনার যাত্রা ট্র্যাক করো" : "Track your learning journey"}
                 </div>
@@ -6540,7 +6542,7 @@ function FocusGoInner() {
                 <button key={m} disabled={timerRunning} onClick={()=>{ vibrate(); setTimerTotal(m*60); setTimerSeconds(m*60); }}
                   style={{
                     flex:1, border:"none", fontFamily:"inherit", fontSize:12.5, fontWeight:700,
-                    padding:"10px 0", borderRadius:999,
+                    padding:"8px 0", borderRadius:999,
                     background: sel ? "#fff" : "rgba(255,255,255,0.18)",
                     color: sel ? accent : "rgba(255,255,255,0.85)",
                     cursor: timerRunning ? "default" : "pointer",
@@ -6560,7 +6562,7 @@ function FocusGoInner() {
             (আগে নিচে Subject Progress কার্ডের উপরেও আরেকটা "Stats" টাইটেল ছিল — সেটা ডুপ্লিকেট বলে সরানো হয়েছে) */}
         {tab === "study" && studySection === "stats" && (
           <div className="fg-tab-panel" style={{marginTop:16, marginBottom:2}}>
-            <div className="fg-title" style={{fontSize:24, lineHeight:"30px", fontWeight:800, letterSpacing:-0.4}}>{t.statsPageTitle}</div>
+            <div className="fg-title" style={{fontSize:28, lineHeight:"34px", fontWeight:700, letterSpacing:0.3}}>{t.statsPageTitle}</div>
             <div style={{fontSize:13.5, color:textMuted2, fontWeight:500, marginTop:2}}>{t.statsPageSubtitle}</div>
           </div>
         )}
@@ -6581,136 +6583,55 @@ function FocusGoInner() {
 
             return (
               <>
-                {/* Hero card -- FocusGo purple, badge + big % + progress ticks (iOS / pastel redesign) */}
-                {(() => {
-                  const heroBg = dark ? "linear-gradient(135deg, #6D28D9 0%, #A21CAF 100%)" : "linear-gradient(135deg, #7C3AED 0%, #C026D3 100%)";
-                  const badgeTxt = totalToday === 0
-                    ? (lang==="bn" ? "নতুন শুরু" : "Fresh start")
-                    : pctToday >= 100 ? (lang==="bn" ? "সব সম্পন্ন" : "All done") : (lang==="bn" ? "ঠিক পথে" : "On track");
-                  const tickVals = [0.3,0.5,0.35,0.8,0.45,0.9,0.4,0.6,0.3,0.7,1,0.5,0.35,0.6,0.4,0.8];
-                  const filled = Math.round((pctToday / 100) * tickVals.length);
-                  const DAILY_GOAL_MIN = 120;
-                  const goalFocusMin = todayTopics.filter(x => x.done).reduce((s, x) => s + (Number(x.duration) || 0), 0);
-                  const goalPct = Math.min(100, Math.round((goalFocusMin / DAILY_GOAL_MIN) * 100));
-                  const gh = Math.floor(goalFocusMin/60), gm = goalFocusMin%60;
-                  return (
-                    <div className="fg-tab-panel" style={{
-                      marginTop:10, borderRadius:18, padding:"9px 12px 10px", position:"relative", overflow:"hidden",
-                      background: heroBg, color:"#fff", minHeight:76, boxShadow:`0 10px 20px ${dark ? "rgba(109,40,217,0.4)" : "rgba(124,58,237,0.36)"}, inset 0 1px 0 rgba(255,255,255,0.16)`,
-                      display:"flex", flexDirection:"column", justifyContent:"space-between", gap:7,
-                    }}>
-                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", gap:8}}>
-                        <div style={{fontSize:11.5, fontWeight:500, color:"rgba(255,255,255,0.88)"}}>{lang==="bn" ? "আজকের ফোকাস" : "Today's focus"}</div>
-                        <span style={{background:"rgba(255,255,255,0.22)", color:"#fff", borderRadius:999, padding:"2px 8px", fontSize:9.5, fontWeight:600}}>{badgeTxt}</span>
-                      </div>
-                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-end", gap:8}}>
-                        <div style={{fontSize:22, lineHeight:1, fontWeight:900, letterSpacing:-0.5}}>
-                          <Num>{nf(pctToday)}</Num><span style={{fontSize:11, marginLeft:2, color:"rgba(255,255,255,0.75)", letterSpacing:0}}>% {String(t.doneCount || "done").toLowerCase()}</span>
-                        </div>
-                        <div style={{display:"flex", alignItems:"flex-end", gap:3, height:28, flex:1, justifyContent:"flex-end", maxWidth:150}}>
-                          {tickVals.map((v,i) => (
-                            <i key={i} style={{display:"block", width:2.5, borderRadius:2, height: 6 + v*20, background: i < filled ? "#FFD84D" : "rgba(255,255,255,0.5)"}}/>
-                          ))}
-                        </div>
-                      </div>
-                      {/* Daily goal bar — real data (DAILY_GOAL_MIN=120) */}
-                      <div style={{marginTop:1}}>
-                        <div style={{height:5, borderRadius:999, background:"rgba(255,255,255,0.28)", overflow:"hidden"}}>
-                          <div style={{height:"100%", width:`${goalPct}%`, borderRadius:999, background:"#fff", transition:"width .3s ease"}}/>
-                        </div>
-                        <div style={{fontSize:10, fontWeight:600, color:"rgba(255,255,255,0.85)", marginTop:4}}>
-                          {lang==="bn"
-                            ? <>{t.dailyGoalLabel}: <Num>{nf(gh)}</Num>ঘ <Num>{nf(gm)}</Num>মি / <Num>{nf(Math.floor(DAILY_GOAL_MIN/60))}</Num>ঘ <Num>{nf(DAILY_GOAL_MIN%60)}</Num>মি</>
-                            : <>{t.dailyGoalLabel}: {gh>0 && <><Num>{nf(gh)}</Num>h </>}<Num>{nf(gm)}</Num>m of <Num>{nf(Math.floor(DAILY_GOAL_MIN/60))}</Num>h {DAILY_GOAL_MIN%60>0 && <><Num>{nf(DAILY_GOAL_MIN%60)}</Num>m</>}</>}
-                        </div>
+                {/* Hero card — accent gradient, wavy decoration, circular progress ring */}
+                <div className="fg-tab-panel" style={{
+                  marginTop:10, borderRadius:20, padding:"18px 20px 20px", position:"relative", overflow:"hidden",
+                  background:`linear-gradient(135deg, ${accent} 0%, ${shadeColor(accent, -14)} 100%)`,
+                  boxShadow:`0 14px 28px ${accent}40`,
+                }}>
+                  <svg style={{position:"absolute", right:-8, top:14, width:150, height:60, opacity:0.5, pointerEvents:"none"}} viewBox="0 0 150 60" fill="none">
+                    <path d="M0 30 C 25 5, 45 55, 75 30 S 125 5, 150 30" stroke="rgba(255,255,255,0.65)" strokeWidth="2" fill="none"/>
+                  </svg>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12, position:"relative"}}>
+                    <div style={{minWidth:0}}>
+                      <div style={{fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.85)"}}>{lang==="bn" ? "আজকের ফোকাস" : "Today's focus"}</div>
+                      <div style={{fontSize:18, fontWeight:800, color:"#fff", letterSpacing:-0.3, marginTop:8, lineHeight:1.35, maxWidth:210}}>
+                        {heroHeadline}
                       </div>
                     </div>
-                  );
-                })()}
+                    <div style={{width:52, height:52, borderRadius:"50%", flexShrink:0, background:`conic-gradient(#fff 0% ${pctToday}%, rgba(255,255,255,0.28) ${pctToday}% 100%)`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                      <div style={{width:40, height:40, borderRadius:"50%", background:shadeColor(accent, -24), display:"flex", alignItems:"center", justifyContent:"center"}}>
+                        <span style={{color:"#fff", fontWeight:800, fontSize:12}}><Num>{nf(pctToday)}</Num>%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                {/* Overview tiles -- pastel: focused time, topics done, streak */}
-                {(() => {
-                  const focusMin = todayTopics.filter(x => x.done).reduce((s, x) => s + (Number(x.duration) || 0), 0);
-                  const fh = Math.floor(focusMin / 60), fm = focusMin % 60;
-                  const unitH = lang==="bn" ? "ঘ" : "h", unitM = lang==="bn" ? "মি" : "m";
-                  const tileBase = { position:"relative", borderRadius:16, padding:"8px 10px", color:inkColor };
-                  const ib = { position:"absolute", top:8, right:8, width:26, height:26, borderRadius:"50%", background: dark ? cardBg : "#FFFFFF", display:"flex", alignItems:"center", justifyContent:"center", color:"#A855F7", boxShadow:"0 2px 6px rgba(30,20,80,0.10)" };
-                  const lbl = { fontSize:10.5, fontWeight:500, color:inkA(0.62) };
-                  const num = { fontSize:15, lineHeight:1.1, fontWeight:900, letterSpacing:-0.4, marginTop:4, color:inkColor };
-                  const unit = { fontSize:9.5, color:inkA(0.6), letterSpacing:0, margin:"0 2px 0 1px" };
-                  return (
-                    <div style={{display:"grid", gridTemplateColumns:"1.08fr 1fr", gridTemplateRows:"auto auto", gap:7, marginTop:8}}>
-                      <div style={{...tileBase, gridRow:"span 2", background: dark ? "linear-gradient(165deg, #332255 0%, #4A2E80 130%)" : "linear-gradient(165deg, #E6D9FA 0%, #D3B8F2 130%)", display:"flex", flexDirection:"column", justifyContent:"space-between", minHeight:82}}>
-                        <div style={lbl}>{lang==="bn" ? "ফোকাস" : "Focused"}</div>
-                        <span style={ib}><Hourglass size={12} strokeWidth={1.9}/></span>
-                        <div style={{...num, fontSize:18}}>
-                          {fh > 0 && <><Num>{nf(fh)}</Num><span style={unit}>{unitH}</span></>}<Num>{nf(fm)}</Num><span style={unit}>{unitM}</span>
-                        </div>
+                {/* Two colorful stat cards — today's progress + streak */}
+                <div style={{display:"flex", gap:10, marginTop:10}}>
+                  <div style={{flex:1, borderRadius:18, padding:"14px 14px 12px", minHeight:88, background:"#B6F27A", display:"flex", flexDirection:"column", justifyContent:"space-between"}}>
+                    <div style={{fontSize:12, fontWeight:600, color:"#171522", opacity:0.75}}>{lang==="bn" ? "আজকের অগ্রগতি" : "Today's progress"}</div>
+                    <div>
+                      <div style={{fontFamily:"'Inter Tight', sans-serif", fontWeight:800, fontSize:18, color:"#171522", letterSpacing:-0.3, marginTop:6}}>
+                        {heroHeadline}
                       </div>
-                      <div style={{...tileBase, background: dark ? "linear-gradient(165deg, #1E3D28 0%, #14321F 130%)" : "linear-gradient(165deg, #CDEEBB 0%, #AEE896 130%)"}}>
-                        <div style={lbl}>{lang==="bn" ? "সম্পন্ন" : "Done"}</div>
-                        <span style={{...ib, color:"#2FBE45"}}><Check size={12} strokeWidth={2.4}/></span>
-                        <div style={num}><Num>{nf(doneToday)}</Num><span style={unit}>{lang==="bn" ? "/" : "of"}</span><Num>{nf(totalToday)}</Num></div>
-                      </div>
-                      <div style={{...tileBase, background: dark ? "linear-gradient(165deg, #4A2A20 0%, #3A1F17 130%)" : "linear-gradient(165deg, #FBD9C4 0%, #F7C199 130%)"}}>
-                        <div style={lbl}>{t.streakLabel}</div>
-                        <span style={{...ib, color:"#FF9114"}}><Flame size={12} strokeWidth={1.9}/></span>
-                        <div style={num}><Num>{nf(studyOverview.streak)}</Num><span style={unit}>{lang==="bn" ? "দিন" : "days"}</span></div>
+                      <div style={{fontSize:11, color:"#171522", opacity:0.7, marginTop:2}}>
+                        {totalToday === 0 ? (lang==="bn" ? "চলো শুরু করি!" : "Let's get started!") : (lang==="bn" ? "চালিয়ে যাও!" : "Keep it up!")}
                       </div>
                     </div>
-                  );
-                })()}
-
-                {/* Weekly mini chart — real data from weeklyActivity, compact version of the Stats page chart */}
-                {(() => {
-                  const maxMin = Math.max(1, ...weeklyActivity.map(w=>w.min));
-                  const totalMin = weeklyActivity.reduce((s,w)=>s+w.min,0);
-                  const th = Math.floor(totalMin/60), tm = totalMin%60;
-                  return (
-                    <div style={{marginTop:9, background: dark ? cardBg : "#FFFFFF", borderRadius:16, padding:"11px 13px 9px", boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.06)"}}>
-                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:9}}>
-                        <span style={{fontSize:12.5, fontWeight:700, color:textMain}}>{lang==="bn" ? "এই সপ্তাহ" : "This week"}</span>
-                        <span onClick={()=>{ vibrate(); setTab("study"); setStudySection("stats"); }} style={{fontSize:11, fontWeight:700, color:accent, cursor:"pointer"}}>
-                          {th>0 && <><Num>{nf(th)}</Num>h </>}<Num>{nf(tm)}</Num>m
-                        </span>
+                  </div>
+                  <div style={{flex:1, borderRadius:18, padding:"14px 14px 12px", minHeight:88, background:"#F5A85A", display:"flex", flexDirection:"column", justifyContent:"space-between"}}>
+                    <div style={{fontSize:12, fontWeight:600, color:"#171522", opacity:0.75}}>{t.streakLabel}</div>
+                    <div>
+                      <div style={{fontFamily:"'Inter Tight', sans-serif", fontWeight:800, fontSize:18, color:"#171522", letterSpacing:-0.3, marginTop:6}}>
+                        <Num>{nf(studyOverview.streak)}</Num> {lang==="bn" ? "দিন" : "days"}
                       </div>
-                      <div style={{display:"flex", alignItems:"flex-end", gap:5, height:38}}>
-                        {weeklyActivity.map((w,i) => {
-                          const h = Math.max(3, Math.round((w.min/maxMin)*32));
-                          const isToday = dateKey(w.day) === todayKey;
-                          return (
-                            <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3, height:"100%", justifyContent:"flex-end"}}>
-                              <div style={{width:"100%", maxWidth:16, height:h, borderRadius:5, background: w.min>0 ? (isToday ? "linear-gradient(180deg, #A855F7, #7C3AED)" : `${accent}55`) : `${accent}1A`}}/>
-                              <span style={{fontSize:8.5, fontWeight:700, color: isToday ? accent : textMuted2}}>{weekdayShort(w.day)}</span>
-                            </div>
-                          );
-                        })}
+                      <div style={{fontSize:11, color:"#171522", opacity:0.7, marginTop:2}}>
+                        {lang==="bn" ? "স্ট্রিক ধরে রাখো!" : "Keep your streak alive!"}
                       </div>
                     </div>
-                  );
-                })()}
-
-                {/* Streak heatmap — real data, last 14 days from entries */}
-                {(() => {
-                  const days14 = Array.from({length:14}, (_,i) => { const d = new Date(today); d.setDate(d.getDate() - (13-i)); return d; });
-                  const mins14 = days14.map(d => (entries[dateKey(d)] || []).filter(x=>x.done).reduce((s,x)=>s+(x.duration||0),0));
-                  const maxMin14 = Math.max(1, ...mins14);
-                  return (
-                    <div style={{marginTop:8, background: dark ? cardBg : "#FFFFFF", borderRadius:16, padding:"11px 13px", boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.06)"}}>
-                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
-                        <span style={{fontSize:12.5, fontWeight:700, color:textMain}}>{lang==="bn" ? "গত ১৪ দিন" : "Last 14 days"}</span>
-                        <span style={{fontSize:11, fontWeight:700, color:"#FF9114"}}><Num>{nf(studyOverview.streak)}</Num> {t.streakLabel}</span>
-                      </div>
-                      <div style={{display:"grid", gridTemplateColumns:"repeat(14, 1fr)", gap:3}}>
-                        {mins14.map((m,i) => {
-                          const ratio = m / maxMin14;
-                          const bg = m===0 ? (dark?"rgba(255,255,255,0.08)":"#EFEAF9") : ratio>0.66 ? "#7C3AED" : ratio>0.33 ? "#A855F7" : "#D3B8F2";
-                          return <div key={i} style={{aspectRatio:"1", borderRadius:3, background:bg}} title={`${nf(m)}m`}/>;
-                        })}
-                      </div>
-                    </div>
-                  );
-                })()}
+                  </div>
+                </div>
               </>
             );
           }
@@ -6913,16 +6834,8 @@ function FocusGoInner() {
               </div>
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                {homeTodayTasks.map(x => {
-                  const pr = x.priority || "med";
-                  const prColor = {high:"#C0392B", med:accent, low:"#6E8B5E"}[pr];
-                  const catInfo = x.category === "personal"
-                    ? { icon:"✅", tint: dark ? "#4A2A20" : "#FDE7E3", fg:"#C2410C", label: lang==="bn"?"পার্সোনাল":"Personal" }
-                    : { icon:"📘", tint: dark ? "#332255" : "#EDE7FB", fg:"#7C3AED", label: lang==="bn"?"স্টাডি":"Study" };
-                  return (
+                {homeTodayTasks.map(x => (
                   <div key={x.id} style={{display:"flex",alignItems:"center",gap:11,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:"8px 13px",boxSizing:"border-box",boxShadow: dark ? "none" : "0 2px 8px rgba(0,0,0,0.04)"}}>
-                    <span style={{width:4, alignSelf:"stretch", minHeight:26, borderRadius:3, background:prColor, flexShrink:0}}/>
-                    <span style={{width:32, height:32, borderRadius:10, background:catInfo.tint, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0}}>{catInfo.icon}</span>
                     <button onClick={()=>{vibrate();toggleTask(x.id);}} style={{width:23,height:23,borderRadius:"50%",flexShrink:0,border:`2px solid ${x.done?"#6E8B5E":cardBorder}`,background:x.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
                       {x.done && <Check size={13} color="#fff" strokeWidth={3}/>}
                     </button>
@@ -6930,12 +6843,10 @@ function FocusGoInner() {
                       <div style={{fontSize:13.5,fontWeight:500,color:x.done?textMuted2:textMain,opacity:x.done?0.7:0.85,textDecoration:"none",overflow:"visible",whiteSpace:"normal",wordBreak:"break-word",lineHeight:1.35}}>
                         {x.title}
                       </div>
-                      {x.done ? (
+                      {x.done && (
                         <div style={{fontSize:11.5, fontWeight:500, color:"#6E8B5E", marginTop:2}}>
                           {lang==="bn" ? "সম্পন্ন হয়েছে" : "Completed"}
                         </div>
-                      ) : (
-                        <span style={{display:"inline-block", fontSize:9.5, fontWeight:700, color:catInfo.fg, background:catInfo.tint, borderRadius:999, padding:"2px 8px", marginTop:3}}>{catInfo.label}</span>
                       )}
                     </div>
                     <div style={{position:"relative", flexShrink:0}}>
@@ -6971,8 +6882,7 @@ function FocusGoInner() {
                       )}
                     </div>
                   </div>
-                  );
-                })}
+                ))}
               </div>
             )}
           </div>
@@ -7121,25 +7031,16 @@ function FocusGoInner() {
             {/* Title row + date pill — পিলে ট্যাপ করলেই ক্যালেন্ডার ভিউ খুলবে/বন্ধ হবে, আলাদা কোনো টগল বাটন বা অ্যারো নেই */}
             <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:14}}>
               <div style={{minWidth:0}}>
-                <div className="fg-title" style={{fontSize:24, lineHeight:"30px", fontWeight:800, letterSpacing:-0.4}}>{t.taskTitle}</div>
+                <div className="fg-title" style={{fontSize:28, lineHeight:"34px", fontWeight:700, letterSpacing:0.3}}>{t.taskTitle}</div>
                 <div style={{fontSize:12.5, color:textMuted2, marginTop:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
                   {t.taskSubtitle}
                 </div>
               </div>
-              <div style={{display:"flex", alignItems:"center", gap:8, flexShrink:0}}>
-                {studyFeatureEnabled && (
-                  <button onClick={()=>{vibrate(); setTab("study"); setStudySection("plan");}}
-                    title={lang==="bn" ? "স্টাডি প্ল্যান" : "Study Plan"}
-                    style={{display:"flex", alignItems:"center", justifyContent:"center", width:36, height:36, border:`1px solid ${accent}33`, background:"transparent", borderRadius:999, cursor:"pointer", flexShrink:0}}>
-                    <GraduationCap size={15} color={accent} strokeWidth={2.2}/>
-                  </button>
-                )}
-                <button onClick={()=>{vibrate(); if (taskViewMode === "calendar") { setTaskViewMode("list"); } else { setTaskCalMonth(new Date(taskListDay)); setTaskViewMode("calendar"); } }}
-                  style={{display:"flex", alignItems:"center", gap:6, border:`1px solid ${accent}33`, background: taskViewMode==="calendar" ? accent : "transparent", borderRadius:999, padding:"7px 12px", cursor:"pointer", flexShrink:0}}>
-                  <Calendar size={13} color={taskViewMode==="calendar" ? "#FFFFFF" : accent} strokeWidth={2.2}/>
-                  <span style={{fontSize:12.5, fontWeight:700, color: taskViewMode==="calendar" ? "#FFFFFF" : accent, whiteSpace:"nowrap"}}>{dateLabel}</span>
-                </button>
-              </div>
+              <button onClick={()=>{vibrate(); if (taskViewMode === "calendar") { setTaskViewMode("list"); } else { setTaskCalMonth(new Date(taskListDay)); setTaskViewMode("calendar"); } }}
+                style={{display:"flex", alignItems:"center", gap:6, border:`1px solid ${accent}33`, background: taskViewMode==="calendar" ? accent : "transparent", borderRadius:999, padding:"7px 12px", cursor:"pointer", flexShrink:0}}>
+                <Calendar size={13} color={taskViewMode==="calendar" ? "#FFFFFF" : accent} strokeWidth={2.2}/>
+                <span style={{fontSize:12.5, fontWeight:700, color: taskViewMode==="calendar" ? "#FFFFFF" : accent, whiteSpace:"nowrap"}}>{dateLabel}</span>
+              </button>
             </div>
 
             {/* সপ্তাহের streak strip — সপ্তাহ শুরুর দিন Settings-এর সেটিং অনুযায়ী; আজকের আগের দিনগুলোতে
@@ -7333,27 +7234,11 @@ function FocusGoInner() {
                   });
                   const groups = [...groupsMap.entries()].map(([time, items]) => ({ heading: timeLabel(time), items }));
                   if (anytime.length) groups.push({ heading: lang==="bn" ? "যেকোনো সময়" : "Anytime", items: anytime });
-                  const dayStudyTopics = studyFeatureEnabled ? (entries[dayKeyForList] || []) : [];
-                  if (dayStudyTopics.length && (taskListStatusFilter === "all" || (taskListStatusFilter === "done" && dayStudyTopics.some(x=>x.done)))) {
-                    groups.unshift({ heading: lang==="bn" ? "📘 স্টাডি" : "📘 Study", items: [], studyItems: dayStudyTopics.filter(x => taskListStatusFilter !== "done" || x.done) });
-                  }
 
                   return groups.map((g, gi) => (
                     <div key={gi} style={{marginBottom:14}}>
                       <div style={{fontSize:12, fontWeight:700, color:textMuted2, marginBottom:8, marginLeft:2}}>{g.heading}</div>
                       <div style={{display:"flex", flexDirection:"column", gap:8}}>
-                        {g.studyItems && g.studyItems.map(item => (
-                          <div key={`study-${item.id}`} style={{display:"flex",alignItems:"center",gap:11,background:cardBg,border:`1px solid ${cardBorder}`,borderRadius:14,padding:"10px 13px",boxSizing:"border-box",boxShadow: dark ? "none" : "0 2px 8px rgba(0,0,0,0.04)"}}>
-                            <span style={{width:32, height:32, borderRadius:10, background: dark ? "#332255" : "#EDE7FB", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0}}>📘</span>
-                            <button onClick={()=>{vibrate(); toggleDoneFor(dayKeyForList, item.id);}} style={{width:23,height:23,borderRadius:"50%",flexShrink:0,border:`2px solid ${item.done?"#6E8B5E":cardBorder}`,background:item.done?"#6E8B5E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0}}>
-                              {item.done && <Check size={13} color="#fff" strokeWidth={3}/>}
-                            </button>
-                            <div style={{flex:1,minWidth:0}}>
-                              <div style={{fontSize:13.5,fontWeight:500,color:item.done?textMuted2:textMain,opacity:item.done?0.7:0.85,lineHeight:1.35}}>{item.subject ? `${item.subject} — ${item.topic || item.title || ""}` : (item.topic || item.title || "")}</div>
-                              {item.duration ? <span style={{display:"inline-block", fontSize:9.5, fontWeight:700, color:"#7C3AED", background: dark ? "#332255" : "#EDE7FB", borderRadius:999, padding:"2px 8px", marginTop:3}}>{item.duration}m</span> : null}
-                            </div>
-                          </div>
-                        ))}
                         {g.items.map(x => {
                           const overdue = !x.done && x.dueDate && x.dueDate < todayKey;
                           const pr = x.priority || "med";
@@ -7450,7 +7335,7 @@ function FocusGoInner() {
                 { Icon: Flame, color:"#F59E0B", value: nf(studyOverview.streak), label: t.streakLabel },
               ];
               return (
-                <div style={{background: dark ? cardBg : "#FFFFFF", borderRadius:18, padding:"18px 16px 16px", marginBottom:22, boxShadow: dark ? "0 2px 10px rgba(0,0,0,0.28)" : "0 2px 12px rgba(124,58,237,0.07)"}}>
+                <div style={{background: dark ? cardBg : "#FFFFFF", borderRadius:16, padding:"18px 16px 16px", marginBottom:22, boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(32,34,43,0.05)"}}>
                   <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:10}}>
                     <div style={{display:"flex", alignItems:"center", gap:12}}>
                       <div style={{width:44, height:44, borderRadius:12, flexShrink:0, background: dark ? "rgba(139,92,246,0.18)" : "rgba(139,92,246,0.12)", display:"flex", alignItems:"center", justifyContent:"center"}}>
@@ -7562,10 +7447,10 @@ function FocusGoInner() {
             </div>
 
             {/* Weekly Activity — dark card, lime highlighted bar for today (matches new home/plan design language) */}
-            <div style={{background: dark ? "linear-gradient(165deg, #332255 0%, #4A2338 140%)" : "linear-gradient(165deg, #E6D9FA 0%, #FAD1E0 140%)", borderRadius:22, padding:"14px 14px 12px", marginBottom:20}}>
+            <div style={{background:"#171522", borderRadius:20, padding:"16px 16px 14px", marginBottom:20, boxShadow:"0 12px 24px rgba(23,21,34,0.22)"}}>
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:14}}>
-              <span style={{fontSize:13, fontWeight:500, color:textMain}}>{t.weeklyActivity}</span>
-              <span style={{fontSize:12, fontWeight:600, color:accent}}>
+              <span style={{fontSize:12, fontWeight:700, color:"#FFFFFF"}}>{t.weeklyActivity}</span>
+              <span style={{fontSize:12, fontWeight:800, color:"#B6F27A"}}>
                 {(() => {
                   const total = weeklyActivity.reduce((s,w)=>s+w.min,0);
                   const h = Math.floor(total/60), m = total%60;
@@ -7583,12 +7468,12 @@ function FocusGoInner() {
                   return (
                     <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6, height:"100%", justifyContent:"flex-end"}}>
                       {w.min > 0 ? (
-                        <span style={{fontSize:10, fontWeight:700, color: isToday ? "#A855F7" : textMuted2, whiteSpace:"nowrap"}}>
+                        <span style={{fontSize:10, fontWeight:700, color: isToday ? "#B6F27A" : "#8B889A", whiteSpace:"nowrap"}}>
                           {hh > 0 ? <><Num>{nf(hh)}</Num>h<Num>{nf(mm)}</Num></> : <Num>{nf(mm)}</Num>}
                         </span>
                       ) : <span style={{fontSize:10, height:11}}/>}
-                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:7, background: w.min>0 ? (isToday ? "linear-gradient(180deg, #F472B6, #7C3AED)" : "linear-gradient(180deg, #C084FC, #818CF8)") : `${accent}1A`, boxSizing:"border-box", transition:"height .3s"}}/>
-                      <span style={{fontSize:10, fontWeight:700, color: isToday ? textMain : textMuted2}}>{weekdayShort(w.day)}</span>
+                      <div style={{width:"100%", maxWidth:22, height:h, borderRadius:7, background: w.min>0 ? (isToday ? "#B6F27A" : "#3A3650") : "rgba(255,255,255,0.06)", boxSizing:"border-box", transition:"height .3s"}}/>
+                      <span style={{fontSize:10, fontWeight:700, color: isToday? "#FFFFFF" : "#8B889A"}}>{weekdayShort(w.day)}</span>
                     </div>
                   );
                 });
@@ -7715,6 +7600,7 @@ function FocusGoInner() {
 
         const leftTabs = [
           {k:"today", Icon: Home, label: t.tabs.today, active: tab === "today", onClick: ()=>{vibrate(); setTab("today");}},
+          ...(studyFeatureEnabled ? [{k:"study", Icon: GraduationCap, label: t.tabs.study, active: isStudyActive, onClick: ()=>{vibrate(); setTab("study"); setStudySection("plan");}}] : []),
         ];
         const rightTabs = [
           ...(tasksFeatureEnabled ? [{k:"task", Icon: ListChecks, label: t.tabs.task, active: tab === "task", onClick: ()=>{vibrate(); setTab("task");}}] : []),
@@ -7724,23 +7610,23 @@ function FocusGoInner() {
         const TabBtn = ({Icon, label, active, onClick}) => (
           <button onClick={onClick} style={{
             flex:1, height:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2,
-            border:"none", background: active ? accentLight : "transparent", borderRadius:27, cursor:"pointer", padding:"0 2px", fontFamily:"inherit",
+            border:"none", background: active ? accentLight : "transparent", borderRadius:26, cursor:"pointer", padding:"0 2px", fontFamily:"inherit",
             color: active ? accent : textMuted2, transition:"background .2s ease, color .2s ease",
           }}>
             <Icon size={22} strokeWidth={active?2.3:1.8}/>
-            <span style={{fontSize:10.5, fontWeight:600, lineHeight:1.1}}>{label}</span>
+            <span style={{fontSize:10, fontWeight:600, lineHeight:1.1}}>{label}</span>
           </button>
         );
 
         const FAB = 56;
         const navBarBg = cardBg;
-        // Floating glass tab bar (final) -- wrapper পুরো নিচে sticky, ভেতরের pill-টা আসল bar, FAB আলাদা ভাসমান বৃত্ত
+        // iOS floating glass tab bar -- wrapper পুরো নিচে sticky, ভেতরের pill-টা আসল bar
         const navWrapStyle = {
           position:"sticky", left:0, right:0, bottom:0, zIndex:40, background:"transparent",
           pointerEvents:"none", padding:"0 14px calc(env(safe-area-inset-bottom, 0px) + 10px)",
         };
         const navPillStyle = {
-          pointerEvents:"auto", height:62, borderRadius:31, boxSizing:"border-box",
+          pointerEvents:"auto", height:60, borderRadius:30, boxSizing:"border-box",
           background: iosGlassCard,
           WebkitBackdropFilter:"blur(26px) saturate(190%)", backdropFilter:"blur(26px) saturate(190%)",
           boxShadow:`inset 0 1px 0 ${iosGlassHi}, 0 10px 30px rgba(30,20,80,${dark ? "0.45" : "0.16"}), 0 0 0 0.5px ${iosGlassLine}`,
@@ -7765,20 +7651,9 @@ function FocusGoInner() {
                 height:"100%", padding:4, boxSizing:"border-box",
               }}>
                 <div style={{flex:1, display:"flex"}}>{leftTabs.map(tb => <TabBtn key={tb.k} {...tb}/>)}</div>
-                <div style={{width:FAB + 20, flexShrink:0}}/>
+                <div style={{width:FAB, flexShrink:0}}/>
                 <div style={{flex:1, display:"flex"}}>{rightTabs.map(tb => <TabBtn key={tb.k} {...tb}/>)}</div>
               </div>
-              <button onClick={handleAddTap} style={{
-                  position:"absolute", left:"50%", top:-20, transform:"translateX(-50%)",
-                  width:FAB, height:FAB, borderRadius:"50%", border:"none",
-                  background: `linear-gradient(135deg, ${accent}, ${shadeColor(accent, -18)})`,
-                  color:"#FFFFFF",
-                  display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
-                  boxShadow:`0 0 0 5px ${navBarBg}, 0 12px 26px ${accent}66, inset 0 1px 0 rgba(255,255,255,0.3)`,
-                  zIndex:46,
-                }}>
-                <Plus size={26} strokeWidth={2.6}/>
-              </button>
 
               {showQuickAddMenu && (
                 <>
@@ -7812,6 +7687,17 @@ function FocusGoInner() {
                 </>
               )}
 
+              <button onClick={handleAddTap} style={{
+                  position:"absolute", left:"50%", top:-20, transform:"translateX(-50%)",
+                  width:FAB, height:FAB, borderRadius:"50%", border:"none",
+                  background: accent,
+                  color: dark ? "#171522" : "#FFFFFF",
+                  display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
+                  boxShadow:`0 0 0 5px ${navBarBg}, 0 12px 26px ${accent}66, inset 0 1px 0 rgba(255,255,255,0.3)`,
+                  zIndex:46,
+                }}>
+                <Plus size={26} strokeWidth={2.6}/>
+              </button>
             </div>
           </div>
         );
