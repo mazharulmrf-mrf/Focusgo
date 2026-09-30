@@ -3080,7 +3080,7 @@ const ACCENT_OPTIONS = [
   { key: "sun",   labelBn: "সান",    labelEn: "Sun",   light: "#EDE94A", dark: "#F4F26A" },
 ];
 function accentHexFor(key, dark) {
-  // Settings-এ ইউজার যেই accent বেছে নিয়েছে সেটাই এখন প্রয়োগ হয় (আগে জোর করে ভায়োলেট দেখানো হতো)।
+  // Settings-এ যেই accent বেছে নেওয়া হয়, সেটাই এখন প্রয়োগ হয় (নতুন "Sun" রং সহ)।
   const found = ACCENT_OPTIONS.find(a => a.key === key);
   if (found) return dark ? found.dark : found.light;
   return dark ? "#A78BFA" : "#7C5CFC";
@@ -3375,12 +3375,12 @@ function PlanoInner() {
     try {
       const saved = window.localStorage.getItem("focusgo_theme_mode_v2");
       if (saved === "system" || THEME_ORDER.includes(saved)) return saved;
-      // একদম নতুন ইউজার (কোনো saved value নেই) — ডিফল্ট এখন "plano"
+      // এখন পুরো অ্যাপ ডিফল্ট হিসেবে "plano" থিমে খুলবে
       return "plano";
     } catch (e) {
       return "plano";
     }
-  }); // "system" | "light" | "dark" | "ivory" | "graphite" | "mist" | "plano"
+  }); // "system" | "light" | "dark" | "ivory" | "graphite" | "mist"
 
   // Keep the selected theme across browser refreshes without waiting for Firestore.
   useEffect(() => {
